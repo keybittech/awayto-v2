@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.paths.json",
+  "include": [
+    "./",
+    "../core"
+  ],
+  "compilerOptions": {
+    "target": "es6",
+    "strict": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "noEmit": false
+  }
+}

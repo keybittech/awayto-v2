@@ -1,0 +1,62 @@
+# docker-compose up -d --build
+# docker-compose logs -f -t
+# docker-compose top
+
+version: '3.9'
+services:
+  app:
+    image: wcapp
+    build: ./app
+    ports:
+      - 443:443
+  auth:
+    image: wcauth
+    build: ./auth
+    ports:
+      - 8443:8443
+    environment:
+      - KC_HOSTNAME_ADMIN=192.168.1.53
+      - KC_KEYCLOAK_USER=admin
+      - KC_KEYCLOAK_PASSWORD=kcpass
+      - KC_DB_URL=jdbc:postgresql://192.168.1.53:8082/sysmaindb
+      - KC_DB_USERNAME=postgres
+      - KC_DB_PASSWORD=postgres
+      - KC_HOSTNAME=192.168.1.53
+    depends_on:
+      - db
+  sock:
+    image: wcsock
+    build: ./sock
+    ports:
+      - 8081:8080
+  db:
+    image: wcdb
+    ports:
+      - 8082:5432
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  api:
+    image: wcapi
+    build: ./api
+    ports:
+      - 8083:3000
+    environment:
+      - PG_HOST=192.168.1.53
+      - PG_PORT=8082
+      - PG_USER=postgres
+      - PG_PASSWORD=postgres
+      - PG_DATABASE=sysmaindb
+    depends_on:
+      - db
+  turn:
+    image: coturn/coturn
+    network_mode: 'host'
+    restart: always
+    volumes:
+      - ./turn/turnserver.conf:/etc/coturn/turnserver.conf
+
+volumes:
+  pgdata:
+    external: true
