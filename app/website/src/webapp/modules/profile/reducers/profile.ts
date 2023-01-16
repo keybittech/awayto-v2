@@ -11,6 +11,7 @@ const profileReducer: Reducer<IUserProfileState, IUserProfileActions> = (state =
   switch (action.type) {
     case IUserProfileActionTypes.HAS_CODE:
     case IUserProfileActionTypes.SIGNUP_USER:
+    case IUserProfileActionTypes.KC_LOGIN:
     case IUserProfileActionTypes.POST_USER_PROFILE:
     case IUserProfileActionTypes.PUT_USER_PROFILE:
     case IUserProfileActionTypes.GET_USER_PROFILE_DETAILS:

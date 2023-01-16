@@ -22,6 +22,9 @@ import persistStore from 'redux-persist/es/persistStore';
 import { setStore, ThunkStore } from './hooks/useDispatch';
 import { asyncForEach, ILoadedState } from 'awayto';
 
+import { ReactKeycloakProvider } from '@react-keycloak/web';
+import keycloak from './keycloak';
+
 import build from './build.json';
 import reportWebVitals from './reportWebVitals';
 import './index.css';
@@ -196,9 +199,11 @@ export async function awayto(renderComponent: JSX.Element): Promise<void> {
 
 awayto(
   <MuiPickersUtilsProvider utils={MomentUtils}>
-    <ConnectedRouter history={history}>
-      <App />
-    </ConnectedRouter>
+    <ReactKeycloakProvider authClient={keycloak} initOptions={{ onLoad: 'login-required' }}>
+      <ConnectedRouter history={history}>
+        <App />
+      </ConnectedRouter>
+    </ReactKeycloakProvider>
   </MuiPickersUtilsProvider>
 ).catch(console.error);
 

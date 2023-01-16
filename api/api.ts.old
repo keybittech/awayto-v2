@@ -1,0 +1,103 @@
+
+import { custom, Issuer, Strategy } from 'openid-client';
+import passport from 'passport';
+
+  // const keycloakIssuer = await Issuer.discover('https://192.168.1.53/auth/realms/devel');
+  // const Keycloak = new keycloakIssuer.Client({
+  //   client_id: 'devel-client',
+  //   client_secret: 'akvdjbsiuvb93vb439v8b43vu',
+  //   redirect_uris: ['https://192.168.1.53/api/kc/auth/callback'],
+  //   post_logout_redirect_uris: ['https://192.168.1.53/api/kc/auth/logout/callback'],
+  //   response_types: ['code']
+  // });
+
+  // Keycloak.authorizationUrl({
+  //   resource: 'https://192.168.1.53/auth'
+  // });
+
+  // // Create Keycloak strategy for passport internal use
+  // // @ts-ignore
+  // passport.use('oidc', new Strategy({client: Keycloak }, (tokenSet, userinfo, done) => {
+  //   return done(null, tokenSet.claims());
+  // }));
+
+  // passport.serializeUser(function (user, done) {
+  //   done(null, user);
+  // });
+
+  // passport.deserializeUser(function (user, done) {
+  //   // @ts-ignore
+  //   done(null, user);
+  // });
+
+  // app.use(function (request, response, next) {
+  //   response.header('Access-Control-Allow-Credentials', 'true');
+  //   response.header(
+  //     'Access-Control-Allow-Origin',
+  //     request.headers.origin,
+  //   );
+  //   response.header(
+  //     'Access-Control-Allow-Methods',
+  //     'GET,PUT,POST,DELETE,OPTIONS',
+  //   );
+  //   response.header(
+  //     'Access-Control-Allow-Headers',
+  //     '',
+  //   );
+  //   if ('OPTIONS' == request.method) {
+  //     response.send(200);
+  //   } else {
+  //     next();
+  //   }
+  // });
+
+
+
+  // app.use(passport.initialize());
+  // app.use(passport.authenticate('session'));
+
+  
+
+  // const checkAuthenticated: RequestHandler = (req, res, next) => {
+  //   if (req.isAuthenticated()) {
+  //     return next()
+  //   }
+  //   passport.authenticate('oidc')(req, res, next);
+  // }
+
+  // // start login request
+  // app.get('/kc/auth/login', (req, res, next) => {
+  //   console.log('are we here `1');
+  //   passport.authenticate('oidc', (err, user, info) => {
+  //     console.log('are we here 2');
+  //   })(req, res, next);
+  // });
+
+  // app.get('/kc/auth/callback', (req, res, next) => {
+  //   passport.authenticate('oidc', (err, user, info) => {
+
+  //     console.log('oidc callback');
+  //     if (err) return next(err);
+
+  //     if (!user) return res.redirect('/404');
+
+  //     req.logIn(user, err => {
+  //       if (err) return next(err);
+
+  //       res.status(200).send();
+  //     });
+  //   })(req, res, next);
+  // });
+
+  // // start logout request
+  // app.get('/kc/auth/logout', (req, res) => {
+  //   res.redirect(Keycloak.endSessionUrl());
+  // });
+
+  // // logout callback
+  // app.get('/kc/auth/logout/callback', (req, res) => {
+  //   // clears the persisted user from the local storage
+  //   req.logout({}, console.log);
+  //   // redirects the user to a public route
+  //   res.status(200).send();
+  // });

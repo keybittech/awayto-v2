@@ -1,0 +1,5 @@
+/api/node_modules
+/api/build
+/app/website/node_modules
+/app/website/build
+/sock/node_modules

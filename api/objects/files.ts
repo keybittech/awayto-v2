@@ -1,4 +1,4 @@
-import uuid4 from 'uuid/v4';
+import { v4 as uuidV4 } from 'uuid';
 
 import { ApiModule, buildUpdate } from '../util/db';
 
@@ -11,7 +11,7 @@ const files: ApiModule = [
     path : 'files',
     cmnd : async (props) => {
       try {
-        const uuid = uuid4();
+        const uuid = uuidV4();
         const { name, fileTypeId: file_type_id, location } = props.event.body as IFile;
 
         const response = await props.client.query<{ id: string }>(`

@@ -1,5 +1,5 @@
 import { createElement, useMemo, lazy } from 'react';
-import { IBaseComponent, IBaseComponents, LazyComponentPromise } from '../';
+import { IBaseComponent, IBaseComponents, LazyComponentPromise } from '..';
 
 import build from '../build.json';
 

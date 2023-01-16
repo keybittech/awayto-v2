@@ -16,8 +16,10 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import Backdrop from '@material-ui/core/Backdrop';
 import AppBar from '@material-ui/core/AppBar';
 
-import { IUtilActionTypes } from 'awayto';
-import { useRedux, useAct, useComponents, useKeycloak } from 'awayto-hooks';
+import { useKeycloak } from '@react-keycloak/web';
+
+import { IUtilActionTypes, IUserProfileActionTypes } from 'awayto';
+import { useRedux, useAct, useComponents, useApi } from 'awayto-hooks';
 
 import './App.css';
 import { ThemeProvider } from '@material-ui/styles';
@@ -29,6 +31,7 @@ function Alert(props: AlertProps): JSX.Element {
 }
 
 const { SET_SNACK } = IUtilActionTypes;
+const { GET_USER_PROFILE_DETAILS, KC_LOGIN } = IUserProfileActionTypes;
 
 const App = (props: IProps): JSX.Element => {
 
@@ -36,28 +39,17 @@ const App = (props: IProps): JSX.Element => {
 
   const { Sidebar, ConfirmAction, Home, Profile, ChangeNewPassword, Login, Manage, SignUp, CompleteSignUp, PickTheme, FAQ, GettingStarted } = useComponents();
 
-  const keycloak = useKeycloak();
+  const { keycloak } = useKeycloak();
+  const api = useApi();
 
   useEffect(() => {
-    async function go() {
-
-      if (keycloak.authenticated) {
-        await keycloak.login();
-      } else {
-    
-      }
+    if (keycloak.authenticated) {
+      void api(GET_USER_PROFILE_DETAILS);
     }
-    void go();
-  })
-  
+  }, [keycloak.authenticated])
 
-  // Keep this useCognitoUser() call to bootstrap login state
-  // Check login state with KeyCloak
-  // useCognitoUser();
-  
   const act = useAct();
   const login = useRedux(state => state.login);
-  const { hasSignUpCode } = useRedux(state => state.profile);
   const { snackOn, snackType, isLoading, loadingMessage, theme } = useRedux(state => state.util);
 
   const hideSnack = (): void => {
@@ -68,7 +60,7 @@ const App = (props: IProps): JSX.Element => {
     <ThemeProvider theme={themes[theme || 'dark']}>
       <CssBaseline />
 
-      {login.isLoggedIn ?
+      {keycloak.authenticated ?
         <div className={classes.root}>
           <AppBar position="fixed" className={classes.appBar}>
             <Toolbar />
@@ -146,10 +138,11 @@ const App = (props: IProps): JSX.Element => {
                   </Grid>
                 </Grid>
               }>
-                <Switch>
+                <div>Logging in...</div>
+                {/* <Switch>
                   <Route exact path="/" render={() => login.challengeName ? <ChangeNewPassword {...props} /> : <Login {...props} />} />
                   <Route exact path="/signup" render={() => hasSignUpCode ? <CompleteSignUp {...props} /> : <SignUp {...props} />} />
-                </Switch>
+                </Switch> */}
               </Suspense>
             </Grid>
           </Grid>

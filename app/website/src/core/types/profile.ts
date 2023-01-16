@@ -56,6 +56,7 @@ export type IUserProfileState = Partial<IUserProfile>;
 export enum IUserProfileActionTypes {
   HAS_CODE = "login/HAS_CODE",
   SIGNUP_USER = "login/SIGNUP_USER",
+  KC_LOGIN = "GET/kc/auth/login",
   POST_USER_PROFILE = "POST/users",
   PUT_USER_PROFILE = "PUT/users",
   GET_USER_PROFILE_DETAILS = "GET/users/details",
@@ -68,7 +69,12 @@ export enum IUserProfileActionTypes {
 /**
  * @category User Profile
  */
- export type ISignUpUserAction = PayloadAction<IUserProfileActionTypes.SIGNUP_USER, IUserProfile>;
+export type ISignUpUserAction = PayloadAction<IUserProfileActionTypes.SIGNUP_USER, IUserProfile>;
+
+/**
+ * @category User Profile
+ */
+export type IKCLoginAction = PayloadAction<IUserProfileActionTypes.KC_LOGIN, IUserProfile>;
 
 /**
  * @category User Profile
@@ -109,6 +115,7 @@ export type IDisableUserProfileAction = PayloadAction<IUserProfileActionTypes.DI
  * @category User Profile
  */
 export type IUserProfileActions = LogoutAction
+  | IKCLoginAction
   | IHasCodeUserProfileAction
   | ISignUpUserAction
   | IPostUserProfileAction 

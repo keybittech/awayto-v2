@@ -5,7 +5,8 @@
     "../core"
   ],
   "compilerOptions": {
-    "target": "es6",
+    "target": "es2017",
+    "module": "esnext",
     "strict": true,
     "moduleResolution": "node",
     "esModuleInterop": true,

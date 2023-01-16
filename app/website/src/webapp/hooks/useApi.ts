@@ -16,6 +16,8 @@ import {
 
 import { useAct } from './useAct';
 
+import keycloak from '../keycloak';
+
 export function registerApi(api: IActionTypes): void {
   ApiActions = Object.assign(ApiActions, api);
 }
@@ -42,12 +44,10 @@ const callApi = async ({ path = '', method = 'GET', body }: CallApi): Promise<Re
 
   type ApiResponse = Response & Partial<ApiResponseBody> & Response;
   
-  // Get KeyCloak session bearer here
-  // const session = await cognitoUser.getSession();
-  const response = await fetch(`http://192.168.1.53:8083/${path}`, {
+  const response = await fetch(`/api/${path}`, {
     method, body, headers: {
       'Content-Type': 'application/json',
-      'Authorization': 'session.getIdToken().getToken()'
+      'Authorization': keycloak.token
     }
   } as RequestInit) as ApiResponse;
 

@@ -18,7 +18,7 @@ const keycloakConfig = {
 
 // Storage for connected members
 const pendingTickets = {};
-const connections = [];
+const connections = {};
 
 // Start a generic http server
 const server = createServer().listen(8080);
@@ -44,11 +44,11 @@ server.on('request', function (req, res) {
       // Proxied from front end through api for kc auth check
       // Create a temporary ticket that the host can use to create a socket later
       if ('/create_ticket/' === req.url) {
-        const ip = req.headers['x-forwarded-for'];
+        const host = req.headers['x-forwarded-for'];
         const { localId } = JSON.parse(body);
-        const host = pendingTickets[ip] = pendingTickets[ip] || {};
-        host.tickets = host.tickets || [];
-        host.tickets.push(localId);
+        const hostTix = pendingTickets[host] = pendingTickets[host] || {};
+        hostTix.tickets = hostTix.tickets || [];
+        hostTix.tickets.push(localId);
       }
       res.writeHead(200);
       res.end();
@@ -96,56 +96,52 @@ server.on('upgrade', function (req, socket, head) {
   }
 });
 
-// When we receive a ping from client, this will flag it alive on the server
-// for another 30 seconds
-function hb() {
-  this.isAlive = true;
-}
+
 
 wss.on('connection', function (ws, req) {
   // Setup socket info and attach to server
   ws.id = v4();
   ws.isAlive = true;
-  connections.push(ws);
+  connections[ws.localId] = ws;
 
   // Remove any active processes and server refs on close
   ws.on('close', function () {
     cleanUp(ws);
   });
 
-  // Auto handle pongs
-  ws.on('pong', hb);
+  // When we receive a ping from client, this will flag it alive on the server for another 30 seconds
+  ws.on('pong', function () {
+    ws.isAlive = true;
+  });
 
   // Handle incoming messages
   ws.on('message', function (message) {
     try {
       // Messages will have a sender and type, might have a message or other
       const parsed = JSON.parse(message.toString());
+      const localIdBuffer = Buffer.from(ws.localId);
 
       if ('text' === parsed.type) {
 
         if (parsed.target) {
           // p2p messaging
-
+          dm(parsed.target, Buffer.concat([localIdBuffer, message]));
+        } else {
+          // For generic text messages, send to all participants for now
+          wss.clients.forEach(function (ws) {
+            if (ws.readyState === WebSocket.OPEN) {
+              ws.send(message);
+            }
+          });
         }
-
-        // For generic text messages, send to all participants for now
-        wss.clients.forEach(function (client) {
-          if (client.readyState === WebSocket.OPEN) {
-            client.send(message);
-          }
-        });
       } else if (parsed.rtc) { // WebRTC catchall
         if (parsed.target) {
-          const target = connections.find(ws => ws.localId === parsed.target)
-          if (target && target.readyState === WebSocket.OPEN) {
-            target.send(message);
-          }
+          dm(parsed.target, message);
         } else {
           // Handles join-call
-          wss.clients.forEach(function (client) {
-            if (client.localId !== parsed.sender && client.readyState === WebSocket.OPEN) {
-              client.send(message);
+          wss.clients.forEach(function (ws) {
+            if (ws.localId !== parsed.sender && ws.readyState === WebSocket.OPEN) {
+              ws.send(message);
             }
           });
         }
@@ -163,10 +159,17 @@ wss.on('connection', function (ws, req) {
   })));
 });
 
+function dm(target, message) {
+  const ws = connections[target];
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(message);
+  }
+}
+
 function cleanUp(ws) {
   try {  
     // Remove from connection pool
-    const pos = connections.indexOf(ws);
+    const pos = connections[ws.localId];
     if (-1 < pos) {
       console.log('removing connection');
       connections.splice(pos);
