@@ -5,7 +5,7 @@ export default async function auditRequest(props: ApiProps): Promise<void> {
   const { event, client } = props;
 
   const auditBody = typeof event.body == 'object' ? JSON.stringify(event.body) : typeof event.body == 'string' ? event.body : null;
-  const path = `${event.httpMethod}/${event.pathParameters.proxy}`;
+  const path = `${event.method}/${event.path}`;
 
   await client.query(`
     INSERT INTO request_log(ip_address, sub, path, payload, direction)

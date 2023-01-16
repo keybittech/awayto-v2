@@ -1,6 +1,7 @@
 import express, { Express, Request, Response } from 'express';
 import postgres from 'pg';
-import session from 'express-session';
+import cookieSession from 'cookie-session';
+import cookieParser from 'cookie-parser';
 import httpProxy from 'http-proxy';
 import cors from 'cors';
 import fs from 'fs';
@@ -24,7 +25,7 @@ try {
     password: process.env.PG_PASSWORD,
     database: process.env.PG_DATABASE
   });
-  
+
   // Connect to Postgres
   client.connect((err) => {
     if (err) {
@@ -33,13 +34,8 @@ try {
     }
   });
 
-  // KeyCloak Store
-  const memoryStore = new session.MemoryStore();
-
-  const keycloak = new Keycloak({ store: memoryStore }, keycloakConfig);
-
-  // Proxy to WSS
-  const proxy = httpProxy.createProxyServer();
+  // Init Keycloak
+  const keycloak = new Keycloak({ cookies: true }, keycloakConfig);
 
   // Create Express app
   const app: Express = express();
@@ -47,33 +43,35 @@ try {
   // // Configure for reverse proxy
   app.set('trust proxy', true);
 
+  // Store keycloak token in session
+  app.use(cookieSession({
+    name: 'primary_session',
+    secret: 'skjrhvp43hgf90348hg9348hg9348hgf934hg',
+    maxAge: 24 * 60 * 60 * 1000
+  }));
+
+  // Enable cookie parsing to read keycloak token
+  app.use(cookieParser());
+
   // Keycloak auto recognize headers, etc
   app.use(keycloak.middleware());
 
   // Enable CORS
   app.use(cors());
 
-  // Use same session as keycloak
-  app.use(
-    session({
-      secret: 'akvn430h',
-      resave: false,
-      saveUninitialized: true,
-      store: memoryStore
-    })
-  );
-
   // Set all api to be JSON consuming
   app.use(express.json());
 
   // Define protected routes
   Objects.protected.forEach((route) => {
+
     // Here we make use of the extra /api from the reverse proxy because keycloak responses can be redirected back here and we can't change the redirect url with keycloak-connect
     app[route.method.toLowerCase() as keyof Express](`/api/${route.path}`, keycloak.protect(), async (req: Request, res: Response) => {
 
       // Create trace event
       const event = {
-        httpMethod: route.method,
+        method: route.method,
+        path: route.path,
         userSub: 'string',
         sourceIp: req.headers['x-forwarded-for'] as string,
         pathParameters: req.params,
@@ -103,7 +101,8 @@ try {
 
       // Create trace event
       const event = {
-        httpMethod: route.method,
+        method: route.method,
+        path: route.path,
         userSub: 'string',
         sourceIp: req.headers['x-forwarded-for'] as string,
         pathParameters: req.params,
@@ -118,6 +117,9 @@ try {
     });
   });
 
+  // Proxy to WSS
+  const proxy = httpProxy.createProxyServer();
+
   // Websocket Ticket Proxy
   app.post('/api/ticket', keycloak.protect(), (req, res, next) => {
     proxy.web(req, res, {
@@ -126,12 +128,12 @@ try {
   });
 
   // default protected route /test
-  app.get('/404', (req, res, next) => {
+  app.get('/api/404', (req, res, next) => {
     res.status(404).send('Not found.');
   });
 
   // Health Check
-  app.get('/health', (req, res) => {
+  app.get('/api/health', (req, res) => {
     let status = 'OK';
 
     // Check if Postgres client is connected

@@ -15,7 +15,7 @@ COPY ./api/package.json /app
 RUN npm i --silent
 
 COPY ./core /core
-COPY ./api /app
+# COPY ./api /app
 
 # RUN npm run build -- disabled for dev
 

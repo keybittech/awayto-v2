@@ -26,7 +26,7 @@ module.exports = {
   },
   target: 'node',
   optimization: {
-    minimize: true
+    minimize: false
   },
   experiments: {
     topLevelAwait: true

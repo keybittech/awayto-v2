@@ -22,7 +22,8 @@ export type ApiModulet = {
  */
 export type ApiProps = {
   event: {
-    httpMethod: string;
+    method: string;
+    path: string;
     userSub: string;
     sourceIp: string;
     pathParameters: Record<string, string>,

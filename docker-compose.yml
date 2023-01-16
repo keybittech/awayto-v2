@@ -47,7 +47,6 @@ services:
       - pgdata:/var/lib/postgresql/data
   api: # express passport for keycloak auth
     image: wcapi
-    user: node
     build:
       context: ./
       dockerfile: ./api/Dockerfile
@@ -62,9 +61,9 @@ services:
       - NODE_TLS_REJECT_UNAUTHORIZED=0 # Remove when having cert - otherwise keycloak blocks redirects
     depends_on:
       - db
-    # volumes:
+    volumes:
       # - ./core:/core # added for dev
-      # - ./api:/app # added for dev
+      - ./api:/app # added for dev
       # - node_modules:/app/node_modules
   turn: # STUN/TURN server for WebRTC
     image: coturn/coturn
