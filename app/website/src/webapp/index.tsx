@@ -23,7 +23,6 @@ import { setStore, ThunkStore } from './hooks/useDispatch';
 import { asyncForEach, ILoadedState } from 'awayto';
 
 import { ReactKeycloakProvider } from '@react-keycloak/web';
-import keycloak from './keycloak';
 
 import build from './build.json';
 import reportWebVitals from './reportWebVitals';
@@ -199,11 +198,9 @@ export async function awayto(renderComponent: JSX.Element): Promise<void> {
 
 awayto(
   <MuiPickersUtilsProvider utils={MomentUtils}>
-    <ReactKeycloakProvider authClient={keycloak} initOptions={{ onLoad: 'login-required' }}>
       <ConnectedRouter history={history}>
         <App />
       </ConnectedRouter>
-    </ReactKeycloakProvider>
   </MuiPickersUtilsProvider>
 ).catch(console.error);
 
