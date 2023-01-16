@@ -87,7 +87,7 @@ export type TempComponent = IBaseComponent | string | undefined
 /**
  * @category Redux
  */
-export const history: History<unknown> = createBrowserHistory();
+export const history: History<unknown> = createBrowserHistory({ basename: '/app' });
 
 const initialRootState = {} as ISharedState;
 const rootReducer: Reducer<ILoadedState, ISharedActions> = (state = initialRootState) => {

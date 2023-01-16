@@ -11,6 +11,9 @@ COPY ./app/website /app
 RUN npm run build-web
 
 
+## TODO ADD HUGO BUILD PROCESS
+
+
 FROM nginx:alpine
 EXPOSE 443
 RUN mkdir -p /etc/ssl/private && chmod 700 /etc/ssl/private
