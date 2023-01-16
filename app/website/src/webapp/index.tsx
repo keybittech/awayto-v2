@@ -22,8 +22,6 @@ import persistStore from 'redux-persist/es/persistStore';
 import { setStore, ThunkStore } from './hooks/useDispatch';
 import { asyncForEach, ILoadedState } from 'awayto';
 
-import { ReactKeycloakProvider } from '@react-keycloak/web';
-
 import build from './build.json';
 import reportWebVitals from './reportWebVitals';
 import './index.css';

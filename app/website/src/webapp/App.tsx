@@ -38,16 +38,12 @@ const { GET_USER_PROFILE_DETAILS, KC_LOGIN } = IUserProfileActionTypes;
 
 const App = (props: IProps): JSX.Element => {
 
-  const [keycloakReady, setKeycloakReady] = useState(false);
-
   const { classes, history } = props;
-
-  const { Sidebar, ConfirmAction, Home, Profile, ChangeNewPassword, Login, Manage, SignUp, CompleteSignUp, PickTheme, FAQ, GettingStarted } = useComponents();
-
-  const api = useApi();
-
+  
   const act = useAct();
-  const login = useRedux(state => state.login);
+
+  const [keycloakReady, setKeycloakReady] = useState(false);
+  const { Sidebar, ConfirmAction, Home, Profile, Manage } = useComponents();
   const { snackOn, snackType, isLoading, loadingMessage, theme } = useRedux(state => state.util);
 
   const hideSnack = (): void => {
@@ -67,98 +63,72 @@ const App = (props: IProps): JSX.Element => {
           <ThemeProvider theme={themes[theme || 'dark']}>
             <CssBaseline />
 
-            {keycloak.authenticated ?
-              <div className={classes.root}>
-                <AppBar position="fixed" className={classes.appBar}>
-                  <Toolbar />
-                </AppBar>
-                <Suspense fallback={
-                  <Drawer className={classes.drawer} variant="permanent" classes={{ paper: classes.drawerPaper }} >
-                    <Grid container style={{ height: '100vh' }} alignContent="space-between">
-                      <Grid item xs={12} style={{ marginTop: '20px' }}>
-                        <Grid container justifyContent="center">
-                          <img src={Icon} alt="kbt-icon" className={classes.logo} />
-                        </Grid>
-                        <Grid container style={{ padding: '10px' }}>
-                          <Skeleton variant="text" width="100%" />
-                          <Skeleton variant="text" width="100%" />
-                          <Skeleton variant="text" width="100%" />
-                        </Grid>
-                      </Grid>
-                    </Grid>
-                  </Drawer>
-                }>
-                  <Sidebar {...props} />
-                </Suspense>
-                <main className={classes.content}>
-                  <div className={classes.toolbar} />
+            {
+              keycloak.authenticated ?
+                <div className={classes.root}>
+                  <AppBar position="fixed" className={classes.appBar}>
+                    <Toolbar />
+                  </AppBar>
                   <Suspense fallback={
-                    <Grid container direction="row">
-                      <AppBar position="fixed" className={classes.appBar}>
-                        <Toolbar />
-                      </AppBar>
-                      <Grid container spacing={4} style={{ padding: '20px 20px 40px' }}>
-                        <Skeleton variant="text" width="100%" />
-                        <Skeleton variant="rect" width="100%" height="150px" animation="pulse" />
-                      </Grid>
-                      <Grid container spacing={4} style={{ padding: '20px' }}>
-                        <Skeleton variant="text" width="100%" />
-                        <Skeleton variant="rect" width="100%" height="150px" animation="pulse" />
-                      </Grid>
-                    </Grid >
-                  }>
-                    <Switch>
-                      {login.challengeName && <Redirect to="/" />}
-                      {history.location.pathname === '/' && <Redirect to="/home" />}
-                      <Route exact path="/home" render={() => <Home {...props} />} />
-                      <Route exact path="/profile" render={() => <Profile {...props} />} />
-                      <Route exact path="/manage/:component" render={({ match }) => <Manage {...props} view={match.params.component} />} />
-                    </Switch>
-                  </Suspense>
-                </main>
-              </div> :
-              <main>
-                <Grid container justifyContent="center">
-                  <Grid item xs={10}>
-                    <Typography className={classes.link} color="primary" component={Link} to="/">
-                      <Grid container alignItems="center" direction="row">
-                        <img src={Icon} alt="keybit tech logo" className={classes.appLogo} />
-                        <Typography variant="h3">&nbsp;AWAYTO</Typography>
-                      </Grid>
-                    </Typography>
-                  </Grid>
-                </Grid>
-                <Grid container className={classes.loginWrap} justifyContent="center" direction="row">
-                  <Grid item xs={10} style={{ paddingBottom: '50px' }}>
-                    <Suspense fallback={
-                      <Grid container direction="row" justifyContent="center" spacing={2}>
-                        <Grid item xs={9}>
-                          <Skeleton variant="rect" height="60vh" />
-                        </Grid>
-                        <Grid item xs={3}>
-                          <Skeleton variant="text" height="50px" />
-                          <Skeleton variant="text" height="50px" />
-                          <Grid container direction="row" justifyContent="space-between">
-                            <Skeleton variant="text" width="100px" height="50px" />
-                            <Skeleton variant="text" width="100px" height="50px" />
+                    <Drawer className={classes.drawer} variant="permanent" classes={{ paper: classes.drawerPaper }} >
+                      <Grid container style={{ height: '100vh' }} alignContent="space-between">
+                        <Grid item xs={12} style={{ marginTop: '20px' }}>
+                          <Grid container justifyContent="center">
+                            <img src={Icon} alt="kbt-icon" className={classes.logo} />
+                          </Grid>
+                          <Grid container style={{ padding: '10px' }}>
+                            <Skeleton variant="text" width="100%" />
+                            <Skeleton variant="text" width="100%" />
+                            <Skeleton variant="text" width="100%" />
                           </Grid>
                         </Grid>
                       </Grid>
+                    </Drawer>
+                  }>
+                    <Sidebar {...props} />
+                  </Suspense>
+                  <main className={classes.content}>
+                    <div className={classes.toolbar} />
+                    <Suspense fallback={
+                      <Grid container direction="row">
+                        <AppBar position="fixed" className={classes.appBar}>
+                          <Toolbar />
+                        </AppBar>
+                        <Grid container spacing={4} style={{ padding: '20px 20px 40px' }}>
+                          <Skeleton variant="text" width="100%" />
+                          <Skeleton variant="rect" width="100%" height="150px" animation="pulse" />
+                        </Grid>
+                        <Grid container spacing={4} style={{ padding: '20px' }}>
+                          <Skeleton variant="text" width="100%" />
+                          <Skeleton variant="rect" width="100%" height="150px" animation="pulse" />
+                        </Grid>
+                      </Grid >
                     }>
-                      <div>Logging in...</div>
-                      {/* <Switch>
-                  <Route exact path="/" render={() => login.challengeName ? <ChangeNewPassword {...props} /> : <Login {...props} />} />
-                  <Route exact path="/signup" render={() => hasSignUpCode ? <CompleteSignUp {...props} /> : <SignUp {...props} />} />
-                </Switch> */}
+                      <Switch>
+                        <Route exact path="/home" render={() => <Home {...props} />} />
+                        <Route exact path="/profile" render={() => <Profile {...props} />} />
+                        <Route exact path="/manage/:component" render={({ match }) => <Manage {...props} view={match.params.component} />} />
+                      </Switch>
                     </Suspense>
+                  </main>
+                </div> :
+                <main>
+                  <Grid container justifyContent="center">
+                    <Grid item xs={10}>
+                      <Typography className={classes.link} color="primary" component={Link} to="/">
+                        <Grid container alignItems="center" direction="row">
+                          <img src={Icon} alt="keybit tech logo" className={classes.appLogo} />
+                          <Typography variant="h3">&nbsp;AWAYTO</Typography>
+                        </Grid>
+                      </Typography>
+                    </Grid>
                   </Grid>
-                </Grid>
-                <Suspense fallback="">
-                  <div style={{ position: 'fixed', bottom: 0, right: 0 }}>
-                    <PickTheme {...props} showTitle={false} />
-                  </div>
-                </Suspense>
-              </main>
+                  <Grid container className={classes.loginWrap} justifyContent="center" direction="row">
+                    <Grid item xs={10} style={{ paddingBottom: '50px' }}>
+                      <div>Could not authenticate. Contact your administrator.</div>
+                    </Grid>
+                  </Grid>
+                </main>
             }
 
             {!!snackOn && <Snackbar open={!!snackOn} autoHideDuration={6000} onClose={hideSnack}>
