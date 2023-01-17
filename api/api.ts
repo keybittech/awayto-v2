@@ -7,6 +7,8 @@ import cors from 'cors';
 import fs from 'fs';
 import https from 'https';
 import Keycloak from 'keycloak-connect';
+import { graylog } from 'graylog2';
+import { v4 as uuid } from 'uuid';
 
 import Objects from './objects';
 import keycloakConfig from './keycloak.json';
@@ -15,7 +17,21 @@ import auditRequest from './util/auditor';
 import authorize from './util/auth';
 import { inspect } from 'util';
 
+type KCAuthRequest = Request & {
+  kauth: {
+    grant: {
+      access_token: {
+        content: { [prop: string]: string }
+      }
+    }
+  }
+}
+
 try {
+
+  const logger = new graylog({
+    servers: [{ host: '192.168.1.53', port: 12201 }]
+  });
 
   // Configure Postgres client
   const client = new postgres.Client({
@@ -63,34 +79,37 @@ try {
   app.use(express.json());
 
   // Define protected routes
-  Objects.protected.forEach((route) => {
+  Objects.protected.forEach(({ method, path, cmnd }) => {
 
     // Here we make use of the extra /api from the reverse proxy because keycloak responses can be redirected back here and we can't change the redirect url with keycloak-connect
-    app[route.method.toLowerCase() as keyof Express](`/api/${route.path}`, keycloak.protect(), async (req: Request, res: Response) => {
-
+    app[method.toLowerCase() as keyof Express](`/api/${path}`, keycloak.protect(), async (req: KCAuthRequest, res: Response) => {
+      const requestId = uuid();
       // Create trace event
       const event = {
-        method: route.method,
-        path: route.path,
-        userSub: 'string',
+        requestId,
+        method,
+        path,
+        userSub: req.kauth.grant.access_token.content.preferred_username,
         sourceIp: req.headers['x-forwarded-for'] as string,
         pathParameters: req.params,
         body: req.body
       }
 
-      console.log('activity', 'protected api', inspect(event));
+      logger.log('request attempt', event);
 
       try {
         // Handle request
-        const result = await route.cmnd({ event, client });
+        const result = await cmnd({ event, client });
 
         // Respond
         res.status(200).json(result);
 
-      } catch (err) {
+      } catch (error) {
+
+        logger.log('error response', Object.assign(event, { error }));
 
         // Handle failures
-        res.status(500).send(err);
+        res.status(500).send({ requestId });
       }
     });
   });

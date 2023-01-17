@@ -1,8 +1,7 @@
 import Icon from './img/kbt-icon.png';
 
-import React, { Suspense, useEffect, useState } from 'react';
-import { Route, Redirect, withRouter, Switch, Link } from 'react-router-dom';
-import { parse } from 'querystring';
+import React, { Suspense, useState } from 'react';
+import { Route, withRouter, Switch, Link } from 'react-router-dom';
 import MuiAlert, { AlertProps } from '@material-ui/lab/Alert';
 import { Skeleton } from '@material-ui/lab';
 import MomentUtils from '@date-io/moment';
@@ -18,7 +17,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import Backdrop from '@material-ui/core/Backdrop';
 import AppBar from '@material-ui/core/AppBar';
 
-import { ReactKeycloakProvider, useKeycloak } from '@react-keycloak/web';
+import { ReactKeycloakProvider } from '@react-keycloak/web';
 
 import { IUtilActionTypes, IUserProfileActionTypes } from 'awayto';
 import { useRedux, useAct, useComponents, useApi } from 'awayto-hooks';
@@ -29,17 +28,20 @@ import { CssBaseline } from '@material-ui/core';
 import { themes, styles } from './style';
 import { MuiPickersUtilsProvider } from '@material-ui/pickers';
 
+const { GET_USER_PROFILE_DETAILS } = IUserProfileActionTypes;
+
 function Alert(props: AlertProps): JSX.Element {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
 
 const { SET_SNACK } = IUtilActionTypes;
-const { GET_USER_PROFILE_DETAILS, KC_LOGIN } = IUserProfileActionTypes;
 
 const App = (props: IProps): JSX.Element => {
 
   const { classes, history } = props;
   
+  const api = useApi();
+
   const act = useAct();
 
   const [keycloakReady, setKeycloakReady] = useState(false);
@@ -51,10 +53,13 @@ const App = (props: IProps): JSX.Element => {
   }
 
   return <>
-    <ReactKeycloakProvider authClient={keycloak} initOptions={{ onLoad: 'login-required' }}
+    <ReactKeycloakProvider authClient={keycloak} initOptions={{
+      onLoad: 'login-required'
+    }}
       onEvent={(event) => {
         if ('onReady' === event) {
           setKeycloakReady(true);
+          void api(GET_USER_PROFILE_DETAILS);
         }
       }}
     >
@@ -131,7 +136,7 @@ const App = (props: IProps): JSX.Element => {
                 </main>
             }
 
-            {!!snackOn && <Snackbar open={!!snackOn} autoHideDuration={6000} onClose={hideSnack}>
+            {!!snackOn && <Snackbar open={!!snackOn} autoHideDuration={15000} onClose={hideSnack}>
               <Alert onClose={hideSnack} severity={snackType || "info"}>
                 {snackOn}
               </Alert>

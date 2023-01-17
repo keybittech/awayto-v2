@@ -153,7 +153,7 @@ export interface ApiResponseBody {
   type: string;
   message: string;
   statusCode: number;
-  awsRequestId: string;
+  requestId: string;
 }
 
 /**

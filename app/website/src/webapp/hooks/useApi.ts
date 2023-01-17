@@ -56,15 +56,9 @@ const callApi = async ({ path = '', method = 'GET', body }: CallApi): Promise<Re
   if (response.ok)
     return await response.json() as Response;
     
-  const { error } = await response.json() as { error: string };
+  const { requestId } = await response.json() as { requestId: string };
 
-  const awsErr = response.awsRequestId ? `AWS Request Id: ${response.awsRequestId}` : '';
-  const message = response.message ? `Message: ${response.message}` : '';
-  const err = error ? `Error: ${error}` : '';
-
-  const errStr = `${awsErr} ${message} ${err}`;
-
-  throw errStr.length ? errStr : response;
+  throw requestId ? `Request Id: ${requestId}` : response;
 };
 
 
@@ -121,7 +115,7 @@ export function useApi(): <T = unknown>(actionType: IActionTypes, load?: boolean
       return responseBody;
       
     } catch (error) { 
-      act(SET_SNACK, { snackType: 'error', snackOn: 'Critical API error. Check network activity or report to system administrator.' });
+      act(SET_SNACK, { snackType: 'error', snackOn: 'Critical API error. Check network activity or report to system administrator. ' + (error ? error as string : '') });
       act(API_ERROR, { error: 'Critical API error. Check network activity or report to system administrator.' });
     } finally {
       if (load) act(STOP_LOADING, { isLoading: false });
