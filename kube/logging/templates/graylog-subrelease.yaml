@@ -1,0 +1,169 @@
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: graylog-secrets
+  namespace: application
+spec:
+  encryptedData:
+    GRAYLOG_PASSWORD_SECRET: AgApo27CWbViNdT5HqtyfKk/yX8mLLdW7kX50lkfQR7cafcsrh5y5rrshY/b/SNkF+fV9SCgmpi7Gspuic5scAcQE1FJfQbGS5o7JhaNcRnsEUC82sCeDMTpO6LEWlCcakfBEfHQMTtm6IFoqwRDEwqn5G/UrUPBpuUuP6+3NMVMLj/o7LoZbpnmKpgWht3d+rm8yBZE4r67z35Slo68zrX1n25FUQb6KJ2PnX2UggGTF9ldHT/nsDBjRAG5Z5cD2vZr8KUn2gzIQhCwGho9Y2PjFdllKh1aNN0de9sRj4Rs2opDZ9tLdI62AQIJ9eO+bORZLL8w05T6YGyZnebL/GYac7y3IoVHO8O9e53kyNg8L0D/Qe4EaSjHb9TN0uSk2ph1mHx8xDdUiNpnpzkAW6R4ms7FJnPu9KjyGSOeG6YEFEH59S31qDBC348l9GNBgWAzzYJ9IRI6wJcG4uwktNX6E0cC0ITHmZeM4FsitogegHSRwxRPQh4opyd1H7AMMYs52VgmKXdOrs0ab274+MHV6pH3vncPf1nrXgwIKFRGpKO+TSOWWEh9Nb9m3Ys2/3MpUG23QfivYJDkbVv1VEV36a+ijDsp4Jgdoz9uwYw6+ICBq2hiyq+2IlS3h3nzQohPXVWMo57qdXhIVCOZD8PMzpmS8YRIMHPB5bgwwK0gDq4dcE9hbuelP+FwGL70IHu+tD42K6E7BfX+VrfS8RPR2IQ/9WP3
+    GRAYLOG_ROOT_PASSWORD_SHA2: AgAhYZgcGGmw25eeMe7Slaxm20Z9PjLvYUtotmVD2gpKAExRUy9xWhpJlLNt41c+BNo945W7gstwTlRGsMRsELl3IjXgtay+vjvWU/o3xoS9ifTUCkE9jwh3h4/k7iUAqTlS0CAnw9q6Iui2d3ZhWQhYacBavtEE/6R8FfyKQQ17XfdpQNwjqrGryQ9f8uEnLO+MzNyVLnDMaUx25TVsvJKSHFanL/o8GyzdFTApn2R/St8guKyv7QXRLTggp1yDuywnOlMR2RLOZKaqSM7YgC29diIsvvQ/Lap1wr8q+lYZW8OFDIuaPH53oXHFADtb0nVsPWwVm9YIu7owcP8U1Qr0h4ovi4KMw4zAeW1uII8ZYX9JOo6XimgyyE+mziLnxrD8KhbJtr5J0Na7bKqeyQhj+rOX+HdUbXdP6D3q+iAF5YPzra3TaWXc6Ic+iYXUZE7BKdKp4nwm6v3i+FggaOEuPY02y3h+YrPA7aeperED+OoD1vv2As+VWZutWI5ze2ETjLdh8ttj1pNl4q9JT/3uVaDsmTtlBPCyoaihX59IV4RN3tgyYGC/tYzntnidJknO4WEzs5GWyd2o17gfs4p4apD8bYOw+dvOUAuJx7Oz9LAvguuEZKc+waMHuK6nT0i5AIPmZmwrMNcevQ5Cug7olPnwEsVxeXg6a/7bO6Lbqbc62jW47IK/YGLwA8hfhLyO9L4WAjNhkQS5HdPGKud77b+MX3ZquTBZ/YdFHfMJiAF1EU1ubOa4kSNEZ266EfXVwGZ1c6DmMpDAX/4pEiOo
+  template:
+    metadata:
+      creationTimestamp: null
+      name: graylog-secrets
+      namespace: application
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: graylog-cm
+  namespace: application
+data:
+  GRAYLOG_HTTP_BIND_ADDRESS: 0.0.0.0:9000
+  GRAYLOG_HTTP_EXTERNAL_URI: {{ .Values.graylog.host }}
+  GRAYLOG_SERVER_JAVA_OPTS: -Xms1g -Xmx1g -XX:NewRatio=1 -XX:MaxMetaspaceSize=256m -server -XX:+ResizeTLAB -XX:+UseConcMarkSweepGC -XX:+CMSConcurrentMTEnabled -XX:+CMSClassUnloadingEnabled -XX:+UseParNewGC -XX:-OmitStackTraceInFastThrow
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: graylog
+  namespace: application
+  labels:
+    app: graylog
+    release: {{ .Release.Name }}
+spec:
+  podManagementPolicy: OrderedReady
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: graylog
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      namespace: application
+      labels:
+        app: graylog
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - envFrom:
+        - configMapRef:
+            name: graylog-cm
+        - secretRef:
+            name: graylog-secrets
+        image: graylog/graylog:3.0.1
+        imagePullPolicy: IfNotPresent
+        name: graylog-master
+        ports:
+        - containerPort: 9000
+          name: http
+          protocol: TCP
+        - containerPort: 12201
+          name: udp-input
+          protocol: TCP
+        - containerPort: 1514
+          name: tcp-input
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 4
+          httpGet:
+            path: /api/system/lbstatus
+            port: 9000
+            scheme: HTTP
+          initialDelaySeconds: 120
+          periodSeconds: 3
+          successThreshold: 1
+          timeoutSeconds: 3
+        resources:
+          limits:
+            cpu: 500m
+            memory: 1536M
+          requests:
+            cpu: 100m
+            memory: 512M
+        securityContext:
+          privileged: true
+          runAsUser: 1100
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /usr/share/graylog/data/journal
+          name: graylog-persistent-storage
+          subPath: graylog
+      dnsPolicy: ClusterFirst
+      initContainers:
+      - command:
+        - sh
+        - -c
+        - chown -R 1100:1100 /usr/share/graylog/data/journal
+        - chmod 777 /usr/share/graylog/data/journal/graylog2-committed-read-offset
+        - chmod g+rwx /usr/share/graylog/data/journal/graylog2-committed-read-offset
+        - chgrp 1100 /usr/share/graylog/data/journal/graylog2-committed-read-offset
+        - chown -R 1100:1100 ./graylog_journal
+        - chown -R 1100:1100 /usr/share/graylog/data/journal
+        - chown -R 1100:1100 /usr/share/graylog/data/journal/graylog2-committed-read-offset
+        image: busybox:1.29.2
+        imagePullPolicy: IfNotPresent
+        name: set-dir-owner
+        resources: {}
+        securityContext:
+          privileged: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /usr/share/graylog/data/journal
+          name: graylog-persistent-storage
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 70
+  updateStrategy:
+    type: OnDelete
+  volumeClaimTemplates:
+  - metadata:
+      name: graylog-persistent-storage
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 4Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: graylog
+  namespace: application
+  labels:
+    app: graylog
+    release: {{ .Release.Name }}
+spec:
+  type: NodePort
+  ports:
+  - name: "80"
+    port: 80
+    targetPort: 9000
+    nodePort: 30900
+  - name: "443"
+    port: 443
+    targetPort: 9000
+    nodePort: 30433
+  - name: "514"
+    port: 514
+    targetPort: 514
+  - name: 514-udp
+    port: 514
+    protocol: UDP
+    targetPort: 514
+  - name: "12201"
+    port: 12201
+    targetPort: 12201
+  - name: 12201-udp
+    port: 12201
+    protocol: UDP
+    targetPort: 12201
+  selector:
+    app: graylog
+    release: {{ .Release.Name }}

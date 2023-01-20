@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongo
+  namespace: application
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb
+  template:
+    metadata:
+      labels:
+        app: mongodb
+        namespace: application
+        release: {{ .Release.Name }}
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: mongo
+        image: mongo:3
+        ports:
+          - containerPort: 27017
+        volumeMounts:
+          - name: mongo-persistent-volume
+            mountPath: /data/db
+        resources:
+          limits:
+            cpu: 750m
+            memory: 2048M
+          requests:
+            cpu: 100m
+            memory: 512M
+  volumeClaimTemplates:
+  - metadata:
+      name: mongo-persistent-volume
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 4Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo
+  namespace: application
+  labels:
+    app: mongo
+spec:
+  ports:
+  - name: mongo
+    port: 27017
+    targetPort: 27017
+  selector:
+    app: mongodb
+    release: {{ .Release.Name }}
