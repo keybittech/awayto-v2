@@ -43,7 +43,7 @@ server.on('request', function (req, res) {
       // User wants to get a ticket to open a socket
       // Proxied from front end through api for kc auth check
       // Create a temporary ticket that the host can use to create a socket later
-      if ('/create_ticket/' === req.url) {
+      if (req.url.includes('create_ticket')) {
         const host = req.headers['x-forwarded-for'];
         const { localId } = JSON.parse(body);
         const hostTix = pendingTickets[host] = pendingTickets[host] || {};
