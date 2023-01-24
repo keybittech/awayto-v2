@@ -1,0 +1,84 @@
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: api-secrets
+  namespace: default
+spec:
+  encryptedData:
+    PG_DATABASE: AgBKAJvSkEuyfcInCxxZ9Oe+pNzA3h0W1yy6V/cFqp4f2nChaDk/+gHo2s5/+WS4QjhceVN6xxu4Hh/eTbZPCR+w0IMnPXyj7gwn5TW8fYjSLIZvesL+3D7mJV91RHK7ALPHLuWmttwJiAoh5F1yqwNA1J+xm6Iow2ufmrXhSIDZqri78TGoNZ/1u5XQLUxNHhafn6OexLUrbgQ7mMz/gcVlyDlVkbZ2sxYsuKor+X2eKdTIDHZqMuQAumbhu6mhLxr1HetrCC+Y8WFFnOVXhpXO03mdExqMf4eWtRati0REaFbahg6Cy4xYtTjm30XNlPZ9OSb0ZA27mgVDDS5Q6ysLEAMHb+jDx4xztbSy1OJxsdUfDVWP7gmOmp6idJKlB9S1JYDF2Dvv2oHQ7J+jiSAowWHQ/5gcvFHl0LtTwcCxJiUp0IC3DMyMUSaxbKnF+g+j3+1ZzAxSNFmsTk5pP/KJVozkvcISFRlcjuwKYEvwBuclCUUVo8k2xTCul2v1aTmY2s5JNGCcKy2TyasTjOk2Wzz+SuNWpbyX1P7tXVmEuh9BTAsU2Eh77Rp9E9INbBnx4fUScq1VKcMpSeFf+f9Vr6PvZM/UsaHLP6VBmZAV3obDUnPi0mBuCz7QYQM7/aUDndJD5ecj9uGCXHYaYXmlbWD4GdXAOncc1YctSVJaIwwDXI5TuIEBGbY32B65gaqkCw6sinhnyhU=
+    PG_PASSWORD: AgBu9pkuGEuHf1BSHI0b+eranvgBigvNN4D2ybJ4Pa8CCs9vhM9stgh4lSfPxE3UXuq6rapOp0c/RdS/lOzKS8uA+l4H1NeUmChhhO5l0vSCL3bKqRJ1pc01mD0jQhgU2XP/X3XfLx95ZoeKlpjyMPou/+yiPQlGINJJiP90Es6tdAnc+q+//hkYqQ+mFXlWjwL5l29wB7FjbChqoBcUi9kNtLYHbx24aeLQ5mYf5M6diH+2MKekIo/7Lf9Ar80Fk0f6x54HUv8vjkxNMTeKTTJ3AgmUDcAJLGXbGFZLt3RXeJwRoOPUR/nw1BgxQlsCZEGz8qU7X7+B1Q+aRkcAIlRsyuXPIEhiUkHn2WxhxqYE1bA2kKsdF2B9Iyq4Q4FeBQrje3ND/KoujnyaoPS2t/ym0NEG1gN21wVWGFN3d4uiIOzG9S5HQCKtFlC50qEhRE65qXBI0qvjpeN3bUkl4e9f6R4H2OGjA6oYFDwS96yW6lRWOZ3Q3sYMBWp5PWFnSOii7wzTllJuh4j5Ab9M0YUDduFbxyX68+gVoz8oI4GwhGa3xdlaGu8khelgUqIJlDtMdmGkF/4+N6xZLvyLtJL/0NLvdoOQTDJQ4NNbSidkhOCx3KLasTN2oH4dS7saddDPmdqQOJZaeIL2o0qzhXLTRzctpHzUJTydbJtHLGrj0+ecyUv0UimbnKnFUp4wEFuTlEMXgJcdgNAxIL6a0QU=
+    PG_USER: AgBW/Co+LF1WRwJ91RClSBFVtUv73EVuoVFh5p+R3Jg6CjSng7Sa2FzFzByCtrVlQQOb/+HiJEPxevhAzbUFNLQbzaviHpOIH1H8u/u9+sGHrQvuK8E4kcw+Q6mpWrxmQROfiL1gFZMoV5wtsXyn/qYiounuQcvkXCoAQatr6gCpY/FN6ZzK/PVI5+COyH29ziUBb2/uLdyziRdvlkXsJqagi9ya29YsxQIuWBTvhVCd95bmmKcXrQaSxNRcmSYRjdiC1rmrEnBHrtfsmAin1qXBq8R1vheJjGUHp1DSJPKTE3CpNbdsh8HwsptkDXt1pN3HEnDvaySErPlKo3RanNef8u2BGmf07tcW2kJ8HHXFn+dr/D1PAHxJ00OX48eBF/adxAPIN0ASCRRa0MlWmiai+hMMfD78NHKv8PSBmhC5uafeJRdDD3LT8Uhp+BQEOGXrF1ZNkzs1Yczj8Ya4RnmSmFcMQMyG4vZ+UNjARUomGAgMdyDr6lwXuLXz6xH/+mO1ib7C79Ny7n7q7vudfACYatyzZbGHFvIziPGfg1xicVCCdcb2tYBfSqKgkURvWDJ98QffFTNEJzwNvi+fpqL5F1DGA7GZVKnm/84BF2/n+H/1RZWXLp6lOdRM+EoncIuQ4a0cfAPQ3r8zKk+L9hqBythoCLEErtueS/Px0NJQHu9ErTlcyQlpiAuzEvx7d77jGbEVZuA8wg==
+  template:
+    metadata:
+      creationTimestamp: null
+      name: api-secrets
+      namespace: default
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-cm
+data:
+  PG_HOST: postgres
+  PG_PORT: "{{ .Values.postgres.port }}"
+  GRAYLOG_HOST: graylog
+  GRAYLOG_PORT: "{{ .Values.graylog.port }}"
+  SOCK_HOST: sock
+  SOCK_PORT: "{{ .Values.sock.port }}"
+  NODE_TLS_REJECT_UNAUTHORIZED: "0"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+        namespace: default
+        release: {{ .Release.Name }}
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: api
+        image: wcapi
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 9443
+        resources:
+          limits:
+            cpu: 250m
+            memory: 768M
+          requests:
+            cpu: 100m
+            memory: 512M
+        securityContext:
+          runAsUser: 0
+        envFrom:
+        - configMapRef:
+            name: api-cm
+        - secretRef:
+            name: api-secrets
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api
+  namespace: default
+  labels:
+    app: api
+spec:
+  ports:
+  - name: api
+    port: 8083
+    targetPort: 9443
+  selector:
+    app: api
+    release: {{ .Release.Name }}

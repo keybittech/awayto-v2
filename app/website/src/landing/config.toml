@@ -1,5 +1,5 @@
 title = 'test'
-baseURL = 'https://192.168.1.53/'
+baseURL = 'https://wcapp.site.com/'
 languageCode = 'en-us'
 
 [params]

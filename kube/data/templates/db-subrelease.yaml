@@ -3,21 +3,21 @@ kind: SealedSecret
 metadata:
   creationTimestamp: null
   name: postgres-secrets
-  namespace: application
+  namespace: default
 spec:
   encryptedData:
-    POSTGRES_PASSWORD: AgA2wRPFiPtcLQykuJpq+Z+FCnWn9SClhQ98LeXmWPV+kvMkOxHTTF13baV8jtgUbDKGZMG6Yl/uLOkgCDmSGXk2U6Brr9iPnMlyIBzsq7WIFnUFYq0cT56e4mGRhd/0P3i+p0WbwjGSlZq9niF1WnDthNLGCeSrYyb2fAoqcbj+MtyLye+JDCPDNCoSy9GuAOfqzpGoDLd+JR/F4572CSXdyOP8mg3MIptTlBcBkZ003NhGp7LyC+GuHooTP9OTEXfuIVSAK1EGHEU5erfhSwA/ZbqcDyHs0u0eXZcnxaEdaqsPhVcULlaMSZxPw9h4oydogtfZx+/xUVNKZPdTOk3+/Hzrm5Jlei+qQummOwR1LfDlvga632r0gAKCUmJ7hEAg2awSBeUBkNZjwc7oRgjoqX5euJESA6Fs4nR/KAxcT4yx6MYann7ty+lJ55Th0QyB0bliZtHUvxh0CcRb+zwT9J0aCRqC7zKxQ86oLeyo2HbO1rIGzCnDQ07WBtujuCLoMvRHPvB3Zvr6QNfSKUJS7/c8/04hWyy/3Ntbk0lijRkhKC5N7S0wdUQ4camx6zB+uymH34fxaWfaavP8NwlfodpDNgp3H/alEdpnRj6gipfP8VLJOV2xq/4WNzZXRSg5cur8mIeWj85DL+CHMRoNm0Pw1YsU0tbGj1xOWHYdnHs7Qg2zaAST7d9cB65NYYE3sMTmHiI1IxNCJARks5Q=
+    POSTGRES_PASSWORD: AgCPsErLWn9Gr09KPn5+LlcKUUcRm12Gxtb51lVeZA50aWjN960PmXFV4PcAM58FUd8uJPvQqEJ7JOBamjYczyUOncFHa8RBd3LPRDs2z3bebviIcItw7CgzNKHok4e5rG09gZzx6/4C0oQmcWmKnTxVXowDoWbEzabCjhrzNyRJW1pgJCFrEdb4qPSk5T3eTJkr9ClfJw1tCjZPleUdnzcp/GGjTZbP/AXkTCHbHGw8w68LxftFxOksDISPO9uk2/xh3GUywdPKw/Xl4/AAS2omeLabSE99aTDxQucoLlhHosuYecsgiAb5lF7QUzyX8Z1uNUbTQg1jURNkgGTXoSMfWwOfvZogQWaMD3doN7nbBYPvJRk1NcB6K6KtA1mnSf3NoUMv5DXYn+5xmuFBO2WWAtpivwnr84SywlZ+OZLrHGoCA+PLdG42JNItSDJmoAuIxfPLRW2c8Zj9NeTyQogS73Nn40xhmAGGEpyVyuX62t3ysjbB0oIGGEVnfGexVWsSKzC7xY33C0sgmE6QCDUAuRibmW5OBRDfLNyzeRQ2tLE/eDVfI9EE2oy7bYHeWYPQpCk0tivCG9VS+krr+6iwEFthN/Gd39UfX11j88opTIghQ53uo42FUxS/HdxJl14B7EgOIiDTLy7cRAW2hm+oH1QK/DTC+Ezf+QdBHm+gpzI/dnuRdpVOht/SkFXx92cxfFwiVD4x3mLOSU9xzSk=
   template:
     metadata:
       creationTimestamp: null
       name: postgres-secrets
-      namespace: application
+      namespace: default
 ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: postgres
-  namespace: application
+  namespace: default
 spec:
   replicas: 1
   selector:
@@ -27,7 +27,7 @@ spec:
     metadata:
       labels:
         app: postgres
-        namespace: application
+        namespace: default
         release: {{ .Release.Name }}
     spec:
       terminationGracePeriodSeconds: 10
@@ -37,16 +37,17 @@ spec:
         imagePullPolicy: Never
         ports:
         - containerPort: 5432
+          name: default-db-svc
         volumeMounts:
         - name: postgres-persistent-volume
           mountPath: /var/lib/postgresql/data
         resources:
           requests:
-            memory: 2048M
-            cpu: 1000m
+            memory: 1024M
+            cpu: 500m
           limits:
-            memory: 4096M
-            cpu: 2000m
+            memory: 1536M
+            cpu: 750m
         envFrom:
         - secretRef:
             name: postgres-secrets
@@ -65,16 +66,14 @@ apiVersion: v1
 kind: Service
 metadata:
   name: postgres
-  namespace: application
+  namespace: default
   labels:
     app: postgres
 spec:
-  type: NodePort
   ports:
   - name: postgres
-    port: 5432
-    targetPort: 5432
-    nodePort: 30543
+    port: 8082
+    targetPort: default-db-svc
   selector:
     app: postgres
     release: {{ .Release.Name }}

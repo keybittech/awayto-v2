@@ -1,0 +1,34 @@
+Installation
+- minikube start --driver=kvm2 --cpus=4 --memory=8124 --disk-size=40GB
+- minikube addons enable dashboard
+- minikube addons enable metrics-server
+- minikube addons enable metallb
+- minikube ip
+- kc apply -f ./metallb-cm.yaml
+- kc apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.5.1/deploy/static/provider/cloud/deploy.yaml
+- kc apply -f https://github.com/jetstack/cert-manager/releases/download/v1.7.1/cert-manager.yaml
+
+- helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
+- helm install sealed-secrets sealed-secrets/sealed-secrets
+- openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout server.key -out server.crt -subj "/CN=wcapp.site.com/O=wcapp.site.com" -addext "subjectAltName = DNS:wcapp.site.com"
+- kc create secret tls cert-secret --key server.key --cert server.crt
+
+
+
+Nginx Ctrl Status
+kc get pods --all-namespaces -l app=ingress-nginx
+
+Scale Pods
+kubectl scale --replicas=0 statefulset postgres -n application
+
+Access kube from outside
+kubectl proxy --address='0.0.0.0' --disable-filter=true # dev only
+
+Patch a Resource
+kubectl patch svc web -p '{"spec": {"type": "ClusterIP"}}'
+
+Create the Secrets objects by running kubectl create -f secrets.yaml
+Create the ConfigMap objects by running kubectl create -f configmaps.yaml
+Create the PersistentVolumeClaim objects by running kubectl create -f persistentvolumeclaims.yaml
+Create the Deployment objects by running kubectl create -f deployments.yaml
+Create the Service objects by running kubectl create -f services.yaml

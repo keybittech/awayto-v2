@@ -26,7 +26,7 @@ export function Sidebar (props: IProps): JSX.Element {
   }
 
   const logout = async () => {
-    await keycloak.logout({ redirectUri: 'https://192.168.1.53' });
+    await keycloak.logout({ redirectUri: 'https://wcapp.site.com' });
   }
 
   return (

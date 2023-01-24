@@ -1,0 +1,82 @@
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: auth-secrets
+  namespace: default
+spec:
+  encryptedData:
+    KC_DB_PASSWORD: AgAWjwd2s2As6g0CpXlnpIxjgQCcF5hNCi0YIDPhxT5ioSs5g02JtPr+/WkIXlMS+EMGj+zEMGk906l36kD2vGBE7b+JPGPp2hfKmFIE4RUJYVKwMTtWv3+4C+aCdMvLmEHu9c6n3/FJwdOIZ1r1nl2yRDsDnJ4uxvSeGNUEonnEuLvHWZW55i56o3u3Oqr/VB12k2mbDezZe5hlOw8MjjZNi911y/tTFf66vSrFC42/1idBAVzXwcBUZjtJbfxy6o7Ndz8iby/pN2dSglINax5PmAJ3uHGX/mKR1EgxNn1E79zrYxe5+gyVYtc0s1cm14VtIwM618PZ9s7STasbyZ2pGxPVxNTgFQvZf8LTebCtzBsxWJM/gqSklAV7rjcZILaqMhBoq3BO0clDI8LjsY200nz6tCSI92PKP+XEETGfHqAS7mVUBshTmlu03BC/bDoUtgUaWIMpn1wr3MtUMF7Pz3glztK0hj6fQOowwYJdYntu71LKmZwNBg86TDKFCupjRDM591iE+xXxxbNbD9EAjXKmWCXuBEmn2ediCfyf13D4LeU1xizHSdO5QJGJG/gsshXPMm2Y79F5MpWeyAe95hZJXNvH8t66vk42FIDoEXvLdZw6Z39HlH+SkXNp4C886EMaEdHm0A6pWzHQ6/2d/pPTREt52+DLs0+RrXvC1KVkBg9yPQNxjBqHdG7NgBuXKQxGv09lWcDTlQNSWTI=
+    KC_DB_USERNAME: AgB8Q5t7YpiVaV1bSfch5gK8V00BifhnMn08PNF2r4/IsKHso7FLo6vuYc3fQNJRetQxVWGds+9vRrwSYAHtkioD65FuioGDuzas3FwNqY8/XC+l/Aq/crtbqoLUTWB2J8QQjJfsDVvZTUzhm0/w4ePWYb6IN0i5Y/Bq0UvnITaUTP+8xQYXyNXKdtO0XbY3C1I05aJ0FBWJjJrSmEtPj2ECn17pFuopduQhn+GcDYfHxRdhIMpS//mZk7oDNRh7t+9NJ9oGjh57KvG8bL5FoPEi5dbzCjXlOguQsfd3pF1Mim7HcgRtzt3Axfv/orSv9O3eBP3VHwvU7Jb1fdp6/KS6LdEbv/twMabyeCtAtosB4qBvbWROCVryHTipdFTo7DTs0I84pFwZ+Gic8LNICeo6aZ9Ihd24WiZLWlcM+giYEbkoAiOtbJCkDGPzBdyi7NDN/3Noag1jvCgY4KZMwvhthxtDoahZfk6kO7FdSFG08V46XlSmPV94fdSFSxA18dCTA3DzDEQBvXL+6dRutE0/156vj0kJrZLKr0su5BEJo3PcuxCD8ZCll4QGImSCkK1u/z/NI+IoZJcFZnxa/wHV1qlY8q1DrshnCiAnYjuV6sVJizC8gt6961rh31qXJ2CVC2DxCYUEJJG5SuqEBwjaFkixnyeEl2P9MWzGZMCAa4GQDw2cpUSG2/61vAWYl1CwDg0LColNdw==
+    KEYCLOAK_ADMIN: AgAtrziuztTZrR4E542D8I1o7i7yuK7226He4U3bMRdvTefARbi7jBj72t+1LpDubD15Yunf/o2B1C5z1IdNdSO+vJtFECv29gNPB/lf781YhQhsEXfMCcoY2KVs2/SjUCpOP2nllekrmS7grnE3rXRE8T2mzo2tiAFxUl5t5JhN5kvr7fyUN3bvqs1TpQp4gzrLzOZhj4/bJnIMIlCyNwzLYnkw9BB4mdh3aaDiIGWbLoqJyEazIuxkWfjnzdvUd72YGHBfqul7/qYTdQ6rS7dyG218IHndfj+SUEr8A+8MvfSaJBAQXihDVw10Q7KuZj4qktsfq/8ajJkjscw6oXEZyYvhKBaYmxOw6s52Lkf/2qaxG5bgwEeKHel95eI5L1NYtrf4vKxIvQ1uMetenO1Bp57PaO3YSDDxxRF/7/lVBlYJgkm+SMZe7c51m2Hry4GTVhzmoNCpZ11wi88ITP/2YekImpFI58MJlrlOSRVpe3fad0U5yjt9YhOrpuCB3GY4eSfo174aAnGI/zv935yyigmBO6i2bqy/JKFww46m6+4RoS9GOynKvbcQ0rbzv6mRmy1VKfBR/iydmM0isvpRjg2tSrZx+XAQbTT2Jvy0K1IqZw5qo9nzj88LqBEuhMyiJv1Q8NSbBWEuH7l+K9Ftv3vn/RFYGlMRbZZKQIhocS1INB8+ba3DjAYUzt4Kc/Vk9VCc6w==
+    KEYCLOAK_ADMIN_PASSWORD: AgAOGjVNErfFDqHPkgBSDAgfKe/pZGlair+7XEQF4cNFYjr8BCWsw96z4WJtjlmB2HYPp5t+4x9jExZ36+Vu52p39vD5N7NKmGChDYYwVKh88QGxnyejrzDCFzm+feGpMs/llfIJs2bK9kE+mkgV3B2nBahZnNXMTaWZD33HMadm9UlpddwSm5IGNWGYWTqyRDdVp/8YFMQAphaH0+fTcfQBDqZhUaflgGwFwsoKW8NCHAtlcDPAhD3wxeY2COURrjOm7LYM7BhsMTE4QHlv9Gf1GqQqLqPeopeuihJ5N4BBf5tNiwMEQXW/DAiXDeupMF3f6W/vd+Y9Gh4ECMl2LOE8jbzAQDkv59v3Iay2jejSTsr4eJdVx/y3CbJABsudrHp201Cu483AQ0i9GgayU+AO99qWHooI/cHEo0j0787I51tm+NgpiqxKstQuWbGv0+77fgnqLrLoltXBBXpE5/JuTwoJlr/bH5jqCKWt5XA2ulx+eBoc3S/jI1vfXABArzv1Dmk0bespIUBkRL1PyDL3DGRuGpsmT35mZGu5r58ESteQLyjF+4vhs6LJYeL1IZfC9C9JU1GiDKStFCcrV1tv/bQRIMx1N8JOnquOqwtLYC/Wd5slFcnZicQghXrqRERB3VZpnAy6u2RNnP8so9pzAK0UIN196+oG1hAE6pW1Grb/9NIu3A7CTc24BCfmhs/icCc0QRgVEZRz2PWX9pg=
+  template:
+    metadata:
+      creationTimestamp: null
+      name: auth-secrets
+      namespace: default
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: auth-cm
+data:
+  KC_HOSTNAME_ADMIN_URL: https://{{ .Values.host.name }}/auth
+  KC_HOSTNAME_URL: https://{{ .Values.host.name }}/auth
+  KC_PROXY: edge
+  KC_HOSTNAME_STRICT_BACKCHANNEL: "true"
+  KC_DB_URL: jdbc:postgresql://postgres:{{ .Values.postgres.port }}/sysmaindb
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      labels:
+        app: auth
+        namespace: default
+        release: {{ .Release.Name }}
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: auth
+        image: wcauth
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8443
+        resources:
+          limits:
+            cpu: 500m
+            memory: 1536M
+          requests:
+            cpu: 100m
+            memory: 512M
+        securityContext:
+          runAsUser: 0
+        envFrom:
+        - configMapRef:
+            name: auth-cm
+        - secretRef:
+            name: auth-secrets
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth
+  namespace: default
+  labels:
+    app: auth
+spec:
+  ports:
+  - protocol: TCP
+    port: 8443
+    targetPort: 8443
+  selector:
+    app: auth

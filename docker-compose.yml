@@ -19,15 +19,15 @@ services:
     ports:
       - 8443:8443
     environment:
-      - KC_HOSTNAME_ADMIN_URL=https://192.168.1.53/auth
-      - KC_HOSTNAME_URL=https://192.168.1.53/auth
-      - KC_PROXY=edge
-      - KC_HOSTNAME_STRICT_BACKCHANNEL=true
-      - KC_KEYCLOAK_USER=admin
-      - KC_KEYCLOAK_PASSWORD=kcpass
-      - KC_DB_URL=jdbc:postgresql://192.168.1.53:8082/sysmaindb
-      - KC_DB_USERNAME=postgres
-      - KC_DB_PASSWORD=postgres
+      - KC_HOSTNAME_ADMIN_URL=https://192.168.1.53/auth #NONSECRET
+      - KC_HOSTNAME_URL=https://192.168.1.53/auth #NONSECRET
+      - KC_PROXY=edge #NONSECRET
+      - KC_HOSTNAME_STRICT_BACKCHANNEL=true #NONSECRET
+      - KC_KEYCLOAK_USER=admin #SECRET
+      - KC_KEYCLOAK_PASSWORD=kcpass #SECRET
+      - KC_DB_URL=jdbc:postgresql://192.168.1.53:8082/sysmaindb #NONSECRET
+      - KC_DB_USERNAME=postgres #SECRET
+      - KC_DB_PASSWORD=postgres #SECRET
     depends_on:
       - db
   sock: # websocket server
@@ -42,7 +42,7 @@ services:
     ports:
       - 8082:5432
     environment:
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_PASSWORD=postgres #SECRET
     volumes:
       - pgdata:/var/lib/postgresql/data
   api: # express passport for keycloak auth
@@ -53,12 +53,16 @@ services:
     ports:
       - 8083:9443
     environment:
-      - PG_HOST=192.168.1.53
-      - PG_PORT=8082
-      - PG_USER=postgres
-      - PG_PASSWORD=postgres
-      - PG_DATABASE=sysmaindb
-      - NODE_TLS_REJECT_UNAUTHORIZED=0 # Remove when having cert - otherwise keycloak blocks redirects
+      - PG_HOST=192.168.1.53 #NONSECRET
+      - PG_PORT=8082 #NONSECRET
+      - PG_USER=postgres #SECRET
+      - PG_PASSWORD=postgres #SECRET
+      - PG_DATABASE=sysmaindb #SECRET
+      - GRAYLOG_HOST=graylog.application
+      - GRAYLOG_PORT=12201
+      - SOCK_HOST=sock.application
+      - SOCK_PORT=8081
+      - NODE_TLS_REJECT_UNAUTHORIZED=0 #NONSECRET # Remove when having cert - otherwise keycloak blocks redirects
     depends_on:
       - db
     volumes:
@@ -84,10 +88,10 @@ services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2
     environment:
-      - http.host=0.0.0.0
-      - transport.host=localhost
-      - network.host=0.0.0.0
-      - "ES_JAVA_OPTS=-Dlog4j2.formatMsgNoLookups=true -Xms512m -Xmx512m"
+      - http.host=0.0.0.0 #NONSECRET
+      - transport.host=localhost #NONSECRET
+      - network.host=0.0.0.0 #NONSECRET
+      - "ES_JAVA_OPTS=-Dlog4j2.formatMsgNoLookups=true -Xms512m -Xmx512m" #NONSECRET
     ulimits:
       memlock:
         soft: -1
@@ -104,10 +108,10 @@ services:
     image: graylog/graylog:5.0
     environment:
       # CHANGE ME (must be at least 16 characters)!
-      - GRAYLOG_PASSWORD_SECRET=somepasswordpepper
+      - GRAYLOG_PASSWORD_SECRET=somepasswordpepper #SECRET
       # Password: admin
-      - GRAYLOG_ROOT_PASSWORD_SHA2=8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918
-      - GRAYLOG_HTTP_EXTERNAL_URI=http://127.0.0.1:9000/
+      - GRAYLOG_ROOT_PASSWORD_SHA2=8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918 #SECRET
+      - GRAYLOG_HTTP_EXTERNAL_URI=http://127.0.0.1:9000/ #NONSECRET
     entrypoint: /usr/bin/tini -- wait-for-it elasticsearch:9200 --  /docker-entrypoint.sh
     networks:
       - graylog
@@ -126,7 +130,7 @@ services:
       - 12201:12201
       # GELF UDP
       - 12201:12201/udp
-    volumes:
+    volumes: # DONE
       - graylogdata:/usr/share/graylog/data
 
 volumes:

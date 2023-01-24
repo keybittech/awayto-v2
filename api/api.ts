@@ -13,10 +13,6 @@ import { v4 as uuid } from 'uuid';
 import Objects from './objects';
 import keycloakConfig from './keycloak.json';
 
-import auditRequest from './util/auditor';
-import authorize from './util/auth';
-import { inspect } from 'util';
-
 type KCAuthRequest = Request & {
   kauth: {
     grant: {
@@ -30,7 +26,10 @@ type KCAuthRequest = Request & {
 try {
 
   const logger = new graylog({
-    servers: [{ host: '192.168.1.53', port: 12201 }]
+    servers: [{
+      host: process.env.GRAYLOG_HOST as string,
+      port: parseInt(process.env.GRAYLOG_PORT as string)
+    }]
   });
 
   // Configure Postgres client
@@ -142,7 +141,7 @@ try {
   // Websocket Ticket Proxy
   app.post('/api/ticket', keycloak.protect(), (req, res, next) => {
     proxy.web(req, res, {
-      target: 'https://192.168.1.53/sock/create_ticket'
+      target: `https://${process.env.SOCK_HOST}:${process.env.SOCK_PORT}/create_ticket`
     }, next);
   });
 
@@ -164,7 +163,7 @@ try {
   });
 
   const key = fs.readFileSync('server.key', 'utf-8');
-  const cert = fs.readFileSync('server.cert', 'utf-8');
+  const cert = fs.readFileSync('server.crt', 'utf-8');
   const creds = { key, cert };
 
   const httpsServer = https.createServer(creds, app);

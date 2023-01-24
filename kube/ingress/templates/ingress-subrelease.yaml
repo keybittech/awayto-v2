@@ -1,0 +1,32 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: wcapp
+  namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - wcapp.site.com
+    secretName: cert-secret
+  rules:
+  - host: wcapp.site.com
+    http:
+      paths:
+      - pathType: Prefix
+        path: /
+        backend:
+          service:
+            name: wcapp
+            port:
+              number: 443
+      # - pathType: Prefix
+      #   path: /auth
+      #   backend:
+      #     service:
+      #       name: auth
+      #       port:
+      #         number: 8443

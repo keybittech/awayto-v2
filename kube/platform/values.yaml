@@ -1,0 +1,11 @@
+host:
+  name: wcapp.site.com
+
+postgres:
+  port: 8082
+
+graylog:
+  port: 12201
+
+sock:
+  port: 8081

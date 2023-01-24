@@ -1,5 +1,8 @@
 node_modules
 build
+landing_build
+web_build
 *.cert
+*.crt
 *.key
 *.pem

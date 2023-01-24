@@ -1,0 +1,3 @@
+do the minikube env docker env thing
+API - docker build -t wcapi . -f ./api/Dockerfile
+WEB - docker build -t wcapp . -f ./app/Dockerfile
