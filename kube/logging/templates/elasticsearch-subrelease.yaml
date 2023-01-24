@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: elasticsearch-cm
-  namespace: application
+  namespace: default
 data:
   discovery.type: single-node
   bootstrap.memory_lock: "false"
@@ -15,7 +15,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: elasticsearch
-  namespace: application
+  namespace: default
   labels:
     component: elasticsearch
 spec:
@@ -29,7 +29,7 @@ spec:
   template:
     metadata:
       creationTimestamp: null
-      namespace: application
+      namespace: default
       labels:
         app: elasticsearch
         component: elasticsearch
@@ -52,10 +52,10 @@ spec:
         resources:
           limits:
             cpu: 750m
-            memory: 2048M
+            memory: 1500M
           requests:
             cpu: 100m
-            memory: 512M
+            memory: 900M
         securityContext:
           privileged: true
           runAsUser: 1000

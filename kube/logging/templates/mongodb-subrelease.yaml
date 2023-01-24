@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: mongo
-  namespace: application
+  namespace: default
 spec:
   replicas: 1
   selector:
@@ -12,7 +12,7 @@ spec:
     metadata:
       labels:
         app: mongodb
-        namespace: application
+        namespace: default
         release: {{ .Release.Name }}
     spec:
       terminationGracePeriodSeconds: 10
@@ -26,11 +26,11 @@ spec:
             mountPath: /data/db
         resources:
           limits:
-            cpu: 750m
-            memory: 2048M
+            cpu: 250m
+            memory: 400M
           requests:
             cpu: 100m
-            memory: 512M
+            memory: 200M
   volumeClaimTemplates:
   - metadata:
       name: mongo-persistent-volume
@@ -44,7 +44,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: mongo
-  namespace: application
+  namespace: default
   labels:
     app: mongo
 spec:

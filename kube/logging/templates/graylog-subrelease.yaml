@@ -3,32 +3,32 @@ kind: SealedSecret
 metadata:
   creationTimestamp: null
   name: graylog-secrets
-  namespace: application
+  namespace: default
 spec:
   encryptedData:
-    GRAYLOG_PASSWORD_SECRET: AgApo27CWbViNdT5HqtyfKk/yX8mLLdW7kX50lkfQR7cafcsrh5y5rrshY/b/SNkF+fV9SCgmpi7Gspuic5scAcQE1FJfQbGS5o7JhaNcRnsEUC82sCeDMTpO6LEWlCcakfBEfHQMTtm6IFoqwRDEwqn5G/UrUPBpuUuP6+3NMVMLj/o7LoZbpnmKpgWht3d+rm8yBZE4r67z35Slo68zrX1n25FUQb6KJ2PnX2UggGTF9ldHT/nsDBjRAG5Z5cD2vZr8KUn2gzIQhCwGho9Y2PjFdllKh1aNN0de9sRj4Rs2opDZ9tLdI62AQIJ9eO+bORZLL8w05T6YGyZnebL/GYac7y3IoVHO8O9e53kyNg8L0D/Qe4EaSjHb9TN0uSk2ph1mHx8xDdUiNpnpzkAW6R4ms7FJnPu9KjyGSOeG6YEFEH59S31qDBC348l9GNBgWAzzYJ9IRI6wJcG4uwktNX6E0cC0ITHmZeM4FsitogegHSRwxRPQh4opyd1H7AMMYs52VgmKXdOrs0ab274+MHV6pH3vncPf1nrXgwIKFRGpKO+TSOWWEh9Nb9m3Ys2/3MpUG23QfivYJDkbVv1VEV36a+ijDsp4Jgdoz9uwYw6+ICBq2hiyq+2IlS3h3nzQohPXVWMo57qdXhIVCOZD8PMzpmS8YRIMHPB5bgwwK0gDq4dcE9hbuelP+FwGL70IHu+tD42K6E7BfX+VrfS8RPR2IQ/9WP3
-    GRAYLOG_ROOT_PASSWORD_SHA2: AgAhYZgcGGmw25eeMe7Slaxm20Z9PjLvYUtotmVD2gpKAExRUy9xWhpJlLNt41c+BNo945W7gstwTlRGsMRsELl3IjXgtay+vjvWU/o3xoS9ifTUCkE9jwh3h4/k7iUAqTlS0CAnw9q6Iui2d3ZhWQhYacBavtEE/6R8FfyKQQ17XfdpQNwjqrGryQ9f8uEnLO+MzNyVLnDMaUx25TVsvJKSHFanL/o8GyzdFTApn2R/St8guKyv7QXRLTggp1yDuywnOlMR2RLOZKaqSM7YgC29diIsvvQ/Lap1wr8q+lYZW8OFDIuaPH53oXHFADtb0nVsPWwVm9YIu7owcP8U1Qr0h4ovi4KMw4zAeW1uII8ZYX9JOo6XimgyyE+mziLnxrD8KhbJtr5J0Na7bKqeyQhj+rOX+HdUbXdP6D3q+iAF5YPzra3TaWXc6Ic+iYXUZE7BKdKp4nwm6v3i+FggaOEuPY02y3h+YrPA7aeperED+OoD1vv2As+VWZutWI5ze2ETjLdh8ttj1pNl4q9JT/3uVaDsmTtlBPCyoaihX59IV4RN3tgyYGC/tYzntnidJknO4WEzs5GWyd2o17gfs4p4apD8bYOw+dvOUAuJx7Oz9LAvguuEZKc+waMHuK6nT0i5AIPmZmwrMNcevQ5Cug7olPnwEsVxeXg6a/7bO6Lbqbc62jW47IK/YGLwA8hfhLyO9L4WAjNhkQS5HdPGKud77b+MX3ZquTBZ/YdFHfMJiAF1EU1ubOa4kSNEZ266EfXVwGZ1c6DmMpDAX/4pEiOo
+    GRAYLOG_PASSWORD_SECRET: AgAAANIS5880l0bpUMKsORIqKSWY5cA4N5P/mKT3e6sEuYq/BCyJf+dLQEihCjxgRxkAIwGsHL5KLbz2dRTWSs8KHa5YouNXScOTzgtx5B//H8UVogmv89z2bBp1u0UanLhQAnx08mo5zbrbSlIlur3nsVy8jlAVsNMLzO8qVxIgYm+YJV2m8y3+vsttG8BuyFIROJT+iAy+znduEXMjdO7UwxpHyy/NttGt96taOj2csrt4lTpMP2FWFZ2gyzPQaQUBvdyfgADGUOcrvNl3AtU2EMGrGCuur4OjEyppFmqSLoj1SJe1MtiJKhGET0MCGQR9ArqL0IJNAkwox9Y0OzRV1OirFAGCrOGaiTt2zZkQBJAOgYPngR4t0Xb+vcyJDarROjaZiAFc21flR2D6DeNvguffwa7oT5b5pPzikkBcDf5GkJd4ykwDNmJdmBLwcbRq0Wbw849WUtaKakIF5vMT6X5x+O4867s8BEc4uCDp7AkAgiAq6T6RP1HiiFeFQonMGhPa1mUncf5/SbP0GQ85jOMOT0bV6alCCZnbiO+Z1gyLS1/r2WZjfOivXJN8iq3VEX+pseiyj0BgPEtjzuPhsOoxgp9BqxRlCJfLE1xMe6/jDHEhJ2VTGYp3eXvBErbvnLcrmQnZzUal0V3HCjPzrd0Wy280JX1PKkkhqyQhp3f3EWk+AIFcnRjwLhJVMtnd1b9iUPeO4z/nhH3uFtNBSWyY37ep
+    GRAYLOG_ROOT_PASSWORD_SHA2: AgA0HJHyFabu/gGrDd3ujzLKpfSe54CUuyOMYzRcwvARA8p9ZLdDuKZr5npZ/k79d80ekkES0+I6ZZ2rsjV5kqX+1EnLVaPRgpdpYEGQR5sVp1DdMC9/l+DukyUI8bnQXBr0i4C4QgnBi8Baw5+vk3fxy2Bw6kOrCE98vBXAj/4d5/i8yhW1iQ8LCjUZbBFOSzfbOMcYH9729gjdJ+0xmTvc7nMkK6WIP4HsBuOZ5HXzOQw3uhokm+EkCq/pSdYBaxE/FBqtlIZARg9lYQL4bOKsMDQiXsI75KM0z+klRGUp9nESoCdQsHYISgkLX+QcyVPapykoq5/rQqlstku1yyUMi9Opcp6g/BEfUzUWF0vM1aZv4fIWv/DkRFhoEzrUAp6Eq2qsyGEV87BwNr0JSG0Hy6+WASKXHRCF7e5DPV7hlxD7o9dyzYfCabIzWktaofiLWmQ/C3UYfhw5i8EYTzK9Ef0UsrV6sr4belI0GoFVbQqJeKRGbEHzMCMrJ8lIZ7Orgg1HnUhcCbqeAj99ybOYH1VTaosO/2PvUSQxFGn1at/zfI5KZ9jKVMbWvWsgt7dFrmOK8c7oySVg8DUY52ZnZpoV3RJl0FjtHgkiutOdw7YivHSEhmV1nX/5nT0h/aIp/lnCvzIfZ2LwFJHbouIKVXGW7jrp3OyEfczyrU0Ewk/RUA2oDc3hBB3UmgfHpVf04u6xHMZSHmM28zQWPHl1EOjqItHQVMVbNUzj7i9i0YVBYmRH+QuAhEEBX/q5oKgo3Pt4k8gwEzxK29HdXHvh
   template:
     metadata:
       creationTimestamp: null
       name: graylog-secrets
-      namespace: application
+      namespace: default
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: graylog-cm
-  namespace: application
+  namespace: default
 data:
   GRAYLOG_HTTP_BIND_ADDRESS: 0.0.0.0:9000
-  GRAYLOG_HTTP_EXTERNAL_URI: {{ .Values.graylog.host }}
+  GRAYLOG_HTTP_EXTERNAL_URI: {{ .Values.graylog.endpoint }}
   GRAYLOG_SERVER_JAVA_OPTS: -Xms1g -Xmx1g -XX:NewRatio=1 -XX:MaxMetaspaceSize=256m -server -XX:+ResizeTLAB -XX:+UseConcMarkSweepGC -XX:+CMSConcurrentMTEnabled -XX:+CMSClassUnloadingEnabled -XX:+UseParNewGC -XX:-OmitStackTraceInFastThrow
 ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: graylog
-  namespace: application
+  namespace: default
   labels:
     app: graylog
     release: {{ .Release.Name }}
@@ -42,7 +42,7 @@ spec:
       release: {{ .Release.Name }}
   template:
     metadata:
-      namespace: application
+      namespace: default
       labels:
         app: graylog
         release: {{ .Release.Name }}
@@ -78,8 +78,8 @@ spec:
           timeoutSeconds: 3
         resources:
           limits:
-            cpu: 500m
-            memory: 1536M
+            cpu: 1000m
+            memory: 1500M
           requests:
             cpu: 100m
             memory: 512M
@@ -130,40 +130,71 @@ spec:
       resources:
         requests:
           storage: 4Gi
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: graylog-lb
+#   namespace: default
+#   labels:
+#     app: graylog
+#     release: {{ .Release.Name }}
+# spec:
+#   type: LoadBalancer
+#   ports:
+#   selector:
+#     app: graylog
+#     release: {{ .Release.Name }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: graylog
-  namespace: application
+  namespace: default
   labels:
     app: graylog
     release: {{ .Release.Name }}
 spec:
-  type: NodePort
   ports:
-  - name: "80"
+  - name: tcp-9000
+    protocol: TCP
     port: 80
     targetPort: 9000
-    nodePort: 30900
-  - name: "443"
-    port: 443
-    targetPort: 9000
-    nodePort: 30433
-  - name: "514"
+  - name: tcp-514
+    protocol: TCP
     port: 514
     targetPort: 514
-  - name: 514-udp
-    port: 514
-    protocol: UDP
-    targetPort: 514
-  - name: "12201"
+  - name: tcp-12201
+    protocol: TCP
     port: 12201
     targetPort: 12201
-  - name: 12201-udp
-    port: 12201
+  - name: udp-514
     protocol: UDP
+    port: 514
+    targetPort: 514
+  - name: udp-12201
+    protocol: UDP
+    port: 12201
     targetPort: 12201
   selector:
     app: graylog
     release: {{ .Release.Name }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: graylog
+  namespace: default
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: logs.local
+    http:
+      paths:
+      - pathType: Prefix
+        path: /
+        backend:
+          service:
+            name: graylog
+            port:
+              number: 80

@@ -1,2 +1,2 @@
 graylog:
-  host: 'http://192.168.1.53/logs/'
+  endpoint: 'http://logs.local/'
