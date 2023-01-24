@@ -1,3 +1,4 @@
+# docker build -t wcapp . -f ./app/Dockerfile && kc scale deployment wcapp --replicas=0 && kc scale deployment wcapp --replicas=1 --current-replicas=0
 # docker build -t wcapp . && docker run --rm --init -p 443:443 wcapp
 FROM node:16.3.0-alpine as builder
 RUN apk add postgresql-dev python3 make build-base

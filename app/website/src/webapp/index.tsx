@@ -1,6 +1,6 @@
 // React imports
-import 'typeface-roboto';
-import 'typeface-courgette';
+// import 'typeface-roboto';
+// import 'typeface-courgette';
 import React, { FunctionComponent, createElement } from 'react';
 import MomentUtils from '@date-io/moment';
 import { RouteComponentProps } from 'react-router';
