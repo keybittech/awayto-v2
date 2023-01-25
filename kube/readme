@@ -1,3 +1,5 @@
+# start nginx on host
+
 Installation
 - minikube start --driver=kvm2 --cpus=4 --memory=8124 --disk-size=40GB
 - minikube addons enable dashboard

@@ -141,7 +141,7 @@ try {
   // Websocket Ticket Proxy
   app.post('/api/ticket', keycloak.protect(), (req, res, next) => {
     proxy.web(req, res, {
-      target: `https://${process.env.SOCK_HOST}:${process.env.SOCK_PORT}/create_ticket`
+      target: `http://${process.env.SOCK_HOST}:${process.env.SOCK_PORT}/create_ticket`
     }, next);
   });
 

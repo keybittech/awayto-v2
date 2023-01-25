@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: turn
-  namespace: application
+  namespace: default
 spec:
   replicas: 1
   selector:
@@ -12,20 +12,20 @@ spec:
     metadata:
       labels:
         app: turn
-        namespace: application
+        namespace: default
         release: {{ .Release.Name }}
     spec:
       terminationGracePeriodSeconds: 10
       containers:
       - name: turn
         image: wcturn
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Never
         ports:
         - containerPort: 3478
         resources:
           limits:
             cpu: 250m
-            memory: 768M
+            memory: 512M
           requests:
             cpu: 100m
             memory: 512M
@@ -36,7 +36,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: turn
-  namespace: application
+  namespace: default
   labels:
     app: turn
 spec:

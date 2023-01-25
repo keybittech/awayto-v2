@@ -76,7 +76,7 @@
   "scripts": {
     "start": "npm-run-all --parallel start-web start-landing",
     "start-web": "HTTPS=true react-app-rewired start",
-    "start-landing": "hugo server --bind=192.168.1.53 --appendPort=false --baseURL=https://192.168.1.53 -s src/landing -d ./landing_public",
+    "start-landing": "hugo server --bind=192.168.1.54 --appendPort=false --baseURL=https://wcapp.site.com -s src/landing -d ./landing_public",
     "build": "npm-run-all --parallel build-web build-landing",
     "build-web": "BUILD_PATH=\"./web_build\" react-app-rewired build",
     "build-landing": "hugo -s src/landing -d ../../landing_build"

@@ -1,20 +1,9 @@
 import { createServer } from 'http';
 import { WebSocket, WebSocketServer } from 'ws';
-import { spawn } from 'child_process';
-import ffmpeg from 'fluent-ffmpeg';
 import { v4 } from 'uuid';
-import Keycloak from 'keycloak-connect';
-import request from 'request';
-import util from 'util';
-
-// Setup keycloak
-const keycloakConfig = {
-  clientId: 'devel-client',
-  bearerOnly: true,
-  serverUrl: 'https://192.168.1.53:8443',
-  realm: 'devel',
-  grantType: 'client_credentials'
-}
+import util, { inspect } from 'util';
+import jwt from 'jsonwebtoken';
+import jwksClient from 'jwks-rsa';
 
 // Storage for connected members
 const pendingTickets = {};
@@ -26,42 +15,73 @@ const server = createServer().listen(8080);
 // Start a generic wss server without an internal server
 const wss = new WebSocketServer({ noServer: true });
 
+
+// promisify jwt.verify, since it doesn't do promises
+async function jwtVerify(token, secretOrPublicKey) {
+  return new Promise((resolve, reject) => {
+    jwt.verify(token, secretOrPublicKey, (err, decoded) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(decoded);
+      }
+    });
+  });
+}
+
+const authClient = jwksClient({
+  jwksUri: `https://wcapp.site.com/auth/realms/devel/protocol/openid-connect/certs`
+});
+
+function getKey(header, callback) {
+  console.log("got header", { header })
+  authClient.getSigningKey(header.kid, (err, key) => {
+    console.log({ err, key })
+    const signingKey = key.publicKey || key.rsaPublicKey;
+    callback(null, signingKey);
+  })
+}
+
+
 // Catch any request coming into the http server for inter-socket connectivity
 // Define connection endpoints between containers where needed here
 server.on('request', function (req, res) {
 
   if ('POST' === req.method) {
 
-    // Standard body parsing for this http framework
-    let body = ''
+    // User wants to get a ticket to open a socket
+    // Proxied from front end through api for kc auth check
+    // Create a temporary ticket that the host can use to create a socket later
+    try {
 
-    req.on('data', function (chunk) {
-      body += chunk.toString();
-    });
-
-    req.on('end', function () {
-      // User wants to get a ticket to open a socket
-      // Proxied from front end through api for kc auth check
-      // Create a temporary ticket that the host can use to create a socket later
       if (req.url.includes('create_ticket')) {
         const host = req.headers['x-forwarded-for'];
-        const { localId } = JSON.parse(body);
-        const hostTix = pendingTickets[host] = pendingTickets[host] || {};
-        hostTix.tickets = hostTix.tickets || [];
-        hostTix.tickets.push(localId);
+        const authorization = req.headers['authorization'];
+
+        if (!authorization) {
+          res.writeHead(401);
+        } else {
+          const hostTix = pendingTickets[host] = pendingTickets[host] || {};
+          hostTix.tickets = hostTix.tickets || [];
+          hostTix.tickets.push(authorization);
+          res.writeHead(200);
+        }
+
       }
-      res.writeHead(200);
-      res.end();
-    })
+
+    } catch (error) {
+      console.log('Critical Error', error);
+      res.writeHead(500);
+    }
 
   } else {
     res.writeHead(404);
-    res.end();
   }
+  res.end();
 })
 
 // Proxy pass from nginx sets http upgrade request, caught here
-server.on('upgrade', function (req, socket, head) {
+server.on('upgrade', async function (req, socket, head) {
   console.log(' got an upgrade request', req.url, util.inspect(req.headers));
 
   try {
@@ -71,32 +91,45 @@ server.on('upgrade', function (req, socket, head) {
     if (pendingTickets[host]) {
 
       // request comes as /ndsjfs which is client generated id
-      const localId = req.url.slice(1);
-      const ticket = pendingTickets[host].tickets.indexOf(localId);
+      const ticket = pendingTickets[host].tickets.shift();
 
-      if (-1 < ticket) {
-        // If the host has a ticket, expire it
-        pendingTickets[host].tickets.splice(ticket);
+      // If handshake was successful
+      if (ticket) {
 
-        // Upgrade the socket request
-        wss.handleUpgrade(req, socket, head, function (ws) {
-          ws.localId = localId;
-          wss.emit('connection', ws, req);
-          console.log('activity', host, localId, 'started a socket connection', ws.id);
-        });
+        // Verify the ticket and get its token
+        const token = await jwtVerify(ticket, getKey);
+
+        if (token.realm_access) {
+          // Upgrade the socket request
+          const localId = req.url.slice(1);
+          wss.handleUpgrade(req, socket, head, function (ws) {
+            ws.localId = localId;
+            wss.emit('connection', ws, req);
+            console.log('activity', host, localId, 'started a socket connection', ws.id);
+          });
+        } else {
+          socket401(socket);
+        }
       } else {
-        // Otherwise there is no ticket, no auth
-        socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
-        socket.destroy();
+        socket401(socket);
       }
+
+
     }
   } catch (error) {
-    socket.write('HTTP/1.1 500 Internal Server Error\r\n\r\n');
-    socket.destroy();
+    socket500(socket);
   }
 });
 
+function socket500(socket) {
+  socket.write('HTTP/1.1 500 Internal Server Error\r\n\r\n');
+  socket.destroy();
+}
 
+function socket401(socket) {
+  socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+  socket.destroy();
+}
 
 wss.on('connection', function (ws, req) {
   // Setup socket info and attach to server
@@ -167,18 +200,18 @@ function dm(target, message) {
 }
 
 function cleanUp(ws) {
-  try {  
+  try {
     // Remove from connection pool
     const pos = connections[ws.localId];
     if (-1 < pos) {
       console.log('removing connection');
       connections.splice(pos);
     }
-  
+
     // Notify
     console.log('activity', ws.id, 'closed connection.');
   } catch (error) {
-    
+
   }
 }
 

@@ -5,7 +5,7 @@ EXPOSE 8080
 WORKDIR /app
 CMD ["node", "sock.js"]
 
-COPY package.json /app
+COPY package*.json /app/
 RUN npm i --silent
 
 COPY . /app

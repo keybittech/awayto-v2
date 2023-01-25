@@ -1,3 +1,5 @@
+# stop nginx on host
+
 # docker-compose up -d --build
 # docker-compose logs -f -t
 # docker-compose top
@@ -19,13 +21,13 @@ services:
     ports:
       - 8443:8443
     environment:
-      - KC_HOSTNAME_ADMIN_URL=https://192.168.1.53/auth #NONSECRET
-      - KC_HOSTNAME_URL=https://192.168.1.53/auth #NONSECRET
+      - KC_HOSTNAME_ADMIN_URL=https://wcapp.site.com/auth #NONSECRET
+      - KC_HOSTNAME_URL=https://wcapp.site.com/auth #NONSECRET
       - KC_PROXY=edge #NONSECRET
       - KC_HOSTNAME_STRICT_BACKCHANNEL=true #NONSECRET
-      - KC_KEYCLOAK_USER=admin #SECRET
-      - KC_KEYCLOAK_PASSWORD=kcpass #SECRET
-      - KC_DB_URL=jdbc:postgresql://192.168.1.53:8082/sysmaindb #NONSECRET
+      - KEYCLOAK_ADMIN=admin #SECRET
+      - KEYCLOAK_ADMIN_PASSWORD=kcpass #SECRET
+      - KC_DB_URL=jdbc:postgresql://192.168.1.54:8082/sysmaindb #NONSECRET
       - KC_DB_USERNAME=postgres #SECRET
       - KC_DB_PASSWORD=postgres #SECRET
     depends_on:
@@ -35,8 +37,10 @@ services:
     build: ./sock
     ports:
       - 8081:8080
-    volumes:
-      - node_modules:/app/node_modules
+    environment:
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
+    # volumes:
+    #   - node_modules:/app/node_modules
   db: # postgres
     image: wcdb
     ports:
@@ -53,21 +57,21 @@ services:
     ports:
       - 8083:9443
     environment:
-      - PG_HOST=192.168.1.53 #NONSECRET
+      - PG_HOST=192.168.1.54 #NONSECRET
       - PG_PORT=8082 #NONSECRET
       - PG_USER=postgres #SECRET
       - PG_PASSWORD=postgres #SECRET
       - PG_DATABASE=sysmaindb #SECRET
-      - GRAYLOG_HOST=graylog.application
+      - GRAYLOG_HOST=192.168.1.54
       - GRAYLOG_PORT=12201
-      - SOCK_HOST=sock.application
+      - SOCK_HOST=192.168.1.54
       - SOCK_PORT=8081
       - NODE_TLS_REJECT_UNAUTHORIZED=0 #NONSECRET # Remove when having cert - otherwise keycloak blocks redirects
     depends_on:
       - db
-    volumes:
+    # volumes:
       # - ./core:/core # added for dev
-      - ./api:/app # added for dev
+      # - ./api:/app # added for dev
       # - node_modules:/app/node_modules
   turn: # STUN/TURN server for WebRTC
     image: coturn/coturn

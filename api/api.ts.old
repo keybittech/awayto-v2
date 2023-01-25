@@ -2,17 +2,17 @@
 import { custom, Issuer, Strategy } from 'openid-client';
 import passport from 'passport';
 
-  // const keycloakIssuer = await Issuer.discover('https://192.168.1.53/auth/realms/devel');
+  // const keycloakIssuer = await Issuer.discover('https://192.168.1.54/auth/realms/devel');
   // const Keycloak = new keycloakIssuer.Client({
   //   client_id: 'devel-client',
   //   client_secret: 'akvdjbsiuvb93vb439v8b43vu',
-  //   redirect_uris: ['https://192.168.1.53/api/kc/auth/callback'],
-  //   post_logout_redirect_uris: ['https://192.168.1.53/api/kc/auth/logout/callback'],
+  //   redirect_uris: ['https://192.168.1.54/api/kc/auth/callback'],
+  //   post_logout_redirect_uris: ['https://192.168.1.54/api/kc/auth/logout/callback'],
   //   response_types: ['code']
   // });
 
   // Keycloak.authorizationUrl({
-  //   resource: 'https://192.168.1.53/auth'
+  //   resource: 'https://192.168.1.54/auth'
   // });
 
   // // Create Keycloak strategy for passport internal use

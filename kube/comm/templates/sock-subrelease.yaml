@@ -2,39 +2,42 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: sock
-  namespace: application
+  namespace: default
+  labels:
+    app: sock
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: sock
+      release: {{ .Release.Name }}
   template:
     metadata:
       labels:
         app: sock
-        namespace: application
+        namespace: default
         release: {{ .Release.Name }}
     spec:
       terminationGracePeriodSeconds: 10
       containers:
       - name: sock
         image: wcsock
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Never
         ports:
-        - containerPort: 3478
+        - containerPort: 8080
         resources:
           limits:
-            cpu: 250m
-            memory: 768M
-          requests:
             cpu: 100m
-            memory: 512M
+            memory: 400M
+          requests:
+            cpu: 25m
+            memory: 100M
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: sock
-  namespace: application
+  namespace: default
   labels:
     app: sock
 spec:

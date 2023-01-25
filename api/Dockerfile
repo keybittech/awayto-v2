@@ -1,4 +1,5 @@
-# docker build -t wcapi . && docker run --rm --init -e PG_HOST=192.168.1.53 -e PG_PORT=8082 -e PG_USER=postgres -e PG_PASSWORD=postgres -e PG_DATABASE=sysmaindb -p 8083:3000 wcapi
+# docker build -t wcapi . -f ./api/Dockerfile && kc scale deployment api --replicas=0 && kc scale deployment api --replicas=1 --current-replicas=0
+# docker build -t wcapi . && docker run --rm --init -e PG_HOST=192.168.1.54 -e PG_PORT=8082 -e PG_USER=postgres -e PG_PASSWORD=postgres -e PG_DATABASE=sysmaindb -p 8083:3000 wcapi
 
 FROM node:16.3.0-alpine as builder
 RUN apk add postgresql-dev python3 make build-base
