@@ -1,0 +1,6 @@
+title = '$SITE_NAME'
+baseURL = '$SITE_URL'
+languageCode = 'en-us'
+
+[params]
+  appURL = '/app'

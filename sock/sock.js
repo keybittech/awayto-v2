@@ -30,11 +30,10 @@ async function jwtVerify(token, secretOrPublicKey) {
 }
 
 const authClient = jwksClient({
-  jwksUri: `https://wcapp.site.com/auth/realms/devel/protocol/openid-connect/certs`
+  jwksUri: `${process.env.BUILD_HOST_PROTOCOL}://${process.env.BUILD_HOST_NAME}/auth/realms/${process.env.KC_REALM}/protocol/openid-connect/certs`
 });
 
 function getKey(header, callback) {
-  console.log("got header", { header })
   authClient.getSigningKey(header.kid, (err, key) => {
     console.log({ err, key })
     const signingKey = key.publicKey || key.rsaPublicKey;

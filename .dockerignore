@@ -1,7 +1,9 @@
 /api/node_modules
 /api/build
 /app/website/node_modules
-/app/website/web_build
-/app/website/landing_build
-/app/website/src/landing/resources
+/app/website/build
+/app/landing/node_modules
+/app/landing/build
+/app/landing/resources
+/app/landing/public
 /sock/node_modules

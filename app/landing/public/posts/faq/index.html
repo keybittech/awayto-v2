@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+
+
+
+
+  
+
+  
+
+  
+
+
+<html lang="en-us">
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+  
+  <title>FAQ - Awayto</title>
+
+  
+  
+  <meta name="description" content="If you feel that this list doesn&rsquo;t answer your questions, please join the discord to suggest changes.
+What gets installed? You can review the old installation guide to get an idea of the more detailed changes the installation process applies to AWS. In general, after running the installer, the following resources will be deployed to AWS:
+Cognito User Pool Cognito App Client RDS Postgres Instance (t3.micro) API Gateway stage containing authorized and unauthorized routes Lambda Function to receive gateway events Service worker &lsquo;LambdaTrust&rsquo; role for lambda-service group access S3 buckets for hosting built web and API bundles CloudFormation distribution to serve the webapp from S3 Local file system containing a generic Lambda node-based API, Typescript type suite, and React web app originally generated with create-react-app." />
+  <meta name="author" content="" />
+  
+
+  
+  
+  
+  
+  
+  
+  <link rel="preload stylesheet" as="style" href="https://wcapp.site.com/app.min.css" />
+
+  
+  <script
+    defer
+    src="https://wcapp.site.com/highlight.min.js"
+    onload="hljs.initHighlightingOnLoad();"
+  ></script>
+  
+
+  
+  <link rel="preload" as="image" href="https://wcapp.site.com/theme.png" />
+
+  
+
+  
+  <link rel="icon" href="https://wcapp.site.com/favicon.ico" />
+  <link rel="apple-touch-icon" href="https://wcapp.site.com/apple-touch-icon.png" />
+
+  
+  <meta name="generator" content="Hugo 0.101.0" />
+
+  
+  
+
+  
+  
+</head>
+
+
+  <body class="not-ready" data-menu="false">
+    <header class="header">
+  <p class="logo">
+    <a class="site-name" href="https://wcapp.site.com/">Awayto</a>
+    <a href="/posts/faq/">FAQ</a>
+    <a href="/posts/getting-started/">Getting Started</a>
+    <a class="btn-dark"></a>
+  </p>
+
+  <script>
+    let bodyClx = document.body.classList;
+    let btnDark = document.querySelector('.btn-dark');
+    let sysDark = window.matchMedia('(prefers-color-scheme: dark)');
+    let darkVal = localStorage.getItem('dark');
+
+    let setDark = (isDark) => {
+      bodyClx[isDark ? 'add' : 'remove']('dark');
+      localStorage.setItem('dark', isDark ? 'yes' : 'no');
+    };
+
+    setDark(darkVal ? darkVal === 'yes' : sysDark.matches);
+    requestAnimationFrame(() => bodyClx.remove('not-ready'));
+
+    btnDark.addEventListener('click', () => setDark(!bodyClx.contains('dark')));
+    sysDark.addEventListener('change', (event) => setDark(event.matches));
+  </script>
+
+  
+  
+
+  
+</header>
+
+
+    <main class="main">
+
+<article class="post-single">
+  <header class="post-title">
+    <h1>FAQ</h1>
+  </header>
+  <section class="post-content"><p>If you feel that this list doesn&rsquo;t answer your questions, please join the <a href="https://discord.gg/KzpcTrn5DQ">discord</a> to suggest changes.</p>
+<h2 id="what-gets-installed">What gets installed?</h2>
+<p>You can review the <a href="https://github.com/keybittech/awayto/blob/main/INSTALL.md">old installation guide</a> to get an idea of the more detailed changes the installation process applies to AWS. In general, after running the installer, the following resources will be deployed to AWS:</p>
+<ul>
+<li>Cognito User Pool</li>
+<li>Cognito App Client</li>
+<li>RDS Postgres Instance (t3.micro)</li>
+<li>API Gateway stage containing authorized and unauthorized routes</li>
+<li>Lambda Function to receive gateway events</li>
+<li>Service worker &lsquo;LambdaTrust&rsquo; role for lambda-service group access</li>
+<li>S3 buckets for hosting built web and API bundles</li>
+<li>CloudFormation distribution to serve the webapp from S3</li>
+<li>Local file system containing a generic Lambda node-based API, Typescript type suite, and React web app originally generated with create-react-app.</li>
+</ul>
+<h2 id="what-is-the-seed-file">What is the seed file?</h2>
+<p>Awayto intends to be a re-packagable system, so that your creations can be used in various contexts. The seed file collects all the details of your installation. Should you need the ID of a resource, or to know what&rsquo;s been deployed, you&rsquo;ll find it in the seed files found in <code>bin/data/seeds</code>.</p>
+<h2 id="where-are-things-located-in-the-file-system">Where are things located in the file system?</h2>
+<p>The project is divided into three main code bases:</p>
+<h3 id="api-srcapi">API: <code>src/api</code></h3>
+<p>The API is a generic Node JS structure which implements a Lambda function. The <code>index.ts</code> file collects all the db objects, and generates a set of routes defined by the type system. When called, the events will process inputs and return outputs as described by their associated type. In this way, the standard convention is that all API routes should be directly tied to some type within the system.</p>
+<h3 id="core-srccore">Core: <code>src/core</code></h3>
+<p>The core is where all the abstractions of Awayto live. Here we store all the types and third-party framework implementations as much as they can be abstracted from either the API or webapp, respectively. I.e. the core should contain only that which could be of use to both the API and webapp, and not their dependent parts. Don&rsquo;t incur the API to build webapp resources by building the webapp in the core, for example.</p>
+<h3 id="webapp-srcwebapp">Webapp: <code>src/webapp</code></h3>
+<p>The webapp is a React application originally generated with create-react-app. React components in Awayto are considered to be the parts that make up a &ldquo;module&rdquo;, and should all be stored in a <code>modules</code> folder. As well, you will find a <a href="https://github.com/keybittech/awayto#hooks">hooks</a> folder containing convenience methods and utilities.</p>
+<h3 id="landing-srclanding">Landing: <code>src/landing</code></h3>
+<p>The Hugo framework is used to create a basic, static landing/marketing site. The intention is to create a resource based separation of concerns so in the future our webapp can be treated separately from any marketing or informational site.</p>
+<h2 id="how-does-the-module-system-work">How does the module system work?</h2>
+<p>The <code>src/webapp/modules</code> folder houses, by convention, self-contained packages that live on their own but can interact with other modules if needed. When developing, all the modules are dynamically loaded into memory and lazy loaded into the application. Modules should contain all your React components, Redux reducers, and Typescript types. Components are loaded in a failsafe manner, and so can interact with eachother when present, but will just render an empty div if a module is missing.</p>
+<h2 id="how-to-add-new-components">How to add new components?</h2>
+<p>React components should sit in the main level of a module folder. The name of the component file will be the corresponding name you would use to reference it when making use of the <a href="https://github.com/keybittech/awayto#usecomponents">useComponents</a> hook.</p>
+<h2 id="how-to-add-new-types">How to add new types?</h2>
+<p>Types are used in multiple contexts to accomplish different functionalities in Awayto: basic type-based architecture, Redux structure, and API routes. A basic usage that covers all these cases would look something like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-ts" data-lang="ts"><span style="display:flex;"><span><span style="color:#75715e">// src/core/types/common.ts
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">declare</span> <span style="color:#66d9ef">global</span> {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">interface</span> <span style="color:#a6e22e">ISharedState</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">test</span>: <span style="color:#66d9ef">ITestState</span>;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">type</span> <span style="color:#a6e22e">ICommonModuleActions</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">ITestActions</span> <span style="color:#f92672">|</span> ....;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">interface</span> <span style="color:#a6e22e">ISharedActionTypes</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">test</span>: <span style="color:#66d9ef">ITestActionTypes</span>;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">export</span> <span style="color:#66d9ef">type</span> <span style="color:#a6e22e">ITest</span> <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">id</span>: <span style="color:#66d9ef">string</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">value</span>: <span style="color:#66d9ef">string</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">export</span> <span style="color:#66d9ef">type</span> <span style="color:#a6e22e">ITestState</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">Partial</span>&lt;<span style="color:#f92672">ITest</span>&gt;;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">export</span> <span style="color:#66d9ef">enum</span> <span style="color:#a6e22e">ITestActionTypes</span> {
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">POST_TEST</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;POST/test&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">PUT_TEST</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;PUT/test&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">GET_TEST</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;GET/test&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">GET_TEST_BY_ID</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;GET/test/:id&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">DELETE_TEST</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;DELETE/test/:id&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">DISABLE_TEST</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;PUT/test/disable&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">export</span> <span style="color:#66d9ef">type</span> <span style="color:#a6e22e">IPostTestAction</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">PayloadAction</span>&lt;<span style="color:#f92672">ITestActionTypes.POST_UUID_NOTES</span><span style="color:#960050;background-color:#1e0010">,</span> <span style="color:#a6e22e">ITestState</span>&gt;;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">export</span> <span style="color:#66d9ef">type</span> <span style="color:#a6e22e">IPutTestAction</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">PayloadAction</span>&lt;<span style="color:#f92672">ITestActionTypes.PUT_UUID_NOTES</span><span style="color:#960050;background-color:#1e0010">,</span> <span style="color:#a6e22e">ITestState</span>&gt;;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">export</span> <span style="color:#66d9ef">type</span> <span style="color:#a6e22e">IGetTestAction</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">PayloadAction</span>&lt;<span style="color:#f92672">ITestActionTypes.GET_UUID_NOTES</span><span style="color:#960050;background-color:#1e0010">,</span> <span style="color:#a6e22e">ITestState</span>&gt;;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">export</span> <span style="color:#66d9ef">type</span> <span style="color:#a6e22e">IGetTestByIdAction</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">PayloadAction</span>&lt;<span style="color:#f92672">ITestActionTypes.GET_UUID_NOTES_BY_ID</span><span style="color:#960050;background-color:#1e0010">,</span> <span style="color:#a6e22e">ITestState</span>&gt;;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">export</span> <span style="color:#66d9ef">type</span> <span style="color:#a6e22e">IDeleteTestAction</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">PayloadAction</span>&lt;<span style="color:#f92672">ITestActionTypes.DELETE_UUID_NOTES</span><span style="color:#960050;background-color:#1e0010">,</span> <span style="color:#a6e22e">ITestState</span>&gt;;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">export</span> <span style="color:#66d9ef">type</span> <span style="color:#a6e22e">IDisableTestAction</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">PayloadAction</span>&lt;<span style="color:#f92672">ITestActionTypes.DISABLE_UUID_NOTES</span><span style="color:#960050;background-color:#1e0010">,</span> <span style="color:#a6e22e">ITestState</span><span style="color:#960050;background-color:#1e0010">[]</span>&gt;;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">export</span> <span style="color:#66d9ef">type</span> <span style="color:#a6e22e">ITestActions</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">IPostTestAction</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">|</span> <span style="color:#a6e22e">IPutTestAction</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">|</span> <span style="color:#a6e22e">IGetTestAction</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">|</span> <span style="color:#a6e22e">IGetTestByIdAction</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">|</span> <span style="color:#a6e22e">IDeleteTestAction</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">|</span> <span style="color:#a6e22e">IDisableTestAction</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// src/webapp/modules/common/reducers/test.ts
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">initialTestState</span>: <span style="color:#66d9ef">ITestState</span> <span style="color:#f92672">=</span> {};
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">testReducer</span>: <span style="color:#66d9ef">Reducer</span>&lt;<span style="color:#f92672">ITestState</span><span style="color:#960050;background-color:#1e0010">,</span> <span style="color:#a6e22e">ITestActions</span>&gt; <span style="color:#f92672">=</span> (<span style="color:#a6e22e">state</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">initialTestState</span>, <span style="color:#a6e22e">action</span>) <span style="color:#f92672">=&gt;</span> {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">switch</span> (<span style="color:#a6e22e">action</span>.<span style="color:#66d9ef">type</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">ITestActionTypes.POST_TEST</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">ITestActionTypes.PUT_TEST</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">ITestActionTypes.GET_TEST_DETAILS</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">ITestActionTypes.GET_TEST_DETAILS_BY_SUB</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">ITestActionTypes.GET_TEST_DETAILS_BY_ID</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">ITestActionTypes.DISABLE_TEST</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">return</span> { ...<span style="color:#a6e22e">state</span>, ...<span style="color:#a6e22e">action</span>.<span style="color:#a6e22e">payload</span> };
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">default</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">return</span> { ...<span style="color:#a6e22e">state</span> };
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>};
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Extend the useApi hook&#39;s available actions in src/webapp/hooks/useApi.ts
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">ApiActions</span> <span style="color:#f92672">=</span> Object.<span style="color:#a6e22e">assign</span>(
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">ITestActionTypes</span>, <span style="color:#75715e">// Add our Action Types
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">IManageUsersActionTypes</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">IManageGroupsActionTypes</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">IManageRolesActionTypes</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">IUserProfileActionTypes</span>
+</span></span><span style="display:flex;"><span>) <span style="color:#66d9ef">as</span> <span style="color:#a6e22e">Record</span>&lt;<span style="color:#f92672">string</span><span style="color:#960050;background-color:#1e0010">,</span> <span style="color:#a6e22e">string</span>&gt;;
+</span></span></code></pre></div><p>With these structures in place, you would be able to now create API routes that link to those defined, as well as access the object through Redux.</p>
+<h2 id="how-do-i-deploy-my-new-database-scripts">How do I deploy my new database scripts?</h2>
+<p>Any new <code>.sql</code> files in the <code>src/api/scripts</code> folder can be deployed by running <code>npm run db-update</code> from the main directory.</p>
+</section>
+</article>
+
+</main>
+
+    <footer class="footer">
+  <p>&copy; 2023 <a href="https://wcapp.site.com/">Awayto</a></p>
+  <p><a href="https://github.com/keybittech/awayto">View on GitHub</a> <a href="https://awayto.dev/docs/index.html">Typedoc</a> <a href="https://keybittech.com">KeyBit Tech</a> <a href="https://discord.gg/KzpcTrn5DQ">Discord</a></p>
+</footer>
+
+  </body>
+</html>

@@ -6,13 +6,13 @@ import CardContent from '@material-ui/core/CardContent';
 import keycloak from '../../../keycloak';
 import { IUtilActionTypes } from 'awayto';
 import { useAct, useComponents } from 'awayto-hooks';
-import { inspect } from 'util';
-import { go } from 'connected-react-router';
+
+// const { REACT_APP_HOST_IP } = process.env;
 
 const peerConnectionConfig = {
   'iceServers': [
-    { urls: 'turn:192.168.1.54:3478', credential: 'test123', username: 'test' },
-    { urls: 'stun:192.168.1.54:3478' },
+    { urls: `turn:${location.hostname}:3478`, credential: 'test123', username: 'test' },
+    { urls: `stun:${location.hostname}:3478` },
   ]
 };
 
@@ -65,7 +65,6 @@ export function Home(props: IProps): JSX.Element {
   const setLocalStreamAndBroadcast = useCallback(async () => {
     try {
       if (socket && !localStream) {
-        debugger
         setLocalStream(await navigator.mediaDevices.getUserMedia({
           video: {
             width: { max: 320 },
@@ -257,7 +256,6 @@ export function Home(props: IProps): JSX.Element {
   const messagesMemo = useMemo(() => messages.map((msg, i) => <Typography key={i} variant='body1'>{msg}</Typography>), [messages]);
   const senderStreamsElements = useMemo(() => Object.keys(senderStreams).map(sender => senderStreams[sender].mediaStream ? <video autoPlay ref={v => { v!.srcObject = senderStreams[sender].mediaStream! }} /> : <></>), [participantCheck]);
   const localStreamElement = useMemo(() => <video key={'local-video'} autoPlay ref={localStreamRef} />, [localStreamRef]);
-
 
   return !socket ? <></> : <>
     <Card>

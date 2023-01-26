@@ -1,8 +1,0 @@
-{
-  "realm": "devel",
-  "auth-server-url": "https://wcapp.site.com/auth",
-  "ssl-required": "external",
-  "resource": "devel-client",
-  "public-client": true,
-  "confidential-port": 0
-}

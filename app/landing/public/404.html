@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+
+
+
+
+  
+
+  
+
+  
+
+
+<html lang="en-us">
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+  
+  <title>404 Page not found - Awayto</title>
+
+  
+  
+  <meta name="description" content="" />
+  <meta name="author" content="" />
+  
+
+  
+  
+  
+  
+  
+  
+  <link rel="preload stylesheet" as="style" href="https://wcapp.site.com/app.min.css" />
+
+  
+
+  
+  <link rel="preload" as="image" href="https://wcapp.site.com/theme.png" />
+
+  
+
+  
+  <link rel="icon" href="https://wcapp.site.com/favicon.ico" />
+  <link rel="apple-touch-icon" href="https://wcapp.site.com/apple-touch-icon.png" />
+
+  
+  <meta name="generator" content="Hugo 0.101.0" />
+
+  
+  
+
+  
+  
+</head>
+
+
+  <body class="not-ready" data-menu="false">
+    <header class="header">
+  <p class="logo">
+    <a class="site-name" href="https://wcapp.site.com/">Awayto</a>
+    <a href="/posts/faq/">FAQ</a>
+    <a href="/posts/getting-started/">Getting Started</a>
+    <a class="btn-dark"></a>
+  </p>
+
+  <script>
+    let bodyClx = document.body.classList;
+    let btnDark = document.querySelector('.btn-dark');
+    let sysDark = window.matchMedia('(prefers-color-scheme: dark)');
+    let darkVal = localStorage.getItem('dark');
+
+    let setDark = (isDark) => {
+      bodyClx[isDark ? 'add' : 'remove']('dark');
+      localStorage.setItem('dark', isDark ? 'yes' : 'no');
+    };
+
+    setDark(darkVal ? darkVal === 'yes' : sysDark.matches);
+    requestAnimationFrame(() => bodyClx.remove('not-ready'));
+
+    btnDark.addEventListener('click', () => setDark(!bodyClx.contains('dark')));
+    sysDark.addEventListener('change', (event) => setDark(event.matches));
+  </script>
+
+  
+  
+
+  
+</header>
+
+
+    <main class="main">
+<h1 class="title-404">404</h1>
+</main>
+
+    <footer class="footer">
+  <p>&copy; 2023 <a href="https://wcapp.site.com/">Awayto</a></p>
+  <p><a href="https://github.com/keybittech/awayto">View on GitHub</a> <a href="https://awayto.dev/docs/index.html">Typedoc</a> <a href="https://keybittech.com">KeyBit Tech</a> <a href="https://discord.gg/KzpcTrn5DQ">Discord</a></p>
+</footer>
+
+  </body>
+</html>

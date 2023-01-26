@@ -6,12 +6,11 @@ import httpProxy from 'http-proxy';
 import cors from 'cors';
 import fs from 'fs';
 import https from 'https';
-import Keycloak from 'keycloak-connect';
+import Keycloak, { KeycloakConfig } from 'keycloak-connect';
 import { graylog } from 'graylog2';
 import { v4 as uuid } from 'uuid';
 
 import Objects from './objects';
-import keycloakConfig from './keycloak.json';
 
 type KCAuthRequest = Request & {
   kauth: {
@@ -50,7 +49,14 @@ try {
   });
 
   // Init Keycloak
-  const keycloak = new Keycloak({ cookies: true }, keycloakConfig);
+  const keycloak = new Keycloak({ cookies: true }, {
+    "realm": process.env.KC_REALM,
+    "auth-server-url": `${process.env.BUILD_HOST_PROTOCOL}://${process.env.BUILD_HOST_NAME}/auth`,
+    "ssl-required": "external",
+    "resource": process.env.KC_CLIENT,
+    "public-client": true,
+    "confidential-port": 0
+  } as KeycloakConfig & { 'public-client': boolean });
 
   // Create Express app
   const app: Express = express();

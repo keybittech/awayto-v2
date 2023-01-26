@@ -1,0 +1,14 @@
+{
+  "name": "landing",
+  "version": "1.0.0",
+  "description": "app landing page",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "hugo-bin": "^0.89.0"
+  },
+  "scripts": {
+    "start": "hugo server --bind=$(grep BUILD_HOST_IP .env | cut -d '=' -f2) --appendPort=false --baseURL=$(grep BUILD_HOST_PROTOCOL .env | cut -d '=' -f2)://$(grep BUILD_HOST_NAME .env | cut -d '=' -f2) -s . -d ./public",
+    "build": "hugo -s . -d ./build"
+  }
+}
