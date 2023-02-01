@@ -9,7 +9,8 @@ import Icon from '../../../img/kbt-icon.png';
 
 import { IUtilActionTypes, ILogoutActionTypes } from 'awayto';
 import { useAct } from 'awayto-hooks';
-import { useKeycloak } from '@react-keycloak/web';
+import keycloak from '../../../keycloak';
+
 
 const { SET_SNACK } = IUtilActionTypes;
 const { LOGOUT } = ILogoutActionTypes;
@@ -19,14 +20,13 @@ export function Sidebar (props: IProps): JSX.Element {
   const { classes, history } = props;
 
   const act = useAct();
-  const { keycloak } = useKeycloak();
 
   const navigate = (link: string) => {
-    history.push(link);
+    if (history.location.pathname !== link) history.push(link);
   }
 
   const logout = async () => {
-    await keycloak.logout({ redirectUri: `${process.env.REACT_APP_HOST_PROTOCOL as string}://${process.env.REACT_APP_HOST_NAME as string}/` });
+    await keycloak.logout({ redirectUri: `https://${process.env.REACT_APP_LAND_HOSTNAME as string}/` });
   }
 
   return (

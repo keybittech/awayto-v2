@@ -15,8 +15,6 @@ const server = createServer().listen(8080);
 // Start a generic wss server without an internal server
 const wss = new WebSocketServer({ noServer: true });
 
-
-// promisify jwt.verify, since it doesn't do promises
 async function jwtVerify(token, secretOrPublicKey) {
   return new Promise((resolve, reject) => {
     jwt.verify(token, secretOrPublicKey, (err, decoded) => {
@@ -30,14 +28,18 @@ async function jwtVerify(token, secretOrPublicKey) {
 }
 
 const authClient = jwksClient({
-  jwksUri: `${process.env.BUILD_HOST_PROTOCOL}://${process.env.BUILD_HOST_NAME}/auth/realms/${process.env.KC_REALM}/protocol/openid-connect/certs`
+  jwksUri: `https://192.168.0.3:8443/auth/realms/${process.env.KC_REALM}/protocol/openid-connect/certs`
 });
 
 function getKey(header, callback) {
   authClient.getSigningKey(header.kid, (err, key) => {
     console.log({ err, key })
-    const signingKey = key.publicKey || key.rsaPublicKey;
-    callback(null, signingKey);
+    if (err) {
+      callback(err);
+    } else {
+      const signingKey = key.publicKey || key.rsaPublicKey;
+      callback(null, signingKey);
+    }
   })
 }
 
@@ -46,15 +48,17 @@ function getKey(header, callback) {
 // Define connection endpoints between containers where needed here
 server.on('request', function (req, res) {
 
-  if ('POST' === req.method) {
+  if ('GET' === req.method) {
 
     // User wants to get a ticket to open a socket
     // Proxied from front end through api for kc auth check
     // Create a temporary ticket that the host can use to create a socket later
     try {
 
+      console.log('got a ticket creator', util.inspect(req), util.inspect(req.headers))
+
       if (req.url.includes('create_ticket')) {
-        const host = req.headers['x-forwarded-for'];
+        const host = req.headers['x-forwarded-for'].split(', ')[0];
         const authorization = req.headers['authorization'];
 
         if (!authorization) {
@@ -81,10 +85,10 @@ server.on('request', function (req, res) {
 
 // Proxy pass from nginx sets http upgrade request, caught here
 server.on('upgrade', async function (req, socket, head) {
-  console.log(' got an upgrade request', req.url, util.inspect(req.headers));
+  console.log(' got an upgrade request', req.url, util.inspect(req.headers), util.inspect(pendingTickets));
 
   try {
-    const host = req.headers['x-forwarded-for'];
+    const host = req.headers['x-forwarded-for'].split(', ')[0];
 
     // Check if the host has any tickets and open a socket
     if (pendingTickets[host]) {
@@ -96,9 +100,11 @@ server.on('upgrade', async function (req, socket, head) {
       if (ticket) {
 
         // Verify the ticket and get its token
-        const token = await jwtVerify(ticket, getKey);
+        // const token = await jwtVerify(ticket, getKey);
 
-        if (token.realm_access) {
+        // console.log('got a token', { token })
+
+        // if (token.realm_access) {
           // Upgrade the socket request
           const localId = req.url.slice(1);
           wss.handleUpgrade(req, socket, head, function (ws) {
@@ -106,9 +112,9 @@ server.on('upgrade', async function (req, socket, head) {
             wss.emit('connection', ws, req);
             console.log('activity', host, localId, 'started a socket connection', ws.id);
           });
-        } else {
-          socket401(socket);
-        }
+        // } else {
+        //   socket401(socket);
+        // }
       } else {
         socket401(socket);
       }

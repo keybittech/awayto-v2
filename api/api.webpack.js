@@ -3,7 +3,7 @@ const Dotenv = require('dotenv-webpack');
 
 module.exports = {
   context: __dirname,
-  entry: './api.ts',
+  entry: './src/api.ts',
   mode: 'production',
   output: {
     path: path.resolve(__dirname, 'build'),
@@ -26,12 +26,12 @@ module.exports = {
   },
   target: 'node',
   optimization: {
-    minimize: true
+    minimize: false
   },
   experiments: {
     topLevelAwait: true
   },
   plugins: [
-    new Dotenv()
+    new Dotenv({ path: path.join(__dirname, 'local.env') })
   ]
 };

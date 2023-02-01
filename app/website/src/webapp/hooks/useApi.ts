@@ -47,7 +47,7 @@ const callApi = async ({ path = '', method = 'GET', body }: CallApi): Promise<Re
   const response = await fetch(`/api/${path}`, {
     method, body, headers: {
       'Content-Type': 'application/json',
-      'Authorization': keycloak.token
+      'Authorization': `Bearer ${keycloak.token as string}`
     }
   } as RequestInit) as ApiResponse;
 

@@ -1,7 +1,0 @@
-title = 'Awayto'
-baseURL = 'https://wcapp.site.com/'
-languageCode = 'en-us'
-
-[params]
-  appURL = '/app'
-  

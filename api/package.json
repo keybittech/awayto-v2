@@ -5,8 +5,8 @@
   "scripts": {
     "build": "webpack --config api.webpack.js",
     "start": "npm-run-all --parallel start-nodemon start-webpack",
-    "start-nodemon": "nodemon \"./build/api.js\" --watch \"./build\"",
-    "start-webpack": "webpack --watch --config api.webpack.js"
+    "start-nodemon": "NODE_TLS_REJECT_UNAUTHORIZED=0 nodemon \"./build/api.js\" --watch \"./build\"",
+    "start-webpack": "NODE_ENV=development webpack --watch --config api.webpack.js"
   },
   "author": "",
   "license": "ISC",

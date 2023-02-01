@@ -2,10 +2,8 @@
 // import 'typeface-roboto';
 // import 'typeface-courgette';
 import React, { FunctionComponent, createElement } from 'react';
-import MomentUtils from '@date-io/moment';
 import { RouteComponentProps } from 'react-router';
 import { ConnectedRouter, routerMiddleware, connectRouter, RouterState } from 'connected-react-router';
-import { MuiPickersUtilsProvider } from '@material-ui/pickers';
 import { PersistGate } from 'redux-persist/integration/react';
 import { Provider } from 'react-redux';
 import { render } from 'react-dom';
@@ -26,6 +24,7 @@ import build from './build.json';
 import reportWebVitals from './reportWebVitals';
 import './index.css';
 import App from './App';
+import { initKeycloak } from './keycloak';
 
 declare global {
   /**
@@ -54,23 +53,23 @@ type SafeRouteProps = Omit<RouteComponentProps<RouteProps>, "staticContext">;
 /**
  * @category Awayto Redux
  */
- export type IReducers = ReducersMapObject<ISharedState, ISharedActions>;
+export type IReducers = ReducersMapObject<ISharedState, ISharedActions>;
 
- /**
-  * @category Awayto Redux
-  */
- export type ILoadedReducers = Partial<IReducers>;
+/**
+ * @category Awayto Redux
+ */
+export type ILoadedReducers = Partial<IReducers>;
 
 /**
  * @category Awayto React
  */
- export type IBaseComponent = FunctionComponent<IProps>
+export type IBaseComponent = FunctionComponent<IProps>
 
- /**
-  * @category Awayto React
-  */
- export type IBaseComponents = { [component: string]: IBaseComponent }
- 
+/**
+ * @category Awayto React
+ */
+export type IBaseComponents = { [component: string]: IBaseComponent }
+
 /**
  * @category Awayto React
  */
@@ -194,12 +193,15 @@ export async function awayto(renderComponent: JSX.Element): Promise<void> {
 
 }
 
-awayto(
-  <MuiPickersUtilsProvider utils={MomentUtils}>
+
+void initKeycloak.call({
+  cb: function () {
+    awayto(
       <ConnectedRouter history={history}>
         <App />
       </ConnectedRouter>
-  </MuiPickersUtilsProvider>
-).catch(console.error);
+    ).catch(console.error);
 
-reportWebVitals(console.log);
+    reportWebVitals(console.log);
+  }
+});

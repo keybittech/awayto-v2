@@ -1,8 +1,10 @@
 # stop nginx on host
 
-# docker-compose up -d --build
+# DOCKER_BUILDKIT=1 docker-compose up -d --build
 # docker-compose logs -f -t
 # docker-compose top
+
+# docker run -it d340e8bb50f1 /bin/sh
 
 version: '3.9'
 services:
@@ -11,27 +13,33 @@ services:
     build:
       context: ./
       dockerfile: ./app/Dockerfile
+      args:
+        CUST_LAND_HOSTNAME: ${CUST_LAND_HOSTNAME}
+        CUST_APP_HOSTNAME: ${CUST_APP_HOSTNAME}
+        CUST_HOST_IP: ${CUST_HOST_IP}
+        SITE_NAME: ${SITE_NAME}
     ports:
       - 443:443
+      - 80:80
     environment:
-      - BUILD_HOST_NAME=${BUILD_HOST_NAME}
-      - BUILD_HOST_IP=${BUILD_HOST_IP}
-      - REACT_APP_HOST_IP=${BUILD_HOST_IP}
-      - SITE_NAME=${SITE_NAME}
-      - SITE_URL=${BUILD_HOST_PROTOCOL}://${BUILD_HOST_NAME}
+      CUST_LAND_HOSTNAME: ${CUST_LAND_HOSTNAME}
+      CUST_APP_HOSTNAME: ${CUST_APP_HOSTNAME}
+      CUST_LAND_HOSTNAME: ${CUST_LAND_HOSTNAME}
+      CUST_HOST_IP: ${CUST_HOST_IP}
   auth: # keycloak
     image: wcauth
     build: ./auth
     ports:
+      - 9001:9000
       - 8443:8443
     environment:
-      - KC_HOSTNAME_ADMIN_URL=${BUILD_HOST_PROTOCOL}://${BUILD_HOST_NAME}/auth #NONSECRET
-      - KC_HOSTNAME_URL=${BUILD_HOST_PROTOCOL}://${BUILD_HOST_NAME}/auth #NONSECRET
+      - KC_HOSTNAME_ADMIN_URL=https://${CUST_APP_HOSTNAME}/auth #NONSECRET
+      - KC_HOSTNAME_URL=https://${CUST_APP_HOSTNAME}/auth #NONSECRET
       - KC_PROXY=edge #NONSECRET
       - KC_HOSTNAME_STRICT_BACKCHANNEL=true #NONSECRET
       - KEYCLOAK_ADMIN=admin #SECRET
       - KEYCLOAK_ADMIN_PASSWORD=kcpass #SECRET
-      - KC_DB_URL=jdbc:postgresql://${BUILD_HOST_IP}:8082/sysmaindb #NONSECRET
+      - KC_DB_URL=jdbc:postgresql://${CUST_HOST_IP}:8082/sysmaindb #NONSECRET
       - KC_DB_USERNAME=postgres #SECRET
       - KC_DB_PASSWORD=postgres #SECRET
     depends_on:
@@ -43,8 +51,7 @@ services:
       - 8081:8080
     environment:
       - NODE_TLS_REJECT_UNAUTHORIZED=0
-      - BUILD_HOST_PROTOCOL=${BUILD_HOST_PROTOCOL}
-      - BUILD_HOST_NAME=${BUILD_HOST_NAME}
+      - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
       - KC_REALM=devel
   db: # postgres
     image: wcdb
@@ -62,28 +69,29 @@ services:
     ports:
       - 8083:9443
     environment:
-      - BUILD_HOST_PROTOCOL=${BUILD_HOST_PROTOCOL}
-      - BUILD_HOST_NAME=${BUILD_HOST_NAME}
+      - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
       - KC_REALM=devel
       - KC_CLIENT=devel-client
-      - PG_HOST=${BUILD_HOST_IP} #NONSECRET
+      - PG_HOST=${CUST_HOST_IP} #NONSECRET
       - PG_PORT=8082 #NONSECRET
       - PG_USER=postgres #SECRET
       - PG_PASSWORD=postgres #SECRET
       - PG_DATABASE=sysmaindb #SECRET
-      - GRAYLOG_HOST=${BUILD_HOST_IP}
+      - GRAYLOG_HOST=${CUST_HOST_IP}
       - GRAYLOG_PORT=12201
-      - SOCK_HOST=${BUILD_HOST_IP}
+      - SOCK_HOST=${CUST_HOST_IP}
       - SOCK_PORT=8081
       - NODE_TLS_REJECT_UNAUTHORIZED=0 #NONSECRET # Remove when having cert - otherwise keycloak blocks redirects
     depends_on:
       - db
   turn: # STUN/TURN server for WebRTC
-    image: coturn/coturn
-    network_mode: 'host'
+    image: wcturn
+    network_mode: host
+    build:
+      context: ./turn
     restart: always
     environment:
-      - BUILD_HOST_NAME=${BUILD_HOST_NAME}
+      - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
   
   ## Graylog
   
@@ -120,7 +128,7 @@ services:
       - GRAYLOG_PASSWORD_SECRET=somepasswordpepper #SECRET
       # Password: admin
       - GRAYLOG_ROOT_PASSWORD_SHA2=8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918 #SECRET
-      - GRAYLOG_HTTP_EXTERNAL_URI=http://${BUILD_HOST_IP}:9000/ #NONSECRET
+      - GRAYLOG_HTTP_EXTERNAL_URI=http://${CUST_HOST_IP}:9000/ #NONSECRET
     entrypoint: /usr/bin/tini -- wait-for-it elasticsearch:9200 --  /docker-entrypoint.sh
     networks:
       - graylog

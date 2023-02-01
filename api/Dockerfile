@@ -3,24 +3,24 @@
 FROM node:16.3.0-alpine as builder
 RUN apk add postgresql-dev python3 make build-base
 # added for dev
-RUN mkdir -p /app/build
+RUN mkdir -p /api/build
 
-WORKDIR /app
+WORKDIR /api
 
-COPY ./api/package*.json /app/
-RUN npm i --silent --no-audit
+COPY ./api/package*.json /api/
+RUN --mount=type=cache,target=/api/node_modules npm i --silent --no-audit
 
 COPY ./core /core
-COPY ./api /app
+COPY ./api /api
 
-RUN npm run build
+RUN --mount=type=cache,target=/api/node_modules npm run build
 
 FROM node:16.3.0-alpine
 CMD ["node", "api.js"]
 EXPOSE 9443
-WORKDIR /app
+WORKDIR /api
 
-COPY ./api/server.crt /app
-COPY ./api/server.key /app
+COPY ./api/server.crt /api
+COPY ./api/server.key /api
 
-COPY --from=builder /app/build/ /app
+COPY --from=builder /api/build/ /api

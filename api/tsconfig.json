@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.paths.json",
   "include": [
-    "./",
+    "./src",
     "../core"
   ],
   "compilerOptions": {

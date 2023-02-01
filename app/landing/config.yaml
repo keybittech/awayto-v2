@@ -1,0 +1,6 @@
+title: Awayto
+baseURL: https://wcapp.site.com/
+languageCode: en-us
+
+Params:
+  appURL: https://wcapp.site.com/app

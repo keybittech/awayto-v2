@@ -6,9 +6,10 @@ import httpProxy from 'http-proxy';
 import cors from 'cors';
 import fs from 'fs';
 import https from 'https';
-import Keycloak, { KeycloakConfig } from 'keycloak-connect';
+import Keycloak, { GuardFn, KeycloakConfig } from 'keycloak-connect';
 import { graylog } from 'graylog2';
 import { v4 as uuid } from 'uuid';
+
 
 import Objects from './objects';
 
@@ -22,8 +23,9 @@ type KCAuthRequest = Request & {
   }
 }
 
-try {
+console.log(process.env.NODE_TLS_REJECT_UNAUTHORIZED)
 
+try {
   const logger = new graylog({
     servers: [{
       host: process.env.GRAYLOG_HOST as string,
@@ -40,6 +42,7 @@ try {
     database: process.env.PG_DATABASE
   });
 
+
   // Connect to Postgres
   client.connect((err) => {
     if (err) {
@@ -47,16 +50,14 @@ try {
       process.exit(1);
     }
   });
-
-  // Init Keycloak
   const keycloak = new Keycloak({ cookies: true }, {
     "realm": process.env.KC_REALM,
-    "auth-server-url": `${process.env.BUILD_HOST_PROTOCOL}://${process.env.BUILD_HOST_NAME}/auth`,
+    "auth-server-url": `https://${process.env.CUST_APP_HOSTNAME}/auth`,
     "ssl-required": "external",
     "resource": process.env.KC_CLIENT,
     "public-client": true,
     "confidential-port": 0
-  } as KeycloakConfig & { 'public-client': boolean });
+  } as KeycloakConfig & { 'public-client': boolean });;
 
   // Create Express app
   const app: Express = express();
@@ -75,7 +76,7 @@ try {
   app.use(cookieParser());
 
   // Keycloak auto recognize headers, etc
-  app.use(keycloak.middleware());
+  app.use(keycloak!.middleware());
 
   // Enable CORS
   app.use(cors());
@@ -144,8 +145,20 @@ try {
   // Proxy to WSS
   const proxy = httpProxy.createProxyServer();
 
+  //@ts-ignore
+  const enforceKeycloak: GuardFn = (token, req, res) => {
+    console.log({ token })
+    if (!token) {
+      return false;
+    }
+    return true;
+  }
+
   // Websocket Ticket Proxy
-  app.post('/api/ticket', keycloak.protect(), (req, res, next) => {
+  app.get('/api/ticket', keycloak.protect(enforceKeycloak), (req, res, next) => {
+
+    console.log(`http://${process.env.SOCK_HOST}:${process.env.SOCK_PORT}/create_ticket`)
+
     proxy.web(req, res, {
       target: `http://${process.env.SOCK_HOST}:${process.env.SOCK_PORT}/create_ticket`
     }, next);
@@ -167,6 +180,10 @@ try {
 
     res.send(status);
   });
+
+  app.get('/', (req, res) => {
+    res.send('aaaaaaaaaaaaaaaaaaa');
+  })
 
   const key = fs.readFileSync('server.key', 'utf-8');
   const cert = fs.readFileSync('server.crt', 'utf-8');
