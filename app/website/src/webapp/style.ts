@@ -152,7 +152,10 @@ export const lightTheme = createTheme({
   palette: {
     ...theme.palette,
     type: 'light',
-    primary: { main: '#000' }
+    primary: {
+      main: '#000',
+      dark: '#aaa'
+    }
   }
 });
 
@@ -164,8 +167,24 @@ export const darkTheme = createTheme({
   palette: {
     ...theme.palette,
     type: 'dark',
-    primary: { main: '#fff' },
+    primary: {
+      main: '#fff',
+      contrastText: '#333'
+    },
     secondary: { main: '#009cc8' }
+  },
+  overrides: {
+    ...theme.overrides,
+    MuiInput: {
+      root: {
+        color: '#333'
+      },
+      underline: {
+        '&:before': {
+          borderBottom: '1px solid #333'
+        }
+      }
+    }
   },
   ...styles
 });

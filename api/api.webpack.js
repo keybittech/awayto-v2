@@ -32,6 +32,6 @@ module.exports = {
     topLevelAwait: true
   },
   plugins: [
-    new Dotenv({ path: path.join(__dirname, 'local.env') })
+    new Dotenv()
   ]
 };

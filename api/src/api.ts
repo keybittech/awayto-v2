@@ -1,45 +1,47 @@
-import express, { Express, Request, Response } from 'express';
+
+import fs from 'fs';
+import https from 'https';
+import express, { Express, NextFunction, Request, Response } from 'express';
 import postgres from 'pg';
 import cookieSession from 'cookie-session';
 import cookieParser from 'cookie-parser';
 import httpProxy from 'http-proxy';
-import cors from 'cors';
-import fs from 'fs';
-import https from 'https';
-import Keycloak, { GuardFn, KeycloakConfig } from 'keycloak-connect';
 import { graylog } from 'graylog2';
 import { v4 as uuid } from 'uuid';
 
+import passport from 'passport';
 
 import Objects from './objects';
+import { IUserProfileState, IUserProfile } from 'awayto';
+import { keycloakStrategy } from './util/keycloak';
 
-type KCAuthRequest = Request & {
-  kauth: {
-    grant: {
-      access_token: {
-        content: { [prop: string]: string }
-      }
-    }
-  }
-}
-
-console.log(process.env.NODE_TLS_REJECT_UNAUTHORIZED)
+const {
+  GRAYLOG_HOST,
+  GRAYLOG_PORT,
+  PG_HOST,
+  PG_PORT,
+  PG_USER,
+  PG_PASSWORD,
+  PG_DATABASE,
+  SOCK_HOST,
+  SOCK_PORT
+} = process.env as { [prop: string]: string } & { PG_PORT: number };
 
 try {
   const logger = new graylog({
     servers: [{
-      host: process.env.GRAYLOG_HOST as string,
-      port: parseInt(process.env.GRAYLOG_PORT as string)
+      host: GRAYLOG_HOST as string,
+      port: parseInt(GRAYLOG_PORT as string)
     }]
   });
 
   // Configure Postgres client
   const client = new postgres.Client({
-    host: process.env.PG_HOST,
-    port: process.env.PG_PORT as number | undefined,
-    user: process.env.PG_USER,
-    password: process.env.PG_PASSWORD,
-    database: process.env.PG_DATABASE
+    host: PG_HOST,
+    port: PG_PORT,
+    user: PG_USER,
+    password: PG_PASSWORD,
+    database: PG_DATABASE
   });
 
 
@@ -50,14 +52,6 @@ try {
       process.exit(1);
     }
   });
-  const keycloak = new Keycloak({ cookies: true }, {
-    "realm": process.env.KC_REALM,
-    "auth-server-url": `https://${process.env.CUST_APP_HOSTNAME}/auth`,
-    "ssl-required": "external",
-    "resource": process.env.KC_CLIENT,
-    "public-client": true,
-    "confidential-port": 0
-  } as KeycloakConfig & { 'public-client': boolean });;
 
   // Create Express app
   const app: Express = express();
@@ -72,30 +66,84 @@ try {
     maxAge: 24 * 60 * 60 * 1000
   }));
 
+  // Fix for passport/express cookie issue
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    if (req.session && !req.session.regenerate) {
+      //@ts-ignore
+      req.session.regenerate = (cb) => {
+        cb(null)
+      }
+    }
+    if (req.session && !req.session.save) {
+      //@ts-ignore
+      req.session.save = (cb) => {
+        cb && cb(null)
+      }
+    }
+    next()
+  });
+
   // Enable cookie parsing to read keycloak token
   app.use(cookieParser());
 
-  // Keycloak auto recognize headers, etc
-  app.use(keycloak!.middleware());
+  app.use(passport.initialize());
 
-  // Enable CORS
-  app.use(cors());
+  app.use(passport.authenticate('session'));
+
+  passport.use('oidc', keycloakStrategy);
+
+  passport.serializeUser(function (user, done) {
+    done(null, user);
+  });
+
+  passport.deserializeUser<IUserProfileState>(function (user, done) {
+    done(null, user);
+  });
 
   // Set all api to be JSON consuming
   app.use(express.json());
 
+  app.get('/api/auth/checkin', (req, res, next) => {
+    passport.authenticate('oidc')(req, res, next);
+  });
+
+  app.get('/api/auth/login/callback', (req, res, next) => {
+    passport.authenticate('oidc', {
+      successRedirect: '/api/auth/checkok',
+      failureRedirect: '/api/auth/checkfail'
+    })(req, res, next);
+  });
+
+  var checkAuthenticated = (req: Request, res: Response, next: NextFunction) => {
+    if (req.isAuthenticated()) {
+      return next()
+    }
+    res.redirect('/api/auth/checkin');
+  }
+
+  app.get('/api/auth/checkok', checkAuthenticated, (req, res, next) => {
+    res.status(200).send();
+  });
+
+  app.get('/api/auth/checkfail', (req, res, next) => {
+    res.status(403).send();
+  });
+
   // Define protected routes
   Objects.protected.forEach(({ method, path, cmnd }) => {
 
-    // Here we make use of the extra /api from the reverse proxy because keycloak responses can be redirected back here and we can't change the redirect url with keycloak-connect
-    app[method.toLowerCase() as keyof Express](`/api/${path}`, keycloak.protect(), async (req: KCAuthRequest, res: Response) => {
+    // Here we make use of the extra /api from the reverse proxy
+    app[method.toLowerCase() as keyof Express](`/api/${path}`, checkAuthenticated, async (req: Request, res: Response) => {
       const requestId = uuid();
+
+      const user = req.user as IUserProfile;
+
       // Create trace event
       const event = {
         requestId,
         method,
         path,
-        userSub: req.kauth.grant.access_token.content.preferred_username,
+        userSub: user.username,
         sourceIp: req.headers['x-forwarded-for'] as string,
         pathParameters: req.params,
         body: req.body
@@ -112,6 +160,7 @@ try {
 
       } catch (error) {
 
+        console.log('protected error', error);
         logger.log('error response', Object.assign(event, { error }));
 
         // Handle failures
@@ -145,28 +194,16 @@ try {
   // Proxy to WSS
   const proxy = httpProxy.createProxyServer();
 
-  //@ts-ignore
-  const enforceKeycloak: GuardFn = (token, req, res) => {
-    console.log({ token })
-    if (!token) {
-      return false;
-    }
-    return true;
-  }
-
   // Websocket Ticket Proxy
-  app.get('/api/ticket', keycloak.protect(enforceKeycloak), (req, res, next) => {
-
-    console.log(`http://${process.env.SOCK_HOST}:${process.env.SOCK_PORT}/create_ticket`)
-
+  app.get('/api/ticket', checkAuthenticated, (req, res, next) => {
     proxy.web(req, res, {
-      target: `http://${process.env.SOCK_HOST}:${process.env.SOCK_PORT}/create_ticket`
+      target: `http://${SOCK_HOST}:${SOCK_PORT}/create_ticket`
     }, next);
   });
 
   // default protected route /test
   app.get('/api/404', (req, res, next) => {
-    res.status(404).send('Not found.');
+    res.status(404).send();
   });
 
   // Health Check
@@ -180,10 +217,6 @@ try {
 
     res.send(status);
   });
-
-  app.get('/', (req, res) => {
-    res.send('aaaaaaaaaaaaaaaaaaa');
-  })
 
   const key = fs.readFileSync('server.key', 'utf-8');
   const cert = fs.readFileSync('server.crt', 'utf-8');

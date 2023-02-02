@@ -72,6 +72,8 @@ services:
       - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
       - KC_REALM=devel
       - KC_CLIENT=devel-client
+      - KC_API_CLIENT_ID=api-client
+      - KC_API_CLIENT_SECRET=Px1s9VDXfs8cECKynUMSfL6oc4RtK3Cg
       - PG_HOST=${CUST_HOST_IP} #NONSECRET
       - PG_PORT=8082 #NONSECRET
       - PG_USER=postgres #SECRET

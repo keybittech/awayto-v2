@@ -1,20 +1,17 @@
 /// <reference lib="WebWorker" />
 
-import React, { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Button, CardActionArea, Grid, TextField, Typography, CardActions, CardHeader, InputAdornment, IconButton, Box } from '@material-ui/core';
+import React, { FormEvent, KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Button, Grid, TextField, CardActions, InputAdornment, IconButton, useTheme } from '@material-ui/core';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
-import Collapse from '@material-ui/core/Collapse';
-import { asyncForEach, IUtilActionTypes } from 'awayto';
-import { useAct, useComponents } from 'awayto-hooks';
-
+import { ChatBubble, Send } from '@material-ui/icons';
 import Videocam from '@material-ui/icons/Videocam';
 import Call from '@material-ui/icons/Call';
 
+import { asyncForEach, IUtilActionTypes } from 'awayto';
+import { useAct, useComponents } from 'awayto-hooks';
 
 import keycloak from '../../../keycloak';
-import { ChatBubble, Send } from '@material-ui/icons';
 
 const peerConnectionConfig = {
   'iceServers': [
@@ -65,6 +62,7 @@ function clearbeat(this: WebSocket & { [prop: string]: ReturnType<typeof setTime
 export function Home(props: IProps): JSX.Element {
   const { classes, ...restProps } = props;
   const act = useAct();
+  const theme = useTheme();
   const { Video } = useComponents();
   const [localStream, setLocalStream] = useState<MediaStream>();
   const [localId, setLocalId] = useState('');
@@ -114,8 +112,8 @@ export function Home(props: IProps): JSX.Element {
 
         if (video) {
           callOptions.video = {
-            width: { max: 320 },
-            height: { max: 240 },
+            width: 520,
+            height: 390,
             frameRate: { max: 30 }
           };
         }
@@ -327,7 +325,7 @@ export function Home(props: IProps): JSX.Element {
     }
   }, [senderStreams]);
 
-  const submitMessage = useCallback((e: FormEvent<HTMLFormElement>): void => {
+  const submitMessage = useCallback((e: KeyboardEvent | FormEvent): void => {
     e.preventDefault();
     if (!socket.current || !textMessage) return;
     try {
@@ -384,14 +382,14 @@ export function Home(props: IProps): JSX.Element {
     }
   }, [localStream]);
 
-  const messagesMemo = useMemo(() => messages.map((msg, i) => <Typography key={i} variant='body1'>{msg}</Typography>), [messages]);
+  const messagesMemo = useMemo(() => messages.map((msg, i) => <p style={{ whiteSpace: 'pre-wrap'}} key={i}>{msg}</p>), [messages]);
   const senderStreamsElements = useMemo(() => Object.keys(senderStreams).map(sender => {
     if (senderStreams[sender].mediaStream) {
       console.log('building element', JSON.stringify(senderStreams[sender], null, 2));
       return <Video {...props} key={sender} autoPlay srcObject={senderStreams[sender].mediaStream} />
     }
   }), [senderStreams]);
-  const localStreamElement = useMemo(() => !localStream ? <></> : <video key={'local-video'} autoPlay controls ref={localStreamRef} />, [localStream, localStreamRef]);
+  const localStreamElement = useMemo(() => !localStream ? <></> : <video key={'local-video'} style={{ width: '25%' }} autoPlay controls ref={localStreamRef} />, [localStream, localStreamRef]);
 
   return !socket.current ? <></> : <Card>
     <CardActions>
@@ -413,62 +411,62 @@ export function Home(props: IProps): JSX.Element {
     </CardActions>
     <CardContent>
 
-      <Grid container direction="row">
-        <Grid item xs={6} style={{ minHeight: '250px', backgroundColor: 'whitesmoke', color: '#333' }}>document placeholder</Grid>
-        <Grid item xs={6}>
+      <Grid container direction="row" justifyContent="space-evenly">
+        <Grid item xs={12} md={5} style={{ height: '600px', padding: '20px', color: theme.palette.primary.contrastText, backgroundColor: theme.palette.primary.dark }}>document placeholder</Grid>
+        <Grid item xs={12} md={5}>
           <Grid container direction="column">
-            <Grid item>
-              {localStreamElement}
-            </Grid>
-            <Grid item>
+            {/* ---------- Video ---------- */}
+            {localStream && Object.keys(senderStreamsElements).length && <Grid item style={{ backgroundColor: 'black', position: 'relative' }}>
+              <Grid container spacing={0} justifyContent="flex-end" style={{ position: 'absolute' }}>
+                {localStreamElement}
+              </Grid>
               {senderStreamsElements}
-            </Grid>
+            </Grid>}
+
+            {/* ---------- Chat ---------- */}
             <Grid item hidden={!chatOpen}>
-
-              <Grid container direction="column" justifyContent="flex-start" alignItems="stretch" spacing={4}>
-
-                <Grid item style={{ overflow: 'auto', height: '25vh' }}>
-
-                  <Grid container>
-                    <Grid item style={{ flexGrow: 1 }}>
-                      <Grid container direction="column" justifyContent='flex-end'>
-
-                        {messagesMemo.map((m, i) => <Grid key={`message_${i}`} item>{m}</Grid>)}
-                      </Grid>
-
-                      <Grid item ref={messagesEndRef} />
-                    </Grid>
+              <Grid container direction="column">
+                <Grid item style={{ overflow: 'auto', color: theme.palette.primary.contrastText, backgroundColor: theme.palette.primary.dark, padding: '0 25px', height: !localStream ? '550px' : '200px' }}>
+                  <Grid container direction="column">
+                    {messagesMemo}
                   </Grid>
+                  <Grid item ref={messagesEndRef} />
                 </Grid>
-                <Grid item>
-                  <form onSubmit={submitMessage}>
 
+                <Grid item style={{ backgroundColor: theme.palette.primary.dark, marginTop: '-8px', padding: '25px' }}>
+                  <form onSubmit={submitMessage}>
                     <TextField
                       fullWidth
+                      multiline
                       id="message"
                       label="Message"
                       value={textMessage}
                       name="message"
                       onChange={e => setTextMessage(e.target.value)}
+                      style={{ color: theme.palette.primary.contrastText }}
+                      InputLabelProps={{
+                        style: { color: theme.palette.primary.contrastText }
+                      }}
                       InputProps={{
+                        onKeyDown: e => {
+                          if ('Enter' === e.key && !e.shiftKey) {
+                            submitMessage(e);
+                          }
+                        },
                         endAdornment: (
                           <InputAdornment position="end">
-
-                            <IconButton
-                              type="submit"
-                              aria-label="toggle password visibility"
-                            >
-                              <Send />
+                            <IconButton type="submit" aria-label="toggle password visibility">
+                              <Send style={{ color: theme.palette.primary.contrastText }} />
                             </IconButton>
                           </InputAdornment>
-                        ),
+                        )
                       }}
                     />
                   </form>
                 </Grid>
-
               </Grid>
             </Grid>
+
           </Grid>
         </Grid>
       </Grid>

@@ -1,5 +1,6 @@
 // import { UserType, AttributeType } from '@aws-sdk/client-cognito-identity-provider';
 import { IUserProfile, SiteRoles } from 'awayto';
+import { keycloak } from '../util/keycloak';
 // import { adminCreateUser, adminDisableUser, adminEnableUser, getUserInfo, parseGroupString, parseGroupArray, updateUserAttributesAdmin, listUsers, attachCognitoInfoToUser } from "../util/cognito";
 import { ApiModule, asyncForEach } from "../util/db";
 import usersApi from './users';
@@ -102,7 +103,12 @@ const manageUsers: ApiModule = [
         // }) || [];
 
         // return users;
-        return true;
+
+        const keycloakUserList = await keycloak.users.find();
+
+        console.log(keycloakUserList)
+
+        return keycloakUserList;
 
       } catch (error) {
         throw error;
