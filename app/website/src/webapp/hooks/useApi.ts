@@ -7,6 +7,11 @@ import {
   CallApi, 
   IActionTypes, 
   IUtilActionTypes, 
+  IFilesActionTypes,
+  IScheduleActionTypes,
+  IScheduleContextActionTypes,
+  IServiceActionTypes,
+  IServiceAddonActionTypes,
   IManageUsersActionTypes, 
   IManageGroupsActionTypes, 
   IManageRolesActionTypes, 
@@ -23,6 +28,11 @@ export function registerApi(api: IActionTypes): void {
 }
 
 let ApiActions = Object.assign(
+  IFilesActionTypes,
+  IScheduleActionTypes,
+  IScheduleContextActionTypes,
+  IServiceActionTypes,
+  IServiceAddonActionTypes,
   IManageUsersActionTypes,
   IManageGroupsActionTypes,
   IManageRolesActionTypes,
@@ -96,7 +106,7 @@ export function useApi(): <T = unknown>(actionType: IActionTypes, load?: boolean
 
     if (load) act(START_LOADING, { isLoading: true });
     
-    if (method.toLowerCase() == 'get' && body && Object.keys(body).length) {
+    if (['delete', 'get'].indexOf(method.toLowerCase()) > -1 && body && Object.keys(body).length) {
       // Get the key of the enum from ApiActions based on the path (actionType)
       const pathKey = Object.keys(ApiActions).filter((x) => ApiActions[x] == actionType)[0];
       path = generator.generate(pathKey, body as unknown as Record<string, string>).split(/\/(.+)/)[1];

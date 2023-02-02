@@ -20,12 +20,12 @@ import { FileSystemFileStoreStrategy, FileStoreStrategy, FileStoreStrategies, Fi
  * 
  * @category Hooks
  */
-export const useFileStore = (strategyName: FileStoreStrategies | void): FileStoreContext | undefined => {
+export const useFileStore = (strategyName: FileStoreStrategies | void): FileStoreContext => {
 
   if (!strategyName)
-    strategyName = FileStoreStrategies.AWS_S3;
+    strategyName = FileStoreStrategies.FILE_SYSTEM;
 
-  const [fileStore, setFileStore] = useState<FileStoreContext>();
+  const [fileStore, setFileStore] = useState<FileStoreContext>(new FileStoreContext(new FileSystemFileStoreStrategy()));
 
   let strategy: FileStoreStrategy;
 

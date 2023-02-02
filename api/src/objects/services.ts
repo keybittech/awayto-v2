@@ -66,7 +66,7 @@ const services: ApiModule = [
           })
         });
         
-        return service;
+        return [service];
 
       } catch (error) {
         throw error;
@@ -92,7 +92,7 @@ const services: ApiModule = [
           RETURNING id, name
         `, updateProps.array);
 
-        return response.rows[0];
+        return response.rows;
         
       } catch (error) {
         throw error;

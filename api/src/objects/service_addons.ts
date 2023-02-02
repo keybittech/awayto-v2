@@ -17,7 +17,7 @@ const serviceAddons: ApiModule = [
           RETURNING id, name
         `, [name]);
         
-        return response.rows[0];
+        return response.rows;
 
       } catch (error) {
         throw error;

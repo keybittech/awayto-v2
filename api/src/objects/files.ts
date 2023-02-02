@@ -33,7 +33,7 @@ const files: ApiModule = [
     path : 'files',
     cmnd : async (props) => {
       try {
-        const { id, name, fileTypeId: file_type_id, location } = props.event.body as IFile;
+        const { id, name, fileTypeId: file_type_id, location } = props.event.body as Required<IFile>;
 
         const updateProps = buildUpdate({ id, name, file_type_id, location, updated_on: (new Date()).toString(), updated_sub: props.event.userSub });
 

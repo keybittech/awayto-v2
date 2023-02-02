@@ -411,28 +411,28 @@ export function Home(props: IProps): JSX.Element {
     <CardContent>
 
       <Grid container direction="row" justifyContent="space-evenly">
-        <Grid item xs={12} md={5} style={{ height: '600px', padding: '20px', color: theme.palette.primary.contrastText, backgroundColor: theme.palette.primary.dark }}>document placeholder</Grid>
+        <Grid item xs={12} md={5} style={{ height: '70vh', padding: '20px', color: theme.palette.primary.contrastText, backgroundColor: theme.palette.primary.dark }}>document placeholder</Grid>
         <Grid item xs={12} md={5}>
-          <Grid container direction="column">
+          <Grid container direction="column" style={{ height: '70vh', display: 'flex' }}>
             {/* ---------- Video ---------- */}
-            {localStream && Object.keys(senderStreamsElements).length && <Grid item style={{ backgroundColor: 'black', position: 'relative' }}>
-              <Grid container spacing={0} justifyContent="flex-end" style={{ position: 'absolute' }}>
+            {localStream && Object.keys(senderStreamsElements).length && <Grid item xs={12} style={{ backgroundColor: 'black', position: 'relative', maxHeight: '390px', display: 'flex', flex: '1' }}>
+              <Grid container justifyContent="flex-end" style={{ position: 'absolute' }}>
                 {localStreamElement}
               </Grid>
               {senderStreamsElements}
             </Grid>}
 
             {/* ---------- Chat ---------- */}
-            <Grid item hidden={!chatOpen}>
-              <Grid container direction="column">
-                <Grid item style={{ overflow: 'auto', color: theme.palette.primary.contrastText, backgroundColor: theme.palette.primary.dark, padding: '0 25px', height: !localStream ? '550px' : '200px' }}>
+            <Grid item xs={12} hidden={!chatOpen} style={{ flex: '1' }}>
+              <Grid container direction="column" style={{ height: '100%' }}>
+                <Grid item style={{ flex: '1', overflow: 'auto', color: theme.palette.primary.contrastText, backgroundColor: theme.palette.primary.dark, padding: '0 25px' }}>
                   <Grid container direction="column">
                     {messagesMemo}
                   </Grid>
                   <Grid item ref={messagesEndRef} />
                 </Grid>
 
-                <Grid item style={{ backgroundColor: theme.palette.primary.dark, marginTop: '-8px', padding: '25px' }}>
+                <Grid item style={{ backgroundColor: theme.palette.primary.dark, padding: '25px' }}>
                   <form onSubmit={submitMessage}>
                     <TextField
                       fullWidth

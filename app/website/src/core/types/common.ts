@@ -7,12 +7,14 @@ declare global {
   interface ISharedState {
     util: IUtilState,
     login: ILoginState
+    uuidFiles: IUuidFilesState;
+    files: IFilesState;
   }
 
   /**
    * @category Awayto Redux
    */
-  type ICommonModuleActions = IUtilActions | ILoginActions | ILogoutActions | IUuidNotesActions | IUuidFilesActions | IFileActions;
+  type ICommonModuleActions = IUtilActions | ILoginActions | ILogoutActions | IUuidNotesActions | IUuidFilesActions | IFilesActions;
 
   /**
    * @category Awayto Redux
@@ -23,7 +25,7 @@ declare global {
     logout: ILogoutActionTypes;
     uuidNotes: IUuidNotesActionTypes;
     uuidFiles: IUuidFilesActionTypes;
-    file: IFileActionTypes;
+    file: IFilesActionTypes;
   }
 }
 
@@ -381,50 +383,60 @@ export type IUuidFilesActions = ILogoutUserAction
   | IDisableUuidFilesAction;
 
 
+
+/**
+ * @category File
+ */
+export type IFileType = {
+  id: string;
+  name: string;
+}
+
 /**
  * @category File
  */
 export type IFile = {
-  id: string;
+  id?: string;
+  fileTypeId?: string;
+  fileTypeName: string;
   name: string;
-  fileTypeId: string;
   location: string;
 }
 
 /**
  * @category File
  */
-export type IFileState = Partial<IFile>;
+export type IFilesState = Record<string, IFile>;
 
 /**
  * @category Action Types
  */
-export enum IFileActionTypes {
+export enum IFilesActionTypes {
   POST_FILES = "POST/files",
   PUT_FILES = "PUT/files",
   GET_FILES = "GET/files",
   GET_FILES_BY_ID = "GET/files/:id",
-  DELETE_FILES = "DELETE/files/:id",
+  DELETE_FILES = "PUT/files/delete",
   DISABLE_FILES = "PUT/files/disable"
 }
 
 /**
  * @category File
  */
-export type IPostFileAction = PayloadAction<IFileActionTypes.POST_FILES, IFileState>;
-export type IPutFileAction = PayloadAction<IFileActionTypes.PUT_FILES, IFileState>;
-export type IGetFileAction = PayloadAction<IFileActionTypes.GET_FILES, IFileState>;
-export type IGetFileByIdAction = PayloadAction<IFileActionTypes.GET_FILES_BY_ID, IFileState>;
-export type IDeleteFileAction = PayloadAction<IFileActionTypes.DELETE_FILES, IFileState>;
-export type IDisableFileAction = PayloadAction<IFileActionTypes.DISABLE_FILES, IFileState>;
+export type IPostFilesAction = PayloadAction<IFilesActionTypes.POST_FILES, IFile[]>;
+export type IPutFilesAction = PayloadAction<IFilesActionTypes.PUT_FILES, IFile>;
+export type IGetFilesAction = PayloadAction<IFilesActionTypes.GET_FILES, IFile[]>;
+export type IGetFilesByIdAction = PayloadAction<IFilesActionTypes.GET_FILES_BY_ID, IFile>;
+export type IDeleteFilesAction = PayloadAction<IFilesActionTypes.DELETE_FILES, IFile[]>;
+export type IDisableFilesAction = PayloadAction<IFilesActionTypes.DISABLE_FILES, IFile[]>;
 
 /**
  * @category File
  */
-export type IFileActions = ILogoutUserAction
-  | IPostFileAction
-  | IPutFileAction
-  | IGetFileAction
-  | IGetFileByIdAction
-  | IDeleteFileAction
-  | IDisableFileAction;
+export type IFilesActions = ILogoutUserAction
+  | IPostFilesAction
+  | IPutFilesAction
+  | IGetFilesAction
+  | IGetFilesByIdAction
+  | IDeleteFilesAction
+  | IDisableFilesAction;

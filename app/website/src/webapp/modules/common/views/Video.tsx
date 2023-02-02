@@ -1,4 +1,3 @@
-import { Grid } from '@material-ui/core';
 import { VideoHTMLAttributes, useEffect, useRef, useCallback } from 'react'
 
 declare global {
@@ -13,13 +12,7 @@ export function Video({ srcObject, autoPlay = false }: VideoHTMLAttributes<HTMLV
     if (node && srcObject) node.srcObject = srcObject;
   }, [srcObject])
 
-  return <>
-    <Grid container direction="column" alignItems='center'>
-      <Grid item xs={12}>
-        <video controls autoPlay ref={refVideo} />
-      </Grid>
-    </Grid>
-  </>
+  return <video style={{ width: '100%' }} controls autoPlay ref={refVideo} />
 }
 
 export default Video;
