@@ -14,11 +14,11 @@ import Toolbar from '@material-ui/core/Toolbar';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Backdrop from '@material-ui/core/Backdrop';
 import AppBar from '@material-ui/core/AppBar';
-// import keycloak from './keycloak';
+import keycloak from './keycloak';
 
 // import { ReactKeycloakProvider } from '@react-keycloak/web';
 
-import { IUtilActionTypes, IUserProfileActionTypes } from 'awayto';
+import { IUtilActionTypes, IUserProfileActionTypes, IFormActionTypes } from 'awayto';
 import { useRedux, useAct, useComponents, useApi } from 'awayto-hooks';
 
 import './App.css';
@@ -28,6 +28,7 @@ import { themes, styles } from './style';
 import { MuiPickersUtilsProvider } from '@material-ui/pickers';
 
 const { GET_USER_PROFILE_DETAILS } = IUserProfileActionTypes;
+const { GET_FORMS } = IFormActionTypes;
 
 function Alert(props: AlertProps): JSX.Element {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -37,15 +38,13 @@ const { SET_SNACK } = IUtilActionTypes;
 
 const App = (props: IProps): JSX.Element => {
 
-  const { classes, history } = props;
-
-  const [authenticated, setAuthenticated] = useState(false);
+  const { classes } = props;
 
   const api = useApi();
 
   const act = useAct();
 
-  const { Sidebar, ConfirmAction, Home, Profile, Manage } = useComponents();
+  const { Sidebar, ConfirmAction, Home, Profile, Manage, ServiceHome, ScheduleHome, BookingHome } = useComponents();
   const { snackOn, snackType, isLoading, loadingMessage, theme } = useRedux(state => state.util);
 
   const hideSnack = (): void => {
@@ -53,8 +52,9 @@ const App = (props: IProps): JSX.Element => {
   }
 
   useEffect(() => {
-    if (authenticated) {
+    if (keycloak.authenticated) {
       void api(GET_USER_PROFILE_DETAILS);
+      void api(GET_FORMS);
     }
   }, [])
 
@@ -106,6 +106,9 @@ const App = (props: IProps): JSX.Element => {
                 <Switch>
                   <Route exact path="/home" render={() => <Home {...props} />} />
                   <Route exact path="/profile" render={() => <Profile {...props} />} />
+                  <Route exact path="/service" render={() => <ServiceHome {...props} />} />
+                  <Route exact path="/schedule" render={() => <ScheduleHome {...props} />} />
+                  <Route exact path="/booking" render={() => <BookingHome {...props} />} />
                   <Route exact path="/manage/:component" render={({ match }) => <Manage {...props} view={match.params.component} />} />
                 </Switch>
               </Suspense>

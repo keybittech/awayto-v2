@@ -2,7 +2,7 @@
   "extends": "./tsconfig.paths.json",
   "include": [
     "./src",
-    "../core"
+    "../app/website/src/core"
   ],
   "compilerOptions": {
     "target": "es2017",

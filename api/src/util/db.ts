@@ -41,7 +41,7 @@ export type ApiRequestAuthorizer = {
   inclusive: boolean;
 }
 
-type BuildParamTypes = string | number;
+type BuildParamTypes = string | number | boolean;
 
 interface BuildUpdateParams {
   [key: string]: BuildParamTypes;

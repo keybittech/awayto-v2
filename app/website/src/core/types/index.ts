@@ -166,3 +166,11 @@ export interface IPreviewFile extends File {
 export * from './common';
 export * from './manage';
 export * from './profile';
+
+export * from './booking';
+export * from './contact';
+export * from './form';
+export * from './payment';
+export * from './quote';
+export * from './schedule';
+export * from './service';

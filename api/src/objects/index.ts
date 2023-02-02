@@ -10,6 +10,18 @@ import ManageRoles from './manage_roles';
 import ManageGroups from './manage_groups';
 import ManageUsers from './manage_users';
 
+import Forms from './forms';
+
+import Bookings from './bookings';
+import Contacts from './contacts';
+import Payments from './payments';
+import Quotes from './quotes';
+import ScheduleContexts from './schedule_contexts';
+import Schedules from './schedules';
+import ServiceAddons from './service_addons';
+import ServiceTiers from './service_tiers';
+import Services from './services';
+
 export default  {
   protected: [
     ...Tests,
@@ -21,7 +33,17 @@ export default  {
     ...UuidRoles,
     ...ManageRoles,
     ...ManageGroups,
-    ...ManageUsers
+    ...ManageUsers,
+    ...Forms,
+    ...Bookings,
+    ...Contacts,
+    ...Payments,
+    ...Quotes,
+    ...ScheduleContexts,
+    ...Schedules,
+    ...ServiceAddons,
+    ...ServiceTiers,
+    ...Services
   ],
   public: [
     ...Public

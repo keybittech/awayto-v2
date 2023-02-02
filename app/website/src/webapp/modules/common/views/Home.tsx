@@ -385,7 +385,6 @@ export function Home(props: IProps): JSX.Element {
   const messagesMemo = useMemo(() => messages.map((msg, i) => <p style={{ whiteSpace: 'pre-wrap'}} key={i}>{msg}</p>), [messages]);
   const senderStreamsElements = useMemo(() => Object.keys(senderStreams).map(sender => {
     if (senderStreams[sender].mediaStream) {
-      console.log('building element', JSON.stringify(senderStreams[sender], null, 2));
       return <Video {...props} key={sender} autoPlay srcObject={senderStreams[sender].mediaStream} />
     }
   }), [senderStreams]);
@@ -443,7 +442,6 @@ export function Home(props: IProps): JSX.Element {
                       value={textMessage}
                       name="message"
                       onChange={e => setTextMessage(e.target.value)}
-                      style={{ color: theme.palette.primary.contrastText }}
                       InputLabelProps={{
                         style: { color: theme.palette.primary.contrastText }
                       }}

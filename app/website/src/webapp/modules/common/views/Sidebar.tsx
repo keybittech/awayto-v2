@@ -4,6 +4,9 @@ import AccountBoxIcon from '@material-ui/icons/AccountBox';
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import VpnKeyIcon from '@material-ui/icons/VpnKey';
 import AppsIcon from '@material-ui/icons/Apps';
+import LibraryBooksIcon from '@material-ui/icons/LibraryBooks';
+import BusinessIcon from '@material-ui/icons/Business';
+import EventNoteIcon from '@material-ui/icons/EventNote';
 
 import Icon from '../../../img/kbt-icon.png';
 
@@ -52,6 +55,18 @@ export function Sidebar (props: IProps): JSX.Element {
             <ListItem className={classes.menuIcon} onClick={() => navigate('/manage/users')} button key={'manage'}>
               <ListItemIcon><AppsIcon color={history.location.pathname === '/manage/users' ? "secondary" : "primary"} /></ListItemIcon>
               <ListItemText classes={{ primary: classes.menuText }}>Manage</ListItemText>
+            </ListItem>
+            <ListItem className={classes.menuIcon} onClick={() => navigate('/service')} button key={'service'}>
+              <ListItemIcon><BusinessIcon color={history.location.pathname === '/service' ? "secondary" : "primary"} /></ListItemIcon>
+              <ListItemText classes={{ primary: classes.menuText }}>Service</ListItemText>
+            </ListItem>
+            <ListItem className={classes.menuIcon} onClick={() => navigate('/schedule')} button key={'schedule'}>
+              <ListItemIcon><EventNoteIcon color={history.location.pathname === '/schedule' ? "secondary" : "primary"} /></ListItemIcon>
+              <ListItemText classes={{ primary: classes.menuText }}>Schedule</ListItemText>
+            </ListItem>
+            <ListItem className={classes.menuIcon} onClick={() => navigate('/booking')} button key={'booking'}>
+              <ListItemIcon><LibraryBooksIcon color={history.location.pathname === '/booking' ? "secondary" : "primary"} /></ListItemIcon>
+              <ListItemText classes={{ primary: classes.menuText }}>Booking</ListItemText>
             </ListItem>
           </List>
         </Grid>

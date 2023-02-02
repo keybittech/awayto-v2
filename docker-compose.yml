@@ -14,18 +14,21 @@ services:
       context: ./
       dockerfile: ./app/Dockerfile
       args:
-        CUST_LAND_HOSTNAME: ${CUST_LAND_HOSTNAME}
-        CUST_APP_HOSTNAME: ${CUST_APP_HOSTNAME}
-        CUST_HOST_IP: ${CUST_HOST_IP}
-        SITE_NAME: ${SITE_NAME}
+        - CUST_LAND_HOSTNAME=${CUST_LAND_HOSTNAME}
+        - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
+        - CUST_HOST_IP=${CUST_HOST_IP}
+        - SITE_NAME=${SITE_NAME}
     ports:
       - 443:443
       - 80:80
     environment:
-      CUST_LAND_HOSTNAME: ${CUST_LAND_HOSTNAME}
-      CUST_APP_HOSTNAME: ${CUST_APP_HOSTNAME}
-      CUST_LAND_HOSTNAME: ${CUST_LAND_HOSTNAME}
-      CUST_HOST_IP: ${CUST_HOST_IP}
+      - CUST_LAND_HOSTNAME=${CUST_LAND_HOSTNAME}
+      - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
+      - CUST_LAND_HOSTNAME=${CUST_LAND_HOSTNAME}
+      - CUST_HOST_IP=${CUST_HOST_IP}
+      - KC_REALM=devel
+      - KC_CLIENT=devel-client
+      - KC_PATH=/auth
   auth: # keycloak
     image: wcauth
     build: ./auth

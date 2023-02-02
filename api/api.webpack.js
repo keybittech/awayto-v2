@@ -11,7 +11,7 @@ module.exports = {
   },
   resolve: {
     alias: {
-      awayto: '../core/index.ts'
+      awayto: '../../../app/website/src/core/index.ts'
     },
     extensions: ['.ts', '.js'],
   },
