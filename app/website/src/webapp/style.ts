@@ -54,7 +54,12 @@ export const styles = ({ mixins, spacing }: Theme): StyleRules => createStyles({
 
   overflowEllipsis: { textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' },
 
-  blueChecked: { '& .MuiSvgIcon-root': { color: 'lightblue' } }
+  blueChecked: { '& .MuiSvgIcon-root': { color: 'lightblue' } },
+
+  chipRoot: { margin: spacing(1), height: '100%', display: 'flex', flexDirection: 'row' },
+
+  chipLabel: { overflowWrap: 'break-word', whiteSpace: 'normal', textOverflow: 'clip' }
+
 });
 
 const theme = {

@@ -48,8 +48,8 @@ export function Sidebar (props: IProps): JSX.Element {
             </Button>
           </Grid>
           <List component="nav">
-            <ListItem className={classes.menuIcon} onClick={() => navigate('/home')} button key={'home'}>
-              <ListItemIcon><VpnKeyIcon color={history.location.pathname === '/home' ? "secondary" : "primary"} /></ListItemIcon>
+            <ListItem className={classes.menuIcon} onClick={() => navigate('/')} button key={'home'}>
+              <ListItemIcon><VpnKeyIcon color={history.location.pathname === '/' ? "secondary" : "primary"} /></ListItemIcon>
               <ListItemText classes={{ primary: classes.menuText }}>Home</ListItemText>
             </ListItem>
             <ListItem className={classes.menuIcon} onClick={() => navigate('/manage/users')} button key={'manage'}>

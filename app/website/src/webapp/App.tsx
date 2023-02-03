@@ -104,7 +104,7 @@ const App = (props: IProps): JSX.Element => {
                 </Grid >
               }>
                 <Switch>
-                  <Route exact path="/home" render={() => <Home {...props} />} />
+                  <Route exact path="/" render={() => <Home {...props} />} />
                   <Route exact path="/profile" render={() => <Profile {...props} />} />
                   <Route exact path="/service" render={() => <ServiceHome {...props} />} />
                   <Route exact path="/schedule" render={() => <ScheduleHome {...props} />} />

@@ -24,9 +24,9 @@ spec:
             port:
               number: 443
       # - pathType: Prefix
-      #   path: /auth
+      #   path: /logging
       #   backend:
       #     service:
-      #       name: auth
+      #       name: logging
       #       port:
       #         number: 8443

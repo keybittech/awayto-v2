@@ -106,8 +106,6 @@ const manageUsers: ApiModule = [
 
         const keycloakUserList = await keycloak.users.find();
 
-        console.log(keycloakUserList)
-
         return keycloakUserList;
 
       } catch (error) {

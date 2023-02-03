@@ -101,7 +101,6 @@ try {
   });
 
   // Set all api to be JSON consuming
-  app.use(express.json());
 
   app.get('/api/auth/checkin', (req, res, next) => {
     passport.authenticate('oidc')(req, res, next);
@@ -110,7 +109,7 @@ try {
   app.get('/api/auth/login/callback', (req, res, next) => {
     passport.authenticate('oidc', {
       successRedirect: '/api/auth/checkok',
-      failureRedirect: '/api/auth/checkfail'
+      failureRedirect: '/api/auth/checkfail',
     })(req, res, next);
   });
 
@@ -122,13 +121,15 @@ try {
   }
 
   app.get('/api/auth/checkok', checkAuthenticated, (req, res, next) => {
-    res.status(200).send();
+    res.status(200).end();
   });
 
   app.get('/api/auth/checkfail', (req, res, next) => {
-    res.status(403).send();
+    res.status(200).end();
   });
 
+  app.use(express.json());
+  
   // Define protected routes
   Objects.protected.forEach(({ method, path, cmnd }) => {
 

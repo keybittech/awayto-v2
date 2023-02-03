@@ -4,6 +4,7 @@ Installation
 - minikube start --driver=kvm2 --cpus=4 --memory=8124 --disk-size=40GB
 - minikube addons enable dashboard
 - minikube addons enable metrics-server
+- minikube addons enable ingress
 - minikube addons enable metallb
 - minikube ip
 - kc apply -f ./metallb-cm.yaml

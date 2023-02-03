@@ -48,36 +48,42 @@ export function BookingHome(props: IProps): JSX.Element {
   const [quote, setQuote] = useState<IQuote>({ ...quoteSchema });
   const [serviceTierAddons, setServiceTierAddons] = useState<string[]>([]);
 
-  // useEffect(() => {
-  //   void api(GET_SCHEDULES, true).then(() => {
-  //     console.log(schedules);
-  //     debugger;
-  //     const id = Object.keys(schedules)[0];
-  //     if (id) {
-  //       void api<ISchedule>(GET_SCHEDULE_BY_ID, true, { id }).then(sched => {
-  //         void api(GET_FORMS);
-  //         // Here we'll use the response in this special case to get the deeply
-  //         // structured object on first load, rather than wait for redux to update
-  //         // otherwise we'd require a new useEffect watching the first object of schedules, bad
-  //         if (sched) {
-  //           setSchedule(sched);
-  //           setService(sched.services[0]);
-  //           setTier(sched.services[0].tiers[0])
-  //         }
-  //       });
-  //     }
-  //   });
-  // }, []);
+  useEffect(() => {
+    void api(GET_SCHEDULES, true)
+    // .then(() => {
+    //   const id = Object.keys(schedules)[0];
+    //   if (id) {
+    //     void api(GET_SCHEDULE_BY_ID, true, { id }).then(res => {
+    //       const sched = res as ISchedule;
+    //       void api(GET_FORMS);
+    //       // Here we'll use the response in this special case to get the deeply
+    //       // structured object on first load, rather than wait for redux to update
+    //       // otherwise we'd require a new useEffect watching the first object of schedules, bad
+    //       if (sched) {
+    //         setSchedule(sched);
+    //         setService(sched.services[0]);
+    //         setTier(sched.services[0].tiers[0])
+    //       }
+    //     });
+    //   }
+    // });
+  }, []);
 
   useEffect(() => {
-    const keys = Object.keys(schedules);
-    if (keys.length) {
-      const sched = schedules[keys[0]];
-      setSchedule(sched);
-      setService(sched.services[0]);
-      setTier(sched.services[0].tiers[0]);
-
-      console.log(schedule, service, tier, scheduleContexts, quote)
+    const [id, ...rest] = Object.keys(schedules);
+    if (id && !schedules[id].services) {
+      void api(GET_SCHEDULE_BY_ID, true, { id }).then(res => {
+        const [sched] = res as ISchedule[];
+        void api(GET_FORMS);
+        // Here we'll use the response in this special case to get the deeply
+        // structured object on first load, rather than wait for redux to update
+        // otherwise we'd require a new useEffect watching the first object of schedules, bad
+        if (sched) {
+          setSchedule(sched);
+          setService(sched.services[0]);
+          setTier(sched.services[0].tiers[0])
+        }
+      });
     }
   }, [schedules]);
 
@@ -130,7 +136,7 @@ export function BookingHome(props: IProps): JSX.Element {
                   </Grid>
                   <Grid item>
                     <Box mt={-4}>
-                      <TextField fullWidth multiline rows={5} label="Description" value={quote.description} onChange={e => setQuote({ ...quote, description: e.target.value })} />
+                      <TextField fullWidth multiline minRows={4} InputProps={{ style: { minHeight: '100px' } }} label="Description" value={quote.description} onChange={e => setQuote({ ...quote, description: e.target.value })} />
                     </Box>
                   </Grid>
 
