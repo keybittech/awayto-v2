@@ -63,7 +63,7 @@ const schedules: ApiModule = [
 
         schedule.services = services;
 
-        return schedule;
+        return [schedule];
 
       } catch (error) {
         throw error;
@@ -89,7 +89,7 @@ const schedules: ApiModule = [
           RETURNING id, name
         `, updateProps.array);
 
-        return response.rows[0];
+        return response.rows;
 
       } catch (error) {
         throw error;
@@ -129,7 +129,7 @@ const schedules: ApiModule = [
           WHERE id = $1
         `, [id]);
 
-        return response.rows[0];
+        return response.rows;
 
       } catch (error) {
         throw error;

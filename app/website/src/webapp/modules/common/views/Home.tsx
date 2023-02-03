@@ -413,7 +413,7 @@ export function Home(props: IProps): JSX.Element {
       <Grid container direction="row" justifyContent="space-evenly">
         <Grid item xs={12} md={5} style={{ height: '70vh', padding: '20px', color: theme.palette.primary.contrastText, backgroundColor: theme.palette.primary.dark }}>document placeholder</Grid>
         <Grid item xs={12} md={5}>
-          <Grid container direction="column" style={{ height: '70vh', display: 'flex' }}>
+          <Grid container direction="column" style={{ height: '70vh', display: 'flex', flexWrap: 'nowrap' }}>
             {/* ---------- Video ---------- */}
             {localStream && Object.keys(senderStreamsElements).length && <Grid item xs={12} style={{ backgroundColor: 'black', position: 'relative', maxHeight: '390px', display: 'flex', flex: '1' }}>
               <Grid container justifyContent="flex-end" style={{ position: 'absolute' }}>
@@ -446,6 +446,7 @@ export function Home(props: IProps): JSX.Element {
                         style: { color: theme.palette.primary.contrastText }
                       }}
                       InputProps={{
+                        style: { color: theme.palette.primary.contrastText },
                         onKeyDown: e => {
                           if ('Enter' === e.key && !e.shiftKey) {
                             submitMessage(e);

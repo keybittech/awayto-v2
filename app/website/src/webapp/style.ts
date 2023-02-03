@@ -31,7 +31,7 @@ export const styles = ({ mixins, spacing }: Theme): StyleRules => createStyles({
   toolbar: mixins.toolbar,
   content: { flexGrow: 1, padding: spacing(3) },
 
-  menuIcon: { "&:hover svg": { color: '#aaa' }, width: '100%' },
+  menuIcon: { "&:hover svg": { color: 'rgb(39 109 129)' }, width: '100%' },
 
   loginWrap: {  height: '75vh' },
 
@@ -154,7 +154,8 @@ export const lightTheme = createTheme({
     type: 'light',
     primary: {
       main: '#000',
-      dark: '#aaa'
+      dark: '#aaa',
+      contrastText: '#333'
     }
   }
 });
@@ -176,9 +177,6 @@ export const darkTheme = createTheme({
   overrides: {
     ...theme.overrides,
     MuiInput: {
-      root: {
-        color: '#333'
-      },
       underline: {
         '&:before': {
           borderBottom: '1px solid #333'
@@ -196,7 +194,10 @@ export const blueTheme = createTheme({
   ...theme,
   palette: {
     ...theme.palette,
-    primary: { main: '#000' },
+    primary: {
+      main: '#000',
+      dark: '#121f31'
+    },
     secondary: { main: 'rgb(0 191 255)' }
   },
   overrides: {
@@ -216,6 +217,19 @@ export const blueTheme = createTheme({
           },
           '& .MuiSvgIcon-colorSecondary': {
             color: '#121f31'
+          }
+        }
+      },
+      MuiInput: {
+        underline: {
+          '&:before': {
+            borderBottom: '1px solid #aaa'
+          },
+          '&:hover:not(.Mui-disabled):before': {
+            borderBottom: '2px solid rgb(0 191 255)'
+          },
+          '&.Mui-focused:after': {
+            borderBottom: '2px solid rgb(39 109 129)'
           }
         }
       }

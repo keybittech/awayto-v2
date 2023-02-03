@@ -22,7 +22,6 @@ services:
       - 443:443
       - 80:80
     environment:
-      - CUST_LAND_HOSTNAME=${CUST_LAND_HOSTNAME}
       - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
       - CUST_LAND_HOSTNAME=${CUST_LAND_HOSTNAME}
       - CUST_HOST_IP=${CUST_HOST_IP}
