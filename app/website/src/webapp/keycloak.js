@@ -14,19 +14,19 @@ const keycloak = new Keycloak({
 
 export async function initKeycloak() {
 
-  // const token = localStorage.getItem('kc_token');
-  // const refreshToken = localStorage.getItem('kc_refreshToken');
+  const token = localStorage.getItem('kc_token');
+  const refreshToken = localStorage.getItem('kc_refreshToken');
 
   void keycloak.init({
     onLoad: 'login-required',
     checkLoginIframe: false,
-    // token,
-    // refreshToken
+    token,
+    refreshToken
 
   }).then((authenticated) => {
     if (authenticated) {
-      // localStorage.setItem('kc_token', keycloak.token);
-      // localStorage.setItem('kc_refreshToken', keycloak.refreshToken);
+      localStorage.setItem('kc_token', keycloak.token);
+      localStorage.setItem('kc_refreshToken', keycloak.refreshToken);
 
       this.cb();
     }
