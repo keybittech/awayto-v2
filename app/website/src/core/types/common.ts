@@ -41,6 +41,7 @@ export type IUtil = {
   message: string;
   snackType: 'success' | 'info' | 'warning' | 'error';
   snackOn: string;
+  snackRequestId: string;
   perPage: number;
   theme: string;
   hasSignUpCode: boolean;
