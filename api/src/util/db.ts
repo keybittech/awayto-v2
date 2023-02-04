@@ -1,5 +1,5 @@
-import { Client } from 'pg'
-import { ILoadedState } from 'awayto'
+import { Client } from 'pg';
+import { ILoadedState } from 'awayto';
 
 /**
  * @category API
@@ -27,6 +27,7 @@ export type ApiProps = {
     userSub: string;
     sourceIp: string;
     pathParameters: Record<string, string>,
+    queryParameters: Record<string, string>,
     body: Array<ILoadedState> | Record<string, unknown>
   };
   client: Client; 

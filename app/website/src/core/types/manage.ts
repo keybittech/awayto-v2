@@ -295,7 +295,7 @@ export type IPutManageGroupsAction = PayloadAction<IManageGroupsActionTypes.PUT_
 /**
  * @category Manage Groups
  */
-export type IDeleteManageGroupsAction = PayloadAction<IManageGroupsActionTypes.DELETE_MANAGE_GROUPS, IGroupState>;
+export type IDeleteManageGroupsAction = PayloadAction<IManageGroupsActionTypes.DELETE_MANAGE_GROUPS, IGroupState[]>;
 
 /**
  * @category Manage Groups

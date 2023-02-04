@@ -17,6 +17,7 @@ declare global {
     multiple?: boolean;
     lookups?: ILookup[];
     lookupName?: string;
+    helperText?: string;
     lookupChange?(value: string | string[]): void;
     lookupValue?: string | string[];
     createActionType?: IActionTypes;
@@ -31,7 +32,7 @@ function isStringArray(str?: string | string[]): str is string[] {
   return (str as string[]).forEach !== undefined;
 }
 
-export function SelectLookup({ lookups, lookupName, lookupValue, lookupChange, multiple = false, createActionType, deleteActionType }: IProps): JSX.Element {
+export function SelectLookup({ lookups, lookupName, helperText, lookupValue, lookupChange, multiple = false, createActionType, deleteActionType }: IProps): JSX.Element {
   const api = useApi();
   const act = useAct();
   const [addingNew, setAddingNew] = useState<boolean | undefined>();
@@ -40,7 +41,7 @@ export function SelectLookup({ lookups, lookupName, lookupValue, lookupChange, m
   if (!lookups || !lookupName || !lookupChange) return <Grid container justifyContent="center"><CircularProgress /></Grid>;
 
   return (addingNew ?
-    <TextField fullWidth label={`New ${lookupName} Record`} value={newLookup.name} onChange={e => setNewLookup({ name: e.target.value })} InputProps={{
+    <TextField fullWidth label={`New ${lookupName}`} value={newLookup.name} onChange={e => setNewLookup({ name: e.target.value })} InputProps={{
       endAdornment: (
         <InputAdornment position="end">
           <Box mb={2}>
@@ -67,7 +68,8 @@ export function SelectLookup({ lookups, lookupName, lookupValue, lookupChange, m
       select
       id={`${lookupName}-lookup-selection`}
       fullWidth
-      label={lookupName}
+      helperText={helperText || ''}
+      label={`${lookupName}s`}
       onChange={e => {
         const { value } = e.target as { value: string | string[] };
         console.log({ value })
@@ -87,7 +89,7 @@ export function SelectLookup({ lookups, lookupName, lookupValue, lookupChange, m
       {createActionType && <MenuItem value="new" onClick={e => {
         e.preventDefault();
         setAddingNew(true);
-      }}>Add a new {lookupName} record</MenuItem>}
+      }}>Add a {lookupName} to this list</MenuItem>}
       {lookups.length ? lookups.map((p, i) => (
         <MenuItem key={i} style={{ display: 'flex' }} value={p.name}>
           <span style={{ flex: '1' }}>{p.name}</span>

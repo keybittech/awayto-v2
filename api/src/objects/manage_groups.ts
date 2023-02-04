@@ -1,4 +1,4 @@
-import type { IGroup, IUuidRoles } from 'awayto';
+import type { IGroup, IUuidRoles, DbError, IGroupState } from 'awayto';
 import { ApiModule, asyncForEach, buildUpdate } from '../util/db';
 
 const manageGroups: ApiModule = [
@@ -12,11 +12,11 @@ const manageGroups: ApiModule = [
         const { name, roles } = props.event.body as IGroup;
 
         const { rows: [ group ] } = await props.client.query<IGroup>(`
-          INSERT INTO groups (name)
-          VALUES ($1)
+          INSERT INTO groups (name, created_on, created_sub)
+          VALUES ($1, $2, $3)
           ON CONFLICT (name) DO NOTHING
-          RETURNING id, name
-        `, [name]);
+          RETURNING id, name, created_sub
+        `, [name, new Date(), props.event.userSub]);
 
         await asyncForEach(roles, async role => {
           await props.client.query(`
@@ -31,6 +31,12 @@ const manageGroups: ApiModule = [
         return group;
 
       } catch (error) {
+        const { constraint } = error as DbError;
+        
+        if ('unique_owner' === constraint) {
+          throw { reason: 'Only 1 group can be managed at a time.'}
+        }
+
         throw error;
       }
     }
@@ -125,16 +131,18 @@ const manageGroups: ApiModule = [
     path : 'manage/groups',
     cmnd : async (props) => {
       try {
-        const groups = props.event.body as IGroup[];
 
-        await asyncForEach(groups, async group => {
-          await props.client.query<IGroup>(`
+        const query = props.event.queryParameters;
+        const ids = query.ids.split(',');
+
+        await asyncForEach(ids, async id => {
+          await props.client.query(`
             DELETE FROM groups
             WHERE id = $1
-          `, [group.id]);
+          `, [id]);
         })
 
-        return true;
+        return ids.map<IGroupState>(id => ({ id }));
         
       } catch (error) {
         throw error;

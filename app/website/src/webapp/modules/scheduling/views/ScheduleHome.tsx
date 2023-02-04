@@ -67,8 +67,8 @@ export function ScheduleHome(props: IProps): JSX.Element {
         <CardHeader title="Schedule" />
         <CardContent>
           <Box mx={4}>
-            <Typography variant="body1">A schedule allows your services to be billed at different intervals. You can have multiple available schedules, each with multiple cost brackets. Brackets define a final cost multiplier within the breakpoints you define.</Typography>
-            <Typography variant="caption">For example, if your schedule term is 60 hours, and you create a bracket for 40 hours at 1x multiplier, that means the first 40 of 60 hours will be listed at its regular cost. If you added a second bracket for 20 hours at 2x multiplier, the remaining 20 hours of the schedule term would be listed at a 2x cost multiplier.</Typography>
+            <Typography variant="body1">A schedule allows your services to be billed at different intervals. You can have multiple available schedules, each with multiple cost brackets. Brackets allow you to define a sliding scale for the cost of your services.</Typography>
+            {/* <Typography variant="caption">For example, if your schedule term is 60 hours, and you create a bracket for 40 hours at 1x multiplier, that means the first 40 of 60 hours will be listed at its regular cost. If you added a second bracket for 20 hours at 2x multiplier, the remaining 20 hours of the schedule term would be listed at a 2x cost multiplier.</Typography> */}
             <Typography variant="h6">Current Schedules: <Typography style={{ verticalAlign: 'middle' }} variant="caption">{Object.values(schedules).map(({ id, name }, i) => <Chip key={`del_sched_${i}`} label={name} onDelete={() => {
               void api(DELETE_SCHEDULE, true, { id });
             }}></Chip>)}</Typography></Typography>
@@ -86,24 +86,44 @@ export function ScheduleHome(props: IProps): JSX.Element {
           </Box>
 
           <Box m={4}>
-            <Typography variant="h6">Term <Typography variant="caption">A duration of time that the schedule will run over.</Typography></Typography>
-            <SelectLookup lookupName="Interval Type" lookups={scheduleContexts} lookupChange={val => {
+            <Typography variant="h6">Schedule Context</Typography>
+            <Typography variant="caption">The length of time the schedule will run over. This determines how brackets are divided. For example, if your schedule is 40 hours per week, here you can configure a <strong>1 week Schedule Context</strong>.</Typography>
+            <SelectLookup lookupName="Schedule Context" lookups={scheduleContexts} lookupChange={val => {
               const context = scheduleContexts?.find(c => c.name === val as string);
-              setNewTerm({ ...newTerm, scheduleContextName: context ? context.name : '', scheduleContextId: context ? context.id : '' })  
+              setNewTerm({ ...newTerm, scheduleContextName: context ? context.name : '', scheduleContextId: context ? context.id : '' })
             }} lookupValue={newTerm.scheduleContextName} createActionType={POST_SCHEDULE_CONTEXT} deleteActionType={DELETE_SCHEDULE_CONTEXT} {...props} />
           </Box>
 
-          <Box m={4}>
-            <TextField fullWidth label="Term Intervals" value={newTerm.duration} onChange={e => setNewTerm({ ...newTerm, duration: parseInt(e.target.value || '0') })} type="number" helperText="All brackets will be reset after the term interval has passed." />
-          </Box>
+          {newTerm.scheduleContextName && <Box m={4}>
+            <TextField fullWidth label={`# of ${newTerm.scheduleContextName}`} value={newTerm.duration} onChange={e => setNewTerm({ ...newTerm, duration: parseInt(e.target.value || '0') })} type="number" />
+          </Box>}
 
           <Box m={4}>
-            <Typography variant="h6">Overbook <Typography variant="caption">Allow bookings after the last bracket within the term, using the last bracket's multiplier.</Typography></Typography>
+            <Typography variant="h6">Overbook</Typography>
+            <Typography variant="caption">Allow bookings after the last bracket within the term, using the last bracket's multiplier.</Typography>
             <Switch color="primary" value={newSchedule.overbook} onChange={e => setNewSchedule({ ...newSchedule, overbook: e.target.checked })} />
           </Box>
 
           <Box m={4}>
-            <Typography variant="h6">Services <Typography variant="caption">The order that services appear here is the order they will be shown during booking.</Typography></Typography>
+            <Typography variant="h6">Services</Typography>
+            <Typography variant="caption">The order that services appear here is the order they will be shown during booking.</Typography>
+
+            <TextField
+              select
+              fullWidth
+
+              label="Services"
+              helperText="Select to add to schedule."
+              value={''}
+              onChange={e => {
+                newSchedule.services.push(Object.values(services).filter(s => s.id === e.target.value)[0]);
+                setNewSchedule({ ...newSchedule, services: newSchedule.services })
+              }}
+            >
+              {Object.values(services).filter(s => newSchedule.services.indexOf(s) < 0).map(service => <MenuItem key={`service-select${service.id as string}`} value={service.id}>{service.name}</MenuItem>)}
+
+            </TextField>
+
             <Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
               {newSchedule.services.map((service, i) => {
                 return <Box key={`service-chip${i + 1}new`} m={1}><Chip label={`${service.name} Cost: ${service.cost}`} onDelete={() => {
@@ -114,10 +134,11 @@ export function ScheduleHome(props: IProps): JSX.Element {
           </Box>
 
           <Box m={4}>
-            <Typography variant="h6">Brackets <Typography variant="caption">The order that brackets appear here is the order they take effect.</Typography></Typography>
+            <Typography variant="h6">Brackets</Typography>
+            <Typography variant="caption">The order that brackets appear here is the order they take effect.</Typography>
             <Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
               {newSchedule.brackets.map((bracket, i) => {
-                return <Box key={`bracket-chip${i + 1}new`} m={1}><Chip label={`${bracket.bracket} ${bracket.scheduleContextName} (${bracket.multiplier}x)`} onDelete={() => {
+                return <Box key={`bracket-chip${i + 1}new`} m={1}><Chip label={`#${i + 1} ${bracket.bracket} ${bracket.scheduleContextName} (${bracket.multiplier}x)`} onDelete={() => {
                   setNewSchedule({ ...newSchedule, brackets: newSchedule.brackets?.filter((b, z) => i !== z) });
                 }} /></Box>
               })}
@@ -152,45 +173,25 @@ export function ScheduleHome(props: IProps): JSX.Element {
 
         <Grid item xs={12}>
           <Card style={{ display: 'flex', flexDirection: 'column' }}>
-            <CardHeader title="Service" />
+            <CardHeader title="Add Bracket" />
             <CardContent>
               <Box m={4}>
-                <TextField
-                  select
-                  fullWidth
-                 
-                  label="Services"
-                  helperText="Select to add to schedule."
-                  value={''}
-                  onChange={e => {
-                    newSchedule.services.push(Object.values(services).filter(s => s.id === e.target.value)[0]);
-                    setNewSchedule({ ...newSchedule, services: newSchedule.services })
-                  }}
-                >
-                  {Object.values(services).filter(s => newSchedule.services.indexOf(s) < 0).map(service => <MenuItem key={`service-select${service.id as string}`} value={service.id}>{service.name}</MenuItem>)}
-
-                </TextField>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12}>
-          <Card style={{ display: 'flex', flexDirection: 'column' }}>
-            <CardHeader title="Bracket" />
-            <CardContent>
-              <Box m={4}>
-                <Typography variant="h6">Term <Typography variant="caption">A duration of time that the bracket will be effective for.</Typography></Typography>
-                <SelectLookup lookupName="Interval Type" lookups={scheduleContexts} lookupChange={val => {
+                <Typography variant="h6">Bracket Duration</Typography>
+                <Typography variant="caption">A block of time that will be available to schedule within the Schedule Context, as a sliding scale. For example:</Typography>
+                <ul>
+                  <li><Typography variant="caption">Alice's schedule has a <strong>1 week Schedule Context</strong>, and charges the same rate all week. <br /> - 1 bracket: <strong>40 hours, 1x multiplier</strong></Typography></li>
+                  <li><Typography variant="caption">Rick's schedule also has a <strong>1 week Schedule Context</strong>, but charges more after the first 20 hours. <br/> - 2 brackets: <strong>20 hours, 1x multiplier</strong>, and <strong>20 hours, 2x multiplier</strong>.</Typography></li>
+                </ul>
+                <SelectLookup lookupName="Bracket Duration" lookups={scheduleContexts} lookupChange={val => {
                   const context = scheduleContexts?.find(c => c.name === val as string);
-                  setNewBracket({ ...newBracket, scheduleContextName: context ? context.name : '', scheduleContextId: context ? context.id : ''  })
+                  setNewBracket({ ...newBracket, scheduleContextName: context ? context.name : '', scheduleContextId: context ? context.id : '' })
                 }} lookupValue={newBracket.scheduleContextName} createActionType={POST_SCHEDULE_CONTEXT} deleteActionType={DELETE_SCHEDULE_CONTEXT} {...props} />
               </Box>
 
-              <Box m={4}>
-                <TextField fullWidth label="Bracket Intervals" value={newBracket.bracket} onChange={e => setNewBracket({ ...newBracket, bracket: parseInt(e.target.value || '0') })} type="number" />
-              </Box>
-              
+              {newBracket.scheduleContextName && <Box m={4}>
+                <TextField fullWidth label={`# of ${newBracket.scheduleContextName}`} value={newBracket.bracket} onChange={e => setNewBracket({ ...newBracket, bracket: parseInt(e.target.value || '0') })} type="number" />
+              </Box>}
+
               <Box m={4} mb={-2}>
                 <Typography variant="h6">Multiplier</Typography>
                 <Box sx={{ display: 'flex', alignItems: 'baseline' }}>

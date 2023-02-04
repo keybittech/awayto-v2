@@ -39,7 +39,7 @@ function reducePutManageGroups(state: IManageGroupsState, action: IPutManageGrou
 function reduceDeleteState(state: IManageGroupsState, action: IDeleteManageGroupsAction): IManageGroupsState {
   const { groups } = state;
   if (groups) {
-    state.groups = groups.filter(group => group.id !== action.payload.id);
+    state.groups = groups.filter(group => !action.payload.map(g => g.id).includes(group.id));
   }
   return state;
 }

@@ -53,7 +53,7 @@ export function ServiceHome(props: IProps): JSX.Element {
         <CardHeader title="Service" />
         <CardContent>
           <Box mx={4}>
-            <Typography variant="body1">A service is the base level object that will be offered for sale to your users. Services can have tiers and addons, which can increase the cost of the base service via a multiplier on the tier.</Typography>
+            <Typography variant="body1">A service is the base level object that will be offered for sale to your users. Services can have tiers and features, which can increase the cost of the base service via a multiplier on the tier.</Typography>
             <Typography variant="h6">Current Services: <Typography style={{ verticalAlign: 'middle' }} variant="caption">{Object.values(services).map(({ id, name }, i) => <Chip  key={`del_serv_${i}`} label={name} onDelete={() => {
               console.log('deleting', id)
               
@@ -80,7 +80,7 @@ export function ServiceHome(props: IProps): JSX.Element {
             <Typography variant="h6">Tiers <Typography variant="caption">The order that tiers appear here is the order they will be listed during booking.</Typography></Typography>
             <Box mt={4} sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
               {newService.tiers?.map((tier, i) => {
-                return <Box key={`service-tier-chip${i + 1}new`} m={1}><Chip classes={{ root: classes.chipRoot, label: classes.chipLabel }} label={<Typography>{tier.name + ' (' + tier.multiplier + 'x): ' + (tier.addons.length ? tier.addons.map(a => a.name).join(', ') : 'No addons.')}</Typography>} onDelete={() => {
+                return <Box key={`service-tier-chip${i + 1}new`} m={1}><Chip classes={{ root: classes.chipRoot, label: classes.chipLabel }} label={<Typography>{`#${i + 1} ` + tier.name + ' (' + tier.multiplier + 'x): ' + (tier.addons.length ? tier.addons.map(a => a.name).join(', ') : 'No features.')}</Typography>} onDelete={() => {
                   setNewService({ ...newService, tiers: newService.tiers?.filter(t => t.name !== tier.name) });
                 }} /></Box>
               })}
@@ -114,7 +114,7 @@ export function ServiceHome(props: IProps): JSX.Element {
           </Box>
 
           <Box m={4} sx={{ display: 'flex', alignItems: 'baseline' }}>
-            <SelectLookup lookupName="Addons" lookups={serviceAddons} lookupChange={val => setServiceTierAddonIds(val as string[])} lookupValue={serviceTierAddonIds} multiple createActionType={POST_SERVICE_ADDON} deleteActionType={DELETE_SERVICE_ADDON} {...props} />
+            <SelectLookup lookupName="Feature" lookups={serviceAddons} lookupChange={val => setServiceTierAddonIds(val as string[])} lookupValue={serviceTierAddonIds} multiple createActionType={POST_SERVICE_ADDON} deleteActionType={DELETE_SERVICE_ADDON} {...props} />
           </Box>
 
           <Box m={4} mb={-2}>

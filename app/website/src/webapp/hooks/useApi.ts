@@ -16,6 +16,7 @@ import {
   IManageGroupsActionTypes, 
   IManageRolesActionTypes, 
   IUserProfileActionTypes,
+  ApiErrorResponse,
   ILoadedState
 } from 'awayto';
 
@@ -63,12 +64,19 @@ const callApi = async ({ path = '', method = 'GET', body }: CallApi): Promise<Re
 
   console.log('This is whats resolved from fetch ', response, response.ok);
 
-  if (response.ok)
-    return await response.json() as Response;
+  if (response.ok) {
+    try {
+      return await response.json() as Response;
+    } catch (error) {
+      void keycloak.login();
+    }
+  }
     
-  const { requestId } = await response.json() as { requestId: string };
+  const { requestId, reason } = await response.json() as ApiErrorResponse;
 
-  throw requestId ? `Request Id: ${requestId}` : response;
+  const responseMessage = `${reason ? reason : 'Internal system error.'} errid: ${requestId}`;
+
+  throw responseMessage;
 };
 
 
@@ -125,8 +133,8 @@ export function useApi(): <T = unknown>(actionType: IActionTypes, load?: boolean
       return responseBody;
       
     } catch (error) { 
-      act(SET_SNACK, { snackType: 'error', snackOn: 'Critical API error. Check network activity or report to system administrator. ' + (error ? error as string : '') });
-      act(API_ERROR, { error: 'Critical API error. Check network activity or report to system administrator.' });
+      act(SET_SNACK, { snackType: 'error', snackOn: 'Error: ' + (error ? error as string : '') });
+      // act(API_ERROR, { error: 'Critical API error. Check network activity or report to system administrator.' });
     } finally {
       if (load) act(STOP_LOADING, { isLoading: false });
     }

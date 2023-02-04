@@ -12,7 +12,7 @@ import { v4 as uuid } from 'uuid';
 import passport from 'passport';
 
 import Objects from './objects';
-import { IUserProfileState, IUserProfile } from 'awayto';
+import { IUserProfileState, IUserProfile, ApiErrorResponse } from 'awayto';
 import { keycloakStrategy } from './util/keycloak';
 
 const {
@@ -147,6 +147,7 @@ try {
         userSub: user.username,
         sourceIp: req.headers['x-forwarded-for'] as string,
         pathParameters: req.params,
+        queryParameters: req.query as Record<string, string>,
         body: req.body
       }
 
@@ -160,12 +161,19 @@ try {
         res.status(200).json(result);
 
       } catch (error) {
+        const err = error as Error & { reason: string };
 
-        console.log('protected error', error);
-        logger.log('error response', Object.assign(event, { error }));
+        console.log('protected error', err);
+        logger.log('error response', Object.assign(event, { error: err }));
+
+        const errResponse: ApiErrorResponse = {
+          requestId
+        };
+
+        errResponse.reason = err.reason || err.message;
 
         // Handle failures
-        res.status(500).send({ requestId });
+        res.status(500).send(errResponse);
       }
     });
   });
@@ -181,6 +189,7 @@ try {
         userSub: 'string',
         sourceIp: req.headers['x-forwarded-for'] as string,
         pathParameters: req.params,
+        queryParameters: req.query as Record<string, string>,
         body: req.body
       };
 
