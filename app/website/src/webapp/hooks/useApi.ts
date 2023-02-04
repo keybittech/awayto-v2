@@ -71,12 +71,8 @@ const callApi = async ({ path = '', method = 'GET', body }: CallApi): Promise<Re
       void keycloak.login();
     }
   }
-    
-  const { requestId, reason } = await response.json() as ApiErrorResponse;
 
-  const responseMessage = `${reason ? reason : 'Internal system error.'} errid: ${requestId}`;
-
-  throw responseMessage;
+  throw await response.json() as ApiErrorResponse;
 };
 
 
@@ -132,9 +128,13 @@ export function useApi(): <T = unknown>(actionType: IActionTypes, load?: boolean
       act(actionType || API_SUCCESS, responseBody as ILoadedState, meta);
       return responseBody;
       
-    } catch (error) { 
-      act(SET_SNACK, { snackType: 'error', snackOn: 'Error: ' + (error ? error as string : '') });
-      // act(API_ERROR, { error: 'Critical API error. Check network activity or report to system administrator.' });
+    } catch (error) {
+      const { requestId, reason } = error as ApiErrorResponse;
+      act(SET_SNACK, {
+        snackRequestId: requestId,
+        snackType: 'error',
+        snackOn: 'Error: ' + (reason ? reason : 'Internal service error. You can report this if needed.')
+      });
     } finally {
       if (load) act(STOP_LOADING, { isLoading: false });
     }

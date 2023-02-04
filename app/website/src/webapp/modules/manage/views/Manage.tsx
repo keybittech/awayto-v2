@@ -1,7 +1,9 @@
 import React from 'react';
 import { Button, Card, CardActions, CardContent, Grid, Typography } from '@material-ui/core';
-import { SiteRoles } from 'awayto';
+import { SiteRoles, IManageGroupsActionTypes } from 'awayto';
 import { useComponents } from 'awayto-hooks';
+
+const { GET_MANAGE_GROUPS, DELETE_MANAGE_GROUPS } = IManageGroupsActionTypes;
 
 declare global {
   interface IProps {
@@ -23,7 +25,7 @@ export function Manage(props: IProps): JSX.Element {
       case 'users':
         return <ManageUsers {...props} />
       case 'groups':
-        return <ManageGroups {...props} />
+        return <ManageGroups getAction={GET_MANAGE_GROUPS} deleteAction={DELETE_MANAGE_GROUPS} {...props} />
       case 'roles':
         return <ManageRoles {...props} />
       case 'matrix':

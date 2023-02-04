@@ -9,9 +9,18 @@ import { useRedux, useApi } from 'awayto-hooks';
 
 import ManageGroupModal from './ManageGroupModal';
 
-const { GET_MANAGE_GROUPS, DELETE_MANAGE_GROUPS } = IManageGroupsActionTypes;
+type ManageActions = {
+  getAction?: IManageGroupsActionTypes;
+  deleteAction?: IManageGroupsActionTypes;
+};
+
+declare global {
+  interface IProps extends ManageActions {}
+}
 
 export function ManageGroups (props: IProps): JSX.Element {
+  const { getAction, deleteAction } = props as Required<ManageActions>;
+
   const api = useApi();
   const util = useRedux(state => state.util);
   const { groups } = useRedux(state => state.manageGroups);
@@ -26,7 +35,7 @@ export function ManageGroups (props: IProps): JSX.Element {
     { name: 'Name', selector: 'name' },
     { name: 'Users', cell: (group: IGroup) => group.users || 0 },
     { name: 'Roles', cell: (group: IGroup) => group.roles ? group.roles.map(r => r.name).join(', ') : '' },
-  ], undefined)
+  ], undefined);
   
   const actions = useMemo(() => {
     const { length } = selected;
@@ -43,14 +52,14 @@ export function ManageGroups (props: IProps): JSX.Element {
     return [
       ...actions,
       <IconButton key={'delete_group'} onClick={() => {
-        void api(DELETE_MANAGE_GROUPS, true, { ids: selected.map(s => s.id).join(',') })
+        void api(deleteAction, true, { ids: selected.map(s => s.id).join(',') })
         setToggle(!toggle);
       }}><DeleteIcon /></IconButton>
     ];
-  }, [selected])
+  }, [selected]);
 
   useEffect(() => {
-    void api(GET_MANAGE_GROUPS);
+    void api(getAction);
   }, []);
 
   return <>

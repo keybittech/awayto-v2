@@ -7,6 +7,7 @@ import { Skeleton } from '@material-ui/lab';
 import MomentUtils from '@date-io/moment';
 
 import withStyles from '@material-ui/core/styles/withStyles';
+
 import Drawer from '@material-ui/core/Drawer';
 import Grid from '@material-ui/core/Grid';
 import Snackbar from '@material-ui/core/Snackbar';
@@ -14,6 +15,8 @@ import Toolbar from '@material-ui/core/Toolbar';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Backdrop from '@material-ui/core/Backdrop';
 import AppBar from '@material-ui/core/AppBar';
+import Box from '@material-ui/core/Box';
+
 import keycloak from './keycloak';
 
 // import { ReactKeycloakProvider } from '@react-keycloak/web';
@@ -45,10 +48,10 @@ const App = (props: IProps): JSX.Element => {
   const act = useAct();
 
   const { Sidebar, ConfirmAction, Home, Profile, Manage, ServiceHome, ScheduleHome, BookingHome } = useComponents();
-  const { snackOn, snackType, isLoading, loadingMessage, theme } = useRedux(state => state.util);
+  const { snackOn, snackType, snackRequestId, isLoading, loadingMessage, theme } = useRedux(state => state.util);
 
   const hideSnack = (): void => {
-    act(SET_SNACK, { snackOn: '' });
+    act(SET_SNACK, { snackOn: '', snackRequestId: '' });
   }
 
   useEffect(() => {
@@ -117,7 +120,8 @@ const App = (props: IProps): JSX.Element => {
 
           {!!snackOn && <Snackbar open={!!snackOn} autoHideDuration={15000} onClose={hideSnack}>
             <Alert onClose={hideSnack} severity={snackType || "info"}>
-              {snackOn}
+              <Box>{snackOn}</Box>
+              <Box><sub>{snackRequestId}</sub></Box>
             </Alert>
           </Snackbar>}
 
