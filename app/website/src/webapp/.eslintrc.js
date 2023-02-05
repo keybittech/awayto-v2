@@ -4,6 +4,9 @@ module.exports = {
     "project": "../../tsconfig.json",
     "tsconfigRootDir": __dirname
   },
+  "rules": {
+    "@typescript-eslint/no-empty-interface": "off"
+  },
   "settings": {
     "import/resolver": {
       "typescript": {},

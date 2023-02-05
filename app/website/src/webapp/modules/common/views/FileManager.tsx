@@ -1,5 +1,5 @@
 import React, { useRef, useMemo, useState, useEffect, useCallback } from 'react';
-import DataTable, { IDataTableColumn }  from 'react-data-table-component';
+import DataTable, { TableColumn } from 'react-data-table-component';
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 
@@ -54,8 +54,8 @@ export function FileManager ({ parentUuid }: IProps): JSX.Element {
   }, [newFiles])
 
   const columns = useMemo(() => [
-    { name: 'Name', selector: 'name' },
-  ] as IDataTableColumn<IFile>[], undefined)
+    { name: 'Name', selector: row => row.name },
+  ] as TableColumn<IFile>[], undefined)
 
   const actions = useMemo(() => {
     const { length } = selected;
@@ -77,7 +77,7 @@ export function FileManager ({ parentUuid }: IProps): JSX.Element {
       columns={columns}
       selectableRows
       selectableRowsHighlight={true}
-      selectableRowsComponent={Checkbox}
+      // selectableRowsComponent={<Checkbox />}
       onSelectedRowsChange={updateSelection}
       clearSelectedRows={toggle}
     />

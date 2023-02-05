@@ -47,7 +47,7 @@ export function Login(props: IProps): JSX.Element {
   
   return login ?
     <form onSubmit={submitForm}>
-      <Grid container spacing={4} style={{ marginTop: '100px' }}>
+      {/* <Grid container spacing={4} style={{ marginTop: '100px' }}>
         <Grid item xs={12} md={3}>
           <Grid container direction="column" justifyContent="flex-start" alignItems="stretch" spacing={4}>
             <Grid item>
@@ -93,7 +93,7 @@ export function Login(props: IProps): JSX.Element {
           </Grid>
           {login.error && <Typography color="error">{login.error}</Typography>}
         </Grid>
-      </Grid>
+      </Grid> */}
     </form> :
     <></>
 }

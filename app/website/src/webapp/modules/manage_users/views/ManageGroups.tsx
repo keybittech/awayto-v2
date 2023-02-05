@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import DataTable from 'react-data-table-component';
+import DataTable, { TableColumn } from 'react-data-table-component';
 import { Dialog, IconButton, Button, CircularProgress, Checkbox } from '@material-ui/core';
 import CreateIcon from '@material-ui/icons/Create';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -32,10 +32,10 @@ export function ManageGroups (props: IProps): JSX.Element {
   const updateState = useCallback((state: { selectedRows: IGroup[] }) => setSelected(state.selectedRows), [setSelected]);
 
   const columns = useMemo(() => [
-    { name: 'Name', selector: 'name' },
+    { name: 'Name', selector: row => row.name },
     { name: 'Users', cell: (group: IGroup) => group.users || 0 },
     { name: 'Roles', cell: (group: IGroup) => group.roles ? group.roles.map(r => r.name).join(', ') : '' },
-  ], undefined);
+  ] as TableColumn<IGroup>[], undefined);
   
   const actions = useMemo(() => {
     const { length } = selected;
@@ -76,7 +76,7 @@ export function ManageGroups (props: IProps): JSX.Element {
       columns={columns}
       selectableRows
       selectableRowsHighlight={true}
-      selectableRowsComponent={Checkbox}
+      // selectableRowsComponent={<Checkbox />}
       onSelectedRowsChange={updateState}
       clearSelectedRows={toggle}
       pagination={true}

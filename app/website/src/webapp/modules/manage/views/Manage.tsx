@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Button, Card, CardActions, CardContent, Grid, Typography } from '@material-ui/core';
 import { SiteRoles, IManageGroupsActionTypes } from 'awayto';
 import { useComponents } from 'awayto-hooks';
+import { useNavigate, useParams } from 'react-router';
 
 const { GET_MANAGE_GROUPS, DELETE_MANAGE_GROUPS } = IManageGroupsActionTypes;
 
@@ -12,28 +13,32 @@ declare global {
 }
 
 export function Manage(props: IProps): JSX.Element {
+  const { component } = useParams();
+
+  const navigate = useNavigate();
+
   const { ManageUsers, ManageGroups, ManageRoles, ManageRoleActions, Secure } = useComponents();
 
   const menu = ['users', 'groups', 'roles', 'matrix'].map(comp =>
-    <Button key={`menu_${comp}`} style={comp == props.view ? { textDecoration: 'underline' } : undefined} onClick={() => props.history.push(`/manage/${comp}`)}>
+    <Button key={`menu_${comp}`} style={comp == component ? { textDecoration: 'underline' } : undefined} onClick={() => navigate(`/manage/${comp}`)}>
       {comp}
     </Button>
   );
 
-  const viewPage = () => {
-    switch (props.view) {
+  const viewPage = useMemo(() => {
+    switch (component) {
       case 'users':
         return <ManageUsers {...props} />
-      case 'groups':
-        return <ManageGroups getAction={GET_MANAGE_GROUPS} deleteAction={DELETE_MANAGE_GROUPS} {...props} />
-      case 'roles':
-        return <ManageRoles {...props} />
-      case 'matrix':
-        return <ManageRoleActions {...props} />
+      // case 'groups':
+      //   return <ManageGroups getAction={GET_MANAGE_GROUPS} deleteAction={DELETE_MANAGE_GROUPS} {...props} />
+      // case 'roles':
+      //   return <ManageRoles {...props} />
+      // case 'matrix':
+      //   return <ManageRoleActions {...props} />
       default:
         return;
     }
-  }
+  }, [component])
 
   return <>
     <h1>Manage</h1>
@@ -46,7 +51,9 @@ export function Manage(props: IProps): JSX.Element {
                 <Typography variant="button">Identity:</Typography> {menu}
               </Grid>
             </CardActions>
-            {viewPage()}
+            <>
+              {viewPage}
+            </>
           </CardContent>
         </Card>
       </Grid>

@@ -134,7 +134,6 @@ export function Home(props: IProps): JSX.Element {
 
   useEffect(() => {
     async function go() {
-      console.log('setting up peer connection');
       const senders = Object.keys(senderStreams).filter(sender => !senderStreams[sender].pc);
       const startedSenders: SenderStreams = {};
 

@@ -16,6 +16,7 @@ import VisibilityOff from '@material-ui/icons/VisibilityOff';
 
 import { IUserProfile, IUserProfileActionTypes } from 'awayto';
 import { useAct } from 'awayto-hooks';
+import { useNavigate } from 'react-router';
 
 const { SIGNUP_USER, HAS_CODE } = IUserProfileActionTypes;
 
@@ -28,6 +29,7 @@ declare global {
 export function SignUp(props: IProps): JSX.Element {
   const { signUpButton = false } = props;
 
+  const navigate = useNavigate();
   const act = useAct();
   const [confirmPassword, setConfirmPassword] = useState('');
   const [password, setPassword] = useState('');
@@ -41,7 +43,7 @@ export function SignUp(props: IProps): JSX.Element {
 
   return <>
     {signUpButton ?
-      <Button onClick={() => props.history.push('/signup')}>Sign Up</Button> :
+      <Button onClick={() => navigate('/signup')}>Sign Up</Button> :
       <>
         <form onSubmit={e => {
           e.preventDefault();
@@ -108,7 +110,7 @@ export function SignUp(props: IProps): JSX.Element {
               <Grid item xs={12}>
                 <Grid container justifyContent="space-between">
                   <Grid item>
-                    <Button onClick={() => props.history.push('/')} color="primary">Back</Button>
+                    <Button onClick={() => navigate('/')} color="primary">Back</Button>
                   </Grid>
                   <Grid item>
                     <Button onClick={() => act(HAS_CODE, { hasSignUpCode: true })} color="primary">I have a code</Button>

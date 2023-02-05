@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import DataTable, { IDataTableColumn } from 'react-data-table-component';
+import DataTable, { TableColumn } from 'react-data-table-component';
 import { Checkbox } from '@material-ui/core';
 
 import { IManageRolesActionTypes } from 'awayto';
@@ -20,11 +20,11 @@ export function ManageRoleActions (): JSX.Element {
     , undefined);
 
   const columns = useMemo(() => [
-    { name: '', selector: 'name' },
+    { name: '', selector: row => row.name },
     ...roles.reduce((memo, { name }) => {
       memo.push({ name, cell: ({  }) => <Checkbox /> }); // TODO Need to take action here to create groupRoleActions
       return memo;
-    }, [] as IDataTableColumn<{ name: string }>[])
+    }, [] as TableColumn<{ name: string }>[])
   ], [roles])
 
   useEffect(() => {

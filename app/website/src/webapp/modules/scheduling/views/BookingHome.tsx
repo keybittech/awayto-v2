@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import DataTable, { IDataTableColumn } from 'react-data-table-component';
+import DataTable, { TableColumn } from 'react-data-table-component';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
@@ -106,7 +106,7 @@ export function BookingHome(props: IProps): JSX.Element {
   const tierColumns = useMemo(() => {
     if (!service || !serviceTierAddons.length) return [];
     return [
-      { name: '', selector: 'name' },
+      { name: '', selector: row => row.name } as TableColumn<IServiceAddon>,
       ...service.tiers.reduce((memo, { name, addons }) => {
         memo.push({
           name: `${name}`,
@@ -115,7 +115,7 @@ export function BookingHome(props: IProps): JSX.Element {
           }
         });
         return memo;
-      }, [] as IDataTableColumn<IServiceAddon>[])
+      }, [] as TableColumn<IServiceAddon>[])
     ]
   }, [serviceTierAddons]);
 

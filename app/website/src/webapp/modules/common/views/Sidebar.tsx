@@ -7,30 +7,18 @@ import AppsIcon from '@material-ui/icons/Apps';
 import LibraryBooksIcon from '@material-ui/icons/LibraryBooks';
 import BusinessIcon from '@material-ui/icons/Business';
 import EventNoteIcon from '@material-ui/icons/EventNote';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 import Icon from '../../../img/kbt-icon.png';
 
-import { IUtilActionTypes, ILogoutActionTypes } from 'awayto';
-import { useAct } from 'awayto-hooks';
 import keycloak from '../../../keycloak';
-
-
-const { SET_SNACK } = IUtilActionTypes;
-const { LOGOUT } = ILogoutActionTypes;
 
 export function Sidebar (props: IProps): JSX.Element {
 
-  const { classes, history } = props;
+  const { classes } = props;
 
-  const act = useAct();
-
-  const navigate = (link: string) => {
-    if (history.location.pathname !== link) history.push(link);
-  }
-
-  const logout = async () => {
-    await keycloak.logout({ redirectUri: `https://${process.env.REACT_APP_LAND_HOSTNAME as string}/` });
-  }
+  const navigate = useNavigate();
+  const location = useLocation();
 
   return (
     <Drawer
@@ -49,23 +37,23 @@ export function Sidebar (props: IProps): JSX.Element {
           </Grid>
           <List component="nav">
             <ListItem className={classes.menuIcon} onClick={() => navigate('/')} button key={'home'}>
-              <ListItemIcon><VpnKeyIcon color={history.location.pathname === '/' ? "secondary" : "primary"} /></ListItemIcon>
+              <ListItemIcon><VpnKeyIcon color={location.pathname === '/' ? "secondary" : "primary"} /></ListItemIcon>
               <ListItemText classes={{ primary: classes.menuText }}>Home</ListItemText>
             </ListItem>
             <ListItem className={classes.menuIcon} onClick={() => navigate('/manage/users')} button key={'manage'}>
-              <ListItemIcon><AppsIcon color={history.location.pathname === '/manage/users' ? "secondary" : "primary"} /></ListItemIcon>
+              <ListItemIcon><AppsIcon color={location.pathname === '/manage/users' ? "secondary" : "primary"} /></ListItemIcon>
               <ListItemText classes={{ primary: classes.menuText }}>Manage</ListItemText>
             </ListItem>
             <ListItem className={classes.menuIcon} onClick={() => navigate('/service')} button key={'service'}>
-              <ListItemIcon><BusinessIcon color={history.location.pathname === '/service' ? "secondary" : "primary"} /></ListItemIcon>
+              <ListItemIcon><BusinessIcon color={location.pathname === '/service' ? "secondary" : "primary"} /></ListItemIcon>
               <ListItemText classes={{ primary: classes.menuText }}>Service</ListItemText>
             </ListItem>
             <ListItem className={classes.menuIcon} onClick={() => navigate('/schedule')} button key={'schedule'}>
-              <ListItemIcon><EventNoteIcon color={history.location.pathname === '/schedule' ? "secondary" : "primary"} /></ListItemIcon>
+              <ListItemIcon><EventNoteIcon color={location.pathname === '/schedule' ? "secondary" : "primary"} /></ListItemIcon>
               <ListItemText classes={{ primary: classes.menuText }}>Schedule</ListItemText>
             </ListItem>
             <ListItem className={classes.menuIcon} onClick={() => navigate('/booking')} button key={'booking'}>
-              <ListItemIcon><LibraryBooksIcon color={history.location.pathname === '/booking' ? "secondary" : "primary"} /></ListItemIcon>
+              <ListItemIcon><LibraryBooksIcon color={location.pathname === '/booking' ? "secondary" : "primary"} /></ListItemIcon>
               <ListItemText classes={{ primary: classes.menuText }}>Booking</ListItemText>
             </ListItem>
           </List>
@@ -73,10 +61,12 @@ export function Sidebar (props: IProps): JSX.Element {
         <Grid item xs={12}>
           <List component="nav">
             <ListItem className={classes.menuIcon} onClick={() => navigate('/profile')} button key={'profile'}>
-              <ListItemIcon><AccountBoxIcon color={history.location.pathname === '/profile' ? "secondary" : "primary"} /></ListItemIcon>
+              <ListItemIcon><AccountBoxIcon color={location.pathname === '/profile' ? "secondary" : "primary"} /></ListItemIcon>
               <ListItemText classes={{ primary: classes.menuText }}>Profile</ListItemText>
             </ListItem>
-            <ListItem className={classes.menuIcon} onClick={logout} button key={'logout'}>
+            <ListItem className={classes.menuIcon} onClick={async () => {
+              await keycloak.logout({ redirectUri: `https://${process.env.REACT_APP_LAND_HOSTNAME as string}/` });
+            }} button key={'logout'}>
               <ListItemIcon><ExitToAppIcon color="primary" /></ListItemIcon>
               <ListItemText classes={{ primary: classes.menuText }}>Logout</ListItemText>
             </ListItem>

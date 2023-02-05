@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import DataTable, { IDataTableColumn }  from 'react-data-table-component';
+import DataTable, { TableColumn }  from 'react-data-table-component';
 import moment from 'moment';
 import { Dialog, IconButton, Button, Typography, CircularProgress, Checkbox } from '@material-ui/core';
 import CreateIcon from '@material-ui/icons/Create';
@@ -26,12 +26,12 @@ export function ManageUsers(props: IProps): JSX.Element {
 
   const columns = useMemo(() => [
     { name: '', grow: 'unset', minWidth: '48px', cell: (user: IUserProfile) => user.locked ? <LockIcon /> : <LockOpenIcon /> },
-    { name: 'Username', selector: 'username' },
-    { name: 'First Name', selector: 'firstName' },
-    { name: 'Last Name', selector: 'lastName' },
+    { name: 'Username', selector: row => row.username },
+    { name: 'First Name', selector: row => row.firstName },
+    { name: 'Last Name', selector: row => row.lastName },
     { name: 'Group', cell: (user: IUserProfile) => user.groups ? user.groups.map(r => r.name).join(', ') : '' },
     { name: 'Created', cell: (user: IUserProfile) => moment(user.createdOn).fromNow() },
-  ] as IDataTableColumn<IUserProfile>[], undefined)
+  ] as TableColumn<IUserProfile>[], undefined)
 
   const actions = useMemo(() => {
     const { length } = selected;
@@ -82,7 +82,7 @@ export function ManageUsers(props: IProps): JSX.Element {
       columns={columns}
       selectableRows
       selectableRowsHighlight={true}
-      selectableRowsComponent={Checkbox}
+      // selectableRowsComponent={<><Checkbox /></>}
       onSelectedRowsChange={updateSelections}
       clearSelectedRows={toggle}
       pagination={true}
