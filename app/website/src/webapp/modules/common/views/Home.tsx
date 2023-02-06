@@ -409,7 +409,7 @@ export function Home(props: IProps): JSX.Element {
     <CardContent>
 
       <Grid container direction="row" justifyContent="space-evenly">
-        <Grid item xs={12} md={5} style={{ height: '70vh', padding: '20px', color: theme.palette.primary.contrastText, backgroundColor: theme.palette.primary.dark }}>document placeholder</Grid>
+        <Grid item xs={12} md={5} style={{ height: '70vh', padding: '20px', color: theme.palette.primary.contrastText, backgroundColor: theme.palette.primary.dark }}>document placeholder here</Grid>
         <Grid item xs={12} md={5}>
           <Grid container direction="column" style={{ height: '70vh', display: 'flex', flexWrap: 'nowrap' }}>
             {/* ---------- Video ---------- */}

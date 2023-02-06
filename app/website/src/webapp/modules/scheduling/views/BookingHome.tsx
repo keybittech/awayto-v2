@@ -148,41 +148,46 @@ export function BookingHome(props: IProps): JSX.Element {
 
                   <Grid item>
                     <Grid container spacing={2}>
-
-                      <TextField style={{ flex: '1' }} select label="Schedules" fullWidth value={schedule.id} onChange={e => {
-                        void api(GET_SCHEDULE_BY_ID, true, { id: e.target.value })
-                        // .then(res => {
-                        //   if (res) {
-                        //     setSchedule(res)
-                        //     setService(res.services[0])
-                        //     setTier(res.services[0].tiers[0])
-                        //   }
-                        // });
-                      }}>
-                        {Object.values(schedules)?.map((schedule, i) => {
-                          return <MenuItem key={i} value={schedule.id}>{schedule.name}</MenuItem>
-                        })}
-                      </TextField>
-                      <TextField style={{ flex: '1' }} select label="Service" fullWidth value={service.id} onChange={e => {
-                        void api(GET_SERVICE_BY_ID, true, { id: e.target.value })
-                        // .then(serv => {
-                        //   if (serv) {
-                        //     setService(serv);
-                        //     setTier(serv.tiers[0])
-                        //   }
-                        // });
-                      }}>
-                        {schedule.services.map((service, i) => {
-                          return <MenuItem key={i} value={service.id}>{service.name}</MenuItem>
-                        })}
-                      </TextField>
-                      <TextField style={{ flex: '1' }} select label="Tier" fullWidth value={tier.id} onChange={e => {
-                        setTier(service.tiers.find(t => t.id === e.target.value));
-                      }}>
-                        {service.tiers.map((tier, i) => {
-                          return <MenuItem key={i} value={tier.id}>{tier.name}</MenuItem>
-                        })}
-                      </TextField>
+                      <Grid item xs={4}>
+                        <TextField style={{ flex: '1' }} select label="Schedules" fullWidth value={schedule.id} onChange={e => {
+                          void api(GET_SCHEDULE_BY_ID, true, { id: e.target.value })
+                          // .then(res => {
+                          //   if (res) {
+                          //     setSchedule(res)
+                          //     setService(res.services[0])
+                          //     setTier(res.services[0].tiers[0])
+                          //   }
+                          // });
+                        }}>
+                          {Object.values(schedules)?.map((schedule, i) => {
+                            return <MenuItem key={i} value={schedule.id}>{schedule.name}</MenuItem>
+                          })}
+                        </TextField>
+                      </Grid>
+                      <Grid item xs={4}>
+                        <TextField style={{ flex: '1' }} select label="Service" fullWidth value={service.id} onChange={e => {
+                          void api(GET_SERVICE_BY_ID, true, { id: e.target.value })
+                          // .then(serv => {
+                          //   if (serv) {
+                          //     setService(serv);
+                          //     setTier(serv.tiers[0])
+                          //   }
+                          // });
+                        }}>
+                          {schedule.services.map((service, i) => {
+                            return <MenuItem key={i} value={service.id}>{service.name}</MenuItem>
+                          })}
+                        </TextField>
+                      </Grid>
+                      <Grid item xs={4}>
+                        <TextField style={{ flex: '1' }} select label="Tier" fullWidth value={tier.id} onChange={e => {
+                          setTier(service.tiers.find(t => t.id === e.target.value));
+                        }}>
+                          {service.tiers.map((tier, i) => {
+                            return <MenuItem key={i} value={tier.id}>{tier.name}</MenuItem>
+                          })}
+                        </TextField>
+                      </Grid>
                     </Grid>
                     <Box mt={6}>
                       <Card square>
@@ -249,7 +254,7 @@ export function BookingHome(props: IProps): JSX.Element {
           </Box>
 
           <Box m={5} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button style={{ alignSelf: 'flex-end' }} variant="text" color="primary">Submit</Button>
+            <Button sx={{ alignSelf: 'flex-end' }} variant="text" color="primary">Submit</Button>
           </Box>
         </CardContent>
       </Card >

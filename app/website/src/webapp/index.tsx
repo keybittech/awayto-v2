@@ -1,7 +1,7 @@
 // React imports
 // import 'typeface-roboto';
 // import 'typeface-courgette';
-import React, { FunctionComponent, ReactNode } from 'react';
+import React, { ComponentType, FunctionComponent, ReactNode, LazyExoticComponent } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createStore, applyMiddleware, compose, combineReducers, Reducer, ReducersMapObject } from 'redux';
 import thunk, { ThunkMiddleware } from 'redux-thunk';
@@ -66,12 +66,12 @@ export type ILoadedReducers = Partial<IReducers>;
 /**
  * @category Awayto React
  */
-export type IBaseComponent = FunctionComponent<IProps> & ReactNode;
+export type IBaseComponent = FunctionComponent<IProps> & ComponentType<any> & ReactNode;
 
 /**
  * @category Awayto React
  */
-export type IBaseComponents = { [component: string]: IBaseComponent }
+export type IBaseComponents = { [component: string]: LazyExoticComponent<IBaseComponent> | (() => JSX.Element) }
 
 /**
  * @category Awayto React
@@ -169,7 +169,7 @@ void initKeycloak.call({
       const root = createRoot(document.getElementById('root') as Element);
 
       root.render(
-        // <React.StrictMode>
+        <React.StrictMode>
           <Provider store={store}>
             <PersistGate persistor={persistor}>
               <BrowserRouter basename="/app">
@@ -177,7 +177,7 @@ void initKeycloak.call({
               </BrowserRouter>
             </PersistGate>
           </Provider>
-        // </React.StrictMode>
+        </React.StrictMode>
       )
 
       reportWebVitals(console.log);

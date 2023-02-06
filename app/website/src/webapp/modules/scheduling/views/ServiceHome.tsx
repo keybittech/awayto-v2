@@ -117,7 +117,7 @@ export function ServiceHome(props: IProps): JSX.Element {
           </Box>
 
           <Box m={4} sx={{ display: 'flex', alignItems: 'baseline' }}>
-            <SelectLookup lookupName="Feature" lookups={serviceAddons} lookupChange={val => setServiceTierAddonIds(val as string[])} lookupValue={serviceTierAddonIds} multiple createActionType={POST_SERVICE_ADDON} deleteActionType={DELETE_SERVICE_ADDON} {...props} />
+            <SelectLookup lookupName="Feature" lookups={serviceAddons} lookupChange={(val: string[]) => setServiceTierAddonIds(val)} lookupValue={serviceTierAddonIds} multiple createActionType={POST_SERVICE_ADDON} deleteActionType={DELETE_SERVICE_ADDON} {...props} />
           </Box>
 
           <Box m={4} mb={-2}>

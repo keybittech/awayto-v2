@@ -1,5 +1,6 @@
+import { LazyExoticComponent } from 'react';
 import { createElement, useMemo, lazy } from 'react';
-import { IBaseComponent, IBaseComponents, LazyComponentPromise } from '..';
+import { IBaseComponent, IBaseComponents } from '..';
 
 import build from '../build.json';
 
@@ -25,12 +26,12 @@ const components = {} as IBaseComponents;
 export function useComponents(): IBaseComponents {
   
   const comps = useMemo(() => new Proxy(components, {
-    get: function (target: IBaseComponents, prop: string): IBaseComponent {
+    get: function (target: IBaseComponents, prop: string): LazyExoticComponent<IBaseComponent> | (() => JSX.Element) {
       if (!components[prop]) {
-        components[prop] = lazy((): LazyComponentPromise => import(`../modules/${views[prop]}`) as LazyComponentPromise);
+        components[prop] = lazy<IBaseComponent>(() => import(`../modules/${views[prop]}`) as Promise<{ default: IBaseComponent }>);
       }
       
-      target[prop] = views[prop] ? components[prop] : ((): JSX.Element => createElement('div')) as IBaseComponent
+      target[prop] = views[prop] ? components[prop] : ((): JSX.Element => createElement('div'));
 
       return Reflect.get(target, prop);
     }

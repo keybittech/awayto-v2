@@ -13,7 +13,7 @@ declare global {
 }
 
 export function PickTheme (props: IProps): JSX.Element {
-  const { showTitle, theme } = props;
+  const { showTitle } = props;
   const classes = useStyles();
   const act = useAct();
 

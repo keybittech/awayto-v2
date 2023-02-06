@@ -88,8 +88,8 @@ export function ScheduleHome(props: IProps): JSX.Element {
           <Box m={4}>
             <Typography variant="h6">Schedule Context</Typography>
             <Typography variant="caption">The length of time the schedule will run over. This determines how brackets are divided. For example, if your schedule is 40 hours per week, here you can configure a <strong>1 week Schedule Context</strong>.</Typography>
-            <SelectLookup lookupName="Schedule Context" lookups={scheduleContexts} lookupChange={val => {
-              const context = scheduleContexts?.find(c => c.name === val as string);
+            <SelectLookup lookupName="Schedule Context" lookups={scheduleContexts} lookupChange={(val: string) => {
+              const context = scheduleContexts?.find(c => c.name === val);
               setNewTerm({ ...newTerm, scheduleContextName: context ? context.name : '', scheduleContextId: context ? context.id : '' })
             }} lookupValue={newTerm.scheduleContextName} createActionType={POST_SCHEDULE_CONTEXT} deleteActionType={DELETE_SCHEDULE_CONTEXT} {...props} />
           </Box>
@@ -182,8 +182,8 @@ export function ScheduleHome(props: IProps): JSX.Element {
                   <li><Typography variant="caption">Alice's schedule has a <strong>1 week Schedule Context</strong>, and charges the same rate all week. <br /> - 1 bracket: <strong>40 hours, 1x multiplier</strong></Typography></li>
                   <li><Typography variant="caption">Rick's schedule also has a <strong>1 week Schedule Context</strong>, but charges more after the first 20 hours. <br/> - 2 brackets: <strong>20 hours, 1x multiplier</strong>, and <strong>20 hours, 2x multiplier</strong>.</Typography></li>
                 </ul>
-                <SelectLookup lookupName="Bracket Duration" lookups={scheduleContexts} lookupChange={val => {
-                  const context = scheduleContexts?.find(c => c.name === val as string);
+                <SelectLookup lookupName="Bracket Duration" lookups={scheduleContexts} lookupChange={(val: string) => {
+                  const context = scheduleContexts?.find(c => c.name === val);
                   setNewBracket({ ...newBracket, scheduleContextName: context ? context.name : '', scheduleContextId: context ? context.id : '' })
                 }} lookupValue={newBracket.scheduleContextName} createActionType={POST_SCHEDULE_CONTEXT} deleteActionType={DELETE_SCHEDULE_CONTEXT} {...props} />
               </Box>
