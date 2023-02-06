@@ -1,9 +1,11 @@
-import createTheme, { Theme, ThemeOptions } from '@mui/material/styles/createTheme';
+import { Theme, ThemeOptions } from '@mui/material/styles/createTheme';
 
 import makeStyles from '@mui/styles/makeStyles';
 
-import { green, red } from '@mui/material/colors';
-import { PaletteMode } from '@mui/material';
+import green from '@mui/material/colors/green';
+import red from '@mui/material/colors/red';
+
+export type PaletteMode = 'light' | 'dark';
 
 const drawerWidth = 175;
 

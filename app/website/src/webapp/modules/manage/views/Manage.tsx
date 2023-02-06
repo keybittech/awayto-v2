@@ -1,8 +1,15 @@
 import React, { useMemo } from 'react';
-import { Button, Card, CardActions, CardContent, Grid, Typography } from '@mui/material';
-import { SiteRoles, IManageGroupsActionTypes } from 'awayto';
-import { useComponents } from 'awayto-hooks';
 import { useNavigate, useParams } from 'react-router';
+
+import Grid from '@mui/material/Grid';
+import Card from '@mui/material/Card';
+import CardActions from '@mui/material/CardActions';
+import CardContent from '@mui/material/CardContent';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+
+import { IManageGroupsActionTypes } from 'awayto';
+import { useComponents } from 'awayto-hooks';
 
 const { GET_MANAGE_GROUPS, DELETE_MANAGE_GROUPS } = IManageGroupsActionTypes;
 

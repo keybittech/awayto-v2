@@ -1,5 +1,13 @@
 import React from 'react';
-import { Button, Card, CardContent, CardActions, CardActionArea, Typography, Grid, Dialog } from '@mui/material';
+
+import Button from '@mui/material/Button';
+import Grid from '@mui/material/Grid';
+import Typography from '@mui/material/Typography';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import CardActions from '@mui/material/CardActions';
+import CardActionArea from '@mui/material/CardActionArea';
+import Dialog from '@mui/material/Dialog';
 
 import { IUtilActionTypes } from 'awayto';
 import { useRedux, useAct } from 'awayto-hooks';

@@ -1,4 +1,3 @@
-import { PaletteMode } from '@mui/material';
 import { PayloadAction } from '.';
 
 declare global {
@@ -44,7 +43,7 @@ export type IUtil = {
   snackOn: string;
   snackRequestId: string;
   perPage: number;
-  theme: PaletteMode;
+  theme: 'light' | 'dark';
   hasSignUpCode: boolean;
   test: { objectUrl: string };
 }

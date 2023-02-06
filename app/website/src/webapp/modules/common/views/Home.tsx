@@ -1,10 +1,19 @@
 /// <reference lib="WebWorker" />
 
 import React, { FormEvent, KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Button, Grid, TextField, CardActions, InputAdornment, IconButton, useTheme } from '@mui/material';
+
+import Button from '@mui/material/Button';
+import Grid from '@mui/material/Grid';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
-import { ChatBubble, Send } from '@mui/icons-material';
+import CardActions from '@mui/material/CardActions';
+import TextField from '@mui/material/TextField';
+import InputAdornment from '@mui/material/InputAdornment';
+import IconButton from '@mui/material/IconButton';
+import useTheme from '@mui/material/styles/useTheme';
+
+import ChatBubble from '@mui/icons-material/ChatBubble';
+import Send from '@mui/icons-material/Send';
 import Videocam from '@mui/icons-material/Videocam';
 import Call from '@mui/icons-material/Call';
 

@@ -2,8 +2,8 @@ import Icon from '../../../img/kbt-icon.png';
 
 import React, { Suspense, useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import MuiAlert, { AlertProps } from '@mui/lab/Alert';
-import { Skeleton } from '@mui/lab';
+import MuiAlert, { AlertProps } from '@mui/material/Alert';
+import Skeleton from '@mui/material/Skeleton';
 import Drawer from '@mui/material/Drawer';
 import Grid from '@mui/material/Grid';
 import Snackbar from '@mui/material/Snackbar';
@@ -24,9 +24,16 @@ const { GET_USER_PROFILE_DETAILS } = IUserProfileActionTypes;
 const { GET_FORMS } = IFormActionTypes;
 const { SET_SNACK } = IUtilActionTypes;
 
-function Alert(props: AlertProps): JSX.Element {
-  return <MuiAlert elevation={6} variant="filled" {...props} />;
-}
+const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
+  props,
+  ref,
+) {
+  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
+
+// function Alert(props: AlertProps): JSX.Element {
+//   return <MuiAlert elevation={6} variant="filled" {...props} />;
+// }
 
 const Layout = (props: IProps): JSX.Element => {
 
@@ -103,7 +110,7 @@ const Layout = (props: IProps): JSX.Element => {
       </main>
     </div>
 
-    {!!snackOn && <Snackbar open={!!snackOn} autoHideDuration={15000} onClose={hideSnack}>
+    {!!snackOn && <Snackbar anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} open={!!snackOn} autoHideDuration={15000} onClose={hideSnack}>
       <Alert onClose={hideSnack} severity={snackType || "info"}>
         <Box>{snackOn}</Box>
         <Box><sub>{snackRequestId}</sub></Box>

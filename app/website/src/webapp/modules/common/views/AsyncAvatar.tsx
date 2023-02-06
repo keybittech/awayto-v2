@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Avatar } from '@mui/material';
+import Avatar from '@mui/material/Avatar';
 import { useFileStore } from 'awayto-hooks';
 
 declare global {

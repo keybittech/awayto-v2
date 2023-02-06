@@ -1,6 +1,6 @@
 import Icon from './img/kbt-icon.png';
 
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { Suspense } from 'react';
 import ThemeProvider from '@mui/material/styles/ThemeProvider';
 import deepmerge from '@mui/utils/deepmerge';
 import createTheme from '@mui/material/styles/createTheme';
