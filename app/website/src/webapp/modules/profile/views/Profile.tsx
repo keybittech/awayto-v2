@@ -1,22 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Grid, Typography, Button, TextField, Avatar, CardActionArea } from '@material-ui/core';
 
-import PersonIcon from '@material-ui/icons/Person';
+import Grid from '@mui/material/Grid';
+import Typography from '@mui/material/Typography';
+import Avatar from '@mui/material/Avatar';
+import CardActionArea from '@mui/material/CardActionArea';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import PersonIcon from '@mui/icons-material/Person';
 
-import { IUserProfile, IUserProfileActionTypes, IUtilActionTypes, IPreviewFile, FileStoreStrategies } from 'awayto';
+import { IUserProfile, IUserProfileActionTypes, IUtilActionTypes, IPreviewFile } from 'awayto';
 import { useRedux, useApi, useAct, useComponents, useFileStore } from 'awayto-hooks';
+
+import { styles } from '../../../style';
 
 const { SET_SNACK } = IUtilActionTypes;
 const { GET_USER_PROFILE_DETAILS, POST_USER_PROFILE, PUT_USER_PROFILE } = IUserProfileActionTypes;
 
 export function Profile(props: IProps): JSX.Element {
-  const { classes } = props;
+  const classes = styles(props.theme)();
 
   const api = useApi();
   const act = useAct();
   const fileStore = useFileStore();
-  const { AsyncAvatar, PickTheme } = useComponents();
+  const { PickTheme } = useComponents();
 
   const user = useRedux(state => state.profile);
 
@@ -32,7 +39,9 @@ export function Profile(props: IProps): JSX.Element {
   const { getRootProps, getInputProps } = useDropzone({
     maxSize: 1000000,
     maxFiles: 1,
-    accept: 'image/*',
+    accept: {
+      'image/*': []
+    },
     onDrop: (acceptedFiles: File[]) => {
       const acceptedFile = acceptedFiles.pop()
       if (acceptedFile) {
@@ -113,7 +122,7 @@ export function Profile(props: IProps): JSX.Element {
             <Grid item>
               <CardActionArea style={{ padding: '12px' }}>
                 {!displayImage ?
-                  <Grid {...getRootProps({ refKey: 'innerRef' })} container alignItems="center" direction="column">
+                  <Grid {...getRootProps()} container alignItems="center" direction="column">
                     <input {...getInputProps()} />
                     <Grid item>
                       <Avatar>

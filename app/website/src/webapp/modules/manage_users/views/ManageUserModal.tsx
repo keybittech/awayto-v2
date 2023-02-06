@@ -1,5 +1,20 @@
 import React, { useCallback, useMemo, useEffect, useState } from "react";
-import { DialogContent, Grid, Typography, TextField, DialogActions, Button, FormHelperText, FormControl, CircularProgress, InputLabel, Input, InputAdornment, Select, MenuItem, DialogTitle } from "@material-ui/core";
+
+import Grid from '@mui/material/Grid';
+import Typography from '@mui/material/Typography';
+import FormControl from '@mui/material/FormControl';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Input from '@mui/material/Input';
+import FormHelperText from '@mui/material/FormHelperText';
+import Button from '@mui/material/Button';
+import InputLabel from '@mui/material/InputLabel';
+import Select from '@mui/material/Select';
+import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
+import CircularProgress from '@mui/material/CircularProgress';
+import InputAdornment from '@mui/material/InputAdornment';
 
 import { IGroup, IUserProfile, IManageUsersActionTypes, IManageGroupsActionTypes, IUtilActionTypes, passwordGen } from "awayto";
 import { useApi, useAct, useRedux } from 'awayto-hooks';

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Button, Card, CardActions, CardContent, Grid, Typography } from '@material-ui/core';
+import { Button, Card, CardActions, CardContent, Grid, Typography } from '@mui/material';
 import { SiteRoles, IManageGroupsActionTypes } from 'awayto';
 import { useComponents } from 'awayto-hooks';
 import { useNavigate, useParams } from 'react-router';
@@ -29,12 +29,12 @@ export function Manage(props: IProps): JSX.Element {
     switch (component) {
       case 'users':
         return <ManageUsers {...props} />
-      // case 'groups':
-      //   return <ManageGroups getAction={GET_MANAGE_GROUPS} deleteAction={DELETE_MANAGE_GROUPS} {...props} />
-      // case 'roles':
-      //   return <ManageRoles {...props} />
-      // case 'matrix':
-      //   return <ManageRoleActions {...props} />
+      case 'groups':
+        return <ManageGroups getAction={GET_MANAGE_GROUPS} deleteAction={DELETE_MANAGE_GROUPS} {...props} />
+      case 'roles':
+        return <ManageRoles {...props} />
+      case 'matrix':
+        return <ManageRoleActions {...props} />
       default:
         return;
     }

@@ -1,12 +1,16 @@
-import { createTheme, createStyles, StyleRules, Theme } from '@material-ui/core';
-import { green, red } from '@material-ui/core/colors';
+import { Theme } from '@mui/material/styles/createTheme';
+
+import makeStyles from '@mui/styles/makeStyles';
+
+import createTheme from '@mui/material/styles/createTheme';
+import { green, red } from '@mui/material/colors';
 
 const drawerWidth = 150;
 
 /**
  * @category Style
  */
-export const styles = ({ mixins, spacing }: Theme): StyleRules => createStyles({
+export const styles = ({ mixins, spacing }: Theme) => makeStyles({
 
   appLogo: { width: '64px' },
   logo: { width: '64px' },
@@ -80,71 +84,86 @@ const theme = {
     },
   },
 
-  overrides: {
+  components: {
     MuiDrawer: {
-      paper: {
-        '& .MuiList-padding': {
-          paddingLeft: 'unset'
-        },
-        '& .MuiListItem-button': {
-          paddingLeft: '16px'
+      styleOverrides: {
+
+        paper: {
+          '& .MuiList-padding': {
+            paddingLeft: 'unset'
+          },
+          '& .MuiListItem-button': {
+            paddingLeft: '16px'
+          }
         }
       }
     },
     MuiTableCell: {
-      root: {
-        padding: '4px 8px !important'
+      styleOverrides: {
+        root: {
+          padding: '4px 8px !important'
+        }
       }
     },
     MuiTableBody: {
-      root: {
-        '& .MuiTableCell-body:not(:last-child)': {
-          '&:not(:last-child)': {
-            borderRight: '1px solid rgb(228, 228, 228)',
+      styleOverrides: {
+        root: {
+          '& .MuiTableCell-body:not(:last-child)': {
+            '&:not(:last-child)': {
+              borderRight: '1px solid rgb(228, 228, 228)',
+            }
+          },
+          '& .MuiIconButton-root': {
+            padding: 0
+          },
+          '& .MuiButton-textSizeSmall': {
+            padding: '0 4px'
           }
-        },
-        '& .MuiIconButton-root': {
-          padding: 0
-        },
-        '& .MuiButton-textSizeSmall': {
-          padding: '0 4px'
         }
       }
     },
     MuiSlider: {
-      root: {
-        padding: '4px 0'
+      styleOverrides: {
+        root: {
+          padding: '4px 0'
+        }
       }
     },
     MuiList: {
-      root: {
-        listStyleType: 'disc',
-        marginTop: 24,
-        marginBottom: 24
-      },
-      padding: {
-        paddingTop: 0,
-        paddingRight: 0,
-        paddingBottom: 0,
-        paddingLeft: 16,
+      styleOverrides: {
+        root: {
+          listStyleType: 'disc',
+          marginTop: 24,
+          marginBottom: 24
+        },
+        padding: {
+          paddingTop: 0,
+          paddingRight: 0,
+          paddingBottom: 0,
+          paddingLeft: 16,
+        }
       }
     },
     MuiListItem: {
-      root: {
-        '&.bullet': {
-          display: 'list-Item'
+      styleOverrides: {   
+        root: {
+          '&.bullet': {
+            display: 'list-Item'
+          }
+        },
+        gutters: {
+          paddingLeft: 0,
+          paddingRight: 0,
         }
-      },
-      gutters: {
-        paddingLeft: 0,
-        paddingRight: 0,
-      },
+      }
     },
     MuiTypography: {
-      root: {
-        marginTop: 24,
-        marginBottom: 24,
-      },
+      styleOverrides: {
+        root: {
+          marginTop: 24,
+          marginBottom: 24,
+        }
+      }
     },
   }
 };
@@ -156,7 +175,7 @@ export const lightTheme = createTheme({
   ...theme,
   palette: {
     ...theme.palette,
-    type: 'light',
+    mode: 'light',
     primary: {
       main: '#000',
       dark: '#aaa',
@@ -172,19 +191,21 @@ export const darkTheme = createTheme({
   ...theme,
   palette: {
     ...theme.palette,
-    type: 'dark',
+    mode: 'dark',
     primary: {
       main: '#fff',
       contrastText: '#333'
     },
     secondary: { main: '#009cc8' }
   },
-  overrides: {
-    ...theme.overrides,
+  components: {
+    ...theme.components,
     MuiInput: {
-      underline: {
-        '&:before': {
-          borderBottom: '1px solid #333'
+      styleOverrides: {
+        underline: {
+          '&:before': {
+            borderBottom: '1px solid #333'
+          }
         }
       }
     }
@@ -205,36 +226,40 @@ export const blueTheme = createTheme({
     },
     secondary: { main: 'rgb(0 191 255)' }
   },
-  overrides: {
-    ...theme.overrides,
+  components: {
+    ...theme.components,
     ... {
       MuiDrawer: {
-        paper: {
-          ...theme.overrides.MuiDrawer.paper,
-          backgroundColor: '#009cc8'
-        },
-        root: {
-          '& .MuiTypography-root': {
-            color: '#fff'
+        styleOverrides: {
+          paper: {
+            ...theme.components.MuiDrawer.styleOverrides.paper,
+            backgroundColor: '#009cc8'
           },
-          '& .MuiSvgIcon-colorPrimary': {
-            color: '#fff'
-          },
-          '& .MuiSvgIcon-colorSecondary': {
-            color: '#121f31'
+          root: {
+            '& .MuiTypography-root': {
+              color: '#fff'
+            },
+            '& .MuiSvgIcon-colorPrimary': {
+              color: '#fff'
+            },
+            '& .MuiSvgIcon-colorSecondary': {
+              color: '#121f31'
+            }
           }
         }
       },
       MuiInput: {
-        underline: {
-          '&:before': {
-            borderBottom: '1px solid #aaa'
-          },
-          '&:hover:not(.Mui-disabled):before': {
-            borderBottom: '2px solid rgb(0 191 255)'
-          },
-          '&.Mui-focused:after': {
-            borderBottom: '2px solid rgb(39 109 129)'
+        styleOverrides: {
+          underline: {
+            '&:before': {
+              borderBottom: '1px solid #aaa'
+            },
+            '&:hover:not(.Mui-disabled):before': {
+              borderBottom: '2px solid rgb(0 191 255)'
+            },
+            '&.Mui-focused:after': {
+              borderBottom: '2px solid rgb(39 109 129)'
+            }
           }
         }
       }

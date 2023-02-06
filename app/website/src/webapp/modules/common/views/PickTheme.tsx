@@ -1,7 +1,8 @@
 import React from 'react';
 import { IUtilActionTypes } from 'awayto';
 import { useAct } from 'awayto-hooks';
-import { Grid, Typography, Box } from '@material-ui/core';
+import { Grid, Typography, Box } from '@mui/material';
+import { styles } from '../../../style';
 
 const { SET_THEME } = IUtilActionTypes;
 
@@ -11,7 +12,9 @@ declare global {
   }
 }
 
-export function PickTheme ({ showTitle = true, classes }: IProps): JSX.Element {
+export function PickTheme (props: IProps): JSX.Element {
+  const { showTitle, theme } = props;
+  const classes = styles(theme)();
   const act = useAct();
 
   const edit = (e: React.SyntheticEvent) => {

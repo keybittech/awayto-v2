@@ -1,7 +1,7 @@
 import React, { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 import DataTable, { TableColumn } from 'react-data-table-component';
-import Button from '@material-ui/core/Button';
-import Checkbox from '@material-ui/core/Checkbox';
+import Button from '@mui/material/Button';
+import Checkbox from '@mui/material/Checkbox';
 
 import { IFile, IFilesActionTypes, FileStoreStrategies } from 'awayto';
 import { useApi, useRedux, useFileStore } from 'awayto-hooks';

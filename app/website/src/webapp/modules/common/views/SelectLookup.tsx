@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
-import TextField from '@material-ui/core/TextField';
-import IconButton from '@material-ui/core/IconButton';
-import Box from '@material-ui/core/Box';
-import MenuItem from '@material-ui/core/MenuItem';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import InputAdornment from '@material-ui/core/InputAdornment';
-import Grid from '@material-ui/core/Grid';
-import ClearIcon from '@material-ui/icons/Clear';
-import CheckIcon from '@material-ui/icons/Check';
+import TextField from '@mui/material/TextField';
+import IconButton from '@mui/material/IconButton';
+import Box from '@mui/material/Box';
+import MenuItem from '@mui/material/MenuItem';
+import CircularProgress from '@mui/material/CircularProgress';
+import InputAdornment from '@mui/material/InputAdornment';
+import Grid from '@mui/material/Grid';
+import ClearIcon from '@mui/icons-material/Clear';
+import CheckIcon from '@mui/icons-material/Check';
 
 import { ILookup, IActionTypes, IFormActionTypes, IUtilActionTypes } from 'awayto';
 import { useApi, useAct } from 'awayto-hooks';
+import { Theme } from '@mui/material';
 
 declare global {
   interface IProps {
@@ -18,6 +19,7 @@ declare global {
     lookups?: ILookup[];
     lookupName?: string;
     helperText?: string;
+    theme: Theme;
     lookupChange?(value: string | string[]): void;
     lookupValue?: string | string[];
     createActionType?: IActionTypes;

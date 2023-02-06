@@ -1,22 +1,22 @@
 import React from 'react';
-import { Grid, Drawer, List, ListItem, ListItemIcon, ListItemText, Button } from '@material-ui/core';
-import AccountBoxIcon from '@material-ui/icons/AccountBox';
-import ExitToAppIcon from '@material-ui/icons/ExitToApp';
-import VpnKeyIcon from '@material-ui/icons/VpnKey';
-import AppsIcon from '@material-ui/icons/Apps';
-import LibraryBooksIcon from '@material-ui/icons/LibraryBooks';
-import BusinessIcon from '@material-ui/icons/Business';
-import EventNoteIcon from '@material-ui/icons/EventNote';
+import { Grid, Drawer, List, ListItem, ListItemIcon, ListItemText, Button } from '@mui/material';
+import AccountBoxIcon from '@mui/icons-material/AccountBox';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
+import VpnKeyIcon from '@mui/icons-material/VpnKey';
+import AppsIcon from '@mui/icons-material/Apps';
+import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
+import BusinessIcon from '@mui/icons-material/Business';
+import EventNoteIcon from '@mui/icons-material/EventNote';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 import Icon from '../../../img/kbt-icon.png';
 
 import keycloak from '../../../keycloak';
+import { styles } from '../../../style';
 
 export function Sidebar (props: IProps): JSX.Element {
 
-  const { classes } = props;
-
+  const classes = styles(props.theme)();
   const navigate = useNavigate();
   const location = useLocation();
 

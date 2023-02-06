@@ -1,17 +1,18 @@
 /// <reference lib="WebWorker" />
 
 import React, { FormEvent, KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Button, Grid, TextField, CardActions, InputAdornment, IconButton, useTheme } from '@material-ui/core';
-import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/CardContent';
-import { ChatBubble, Send } from '@material-ui/icons';
-import Videocam from '@material-ui/icons/Videocam';
-import Call from '@material-ui/icons/Call';
+import { Button, Grid, TextField, CardActions, InputAdornment, IconButton, useTheme } from '@mui/material';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import { ChatBubble, Send } from '@mui/icons-material';
+import Videocam from '@mui/icons-material/Videocam';
+import Call from '@mui/icons-material/Call';
 
 import { asyncForEach, IUtilActionTypes } from 'awayto';
 import { useAct, useComponents } from 'awayto-hooks';
 
 import keycloak from '../../../keycloak';
+import { styles } from '../../../style';
 
 const peerConnectionConfig = {
   'iceServers': [
@@ -60,7 +61,7 @@ function clearbeat(this: WebSocket & { [prop: string]: ReturnType<typeof setTime
 }
 
 export function Home(props: IProps): JSX.Element {
-  const { classes, ...restProps } = props;
+  const classes = styles(props.theme)();
   const act = useAct();
   const theme = useTheme();
   const { Video } = useComponents();

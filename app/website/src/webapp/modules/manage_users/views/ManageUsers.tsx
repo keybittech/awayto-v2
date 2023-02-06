@@ -1,10 +1,15 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import DataTable, { TableColumn }  from 'react-data-table-component';
 import moment from 'moment';
-import { Dialog, IconButton, Button, Typography, CircularProgress, Checkbox } from '@material-ui/core';
-import CreateIcon from '@material-ui/icons/Create';
-import LockIcon from '@material-ui/icons/Lock';
-import LockOpenIcon from '@material-ui/icons/LockOpen';
+
+import IconButton from '@mui/material/IconButton';
+import Dialog from '@mui/material/Dialog';
+import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
+
+import CreateIcon from '@mui/icons-material/Create';
+import LockIcon from '@mui/icons-material/Lock';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
 
 import { IManageUsersActionTypes, IUserProfile } from 'awayto';
 import { useRedux, useApi } from 'awayto-hooks';

@@ -1,18 +1,20 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import DataTable, { TableColumn } from 'react-data-table-component';
-import Grid from '@material-ui/core/Grid';
-import Typography from '@material-ui/core/Typography';
-import Button from '@material-ui/core/Button';
-import Box from '@material-ui/core/Box';
-import Card from '@material-ui/core/Card';
-import CardHeader from '@material-ui/core/CardHeader';
-import CardContent from '@material-ui/core/CardContent';
-import TextField from '@material-ui/core/TextField';
-import MenuItem from '@material-ui/core/MenuItem';
-import CheckIcon from '@material-ui/icons/Check';
+import Grid from '@mui/material/Grid';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
+import CardHeader from '@mui/material/CardHeader';
+import CardContent from '@mui/material/CardContent';
+import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
+import CheckIcon from '@mui/icons-material/Check';
 
 import { IServiceActionTypes, IFormActionTypes, IScheduleActionTypes, ISchedule, IService, IServiceAddon, IServiceTier, IQuote, IContact, FileStoreStrategies } from 'awayto';
 import { useApi, useRedux, useComponents } from 'awayto-hooks';
+
+import { styles } from '../../../style';
 
 const { GET_SCHEDULES, GET_SCHEDULE_BY_ID } = IScheduleActionTypes;
 const { GET_SERVICE_BY_ID } = IServiceActionTypes;
@@ -35,7 +37,7 @@ const contactSchema = {
 }
 
 export function BookingHome(props: IProps): JSX.Element {
-  const { classes } = props;
+  const classes = styles(props.theme)();
   const api = useApi();
   const { FileManager } = useComponents();
   const { schedules } = useRedux(state => state.schedules);

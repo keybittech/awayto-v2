@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
-import { Grid, Button, TextField, Typography } from '@material-ui/core';
+
+import Grid from '@mui/material/Grid';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
 
 import { IUtilActionTypes, IUserProfileActionTypes } from 'awayto';
 import { useAct, useRedux } from 'awayto-hooks';

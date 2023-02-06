@@ -13,16 +13,19 @@ import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import { Persistor, persistReducer, PersistState } from 'redux-persist'
 import storage from 'redux-persist/lib/storage'
 import persistStore from 'redux-persist/es/persistStore';
-
+import { Theme } from '@mui/material/styles/createTheme';
 import { setStore, ThunkStore } from './hooks/useDispatch';
 import { asyncForEach, ILoadedState } from 'awayto';
 
 import build from './build.json';
 import reportWebVitals from './reportWebVitals';
-import './index.css';
-import App from './App';
 import { initKeycloak } from './keycloak';
 import { BrowserRouter } from 'react-router-dom';
+
+import './index.css';
+import './App.css';
+
+import App from './App';
 
 declare global {
   /**
@@ -38,7 +41,7 @@ declare global {
     persistor?: Persistor;
     loading?: boolean;
     closeModal?(): void;
-    classes: Record<string, string>;
+    theme: Theme;
   }
 
   /**

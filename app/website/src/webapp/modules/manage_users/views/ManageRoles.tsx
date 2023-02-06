@@ -1,7 +1,12 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import DataTable, { TableColumn } from 'react-data-table-component';
-import { Dialog, IconButton, Button, CircularProgress, Checkbox } from '@material-ui/core';
-import CreateIcon from '@material-ui/icons/Create';
+
+import IconButton from '@mui/material/IconButton';
+import Dialog from '@mui/material/Dialog';
+import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
+
+import CreateIcon from '@mui/icons-material/Create';
 
 import { IManageRolesActionTypes, IRole } from 'awayto';
 import { useRedux, useApi } from 'awayto-hooks';

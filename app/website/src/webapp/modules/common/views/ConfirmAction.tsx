@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Card, CardContent, CardActions, CardActionArea, Typography, Grid, Dialog } from '@material-ui/core';
+import { Button, Card, CardContent, CardActions, CardActionArea, Typography, Grid, Dialog } from '@mui/material';
 
 import { IUtilActionTypes } from 'awayto';
 import { useRedux, useAct } from 'awayto-hooks';

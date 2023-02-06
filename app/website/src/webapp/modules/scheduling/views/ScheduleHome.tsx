@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import Grid from '@material-ui/core/Grid';
-import Typography from '@material-ui/core/Typography';
-import Box from '@material-ui/core/Box';
-import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/CardContent';
-import CardActionArea from '@material-ui/core/CardActionArea';
-import CardHeader from '@material-ui/core/CardHeader';
-import TextField from '@material-ui/core/TextField';
-import Switch from '@material-ui/core/Switch';
-import Chip from '@material-ui/core/Chip';
-import Slider from '@material-ui/core/Slider';
-import MenuItem from '@material-ui/core/MenuItem';
+import Grid from '@mui/material/Grid';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import CardActionArea from '@mui/material/CardActionArea';
+import CardHeader from '@mui/material/CardHeader';
+import TextField from '@mui/material/TextField';
+import Switch from '@mui/material/Switch';
+import Chip from '@mui/material/Chip';
+import Slider from '@mui/material/Slider';
+import MenuItem from '@mui/material/MenuItem';
 
 import { IScheduleActionTypes, IServiceActionTypes, IUtilActionTypes, IScheduleContextActionTypes, ISchedule, IService, IScheduleTerm, IScheduleBracket, ILookup } from 'awayto';
 import { useApi, useRedux, useComponents, useAct } from 'awayto-hooks';

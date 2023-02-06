@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import DataTable, { TableColumn } from 'react-data-table-component';
-import { Checkbox } from '@material-ui/core';
+
+import Checkbox from '@mui/material/Checkbox';
 
 import { IManageRolesActionTypes } from 'awayto';
 import { useApi, useRedux } from 'awayto-hooks';

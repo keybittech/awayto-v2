@@ -1,17 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import TextField from '@material-ui/core/TextField';
-import Slider from '@material-ui/core/Slider';
-import Box from '@material-ui/core/Box';
-import Typography from '@material-ui/core/Typography';
-import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/CardContent';
-import CardActionArea from '@material-ui/core/CardActionArea';
-import CardHeader from '@material-ui/core/CardHeader';
-import Grid from '@material-ui/core/Grid';
-import Chip from '@material-ui/core/Chip';
+
+import TextField from '@mui/material/TextField';
+import Slider from '@mui/material/Slider';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import CardActionArea from '@mui/material/CardActionArea';
+import CardHeader from '@mui/material/CardHeader';
+import Grid from '@mui/material/Grid';
+import Chip from '@mui/material/Chip';
 
 import { IService, IServiceActionTypes, IServiceTier, IServiceAddonActionTypes, IUtilActionTypes } from 'awayto';
 import { useApi, useRedux, useComponents, useAct } from 'awayto-hooks';
+
+import { styles } from '../../../style';
 
 const { GET_SERVICES, DELETE_SERVICE, POST_SERVICE } = IServiceActionTypes;
 const { POST_SERVICE_ADDON, DELETE_SERVICE_ADDON } = IServiceAddonActionTypes;
@@ -30,7 +33,7 @@ const serviceTierSchema = {
 };
 
 export function ServiceHome(props: IProps): JSX.Element {
-  const { classes } = props;
+  const classes = styles(props.theme)();
   const api = useApi();
   const act = useAct();
   const { SelectLookup } = useComponents();
