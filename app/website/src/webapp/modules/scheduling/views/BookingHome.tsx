@@ -14,7 +14,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import { IServiceActionTypes, IFormActionTypes, IScheduleActionTypes, ISchedule, IService, IServiceAddon, IServiceTier, IQuote, IContact, FileStoreStrategies } from 'awayto';
 import { useApi, useRedux, useComponents } from 'awayto-hooks';
 
-import { styles } from '../../../style';
+import { useStyles } from '../../../style';
 
 const { GET_SCHEDULES, GET_SCHEDULE_BY_ID } = IScheduleActionTypes;
 const { GET_SERVICE_BY_ID } = IServiceActionTypes;
@@ -37,7 +37,7 @@ const contactSchema = {
 }
 
 export function BookingHome(props: IProps): JSX.Element {
-  const classes = styles(props.theme)();
+  const classes = useStyles();
   const api = useApi();
   const { FileManager } = useComponents();
   const { schedules } = useRedux(state => state.schedules);

@@ -11,7 +11,6 @@ import CheckIcon from '@mui/icons-material/Check';
 
 import { ILookup, IActionTypes, IFormActionTypes, IUtilActionTypes } from 'awayto';
 import { useApi, useAct } from 'awayto-hooks';
-import { Theme } from '@mui/material';
 
 declare global {
   interface IProps {
@@ -19,7 +18,6 @@ declare global {
     lookups?: ILookup[];
     lookupName?: string;
     helperText?: string;
-    theme: Theme;
     lookupChange?(value: string | string[]): void;
     lookupValue?: string | string[];
     createActionType?: IActionTypes;

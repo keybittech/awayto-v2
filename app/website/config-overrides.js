@@ -81,7 +81,7 @@ function checkWriteBuildFile(next) {
 
     const newHash = crypto.createHash('sha1').update(Buffer.from(files)).digest('base64');
 
-    if (oldHash != newHash) {
+    if (oldHash !== newHash) {
       oldHash = newHash;
       fs.writeFile(filePath, files, () => next && next())
     } else {

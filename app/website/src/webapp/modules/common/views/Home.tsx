@@ -12,7 +12,6 @@ import { asyncForEach, IUtilActionTypes } from 'awayto';
 import { useAct, useComponents } from 'awayto-hooks';
 
 import keycloak from '../../../keycloak';
-import { styles } from '../../../style';
 
 const peerConnectionConfig = {
   'iceServers': [
@@ -61,7 +60,6 @@ function clearbeat(this: WebSocket & { [prop: string]: ReturnType<typeof setTime
 }
 
 export function Home(props: IProps): JSX.Element {
-  const classes = styles(props.theme)();
   const act = useAct();
   const theme = useTheme();
   const { Video } = useComponents();

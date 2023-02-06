@@ -1,7 +1,7 @@
 // React imports
 // import 'typeface-roboto';
 // import 'typeface-courgette';
-import React, { FunctionComponent } from 'react';
+import React, { FunctionComponent, ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createStore, applyMiddleware, compose, combineReducers, Reducer, ReducersMapObject } from 'redux';
 import thunk, { ThunkMiddleware } from 'redux-thunk';
@@ -41,13 +41,14 @@ declare global {
     persistor?: Persistor;
     loading?: boolean;
     closeModal?(): void;
-    theme: Theme;
+    theme?: Theme;
   }
 
   /**
    * @category Awayto React
    */
   interface IProps extends BaseComponentProps {
+    children?: ReactNode
     // [prop: string]: unknown;
   }
 }
@@ -65,7 +66,7 @@ export type ILoadedReducers = Partial<IReducers>;
 /**
  * @category Awayto React
  */
-export type IBaseComponent = FunctionComponent<IProps>
+export type IBaseComponent = FunctionComponent<IProps> & ReactNode;
 
 /**
  * @category Awayto React

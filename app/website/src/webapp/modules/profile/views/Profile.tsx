@@ -12,13 +12,13 @@ import PersonIcon from '@mui/icons-material/Person';
 import { IUserProfile, IUserProfileActionTypes, IUtilActionTypes, IPreviewFile } from 'awayto';
 import { useRedux, useApi, useAct, useComponents, useFileStore } from 'awayto-hooks';
 
-import { styles } from '../../../style';
+import { useStyles } from '../../../style';
 
 const { SET_SNACK } = IUtilActionTypes;
 const { GET_USER_PROFILE_DETAILS, POST_USER_PROFILE, PUT_USER_PROFILE } = IUserProfileActionTypes;
 
 export function Profile(props: IProps): JSX.Element {
-  const classes = styles(props.theme)();
+  const classes = useStyles();
 
   const api = useApi();
   const act = useAct();

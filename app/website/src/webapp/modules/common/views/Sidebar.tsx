@@ -12,11 +12,11 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import Icon from '../../../img/kbt-icon.png';
 
 import keycloak from '../../../keycloak';
-import { styles } from '../../../style';
+import { useStyles } from '../../../style';
 
 export function Sidebar (props: IProps): JSX.Element {
 
-  const classes = styles(props.theme)();
+  const classes = useStyles();
   const navigate = useNavigate();
   const location = useLocation();
 

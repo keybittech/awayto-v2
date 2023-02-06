@@ -1,16 +1,16 @@
-import { Theme } from '@mui/material/styles/createTheme';
+import createTheme, { Theme, ThemeOptions } from '@mui/material/styles/createTheme';
 
 import makeStyles from '@mui/styles/makeStyles';
 
-import createTheme from '@mui/material/styles/createTheme';
 import { green, red } from '@mui/material/colors';
+import { PaletteMode } from '@mui/material';
 
-const drawerWidth = 150;
+const drawerWidth = 175;
 
 /**
  * @category Style
  */
-export const styles = ({ mixins, spacing }: Theme) => makeStyles({
+export const useStyles = makeStyles(({ mixins, spacing }: Theme) => ({
 
   appLogo: { width: '64px' },
   logo: { width: '64px' },
@@ -23,7 +23,7 @@ export const styles = ({ mixins, spacing }: Theme) => makeStyles({
 
   menuText: { fontSize: '.75rem', margin: '0' },
 
-  colorBox: { width: '30px', height:'30px', display: 'block', margin: '12px', border: '1px solid #333', cursor: 'pointer', '&:hover': { opacity: .5 } },
+  colorBox: { width: '30px', height: '30px', display: 'block', margin: '12px', border: '1px solid #333', cursor: 'pointer', '&:hover': { opacity: .5 } },
 
   appBar: { width: `calc(100% - ${drawerWidth}px)`, marginLeft: drawerWidth, backgroundColor: '#666' },
   drawer: { width: drawerWidth },
@@ -37,7 +37,7 @@ export const styles = ({ mixins, spacing }: Theme) => makeStyles({
 
   menuIcon: { "&:hover svg": { color: 'rgb(39 109 129)' }, width: '100%' },
 
-  loginWrap: {  height: '75vh' },
+  loginWrap: { height: '75vh' },
 
   link: {
     textDecoration: 'none'
@@ -64,30 +64,12 @@ export const styles = ({ mixins, spacing }: Theme) => makeStyles({
 
   chipLabel: { overflowWrap: 'break-word', whiteSpace: 'normal', textOverflow: 'clip' }
 
-});
+}));
 
-const theme = {
-  palette: {
-    primary: {
-      main: '#fff',
-      light: '#fff',
-      dark: '#121f31',
-      contrastText: '#aaa',
-    },
-    secondary: { main: '#121f31' }
-  },
-
-  typography: {
-    fontSize: 16,
-    body1: {
-      fontSize: 16,
-    },
-  },
-
+export const getBaseComponents = () => ({
   components: {
     MuiDrawer: {
       styleOverrides: {
-
         paper: {
           '& .MuiList-padding': {
             paddingLeft: 'unset'
@@ -145,7 +127,7 @@ const theme = {
       }
     },
     MuiListItem: {
-      styleOverrides: {   
+      styleOverrides: {
         root: {
           '&.bullet': {
             display: 'list-Item'
@@ -160,21 +142,19 @@ const theme = {
     MuiTypography: {
       styleOverrides: {
         root: {
-          marginTop: 24,
-          marginBottom: 24,
+          marginTop: 12,
+          marginBottom: 12,
         }
       }
     },
   }
-};
+});
 
 /**
  * @category Style
  */
-export const lightTheme = createTheme({
-  ...theme,
+export const lightTheme: ThemeOptions = {
   palette: {
-    ...theme.palette,
     mode: 'light',
     primary: {
       main: '#000',
@@ -182,95 +162,104 @@ export const lightTheme = createTheme({
       contrastText: '#333'
     }
   }
-});
+};
 
 /**
  * @category Style
  */
-export const darkTheme = createTheme({
-  ...theme,
+export const darkTheme: ThemeOptions = {
   palette: {
-    ...theme.palette,
     mode: 'dark',
-    primary: {
-      main: '#fff',
-      contrastText: '#333'
-    },
-    secondary: { main: '#009cc8' }
   },
   components: {
-    ...theme.components,
-    MuiInput: {
-      styleOverrides: {
-        underline: {
-          '&:before': {
-            borderBottom: '1px solid #333'
-          }
-        }
-      }
-    }
-  },
-  ...styles
-});
 
-/**
- * @category Style
- */
-export const blueTheme = createTheme({
-  ...theme,
+  }
+};
+
+export const getDesignTokens = (mode: PaletteMode) => ({
   palette: {
-    ...theme.palette,
-    primary: {
-      main: '#000',
-      dark: '#121f31'
-    },
-    secondary: { main: 'rgb(0 191 255)' }
+    mode,
+    ...(
+      mode === 'light' ? {
+        // palette values for light mode
+        primary: {
+          main: '#000',
+          dark: '#aaa',
+          contrastText: '#333'
+        }
+      }
+      : mode === 'dark' ? {
+        // palette values for dark mode
+        primary: {
+          main: '#fff',
+          contrastText: '#333'
+        },
+        secondary: { main: '#009cc8' }
+      }
+      : {
+        // palette for blue
+        primary: {
+          main: '#000',
+          dark: '#121f31'
+        },
+        secondary: { main: 'rgb(0 191 255)' }
+      })
   },
+});
+
+export const getThemedComponents = (mode: PaletteMode) => ({
   components: {
-    ...theme.components,
-    ... {
-      MuiDrawer: {
-        styleOverrides: {
-          paper: {
-            ...theme.components.MuiDrawer.styleOverrides.paper,
-            backgroundColor: '#009cc8'
-          },
-          root: {
-            '& .MuiTypography-root': {
-              color: '#fff'
-            },
-            '& .MuiSvgIcon-colorPrimary': {
-              color: '#fff'
-            },
-            '& .MuiSvgIcon-colorSecondary': {
-              color: '#121f31'
+    ...(
+      mode === 'light' ? {
+        // Light theme components
+      } : mode === 'dark' ? {
+        // Dark theme components
+        MuiInput: {
+          styleOverrides: {
+            underline: {
+              '&:before': {
+                borderBottom: '1px solid #333'
+              }
             }
           }
         }
-      },
-      MuiInput: {
-        styleOverrides: {
-          underline: {
-            '&:before': {
-              borderBottom: '1px solid #aaa'
+      } : {
+        // Blue theme components
+        MuiDrawer: {
+          styleOverrides: {
+            paper: {
+              backgroundColor: '#009cc8'
             },
-            '&:hover:not(.Mui-disabled):before': {
-              borderBottom: '2px solid rgb(0 191 255)'
-            },
-            '&.Mui-focused:after': {
-              borderBottom: '2px solid rgb(39 109 129)'
+            root: {
+              '& .MuiTypography-root': {
+                color: '#fff'
+              },
+              '& .MuiSvgIcon-colorPrimary': {
+                color: '#fff'
+              },
+              '& .MuiSvgIcon-colorSecondary': {
+                color: '#121f31'
+              }
+            }
+          }
+        },
+        MuiInput: {
+          styleOverrides: {
+            underline: {
+              '&:before': {
+                borderBottom: '1px solid #aaa'
+              },
+              '&:hover:not(.Mui-disabled):before': {
+                borderBottom: '2px solid rgb(0 191 255)'
+              },
+              '&.Mui-focused:after': {
+                borderBottom: '2px solid rgb(39 109 129)'
+              }
             }
           }
         }
       }
-    }
-  },
-  ...styles
-});
-
-
-export const themes: Record<string, Theme> = {
-  light: lightTheme,
-  dark: darkTheme,
-  blue: blueTheme
-}
+      
+    )
+  }
+})

@@ -12,9 +12,10 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Backdrop from '@mui/material/Backdrop';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
+import CssBaseline from '@mui/material/CssBaseline';
 
 import keycloak from '../../../keycloak';
-import { styles } from '../../../style';
+import { useStyles } from '../../../style';
 
 import { IUtilActionTypes, IUserProfileActionTypes, IFormActionTypes } from 'awayto';
 import { useRedux, useAct, useComponents, useApi } from 'awayto-hooks';
@@ -29,7 +30,7 @@ function Alert(props: AlertProps): JSX.Element {
 
 const Layout = (props: IProps): JSX.Element => {
 
-  const classes = styles(props.theme)();
+  const classes = useStyles();
 
   const api = useApi();
 
@@ -50,6 +51,7 @@ const Layout = (props: IProps): JSX.Element => {
   }, []);
 
   return <>
+    <CssBaseline />
     <div className={classes.root}>
       <AppBar position="fixed" className={classes.appBar}>
         <Toolbar />

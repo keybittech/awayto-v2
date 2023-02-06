@@ -14,7 +14,7 @@ import Chip from '@mui/material/Chip';
 import { IService, IServiceActionTypes, IServiceTier, IServiceAddonActionTypes, IUtilActionTypes } from 'awayto';
 import { useApi, useRedux, useComponents, useAct } from 'awayto-hooks';
 
-import { styles } from '../../../style';
+import { useStyles } from '../../../style';
 
 const { GET_SERVICES, DELETE_SERVICE, POST_SERVICE } = IServiceActionTypes;
 const { POST_SERVICE_ADDON, DELETE_SERVICE_ADDON } = IServiceAddonActionTypes;
@@ -33,7 +33,7 @@ const serviceTierSchema = {
 };
 
 export function ServiceHome(props: IProps): JSX.Element {
-  const classes = styles(props.theme)();
+  const classes = useStyles();
   const api = useApi();
   const act = useAct();
   const { SelectLookup } = useComponents();
