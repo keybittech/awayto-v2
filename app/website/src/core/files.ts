@@ -24,23 +24,23 @@ export class FileStoreContext {
     this.shouldDelete = this.strategy.shouldDelete;
   }
 
-  public loaded() {
+  public loaded(): boolean {
     return this.strategy.loaded();
   }
 
-  public async post(file: File) {
+  public async post(file: File): Promise<string> {
     return await this.strategy.post(file);
   }
 
-  public async put(file: File) {
+  public async put(file: File): Promise<string> {
     return await this.strategy.put(file);
   }
 
-  public async get(id: string) {
+  public async get(id: string): Promise<string> {
     return await this.strategy.get(id);
   }
 
-  public async delete(id: string) {
+  public async delete(id: string): Promise<string> {
     return await this.strategy.delete(id);
   }
 }
@@ -50,26 +50,26 @@ export class FileSystemFileStoreStrategy implements FileStoreStrategy {
   ready = true;
   shouldDelete = true;
 
-  public loaded() {
+  public loaded(): boolean {
     return this.ready;
   }
   
-  public async post(file: File) {
+  public async post(): Promise<string> {
     await new Promise(() => { return 'stub' });
     return '';
   }
 
-  public async put(file: File) {
+  public async put(): Promise<string> {
     await new Promise(() => { return 'stub' });
     return '';
   }
 
-  public async get(id: string) {
+  public async get(): Promise<string> {
     await new Promise(() => { return 'stub' });
     return '';
   }
 
-  public async delete(id: string) {
+  public async delete(): Promise<string> {
     await new Promise(() => { return 'stub' });
     return '';
   }

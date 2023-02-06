@@ -29,11 +29,11 @@ const peerConnectionConfig = {
   ]
 };
 
-type TextMessage = {
-  sender: string;
-  created: string;
-  message: string;
-}
+// type TextMessage = {
+//   sender: string;
+//   created: string;
+//   message: string;
+// }
 
 type SocketResponseMessageAttributes = {
   sdp: RTCSessionDescriptionInit;
@@ -89,12 +89,14 @@ export function Home(props: IProps): JSX.Element {
   useEffect(() => {
     async function go() {
       try {
+        if (!keycloak.token) return;
+
         const id = `test-${(new Date).getTime()}`;
 
         // Make a type for api
         await fetch(`https://${location.hostname}/api/ticket/`, {
           headers: {
-            Authorization: keycloak.token!
+            Authorization: keycloak.token
           }
         });
         socket.current = new WebSocket(`wss://${location.hostname}/sock/${id}`);
@@ -157,11 +159,11 @@ export function Home(props: IProps): JSX.Element {
           startedSender.pc = new RTCPeerConnection(peerConnectionConfig)
           startedSender.pc.onicecandidate = event => gotIceCandidate(event, senderId);
           startedSender.pc.ontrack = event => gotRemoteStream(event, senderId, startedSender);
-          startedSender.pc.oniceconnectionstatechange = event => checkPeerDisconnect(senderId, startedSender);
+          startedSender.pc.oniceconnectionstatechange = () => checkPeerDisconnect(senderId, startedSender);
           if (localStream) {
             // console.log('sending local stream to peers');
             const tracks = localStream.getTracks();
-            tracks.forEach(track => startedSender.pc!.addTrack(track));
+            tracks.forEach(track => startedSender.pc?.addTrack(track));
           }
 
           if (startedSender.peerResponse && socket.current) {
@@ -199,7 +201,7 @@ export function Home(props: IProps): JSX.Element {
   const messageHandler = useCallback(async (sockMsg: MessageEvent<{ text(): Promise<string> }>): Promise<void> => {
     // console.log('setting handler')
     if (!socket.current) return;
-    const { sender, type, formats, target, sdp, ice, message, rtc, status } = JSON.parse(await sockMsg.data.text()) as SocketResponseMessageAttributes;
+    const { sender, type, formats, target, sdp, ice, message, rtc } = JSON.parse(await sockMsg.data.text()) as SocketResponseMessageAttributes;
 
     if (sender === localId || (target !== localId && !(rtc || sdp || ice))) {
       return;

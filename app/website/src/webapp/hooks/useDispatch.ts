@@ -9,7 +9,7 @@ export type ThunkStore = Store<ISharedState, ISharedActions> & {
   dispatch: ThunkDispatch<ISharedState, undefined, ISharedActions>;
 }
 
-let store: ThunkStore;
+export let store: ThunkStore;
 
 export const setStore = (newStore: ThunkStore): void => {
   store = newStore

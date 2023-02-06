@@ -1,7 +1,6 @@
 import React, { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 import DataTable, { TableColumn } from 'react-data-table-component';
 import Button from '@mui/material/Button';
-import Checkbox from '@mui/material/Checkbox';
 
 import { IFile, IFilesActionTypes, FileStoreStrategies } from 'awayto';
 import { useApi, useRedux, useFileStore } from 'awayto-hooks';
@@ -14,7 +13,7 @@ declare global {
   }
 }
 
-export function FileManager ({ parentUuid }: IProps): JSX.Element {
+export function FileManager (): JSX.Element {
   const api = useApi();
   const fileSelectRef = useRef<HTMLInputElement>(null);
   const files = useRedux(state => state.files);
@@ -58,7 +57,6 @@ export function FileManager ({ parentUuid }: IProps): JSX.Element {
   ] as TableColumn<IFile>[], undefined)
 
   const actions = useMemo(() => {
-    const { length } = selected;
     return [
       <Button key={'delete_selected_files'} onClick={deleteFiles}>Delete</Button>,
     ];

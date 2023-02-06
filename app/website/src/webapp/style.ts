@@ -68,7 +68,7 @@ export const useStyles = makeStyles(({ mixins, spacing }: Theme) => ({
 
 }));
 
-export const getBaseComponents = () => ({
+export const getBaseComponents: () => ThemeOptions = () => ({
   components: {
     MuiDrawer: {
       styleOverrides: {
@@ -178,7 +178,7 @@ export const darkTheme: ThemeOptions = {
   }
 };
 
-export const getDesignTokens = (mode: PaletteMode) => ({
+export const getDesignTokens: (mode: PaletteMode) => ThemeOptions = (mode) => ({
   palette: {
     mode,
     ...(
@@ -209,7 +209,7 @@ export const getDesignTokens = (mode: PaletteMode) => ({
   },
 });
 
-export const getThemedComponents = (mode: PaletteMode) => ({
+export const getThemedComponents: (mode: PaletteMode) => ThemeOptions = (mode) => ({
   components: {
     ...(
       mode === 'light' ? {

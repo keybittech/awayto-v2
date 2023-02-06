@@ -22,7 +22,7 @@ import Icon from '../../../img/kbt-icon.png';
 import keycloak from '../../../keycloak';
 import { useStyles } from '../../../style';
 
-export function Sidebar (props: IProps): JSX.Element {
+export function Sidebar (): JSX.Element {
 
   const classes = useStyles();
   const navigate = useNavigate();

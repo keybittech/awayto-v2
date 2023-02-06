@@ -2,8 +2,7 @@ import { Reducer } from 'redux';
 import {
   IUtilActionTypes,
   IUtilState,
-  IUtilActions,
-  ISetThemeActionPayload
+  IUtilActions
 } from 'awayto';
 
 const kbtTheme = localStorage.getItem('kbt_theme');

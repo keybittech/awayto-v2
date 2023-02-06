@@ -49,7 +49,7 @@ const paths = Object.keys(ApiActions).map(key => {
 const routeCollection = new RouteCollection(paths);
 const generator = new PathGenerator(routeCollection);
 
-const { START_LOADING, API_SUCCESS, API_ERROR, STOP_LOADING, SET_SNACK } = IUtilActionTypes;
+const { START_LOADING, API_SUCCESS, STOP_LOADING, SET_SNACK } = IUtilActionTypes;
 
 const callApi = async ({ path = '', method = 'GET', body }: CallApi): Promise<Response> => {
 

@@ -66,6 +66,7 @@ export type ILoadedReducers = Partial<IReducers>;
 /**
  * @category Awayto React
  */
+// eslint-disable-next-line
 export type IBaseComponent = FunctionComponent<IProps> & ComponentType<any> & ReactNode;
 
 /**

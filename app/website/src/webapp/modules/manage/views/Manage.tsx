@@ -24,7 +24,7 @@ export function Manage(props: IProps): JSX.Element {
 
   const navigate = useNavigate();
 
-  const { ManageUsers, ManageGroups, ManageRoles, ManageRoleActions, Secure } = useComponents();
+  const { ManageUsers, ManageGroups, ManageRoles, ManageRoleActions } = useComponents();
 
   const menu = ['users', 'groups', 'roles', 'matrix'].map(comp =>
     <Button key={`menu_${comp}`} style={comp == component ? { textDecoration: 'underline' } : undefined} onClick={() => navigate(`/manage/${comp}`)}>

@@ -11,7 +11,7 @@ import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import CheckIcon from '@mui/icons-material/Check';
 
-import { IServiceActionTypes, IFormActionTypes, IScheduleActionTypes, ISchedule, IService, IServiceAddon, IServiceTier, IQuote, IContact, FileStoreStrategies } from 'awayto';
+import { IServiceActionTypes, IFormActionTypes, IScheduleActionTypes, ISchedule, IService, IServiceAddon, IServiceTier, IQuote, IContact } from 'awayto';
 import { useApi, useRedux, useComponents } from 'awayto-hooks';
 
 import { useStyles } from '../../../style';
@@ -72,7 +72,7 @@ export function BookingHome(props: IProps): JSX.Element {
   }, []);
 
   useEffect(() => {
-    const [id, ...rest] = Object.keys(schedules);
+    const [id] = Object.keys(schedules);
     if (id && !schedules[id].services) {
       void api(GET_SCHEDULE_BY_ID, true, { id }).then(res => {
         const [sched] = res as ISchedule[];
@@ -241,7 +241,7 @@ export function BookingHome(props: IProps): JSX.Element {
                       </Box>
                       <Box>
                         Estimated Cost:
-                        <Typography variant="h6">{service.cost * quote.desiredDuration * parseFloat(tier.multiplier) * parseFloat(schedule.brackets[0]!.multiplier)}</Typography>
+                        <Typography variant="h6">{service.cost * quote.desiredDuration * parseFloat(tier.multiplier) * parseFloat(schedule.brackets[0].multiplier)}</Typography>
                       </Box>
                     </Box>
                   </Grid>
