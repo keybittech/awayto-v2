@@ -7,14 +7,13 @@ import {
   IPostManageRolesAction, 
   IPutManageRolesAction, 
   IDeleteManageRolesAction, 
-  IManageRolesActions,
-  ILogoutActionTypes
+  IManageRolesActions
 } from 'awayto';
 
 const initialManageRolesState: IManageRolesState = {};
 
 function reduceGetManageRoles(state: IManageRolesState, action: IGetManageRolesAction): IManageRolesState {
-  return { ...state, roles: [ ...action.payload as IRole[] ] };
+  return { ...state, roles: [ ...action.payload.roles ] };
 }
 
 function reducePostManageRoles(state: IManageRolesState, action: IPostManageRolesAction): IManageRolesState {
@@ -23,7 +22,7 @@ function reducePostManageRoles(state: IManageRolesState, action: IPostManageRole
 }
 
 function reducePutManageRoles(state: IManageRolesState, action: IPutManageRolesAction): IManageRolesState {
-  const payload = action.payload as IRole;
+  const payload = action.payload.roles[0];
   state.roles = state.roles?.map((user: IRole) => {
     if (user.id === payload.id) {
       return { ...user, ...payload }
@@ -36,15 +35,13 @@ function reducePutManageRoles(state: IManageRolesState, action: IPutManageRolesA
 function reduceDeleteState(state: IManageRolesState, action: IDeleteManageRolesAction): IManageRolesState {
   const { roles } = state;
   if (roles) {
-    state.roles = roles.filter(role => role.id !== action.payload.id);
+    state.roles = roles.filter(role => role.id !== action.payload.roles[0].id);
   }
   return state;
 }
 
 const manageRolesReducer: Reducer<IManageRolesState, IManageRolesActions> = (state = initialManageRolesState, action) => {
   switch (action.type) {
-    case ILogoutActionTypes.LOGOUT:
-      return initialManageRolesState;
     case IManageRolesActionTypes.GET_MANAGE_ROLES:
       return reduceGetManageRoles(state, action);
     case IManageRolesActionTypes.POST_MANAGE_ROLES:

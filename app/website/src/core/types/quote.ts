@@ -1,4 +1,3 @@
-import { LogoutAction } from 'awayto';
 import { IContact, PayloadAction, IService, IServiceTier } from '.';
 
 declare global {
@@ -91,8 +90,7 @@ export type IDisableQuoteAction = PayloadAction<IQuoteActionTypes.DISABLE_QUOTE,
 /**
  * @category Quote
  */
-export type IQuoteActions = LogoutAction
-  | IPostQuoteAction 
+export type IQuoteActions = IPostQuoteAction 
   | IPutQuoteAction 
   | IGetQuotesAction 
   | IGetQuoteByIdAction

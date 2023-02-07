@@ -1,4 +1,4 @@
-import { PayloadAction, IGroup, LogoutAction } from '.';
+import { PayloadAction, IGroup } from '.';
 
 declare global {
   /**
@@ -114,8 +114,7 @@ export type IDisableUserProfileAction = PayloadAction<IUserProfileActionTypes.DI
 /**
  * @category User Profile
  */
-export type IUserProfileActions = LogoutAction
-  | IKCLoginAction
+export type IUserProfileActions = IKCLoginAction
   | IHasCodeUserProfileAction
   | ISignUpUserAction
   | IPostUserProfileAction 

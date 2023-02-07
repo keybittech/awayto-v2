@@ -2,8 +2,10 @@
 import { IUserProfile, SiteRoles } from 'awayto';
 import { keycloak } from '../util/keycloak';
 // import { adminCreateUser, adminDisableUser, adminEnableUser, getUserInfo, parseGroupString, parseGroupArray, updateUserAttributesAdmin, listUsers, attachCognitoInfoToUser } from "../util/cognito";
-import { ApiModule, asyncForEach } from "../util/db";
+import { ApiModule, ApiModulet, asyncForEach } from "../util/db";
+import { parseGroupArray } from "../util/auth";
 import usersApi from './users';
+import users from './users';
 
 const manageUsers: ApiModule = [
 
@@ -16,9 +18,20 @@ const manageUsers: ApiModule = [
       
       const { username, email, password, groups } = user;
       try {
+        const keycloakUser = await keycloak.users.create({
+          username,
+          email,
+          credentials: [{
+            type: 'password',
+            temporary: true,
+            value: password
+          }],
+          attributes: {
+            groupRoles: parseGroupArray(groups)
+          }
+        });
 
-        // const awsUser = await adminCreateUser({ username, email, password, groupRoles: parseGroupArray(groups) }) as UserType;
-        // user.sub = awsUser.Attributes?.find(a => a.Name == 'sub')?.Value as string;
+        user.sub = keycloakUser.id;
 
         return user as IUserProfile;
       } catch (error) {
@@ -32,17 +45,20 @@ const manageUsers: ApiModule = [
     path: 'manage/users',
     cmnd: async (props) => {
       try {
-        // const { id } = await usersApi.create_user.cmnd(props) as IUserProfile;
+        const usersApiPostUser = users.findIndex(api => 'post' === api.method.toLowerCase() && 'users' === api.path.toLowerCase());
 
-        // const { rows: [ user ] } = await props.client.query<IUserProfile>(`
-        //   SELECT * FROM enabled_users_ext
-        //   WHERE id = $1 
-        // `, [id]);
+        const { id } = await users[usersApiPostUser].cmnd(props) as IUserProfile;
+
+        const { rows: [ user ] } = await props.client.query<IUserProfile>(`
+          SELECT * FROM enabled_users_ext
+          WHERE id = $1 
+        `, [id]);
 
         // await attachCognitoInfoToUser(user);
 
-        // return user;
-        return true;
+        const keycloakUser = await keycloak.users.findOne({ id: user.sub });
+
+        return user;
       } catch (error) {
         throw error;
       }
@@ -190,7 +206,7 @@ const manageUsers: ApiModule = [
   },
 
   {
-    method: 'POST',
+    method: 'GET',
     path: 'manage/users/info',
     cmnd: async (props) => {
       try {

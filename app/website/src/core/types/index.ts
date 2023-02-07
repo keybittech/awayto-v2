@@ -167,6 +167,9 @@ export * from './common';
 export * from './manage';
 export * from './profile';
 
+export * from './group';
+export * from './role';
+
 export * from './booking';
 export * from './contact';
 export * from './form';

@@ -4,18 +4,6 @@ import { ApiModule, buildUpdate } from '../util/db';
 const users: ApiModule = [
 
   {
-    method: 'GET',
-    path: 'public/username',
-    cmnd: async (props) => {
-      try {
-        return true; // { result: "you are public", ...props.event.pathParameters, ...props.event.queryStringParameters };
-      } catch (error) {
-        throw error;
-      }
-    }
-  },
-
-  {
     method: 'POST',
     path: 'users',
     cmnd: async (props) => {
@@ -68,7 +56,7 @@ const users: ApiModule = [
       try {
         const response = await props.client.query<IUserProfile>(`
           SELECT * 
-          FROM enabled_users
+          FROM enabled_users_ext
           WHERE sub = $1
         `, [props.event.userSub]);
 

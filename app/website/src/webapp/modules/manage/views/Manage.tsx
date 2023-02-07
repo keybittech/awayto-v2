@@ -8,10 +8,11 @@ import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 
-import { IManageGroupsActionTypes } from 'awayto';
+import { IManageRolesActionTypes, IManageGroupsActionTypes } from 'awayto';
 import { useComponents } from 'awayto-hooks';
 
-const { GET_MANAGE_GROUPS, DELETE_MANAGE_GROUPS } = IManageGroupsActionTypes;
+const { CHECK_GROUP_NAME, PUT_MANAGE_GROUPS, POST_MANAGE_GROUPS, GET_MANAGE_GROUPS, DELETE_MANAGE_GROUPS } = IManageGroupsActionTypes;
+const { GET_MANAGE_ROLES } = IManageRolesActionTypes;
 
 declare global {
   interface IProps {
@@ -37,7 +38,13 @@ export function Manage(props: IProps): JSX.Element {
       case 'users':
         return <ManageUsers {...props} />
       case 'groups':
-        return <ManageGroups getAction={GET_MANAGE_GROUPS} deleteAction={DELETE_MANAGE_GROUPS} {...props} />
+        return <ManageGroups {...props}
+          getAction={GET_MANAGE_GROUPS}
+          deleteAction={DELETE_MANAGE_GROUPS}
+          putAction={PUT_MANAGE_GROUPS}
+          postAction={POST_MANAGE_GROUPS}
+          checkNameAction={CHECK_GROUP_NAME}
+          getRolesAction={GET_MANAGE_ROLES} />
       case 'roles':
         return <ManageRoles {...props} />
       case 'matrix':

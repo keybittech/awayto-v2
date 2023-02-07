@@ -9,12 +9,14 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import PersonIcon from '@mui/icons-material/Person';
 
-import { IUserProfile, IUserProfileActionTypes, IUtilActionTypes, IPreviewFile } from 'awayto';
+import { IUserProfile, IUserProfileActionTypes, IUtilActionTypes, IPreviewFile, IGroupActionTypes, IRoleActionTypes } from 'awayto';
 import { useRedux, useApi, useAct, useComponents, useFileStore } from 'awayto-hooks';
 
 import { useStyles } from '../../../style';
 
 const { SET_SNACK } = IUtilActionTypes;
+const { GET_ROLES } = IRoleActionTypes;
+const { CHECK_GROUPS_NAME, DELETE_GROUPS, POST_GROUPS, PUT_GROUPS } = IGroupActionTypes;
 const { GET_USER_PROFILE_DETAILS, POST_USER_PROFILE, PUT_USER_PROFILE } = IUserProfileActionTypes;
 
 export function Profile(props: IProps): JSX.Element {
@@ -23,7 +25,7 @@ export function Profile(props: IProps): JSX.Element {
   const api = useApi();
   const act = useAct();
   const fileStore = useFileStore();
-  const { PickTheme } = useComponents();
+  const { PickTheme, ManageGroups } = useComponents();
 
   const user = useRedux(state => state.profile);
 
@@ -89,7 +91,7 @@ export function Profile(props: IProps): JSX.Element {
     setFile(undefined);
   }
 
-  return <div>
+  return <>
     {profile && (
       <Grid container spacing={6}>
         <Grid item xs={12} sm={4}>
@@ -150,6 +152,21 @@ export function Profile(props: IProps): JSX.Element {
                 }
               </CardActionArea>
             </Grid>
+            <Grid item>
+              <Typography variant="h6">Group</Typography>
+            </Grid>
+            <Grid item>
+
+            <ManageGroups {...props}
+              groups={user.groups}
+              getAction={GET_USER_PROFILE_DETAILS}
+              deleteAction={DELETE_GROUPS}
+              putAction={PUT_GROUPS}
+              postAction={POST_GROUPS}
+              checkNameAction={CHECK_GROUPS_NAME}
+              getRolesAction={GET_ROLES} />
+
+            </Grid>
           </Grid>
         </Grid>
         <Grid item xs={12}>
@@ -157,7 +174,7 @@ export function Profile(props: IProps): JSX.Element {
         </Grid>
       </Grid>
     )}
-  </div>
+  </>
 }
 
 export default Profile;

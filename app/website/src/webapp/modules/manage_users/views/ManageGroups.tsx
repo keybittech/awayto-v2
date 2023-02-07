@@ -9,30 +9,34 @@ import CircularProgress from '@mui/material/CircularProgress';
 import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-import { IGroup, IManageGroupsActionTypes } from 'awayto';
+import { IGroup, IGroups, IActionTypes } from 'awayto';
 import { useRedux, useApi } from 'awayto-hooks';
 
 import ManageGroupModal from './ManageGroupModal';
 
-type ManageActions = {
-  getAction?: IManageGroupsActionTypes;
-  deleteAction?: IManageGroupsActionTypes;
+export type ManageGroupsActions = {
+  getAction?: IActionTypes;
+  deleteAction?: IActionTypes;
+  putAction?: IActionTypes;
+  postAction?: IActionTypes;
+  getRolesAction?: IActionTypes;
+  checkNameAction?: IActionTypes;
+  groups?: IGroups
 };
 
 declare global {
-  interface IProps extends ManageActions {}
+  interface IProps extends ManageGroupsActions {}
 }
 
 export function ManageGroups (props: IProps): JSX.Element {
-  const { getAction, deleteAction } = props as Required<ManageActions>;
+  const { getAction, deleteAction, groups } = props as Required<ManageGroupsActions>;
 
   const api = useApi();
   const util = useRedux(state => state.util);
-  const { groups } = useRedux(state => state.manageGroups);
   const [group, setGroup] = useState<IGroup>();
-  const [selected, setSelected] = useState<IGroup[]>([]);
   const [toggle, setToggle] = useState(false);
   const [dialog, setDialog] = useState('');
+  const [selected, setSelected] = useState<IGroup[]>([]);
   
   const updateState = useCallback((state: { selectedRows: IGroup[] }) => setSelected(state.selectedRows), [setSelected]);
 
@@ -69,14 +73,20 @@ export function ManageGroups (props: IProps): JSX.Element {
 
   return <>
     <Dialog open={dialog === 'manage_group'} fullWidth maxWidth="sm">
-      <ManageGroupModal {...props} editGroup={group} closeModal={() => setDialog('')} />
+      <ManageGroupModal {...props} editGroup={group} closeModal={() => {
+        setDialog('');
+        void api(getAction);
+      }} />
     </Dialog>
 
     <DataTable
       title="Groups"
-      actions={<Button onClick={() => { setGroup(undefined); setDialog('manage_group') }}>New</Button>}
+      actions={<Button onClick={() => {
+        setGroup(undefined);
+        setDialog('manage_group');
+      }}>New</Button>}
       contextActions={actions}
-      data={groups ? groups : []}
+      data={groups ? Object.values(groups) : []}
       theme={util.theme}
       columns={columns}
       selectableRows

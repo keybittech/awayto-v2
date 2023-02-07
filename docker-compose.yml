@@ -30,11 +30,16 @@ services:
       - KC_PATH=/auth
   auth: # keycloak
     image: wcauth
-    build: ./auth
+    build:
+      context: ./
+      dockerfile: ./auth/Dockerfile
     ports:
       - 9001:9000
       - 8443:8443
     environment:
+      - KC_SPI_TRUSTSTORE_FILE_FILE=/opt/keycloak/conf/KeyStore.jks
+      - KC_SPI_TRUSTSTORE_FILE_PASSWORD=123456
+      - KC_SPI_TRUSTSTORE_FILE_HOSTNAME_VERIFICATION_POLICY=ANY
       - KC_HOSTNAME_ADMIN_URL=https://${CUST_APP_HOSTNAME}/auth #NONSECRET
       - KC_HOSTNAME_URL=https://${CUST_APP_HOSTNAME}/auth #NONSECRET
       - KC_PROXY=edge #NONSECRET

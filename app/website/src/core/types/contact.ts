@@ -1,4 +1,3 @@
-import { LogoutAction } from 'awayto';
 import { PayloadAction } from '.';
 
 declare global {
@@ -83,8 +82,7 @@ export type IDisableContactAction = PayloadAction<IContactActionTypes.DISABLE_CO
 /**
  * @category Contact
  */
-export type IContactActions = LogoutAction
-  | IPostContactAction 
+export type IContactActions = IPostContactAction 
   | IPutContactAction 
   | IGetContactsAction 
   | IGetContactByIdAction

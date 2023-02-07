@@ -23,6 +23,7 @@ AS
 SELECT 
     id,
     name,
+    created_sub,
     row_number() OVER () as row
 FROM groups
 WHERE enabled = true;

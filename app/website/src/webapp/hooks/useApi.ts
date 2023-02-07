@@ -16,6 +16,8 @@ import {
   IManageGroupsActionTypes, 
   IManageRolesActionTypes, 
   IUserProfileActionTypes,
+  IGroupActionTypes,
+  IRoleActionTypes,
   ApiErrorResponse,
   ILoadedState
 } from 'awayto';
@@ -37,7 +39,9 @@ let ApiActions = Object.assign(
   IManageUsersActionTypes,
   IManageGroupsActionTypes,
   IManageRolesActionTypes,
-  IUserProfileActionTypes
+  IUserProfileActionTypes,
+  IGroupActionTypes,
+  IRoleActionTypes
 ) as Record<string, string>;
 
 const { Route, RouteCollection, PathGenerator } = routeMatch as RouteMatch;
@@ -68,8 +72,11 @@ const callApi = async ({ path = '', method = 'GET', body }: CallApi): Promise<Re
     try {
       return await response.json() as Response;
     } catch (error) {
-      void keycloak.login();
+      console.log(error )
+      // void keycloak.login();
     }
+  } else if (403 === response.statusCode) {
+    
   }
 
   throw await response.json() as ApiErrorResponse;

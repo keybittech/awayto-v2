@@ -186,8 +186,7 @@ export type IDisableScheduleAction = PayloadAction<IScheduleActionTypes.DISABLE_
 /**
  * @category Schedule
  */
-export type IScheduleActions = LogoutAction
-  | IPostScheduleAction 
+export type IScheduleActions = IPostScheduleAction 
   | IPutScheduleAction 
   | IGetSchedulesAction 
   | IGetScheduleByIdAction

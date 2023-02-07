@@ -1,4 +1,4 @@
-import { IScheduleBracket, LogoutAction } from 'awayto';
+import { IScheduleBracket } from 'awayto';
 import { PayloadAction } from '.';
 
 declare global {
@@ -95,8 +95,7 @@ export type IDisableBookingAction = PayloadAction<IBookingActionTypes.DISABLE_BO
 /**
  * @category Booking
  */
-export type IBookingActions = LogoutAction
-  | IPostBookingAction 
+export type IBookingActions = IPostBookingAction 
   | IPutBookingAction 
   | IGetBookingsAction 
   | IGetBookingByIdAction

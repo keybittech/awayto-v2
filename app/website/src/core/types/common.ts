@@ -307,8 +307,7 @@ export type IDisableUuidNotesAction = PayloadAction<IUuidNotesActionTypes.DISABL
 /**
  * @category Uuid Notes
  */
-export type IUuidNotesActions = ILogoutUserAction
-  | IPostUuidNotesAction
+export type IUuidNotesActions = IPostUuidNotesAction
   | IPutUuidNotesAction
   | IGetUuidNotesAction
   | IGetUuidNotesByIdAction
@@ -375,8 +374,7 @@ export type IDisableUuidFilesAction = PayloadAction<IUuidFilesActionTypes.DISABL
 /**
  * @category Uuid Files
  */
-export type IUuidFilesActions = ILogoutUserAction
-  | IPostUuidFilesAction
+export type IUuidFilesActions = IPostUuidFilesAction
   | IPutUuidFilesAction
   | IGetUuidFilesAction
   | IGetUuidFilesByIdAction
@@ -434,8 +432,7 @@ export type IDisableFilesAction = PayloadAction<IFilesActionTypes.DISABLE_FILES,
 /**
  * @category File
  */
-export type IFilesActions = ILogoutUserAction
-  | IPostFilesAction
+export type IFilesActions = IPostFilesAction
   | IPutFilesAction
   | IGetFilesAction
   | IGetFilesByIdAction

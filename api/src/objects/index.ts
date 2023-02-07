@@ -6,7 +6,9 @@ import UuidGroups from './uuid_groups';
 import UuidFiles from './uuid_files';
 import UuidNotes from './uuid_notes';
 import UuidRoles from './uuid_roles';
+import Roles from './roles';
 import ManageRoles from './manage_roles';
+import Groups from './groups';
 import ManageGroups from './manage_groups';
 import ManageUsers from './manage_users';
 
@@ -31,7 +33,9 @@ export default  {
     ...UuidFiles,
     ...UuidNotes,
     ...UuidRoles,
+    ...Roles,
     ...ManageRoles,
+    ...Groups,
     ...ManageGroups,
     ...ManageUsers,
     ...Forms,

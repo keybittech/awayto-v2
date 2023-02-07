@@ -2,7 +2,11 @@ node_modules
 build
 landing_build
 web_build
+target
 *.cert
 *.crt
 *.key
 *.pem
+*.jks
+cert-file
+cert-signed

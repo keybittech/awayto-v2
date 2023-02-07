@@ -90,8 +90,7 @@ export type IDisableServiceAction = PayloadAction<IServiceActionTypes.DISABLE_SE
 /**
  * @category Service
  */
-export type IServiceActions = LogoutAction
-  | IPostServiceAction 
+export type IServiceActions = IPostServiceAction 
   | IPutServiceAction 
   | IGetServicesAction 
   | IGetServiceByIdAction

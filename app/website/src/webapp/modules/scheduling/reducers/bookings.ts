@@ -18,8 +18,8 @@ const initialBookingState: IBookingState = {
 
 function reduceDeleteBooking(state: IBookingState, action: IDeleteBookingAction): IBookingState {
   const bookings = { ...state.bookings };
-  action.payload.forEach(serviceAddon => {
-    delete bookings[serviceAddon.id as string];
+  action.payload.forEach(booking => {
+    delete bookings[booking.id as string];
   });
   state.bookings = bookings;
   return { ...state };

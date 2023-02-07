@@ -1,0 +1,18 @@
+keytool -genkey -alias bmc -keyalg RSA -keystore KeyStore.jks -keysize 2048
+
+# openssl req -new -x509 -keyout ca-key -out ca-cert
+
+keytool -keystore KeyStore.jks -alias bmc -certreq -file cert-file
+
+openssl x509 -req -CA ca-cert -CAkey ca-key -in cert-file -out cert-signed -days 365 -CAcreateserial -passin pass:yourpass
+
+keytool -keystore KeyStore.jks -alias CARoot -import -file ca-cert
+
+keytool -keystore KeyStore.jks -alias bmc -import -file cert-signed
+
+
+
+# 7.Copy ca-cert into client machine and generate truststore: (At client)
+# keytool -keystore truststore.jks -alias bmc -import -file ca-cert-s
+# 8.Copy ca-cert into client machine and generate truststore: (At server)
+# keytool -keystore truststore.jks -alias bmc -import -file ca-cert-c

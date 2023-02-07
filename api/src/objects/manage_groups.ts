@@ -12,11 +12,11 @@ const manageGroups: ApiModule = [
         const { name, roles } = props.event.body as IGroup;
 
         const { rows: [ group ] } = await props.client.query<IGroup>(`
-          INSERT INTO groups (name, created_on, created_sub)
-          VALUES ($1, $2, $3)
+          INSERT INTO groups (name, created_on)
+          VALUES ($1, $2)
           ON CONFLICT (name) DO NOTHING
-          RETURNING id, name, created_sub
-        `, [name, new Date(), props.event.userSub]);
+          RETURNING id, name
+        `, [name, new Date()]);
 
         await asyncForEach(roles, async role => {
           await props.client.query(`
@@ -142,7 +142,7 @@ const manageGroups: ApiModule = [
           `, [id]);
         })
 
-        return ids.map<IGroupState>(id => ({ id }));
+        return ids.map<Partial<IGroup>>(id => ({ id }));
         
       } catch (error) {
         throw error;

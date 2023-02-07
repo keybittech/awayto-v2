@@ -125,11 +125,20 @@ try {
   });
 
   app.get('/api/auth/checkfail', (req, res, next) => {
-    res.status(200).end();
+    res.status(403).end();
   });
 
   app.use(express.json());
   
+  app.post('/api/auth/webhook', (req, res, next) => {
+    try {
+      console.log('callback request', { req: req.body })
+      res.status(200).end();
+    } catch (error) {
+      console.log(error);
+    }
+  });
+
   // Define protected routes
   Objects.protected.forEach(({ method, path, cmnd }) => {
 

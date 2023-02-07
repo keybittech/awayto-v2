@@ -8,7 +8,6 @@ import {
   IPutManageGroupsAction,
   IDeleteManageGroupsAction,
   IManageGroupsActions,
-  ILogoutActionTypes,
   IDisableManageGroupsAction
 } from 'awayto';
 
@@ -39,7 +38,7 @@ function reducePutManageGroups(state: IManageGroupsState, action: IPutManageGrou
 function reduceDeleteState(state: IManageGroupsState, action: IDeleteManageGroupsAction): IManageGroupsState {
   const { groups } = state;
   if (groups) {
-    state.groups = groups.filter(group => !action.payload.map(g => g.id).includes(group.id));
+    state.groups = groups.filter(group => !action.payload.groups?.map(g => g.id).includes(group.id));
   }
   return state;
 }
@@ -47,15 +46,13 @@ function reduceDeleteState(state: IManageGroupsState, action: IDeleteManageGroup
 function reduceDisableState(state: IManageGroupsState, action: IDisableManageGroupsAction): IManageGroupsState {
   const { groups } = state;
   if (groups) {
-    state.groups = groups.filter(g => !action.payload.some(gr => gr.id == g.id))
+    state.groups = groups.filter(g => !action.payload.groups?.some(gr => gr.id == g.id))
   }
   return state;
 }
 
 const manageGroupsReducer: Reducer<IManageGroupsState, IManageGroupsActions> = (state = initialManageGroupsState, action) => {
   switch (action.type) {
-    case ILogoutActionTypes.LOGOUT:
-      return initialManageGroupsState;
     case IManageGroupsActionTypes.GET_MANAGE_GROUPS:
       return reduceGetManageGroups(state, action);
     case IManageGroupsActionTypes.POST_MANAGE_GROUPS:

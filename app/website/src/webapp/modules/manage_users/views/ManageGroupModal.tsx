@@ -17,11 +17,10 @@ import InputAdornment from '@mui/material/InputAdornment';
 import ArrowRightAlt from '@mui/icons-material/ArrowRightAlt';
 import NotInterestedIcon from '@mui/icons-material/NotInterested';
 
-import { IGroup, IManageGroupsActionTypes, IManageRolesActionTypes, IUtilActionTypes } from 'awayto';
+import { IGroup, IUtilActionTypes } from 'awayto';
 import { useAct, useApi, useRedux } from 'awayto-hooks';
+import { ManageGroupsActions } from './ManageGroups';
 
-const { GET_MANAGE_ROLES } = IManageRolesActionTypes;
-const { CHECK_GROUP_NAME, PUT_MANAGE_GROUPS, POST_MANAGE_GROUPS } = IManageGroupsActionTypes;
 const { SET_SNACK } = IUtilActionTypes;
 
 declare global {
@@ -30,7 +29,8 @@ declare global {
   }
 }
 
-export function ManageGroupModal ({ editGroup, closeModal }: IProps): JSX.Element {
+export function ManageGroupModal ({ editGroup, closeModal, ...props}: IProps): JSX.Element {
+  const { getRolesAction, putAction, postAction, checkNameAction } = props as Required<ManageGroupsActions>;
 
   const api = useApi();
   const act = useAct();
@@ -57,7 +57,7 @@ export function ManageGroupModal ({ editGroup, closeModal }: IProps): JSX.Elemen
     group.name = formatName(name);
     group.roles = roles?.filter(r => roleIds.includes(r.id));
 
-    void api(id ? PUT_MANAGE_GROUPS : POST_MANAGE_GROUPS, true, group);
+    void api(id ? putAction : postAction, true, group);
     
     if (closeModal)
       closeModal();
@@ -66,7 +66,7 @@ export function ManageGroupModal ({ editGroup, closeModal }: IProps): JSX.Elemen
 
   useEffect(() => {
     if (!roles)
-      void api(GET_MANAGE_ROLES);
+      void api(getRolesAction);
 
     if (group.roles?.length)
       setRoleIds(group.roles.map(r => r.id))
@@ -75,20 +75,20 @@ export function ManageGroupModal ({ editGroup, closeModal }: IProps): JSX.Elemen
   const badName = !checkingName && !isValid && !!group?.name && formatName(group.name) == checkedName;
 
   const handleName = useCallback((event: ChangeEvent<HTMLTextAreaElement>) => {
-    act(CHECK_GROUP_NAME, { checkingName: true });
+    act(checkNameAction, { checkingName: true });
     const name = event.target.value;
     if (name.length <= 50) {
       setGroup({ ...group, name });
-      act(CHECK_GROUP_NAME, { checkedName: formatName(name), needCheckName: name != editGroup?.name }, { debounce: { time: 1000 } });
+      act(checkNameAction, { checkedName: formatName(name), needCheckName: name != editGroup?.name }, { debounce: { time: 1000 } });
     } else if (isValid) {
-      act(CHECK_GROUP_NAME, { checkingName: false });
+      act(checkNameAction, { checkingName: false });
     }
   }, [group, setGroup])
 
   useEffect(() => {
     if (needCheckName && checkedName) {
-      act(CHECK_GROUP_NAME, { checkingName: true, needCheckName: false, isValid: false });
-      void api(CHECK_GROUP_NAME, true, { name: checkedName })
+      act(checkNameAction, { checkingName: true, needCheckName: false, isValid: false });
+      void api(checkNameAction, true, { name: checkedName })
     }
   }, [needCheckName])
 

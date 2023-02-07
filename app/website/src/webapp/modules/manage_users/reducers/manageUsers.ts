@@ -12,7 +12,6 @@ import {
   IPostManageUsersSubAction,
   IPostManageUsersAppAcctAction,
   IManageUsersActions,
-  ILogoutActionTypes,
   IGetManageUsersByIdAction,
   IGetManageUsersBySubAction
 } from 'awayto';
@@ -20,7 +19,7 @@ import {
 const initialManageUsersState: IManageUsersState = {};
 
 function reduceGetManageUsers(state: IManageUsersState, action: IGetManageUsersAction): IManageUsersState {
-  return { ...state, users: [...action.payload] };
+  return { ...state, users: [...action.payload.users ] };
 }
 
 function reducePostManageUsers(state: IManageUsersState, action: IPostManageUsersAction): IManageUsersState {
@@ -31,7 +30,7 @@ function reducePostManageUsers(state: IManageUsersState, action: IPostManageUser
 function reducePutManageUsers(state: IManageUsersState, action: IPutManageUsersAction | IPostManageUsersSubAction | IPostManageUsersAppAcctAction | IGetManageUsersByIdAction | IGetManageUsersBySubAction): IManageUsersState {
   const payload = action.payload;
   state.users = state.users?.map((user: IUserProfile) => {
-    if (user.sub === payload.sub) {
+    if (user.sub === payload.users[0].sub) {
       return { ...user, ...payload }
     }
     return user;
@@ -43,7 +42,7 @@ function reduceManageUsersInfo(state: IManageUsersState, action: IGetManageUsers
   const payload = action.payload;
   const { users } = state;
   if (users) {
-    payload.forEach((up: IUserProfile) => {
+    payload.users.forEach((up: IUserProfile) => {
       const user = users.find((u: IUserProfile) => u.sub == up.sub) as IUserProfile;
       if (user) {
         Object.assign(user, up);
@@ -56,7 +55,7 @@ function reduceManageUsersInfo(state: IManageUsersState, action: IGetManageUsers
 function reduceLockState(state: IManageUsersState, action: ILockManageUsersAction | IUnlockManageUsersAction, locked: boolean): IManageUsersState {
   const { users } = state;
   if (users) {
-    action.payload.forEach(user => {
+    action.payload.users.forEach(user => {
       const u = users.find(u => u.username == user.username);
       if (u) u.locked = locked;
     })
@@ -66,8 +65,6 @@ function reduceLockState(state: IManageUsersState, action: ILockManageUsersActio
 
 const manageUsersReducer: Reducer<IManageUsersState, IManageUsersActions> = (state = initialManageUsersState, action) => {
   switch (action.type) {
-    case ILogoutActionTypes.LOGOUT:
-      return initialManageUsersState;
     case IManageUsersActionTypes.GET_MANAGE_USERS:
       return reduceGetManageUsers(state, action);
     case IManageUsersActionTypes.POST_MANAGE_USERS:
