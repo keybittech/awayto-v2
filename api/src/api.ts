@@ -14,6 +14,7 @@ import passport from 'passport';
 import Objects from './objects';
 import { IUserProfileState, IUserProfile, ApiErrorResponse } from 'awayto';
 import { keycloakStrategy } from './util/keycloak';
+import { AuthEvent } from './util/db';
 
 const {
   GRAYLOG_HOST,
@@ -130,12 +131,40 @@ try {
 
   app.use(express.json());
   
-  app.post('/api/auth/webhook', (req, res, next) => {
+  app.post('/api/auth/webhook', async (req, res, next) => {
+    const requestId = uuid();
     try {
-      console.log('callback request', { req: req.body })
+      const body = req.body as AuthEvent;
+      const { type, userId, ipAddress } = body;
+
+      // Create trace event
+      const event = {
+        requestId,
+        method: 'POST',
+        path: '/api/auth/webhook',
+        userSub: userId,
+        sourceIp: ipAddress,
+        pathParameters: req.params,
+        queryParameters: req.query as Record<string, string>,
+        body
+      };
+
+      logger.log('webhook received', event);
+
+      await Objects.events[`AUTH_${type}`]({ event, client });
+
       res.status(200).end();
     } catch (error) {
-      console.log(error);
+      const err = error as Error & { reason: string };
+
+      console.log('auth webhook error', err);
+      logger.log('error response', { requestId, error: err });
+
+      // Handle failures
+      res.status(500).send({
+        requestId,
+        reason: err.reason || err.message
+      });
     }
   });
 
@@ -153,7 +182,7 @@ try {
         requestId,
         method,
         path,
-        userSub: user.username,
+        userSub: user.sub,
         sourceIp: req.headers['x-forwarded-for'] as string,
         pathParameters: req.params,
         queryParameters: req.query as Record<string, string>,
@@ -173,16 +202,13 @@ try {
         const err = error as Error & { reason: string };
 
         console.log('protected error', err);
-        logger.log('error response', Object.assign(event, { error: err }));
-
-        const errResponse: ApiErrorResponse = {
-          requestId
-        };
-
-        errResponse.reason = err.reason || err.message;
+        logger.log('error response', { requestId, error: err });
 
         // Handle failures
-        res.status(500).send(errResponse);
+        res.status(500).send({
+          requestId,
+          reason: err.reason || err.message
+        });
       }
     });
   });

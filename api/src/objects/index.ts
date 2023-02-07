@@ -24,7 +24,12 @@ import ServiceAddons from './service_addons';
 import ServiceTiers from './service_tiers';
 import Services from './services';
 
+import { AuthEventHandlers } from './auth';
+
 export default  {
+  events: {
+    ...AuthEventHandlers
+  },
   protected: [
     ...Tests,
     ...Files,

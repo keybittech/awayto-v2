@@ -2,9 +2,7 @@ package kbt;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.util.Set;
 import java.util.Arrays;
-import java.util.HashSet;
 
 import org.json.JSONObject;
 import org.apache.http.client.entity.EntityBuilder;
@@ -19,9 +17,6 @@ import org.keycloak.events.EventListenerProvider;
 import org.keycloak.events.EventType;
 import org.keycloak.events.admin.AdminEvent;
 import org.keycloak.models.KeycloakSession;
-import org.keycloak.models.RealmModel;
-import org.keycloak.models.RealmProvider;
-import org.keycloak.models.UserModel;
 import org.keycloak.connections.httpclient.HttpClientProvider;
 
 public class CustomEventListenerProvider implements EventListenerProvider {
@@ -29,11 +24,9 @@ public class CustomEventListenerProvider implements EventListenerProvider {
     private static final Logger log = Logger.getLogger(CustomEventListenerProvider.class);
 
     private final KeycloakSession session;
-    private final RealmProvider model;
 
     public CustomEventListenerProvider(KeycloakSession session) {
         this.session = session;
-        this.model = session.realms();
     }
 
     @Override

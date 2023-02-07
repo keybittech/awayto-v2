@@ -9,13 +9,13 @@ const users: ApiModule = [
     cmnd: async (props) => {
       try {
 
-        const { firstName: first_name, lastName: last_name, username, email, image, sub } = props.event.body as IUserProfile;
+        const { firstName, lastName, username, email, image, sub } = props.event.body as IUserProfile;
             
         const { rows: [ user ] } = await props.client.query<IUserProfile>(`
           INSERT INTO users(sub, username, first_name, last_name, email, image, created_on, created_sub, ip_address)
           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
           RETURNING id, sub, username, first_name as "firstName", last_name as "lastName", email, image
-        `, [sub || props.event.userSub, username, first_name, last_name, email, image, new Date(), props.event.userSub, props.event.sourceIp]);
+        `, [sub || props.event.userSub, username, firstName, lastName, email, image, new Date(), props.event.userSub, props.event.sourceIp]);
 
         return user;
 

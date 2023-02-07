@@ -17,6 +17,23 @@ export type ApiModulet = {
   cmnd(props: ApiProps, meta?: string): Promise<ILoadedState | ILoadedState[] | boolean>;
 }
 
+export type AuthEvent = {
+  id: string;
+  clientId: string;
+  realmId: string;
+  ipAddress: string;
+  sessionId: string;
+  userId: string;
+  time: string;
+  type: string;
+  details: Record<string, string>
+};
+
+export type AuthEventHandler = {
+  [prop: string]: (event: ApiProps) => Promise<void>;
+};
+
+
 /**
  * @category API
  */
@@ -28,7 +45,7 @@ export type ApiProps = {
     sourceIp: string;
     pathParameters: Record<string, string>,
     queryParameters: Record<string, string>,
-    body: Array<ILoadedState> | Record<string, unknown>
+    body: Array<ILoadedState> | Record<string, unknown> | AuthEvent
   };
   client: Client; 
 }

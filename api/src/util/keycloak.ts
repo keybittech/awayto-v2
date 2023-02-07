@@ -43,11 +43,14 @@ const keycloakClient = new keycloakIssuer.Client({
 });
 
 const strategyResponder: StrategyVerifyCallbackUserInfo<IUserProfileState> = (tokenSet, userInfo, done) => {
-  const { preferred_username: username, email } = tokenSet.claims();
+  const { preferred_username: username, given_name: firstName, family_name: lastName, email, sub } = tokenSet.claims();
   
   const userProfileClaims: IUserProfileState = {
     username,
-    email
+    firstName,
+    lastName,
+    email,
+    sub
   };
 
   return done(null, userProfileClaims);
