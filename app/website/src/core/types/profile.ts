@@ -1,4 +1,4 @@
-import { PayloadAction, IGroup } from '.';
+import { PayloadAction, IGroup, IRole } from '.';
 
 declare global {
   /**
@@ -35,6 +35,7 @@ export type IUserProfile = {
   sub: string;
   username: string;
   groups: IGroup[];
+  roles: IRole[];
   createdOn: string;
   updatedOn: string;
   file: File;

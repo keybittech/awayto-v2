@@ -56,7 +56,7 @@ export enum IGroupActionTypes {
   PUT_GROUPS = "PUT/groups",
   GET_GROUPS = "GET/groups",
   GET_GROUPS_BY_ID = "GET/groups/:id",
-  DELETE_GROUPS = "DELETE/groups/:id",
+  DELETE_GROUPS = "DELETE/groups/:ids",
   DISABLE_GROUPS = "PUT/groups/:id/disable",
   CHECK_GROUPS_NAME = "GET/groups/valid/:name",
 }

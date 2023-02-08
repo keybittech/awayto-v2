@@ -1,4 +1,4 @@
-import type { IRole } from 'awayto';
+import { IRole, IUserProfile } from 'awayto';
 import { ApiModule, asyncForEach, buildUpdate } from '../util/db';
 
 const roles: ApiModule = [
@@ -12,13 +12,31 @@ const roles: ApiModule = [
         const { name } = props.event.body as IRole;
 
         const { rows: [ role ] } = await props.client.query<IRole>(`
-          INSERT INTO roles (name, created_on, created_sub)
-          VALUES ($1, $2, $3)
-          ON CONFLICT (name) DO NOTHING
-          RETURNING id, name, created_sub
-        `, [name, new Date(), props.event.userSub]);
+          WITH input_rows(name, created_sub) as (VALUES ($1, $2)), ins AS (
+            INSERT INTO roles (name, created_sub)
+            SELECT * FROM input_rows
+            ON CONFLICT (name) DO NOTHING
+            RETURNING id, name
+          )
+          SELECT id, name
+          FROM ins
+          UNION ALL
+          SELECT s.id, s.name
+          FROM input_rows
+          JOIN roles s USING (name);
+        `, [name, props.event.userSub]);
         
-        return role;
+        const { rows: [{ id: userId }] } = await props.client.query<IUserProfile>(`
+          SELECT id FROM users WHERE sub = $1
+        `, [props.event.userSub]);
+
+        await props.client.query(`
+          INSERT INTO uuid_roles (parent_uuid, role_id, created_sub)
+          VALUES ($1, $2, $3)
+          ON CONFLICT (parent_uuid, role_id) DO NOTHING
+        `, [userId, role.id, props.event.userSub])
+
+        return [role];
 
       } catch (error) {
         throw error;
@@ -93,21 +111,26 @@ const roles: ApiModule = [
 
   {
     method: 'DELETE',
-    path : 'roles',
+    path : 'roles/:ids',
     cmnd : async (props) => {
       try {
 
-        const query = props.event.queryParameters;
-        const ids = query.ids.split(',');
+        console.log({ props })
 
-        await asyncForEach(ids, async id => {
+        const { ids } = props.event.pathParameters;
+        
+        const { rows: [{ id: userId }] } = await props.client.query<IUserProfile>(`
+          SELECT id FROM users WHERE sub = $1
+        `, [props.event.userSub]);
+
+        await asyncForEach(ids.split(','), async id => {
           await props.client.query(`
-            DELETE FROM roles
-            WHERE id = $1
-          `, [id]);
+            DELETE FROM uuid_roles
+            WHERE role_id = $1 AND parent_uuid = $2
+          `, [id, userId]);
         })
 
-        return ids.map<Partial<IRole>>(id => ({ id }));
+        return ids.split(',').map<Partial<IRole>>(id => ({ id }));
         
       } catch (error) {
         throw error;

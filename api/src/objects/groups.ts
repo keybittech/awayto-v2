@@ -1,4 +1,4 @@
-import type { IGroup, IUuidRoles, DbError, IUuidGroups } from 'awayto';
+import type { IGroup, IUuidRoles, DbError, IUserProfile } from 'awayto';
 import { ApiModule, asyncForEach, buildUpdate } from '../util/db';
 
 const groups: ApiModule = [
@@ -25,18 +25,21 @@ const groups: ApiModule = [
             ON CONFLICT (parent_uuid, role_id) DO NOTHING
           `, [group.id, role.id, new Date(), props.event.userSub])
         });
+        
+        const { rows: [{ id: userId }] } = await props.client.query<IUserProfile>(`
+          SELECT id FROM users WHERE sub = $1
+        `, [props.event.userSub]);
 
-        // TO DO ONCE WEBHOOK PRE-CREATES USER
-        // const response = await props.client.query<IUuidGroups>(`
-        //   INSERT INTO uuid_groups (parent_uuid, group_id, created_on, created_sub)
-        //   VALUES ($1, $2, $3, $4)
-        //   ON CONFLICT (parent_uuid, group_id) DO NOTHING
-        //   RETURNING id
-        // `, [parentUuid, groupId, new Date(), props.event.userSub]);
+        await props.client.query(`
+          INSERT INTO uuid_groups (parent_uuid, group_id, created_sub)
+          VALUES ($1, $2, $3)
+          ON CONFLICT (parent_uuid, group_id) DO NOTHING
+          RETURNING id
+        `, [userId, group.id, props.event.userSub]);
 
         group.roles = roles;
         
-        return group;
+        return [group];
 
       } catch (error) {
         const { constraint } = error as DbError;
@@ -141,21 +144,25 @@ const groups: ApiModule = [
 
   {
     method: 'DELETE',
-    path : 'groups',
+    path : 'groups/:ids',
     cmnd : async (props) => {
       try {
 
-        const query = props.event.queryParameters;
-        const ids = query.ids.split(',');
+        const { ids } = props.event.pathParameters;
 
-        await asyncForEach(ids, async id => {
+        await asyncForEach(ids.split(','), async id => {
+          await props.client.query(`
+            DELETE FROM uuid_roles
+            WHERE parent_uuid = $1
+          `, [id]);
+
           await props.client.query(`
             DELETE FROM groups
             WHERE id = $1
           `, [id]);
         })
 
-        return ids.map<Partial<IGroup>>(id => ({ id }));
+        return ids.split(',').map<Partial<IGroup>>(id => ({ id }));
         
       } catch (error) {
         throw error;

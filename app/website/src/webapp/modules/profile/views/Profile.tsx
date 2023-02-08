@@ -15,7 +15,7 @@ import { useRedux, useApi, useAct, useComponents, useFileStore } from 'awayto-ho
 import { useStyles } from '../../../style';
 
 const { SET_SNACK } = IUtilActionTypes;
-const { GET_ROLES } = IRoleActionTypes;
+const { POST_ROLES, DELETE_ROLES } = IRoleActionTypes;
 const { CHECK_GROUPS_NAME, DELETE_GROUPS, POST_GROUPS, PUT_GROUPS } = IGroupActionTypes;
 const { GET_USER_PROFILE_DETAILS, POST_USER_PROFILE, PUT_USER_PROFILE } = IUserProfileActionTypes;
 
@@ -94,7 +94,7 @@ export function Profile(props: IProps): JSX.Element {
   return <>
     {profile && (
       <Grid container spacing={6}>
-        <Grid item xs={12} sm={4}>
+        <Grid item sm={12} md={4}>
           <Grid container direction="column" spacing={2}>
             <Grid item>
               <Typography variant="h6">Profile</Typography>
@@ -108,16 +108,6 @@ export function Profile(props: IProps): JSX.Element {
             <Grid item>
               <TextField fullWidth id="email" label="Email" autoComplete="on" value={profile.email} name="email" onChange={e => setProfile({ ...profile, email: e.target.value })} />
             </Grid>
-            <Grid item>
-              <Typography variant="h6">Settings</Typography>
-            </Grid>
-            <Grid item>
-              <PickTheme {...props} />
-            </Grid>
-          </Grid>
-        </Grid>
-        <Grid item>
-          <Grid container direction="column" spacing={2}>
             <Grid item>
               <Typography variant="h6">Image</Typography>
             </Grid>
@@ -153,18 +143,31 @@ export function Profile(props: IProps): JSX.Element {
               </CardActionArea>
             </Grid>
             <Grid item>
+              <Typography variant="h6">Settings</Typography>
+            </Grid>
+            <Grid item>
+              <PickTheme {...props} />
+            </Grid>
+          </Grid>
+        </Grid>
+        <Grid item sm={12} md={8}>
+          <Grid container direction="column" spacing={2}>
+            <Grid item>
               <Typography variant="h6">Group</Typography>
             </Grid>
             <Grid item>
 
-            <ManageGroups {...props}
-              groups={user.groups}
-              getAction={GET_USER_PROFILE_DETAILS}
-              deleteAction={DELETE_GROUPS}
-              putAction={PUT_GROUPS}
-              postAction={POST_GROUPS}
-              checkNameAction={CHECK_GROUPS_NAME}
-              getRolesAction={GET_ROLES} />
+              <ManageGroups {...props}
+                groups={user.groups}
+                roles={user.roles}
+                getAction={GET_USER_PROFILE_DETAILS}
+                deleteAction={DELETE_GROUPS}
+                putAction={PUT_GROUPS}
+                postAction={POST_GROUPS}
+                postRoleAction={POST_ROLES}
+                deleteRoleAction={DELETE_ROLES}
+                checkNameAction={CHECK_GROUPS_NAME}
+                getRolesAction={GET_USER_PROFILE_DETAILS} />
 
             </Grid>
           </Grid>

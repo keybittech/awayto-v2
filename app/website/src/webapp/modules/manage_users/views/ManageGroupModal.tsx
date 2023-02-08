@@ -18,7 +18,7 @@ import ArrowRightAlt from '@mui/icons-material/ArrowRightAlt';
 import NotInterestedIcon from '@mui/icons-material/NotInterested';
 
 import { IGroup, IUtilActionTypes } from 'awayto';
-import { useAct, useApi, useRedux } from 'awayto-hooks';
+import { useAct, useApi, useRedux, useComponents } from 'awayto-hooks';
 import { ManageGroupsActions } from './ManageGroups';
 
 const { SET_SNACK } = IUtilActionTypes;
@@ -29,12 +29,12 @@ declare global {
   }
 }
 
-export function ManageGroupModal ({ editGroup, closeModal, ...props}: IProps): JSX.Element {
-  const { getRolesAction, putAction, postAction, checkNameAction } = props as Required<ManageGroupsActions>;
+export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): JSX.Element {
+  const { roles, getRolesAction, putAction, postAction, postRoleAction, deleteRoleAction, checkNameAction } = props as Required<ManageGroupsActions>;
 
   const api = useApi();
   const act = useAct();
-  const { roles } = useRedux(state => state.manageRoles);
+  const { SelectLookup } = useComponents();
   const { isValid, needCheckName, checkedName, checkingName } = useRedux(state => state.manageGroups);
   const [roleIds, setRoleIds] = useState<string[]>([]);
   const [group, setGroup] = useState<Partial<IGroup>>({
@@ -46,31 +46,27 @@ export function ManageGroupModal ({ editGroup, closeModal, ...props}: IProps): J
     name.replaceAll(/__+/g, '_').replaceAll(/\s/g, '_').replaceAll(/[\W]+/g, '_').replaceAll(/__+/g, '_').replaceAll(/__+/g, '').toLowerCase()
     , []);
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     const { id, name } = group;
 
     if (!name || !roleIds.length) {
-      act(SET_SNACK, {snackType: 'error', snackOn: 'Please provide a valid group name and roles.' });
+      act(SET_SNACK, { snackType: 'error', snackOn: 'Please provide a valid group name and roles.' });
       return;
     }
-
+    
     group.name = formatName(name);
     group.roles = roles?.filter(r => roleIds.includes(r.id));
+    await api(id ? putAction : postAction, true, group);
 
-    void api(id ? putAction : postAction, true, group);
-    
     if (closeModal)
       closeModal();
 
   }, [group, roles, roleIds]);
 
   useEffect(() => {
-    if (!roles)
-      void api(getRolesAction);
-
-    if (group.roles?.length)
+    if (!roleIds.length && group.roles?.length)
       setRoleIds(group.roles.map(r => r.id))
-  }, [group.roles]);
+  }, [roleIds, group.roles]);
 
   const badName = !checkingName && !isValid && !!group?.name && formatName(group.name) == checkedName;
 
@@ -83,33 +79,15 @@ export function ManageGroupModal ({ editGroup, closeModal, ...props}: IProps): J
     } else if (isValid) {
       act(checkNameAction, { checkingName: false });
     }
-  }, [group, setGroup])
+  }, [group, setGroup]);
 
   useEffect(() => {
     if (needCheckName && checkedName) {
       act(checkNameAction, { checkingName: true, needCheckName: false, isValid: false });
       void api(checkNameAction, true, { name: checkedName })
     }
-  }, [needCheckName])
-
-  const roleSelect = useMemo(() => roles ?
-    <FormControl fullWidth variant="outlined">
-      <InputLabel id="role-selection-label">Roles</InputLabel>
-      <Select
-        labelId="role-selection-label"
-        id="role-selection"
-        name="roleIds"
-        value={roleIds}
-        onChange={e => setRoleIds(e.target.value as string[])}
-        label="Roles"
-        multiple
-      >
-        {roles.map((b, i) => <MenuItem key={i} value={b.id}>{b.name}</MenuItem>)}
-      </Select>
-    </FormControl> :
-    <Grid container justifyContent="center"><CircularProgress /></Grid>
-    , [roles, roleIds, setRoleIds]);
-
+  }, [needCheckName]);
+  
   return <>
     <Card>
       <CardContent>
@@ -140,7 +118,7 @@ export function ManageGroupModal ({ editGroup, closeModal, ...props}: IProps): J
                       >
                         <Grid item style={{ alignSelf: 'center' }}>
                           {checkingName ?
-                            <CircularProgress size="20px" /> : 
+                            <CircularProgress size="20px" /> :
                             badName ? <NotInterestedIcon color="error" /> : <ArrowRightAlt />}
                         </Grid>
                         <Grid item xs style={{ wordBreak: 'break-all' }}>
@@ -165,7 +143,7 @@ export function ManageGroupModal ({ editGroup, closeModal, ...props}: IProps): J
                 <Typography variant="h6">Roles</Typography>
               </Grid>
               <Grid item xs={12}>
-                {roleSelect}
+                <SelectLookup lookupName="Roles" lookups={roles} lookupChange={setRoleIds} lookupValue={roleIds} refetchAction={getRolesAction} multiple createActionType={postRoleAction} deleteActionType={deleteRoleAction} {...props} />
               </Grid>
             </Grid>
           </Grid>

@@ -22,23 +22,23 @@ declare global {
     lookupValue?: string | string[];
     createActionType?: IActionTypes;
     deleteActionType?: IActionTypes;
+    refetchAction?: IActionTypes;
   }
 }
 
-const { GET_FORMS } = IFormActionTypes;
 const { SET_SNACK } = IUtilActionTypes;
 
 function isStringArray(str?: string | string[]): str is string[] {
   return (str as string[]).forEach !== undefined;
 }
 
-export function SelectLookup({ lookups, lookupName, helperText, lookupValue, lookupChange, multiple = false, createActionType, deleteActionType }: IProps): JSX.Element {
+export function SelectLookup({ refetchAction, lookups, lookupName, helperText, lookupValue, lookupChange, multiple = false, createActionType, deleteActionType }: IProps): JSX.Element {
   const api = useApi();
   const act = useAct();
   const [addingNew, setAddingNew] = useState<boolean | undefined>();
   const [newLookup, setNewLookup] = useState<ILookup>({ name: '' });
 
-  if (!lookups || !lookupName || !lookupChange) return <Grid container justifyContent="center"><CircularProgress /></Grid>;
+  if (!lookupName || !lookupChange) return <Grid container justifyContent="center"><CircularProgress /></Grid>;
 
   return (addingNew ?
     <TextField fullWidth label={`New ${lookupName}`} value={newLookup.name} onChange={e => setNewLookup({ name: e.target.value })} InputProps={{
@@ -49,9 +49,9 @@ export function SelectLookup({ lookups, lookupName, helperText, lookupValue, loo
               <ClearIcon style={{ color: 'red' }} />
             </IconButton>
             <IconButton aria-label="create new record" onClick={() => {
-              if (createActionType && newLookup.name) {
+              if (refetchAction && createActionType && newLookup.name) {
                 void api(createActionType, true, newLookup).then(() => {
-                  void api(GET_FORMS);
+                  void api(refetchAction);
                   setAddingNew(false);
                   setNewLookup({ name: '' })
                 });
@@ -81,7 +81,12 @@ export function SelectLookup({ lookups, lookupName, helperText, lookupValue, loo
       value={lookupValue}
       SelectProps={{
         multiple,
-        renderValue: selected => isStringArray(selected as string | string[]) ? (selected as string[]).join(', ') : selected as string
+        renderValue: selected => {
+          if (isStringArray(selected as string[])) 
+            return (selected as string[]).map(v => lookups?.find(r => r.id === v)?.name ).join(', ')
+          
+          return selected as string
+        }
       }}
       
     >
@@ -90,13 +95,13 @@ export function SelectLookup({ lookups, lookupName, helperText, lookupValue, loo
         e.preventDefault();
         setAddingNew(true);
       }}>Add a {lookupName} to this list</MenuItem>}
-      {lookups.length ? lookups.map((p, i) => (
-        <MenuItem key={i} style={{ display: 'flex' }} value={p.name}>
+      {lookups?.length ? lookups.map((p, i) => (
+        <MenuItem key={i} style={{ display: 'flex' }} value={p.id}>
           <span style={{ flex: '1' }}>{p.name}</span>
-          {deleteActionType && <ClearIcon style={{ color: 'red', marginRight: '8px' }} onClick={e => {
+          {refetchAction && deleteActionType && <ClearIcon style={{ color: 'red', marginRight: '8px' }} onClick={e => {
             e.stopPropagation();
             void api(deleteActionType, true, { id: p.id }).then(() => {
-              void api(GET_FORMS);
+              void api(refetchAction);
             });
           }} />}
         </MenuItem>

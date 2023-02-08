@@ -138,8 +138,18 @@ CREATE OR REPLACE VIEW
 AS
 SELECT
     u.*,
-    grps.*
+    grps.*,
+    rols.*
 FROM enabled_users u
+LEFT JOIN LATERAL (
+    SELECT JSON_AGG(r.*) as roles
+    FROM (
+        SELECT er.*
+        FROM enabled_uuid_roles eur
+        JOIN enabled_roles er ON eur."roleId" = er.id
+        WHERE eur."parentUuid" = u.id
+    ) r
+) as rols ON true
 LEFT JOIN LATERAL (
     SELECT JSON_AGG(g.*) as groups
     FROM (

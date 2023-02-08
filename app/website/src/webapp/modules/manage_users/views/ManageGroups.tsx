@@ -4,12 +4,11 @@ import DataTable, { TableColumn } from 'react-data-table-component';
 import IconButton from '@mui/material/IconButton';
 import Dialog from '@mui/material/Dialog';
 import Button from '@mui/material/Button';
-import CircularProgress from '@mui/material/CircularProgress';
 
 import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-import { IGroup, IGroups, IActionTypes } from 'awayto';
+import { IGroup, IActionTypes, IRole } from 'awayto';
 import { useRedux, useApi } from 'awayto-hooks';
 
 import ManageGroupModal from './ManageGroupModal';
@@ -21,7 +20,10 @@ export type ManageGroupsActions = {
   postAction?: IActionTypes;
   getRolesAction?: IActionTypes;
   checkNameAction?: IActionTypes;
-  groups?: IGroups
+  postRoleAction?: IActionTypes;
+  deleteRoleAction?: IActionTypes;
+  groups?: IGroup[];
+  roles?: IRole[];
 };
 
 declare global {
@@ -60,9 +62,10 @@ export function ManageGroups (props: IProps): JSX.Element {
 
     return [
       ...actions,
-      <IconButton key={'delete_group'} onClick={() => {
-        void api(deleteAction, true, { ids: selected.map(s => s.id).join(',') })
+      <IconButton key={'delete_group'} onClick={async () => {
+        await api(deleteAction, true, { ids: selected.map(s => s.id).join(',') })
         setToggle(!toggle);
+        void api(getAction, true);
       }}><DeleteIcon /></IconButton>
     ];
   }, [selected]);
@@ -72,21 +75,29 @@ export function ManageGroups (props: IProps): JSX.Element {
   }, []);
 
   return <>
-    <Dialog open={dialog === 'manage_group'} fullWidth maxWidth="sm">
+    <Dialog open={dialog === 'create_group'} fullWidth maxWidth="sm">
       <ManageGroupModal {...props} editGroup={group} closeModal={() => {
         setDialog('');
         void api(getAction);
       }} />
     </Dialog>
 
+
+
     <DataTable
       title="Groups"
-      actions={<Button onClick={() => {
-        setGroup(undefined);
-        setDialog('manage_group');
-      }}>New</Button>}
+      actions={[
+        <Button key={'join_group_button'} onClick={() => {
+          setGroup(undefined);
+          setDialog('join_group');
+        }}>Join</Button>,
+        <Button key={'create_group_button'} onClick={() => {
+          setGroup(undefined);
+          setDialog('create_group');
+        }}>Create</Button>
+      ]}
       contextActions={actions}
-      data={groups ? Object.values(groups) : []}
+      data={groups ? groups : []}
       theme={util.theme}
       columns={columns}
       selectableRows
@@ -97,7 +108,6 @@ export function ManageGroups (props: IProps): JSX.Element {
       pagination={true}
       paginationPerPage={5}
       paginationRowsPerPageOptions={[5, 10, 25]}
-      noDataComponent={<CircularProgress />}
     />
   </>
 }
