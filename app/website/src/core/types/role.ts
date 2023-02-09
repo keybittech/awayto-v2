@@ -5,7 +5,7 @@ declare global {
    * @category Awayto Redux
    */
   interface ISharedState { 
-    roles: IRoleState
+    role: IRoleState
   }
 
   /**
@@ -17,7 +17,7 @@ declare global {
    * @category Awayto Redux
    */
   interface ISharedActionTypes {
-    roles: IRoleActionTypes;
+    role: IRoleActionTypes;
   }
 }
 

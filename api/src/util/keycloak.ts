@@ -87,7 +87,7 @@ const strategyResponder: StrategyVerifyCallbackUserInfo<Express.User> = (tokenSe
   // If a user's client roles are ever removed, they should be logged out
   if (tokenSet.access_token) {
     const token = jwtDecode<DecodedJWTToken>(tokenSet.access_token);
-    roles = token.resource_access[process.env.KC_CLIENT!].roles;
+    roles = token.resource_access[process.env.KC_CLIENT!]?.roles;
   }
 
   const { preferred_username: username, given_name: firstName, family_name: lastName, email, sub } = tokenSet.claims();

@@ -6,7 +6,7 @@ declare global {
    * @category Awayto Redux
    */
   interface ISharedState { 
-    bookings: IBookingState
+    booking: IBookingState
   }
 
   /**
@@ -18,7 +18,7 @@ declare global {
    * @category Awayto Redux
    */
   interface ISharedActionTypes {
-    bookings: IBookingActionTypes;
+    booking: IBookingActionTypes;
   }
 }
 

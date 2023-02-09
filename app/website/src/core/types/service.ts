@@ -6,9 +6,9 @@ declare global {
    * @category Awayto Redux
    */
   interface ISharedState { 
-    services: IServiceState;
-    serviceAddons: IServiceAddonState;
-    serviceTiers: IServiceTierState;
+    service: IServiceState;
+    serviceAddon: IServiceAddonState;
+    serviceTier: IServiceTierState;
   }
 
   /**
@@ -20,9 +20,9 @@ declare global {
    * @category Awayto Redux
    */
   interface ISharedActionTypes {
-    services: IServiceActionTypes;
-    serviceAddons: IServiceAddonActionTypes;
-    serviceTiers: IServiceTierActionTypes;
+    service: IServiceActionTypes;
+    serviceAddon: IServiceAddonActionTypes;
+    serviceTier: IServiceTierActionTypes;
   }
 }
 

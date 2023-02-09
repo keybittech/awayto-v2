@@ -8,17 +8,28 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 import CreateIcon from '@mui/icons-material/Create';
 
-import { IManageRolesActionTypes, IRole } from 'awayto';
+import { IRole, IActionTypes, IRoles } from 'awayto';
 import { useRedux, useApi } from 'awayto-hooks';
 
 import ManageRoleModal from './ManageRoleModal';
 
-const { GET_MANAGE_ROLES } = IManageRolesActionTypes;
+export type ManageRolesActions = {
+  getAction?: IActionTypes;
+  deleteAction?: IActionTypes;
+  putAction?: IActionTypes;
+  postAction?: IActionTypes;
+  roles?: IRoles;
+};
+
+declare global {
+  interface IProps extends ManageRolesActions { }
+}
 
 export function ManageRoles (props: IProps): JSX.Element {
+  const { roles, getAction } = props as IProps & Required<ManageRolesActions>;
+
   const api = useApi();
   const util = useRedux(state => state.util);
-  const { roles } = useRedux(state => state.manageRoles);
   const [role, setRole] = useState<IRole>();
   const [selected, setSelected] = useState<IRole[]>([]);
   const [toggle, setToggle] = useState(false);
@@ -44,7 +55,7 @@ export function ManageRoles (props: IProps): JSX.Element {
   }, [selected])
 
   useEffect(() => {
-    void api(GET_MANAGE_ROLES, true);
+    void api(getAction, true);
   }, []);
 
   return <>
@@ -56,7 +67,7 @@ export function ManageRoles (props: IProps): JSX.Element {
       title="Roles"
       actions={<Button onClick={() => { setRole(undefined); setDialog('manage_role') }}>New</Button>}
       contextActions={actions}
-      data={roles ? roles : []}
+      data={roles ? Object.values(roles) : []}
       theme={util.theme}
       columns={columns}
       selectableRows

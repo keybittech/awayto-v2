@@ -159,7 +159,7 @@ const groups: ApiModule = [
 
         const response = await props.client.query<IGroup>(`
           SELECT * FROM enabled_groups_ext
-          WHERE created_sub = $1
+          WHERE "createdSub" = $1
         `, [props.event.userSub]);
         
         return response.rows;

@@ -11,8 +11,8 @@ import TextField from '@mui/material/TextField';
 import { IManageRolesActionTypes, IRole, IUtilActionTypes } from "awayto";
 import { useApi, useAct } from 'awayto-hooks';
 import { useCallback } from "react";
+import { ManageRolesActions } from "./ManageRoles";
 
-const { POST_MANAGE_ROLES, PUT_MANAGE_ROLES } = IManageRolesActionTypes;
 const { SET_SNACK } = IUtilActionTypes;
 
 declare global {
@@ -21,7 +21,8 @@ declare global {
   }
 }
 
-export function ManageRoleModal ({ editRole, closeModal }: IProps): JSX.Element {
+export function ManageRoleModal ({ editRole, closeModal, ...props }: IProps): JSX.Element {
+  const { putAction, postAction } = props as IProps & Required<ManageRolesActions>;
 
   const api = useApi();
   const act = useAct();
@@ -38,7 +39,7 @@ export function ManageRoleModal ({ editRole, closeModal }: IProps): JSX.Element 
       return;
     }
 
-    void api(id ? PUT_MANAGE_ROLES : POST_MANAGE_ROLES, true, role);
+    void api(id ? putAction : postAction, true, role);
     
     if (closeModal)
       closeModal();

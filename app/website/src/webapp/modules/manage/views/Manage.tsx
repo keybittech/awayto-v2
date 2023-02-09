@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router';
 
 import Grid from '@mui/material/Grid';
@@ -8,11 +8,12 @@ import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 
-import { IManageRolesActionTypes, IManageGroupsActionTypes } from 'awayto';
-import { useComponents } from 'awayto-hooks';
+import { IGroupActionTypes, IRoleActionTypes } from 'awayto';
+import { useComponents, useRedux } from 'awayto-hooks';
 
-const { CHECK_GROUP_NAME, PUT_MANAGE_GROUPS, POST_MANAGE_GROUPS, GET_MANAGE_GROUPS, DELETE_MANAGE_GROUPS } = IManageGroupsActionTypes;
-const { GET_MANAGE_ROLES } = IManageRolesActionTypes;
+const { GET_ROLES, PUT_ROLES, POST_ROLES } = IRoleActionTypes;
+const { CHECK_GROUPS_NAME, PUT_GROUPS, POST_GROUPS, GET_GROUPS, DELETE_GROUPS } = IGroupActionTypes;
+
 
 declare global {
   interface IProps {
@@ -24,6 +25,11 @@ export function Manage(props: IProps): JSX.Element {
   const { component } = useParams();
 
   const navigate = useNavigate();
+
+  const user = useRedux(state => state.profile);
+  const { roles } = useRedux(state => state.role);
+
+  console.log(Object.values(roles))
 
   const { ManageUsers, ManageGroups, ManageRoles, ManageRoleActions } = useComponents();
 
@@ -39,20 +45,27 @@ export function Manage(props: IProps): JSX.Element {
         return <ManageUsers {...props} />
       case 'groups':
         return <ManageGroups {...props}
-          getAction={GET_MANAGE_GROUPS}
-          deleteAction={DELETE_MANAGE_GROUPS}
-          putAction={PUT_MANAGE_GROUPS}
-          postAction={POST_MANAGE_GROUPS}
-          checkNameAction={CHECK_GROUP_NAME}
-          getRolesAction={GET_MANAGE_ROLES} />
+          groups={user.groups}
+          roles={user.roles}
+          getAction={GET_GROUPS}
+          deleteAction={DELETE_GROUPS}
+          putAction={PUT_GROUPS}
+          postAction={POST_GROUPS}
+          checkNameAction={CHECK_GROUPS_NAME}
+          getRolesAction={GET_ROLES} />
       case 'roles':
-        return <ManageRoles {...props} />
+        return <ManageRoles {...props}
+          roles={roles}
+          getAction={GET_ROLES}
+          putAction={PUT_ROLES}
+          postAction={POST_ROLES}
+        />
       case 'matrix':
         return <ManageRoleActions {...props} />
       default:
         return;
     }
-  }, [component])
+  }, [roles, user.groups, user.roles, component])
 
   return <>
     <h1>Manage</h1>

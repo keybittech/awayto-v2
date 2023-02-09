@@ -6,8 +6,8 @@ declare global {
    * @category Awayto Redux
    */
   interface ISharedState { 
-    schedules: IScheduleState;
-    scheduleContexts: IScheduleContextState;
+    schedule: IScheduleState;
+    scheduleContext: IScheduleContextState;
   }
 
   /**
