@@ -76,12 +76,13 @@ export function Home(props: IProps): JSX.Element {
   const [localId, setLocalId] = useState('');
   const socket = useRef<WebSocket>();
   const [textMessage, setTextMessage] = useState('');
-  const [messages, setMessages] = useState([] as string[]);
-  const [senderStreams, setSenderStreams] = useState({} as SenderStreams);
+  const [messages, setMessages] = useState<string[]>([]);
+  const [pendingMessages, setPendingMessages] = useState<string[]>([]);
+  const [senderStreams, setSenderStreams] = useState<SenderStreams>({});
   const [canStartStop, setCanStartStop] = useState('start');
   const [chatOpen, setChatOpen] = useState(true);
-  const [pendingSDPs, setPendingSDPs] = useState({} as { [prop: string]: RTCSessionDescriptionInit });
-  const [pendingICEs, setPendingICEs] = useState({} as { [prop: string]: RTCIceCandidateInit });
+  const [pendingSDPs, setPendingSDPs] = useState<{ [prop: string]: RTCSessionDescriptionInit }>({});
+  const [pendingICEs, setPendingICEs] = useState<{ [prop: string]: RTCIceCandidateInit }>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
 
@@ -202,18 +203,18 @@ export function Home(props: IProps): JSX.Element {
     // console.log('setting handler')
     if (!socket.current) return;
     const { sender, type, formats, target, sdp, ice, message, rtc } = JSON.parse(await sockMsg.data.text()) as SocketResponseMessageAttributes;
-
-    if (sender === localId || (target !== localId && !(rtc || sdp || ice))) {
+    
+    if (sender === localId || (target !== localId && !(rtc || sdp || ice || message))) {
       return;
     }
 
     if ('text' === type) {
-      setMessages([...messages, message]);
+      setPendingMessages([message]);
     } else if (['join-call', 'peer-response'].includes(type)) {
       // Parties to an incoming caller's 'join-call' will see this, and then notify the caller that they exist in return
       // The caller gets a party member's 'peer-response', and sets them up in return
       if (!localStream && formats) {
-        setMessages([...messages, `${sender} wants to start a ${formats.indexOf('video') > -1 ? 'video' : 'voice'} call.`]);
+        setPendingMessages([`${sender} wants to start a ${formats.indexOf('video') > -1 ? 'video' : 'voice'} call.`])
       }
 
       setSenderStreams(Object.assign({}, senderStreams, {
@@ -264,6 +265,13 @@ export function Home(props: IProps): JSX.Element {
       setPendingSDPs({});
     }
   }, [socket.current, senderStreams, pendingSDPs]);
+
+  useEffect(() => {
+    if (pendingMessages.length) {
+      setMessages([...messages, ...pendingMessages]);
+      setPendingMessages([]);
+    }
+  }, [pendingMessages, messages]);
 
   useEffect(() => {
     if (Object.keys(pendingICEs).length) {
@@ -348,7 +356,7 @@ export function Home(props: IProps): JSX.Element {
     } catch (error) {
       act(SET_SNACK, { snackOn: error as string });
     }
-  }, [socket.current, textMessage]);
+  }, [socket.current, messages, textMessage]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'auto', block: 'end', inline: 'nearest' })
@@ -391,7 +399,7 @@ export function Home(props: IProps): JSX.Element {
     }
   }, [localStream]);
 
-  const messagesMemo = useMemo(() => messages.map((msg, i) => <p style={{ whiteSpace: 'pre-wrap'}} key={i}>{msg}</p>), [messages]);
+  const messagesMemo = useMemo(() => messages.map((msg, i) => <p style={{ overflowWrap: 'anywhere' }} key={i}>{msg}</p>), [messages]);
   const senderStreamsElements = useMemo(() => Object.keys(senderStreams).map(sender => {
     if (senderStreams[sender].mediaStream) {
       return <Video {...props} key={sender} autoPlay srcObject={senderStreams[sender].mediaStream} />
@@ -432,7 +440,7 @@ export function Home(props: IProps): JSX.Element {
             </Grid>}
 
             {/* ---------- Chat ---------- */}
-            <Grid item xs={12} hidden={!chatOpen} style={{ flex: '1' }}>
+            <Grid item xs={12} hidden={!chatOpen} style={{ height: '100%', flex: '1' }}>
               <Grid container direction="column" style={{ height: '100%' }}>
                 <Grid item style={{ flex: '1', overflow: 'auto', color: theme.palette.primary.contrastText, backgroundColor: theme.palette.primary.dark, padding: '0 25px' }}>
                   <Grid container direction="column">
