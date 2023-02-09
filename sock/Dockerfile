@@ -5,7 +5,9 @@ EXPOSE 8080
 WORKDIR /app
 CMD ["node", "sock.js"]
 
-COPY package*.json /app/
-RUN npm i --silent
+COPY package.json /app/
+COPY yarn.lock /app/
+
+RUN yarn install
 
 COPY . /app

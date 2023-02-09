@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.docker.paths.json",
+  "include": [
+    "."
+  ],
+  "compilerOptions": {
+    "target": "es2017",
+    "module": "esnext",
+    "strict": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "noEmit": false
+  }
+}

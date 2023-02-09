@@ -11,12 +11,14 @@ ARG CUST_HOST_IP
 ARG SITE_NAME
 
 WORKDIR /land
-COPY ./app/landing/package*.json /land/
-RUN --mount=type=cache,target=/land/node_modules npm i --silent --no-audit
+COPY ./app/landing/package.json /land/
+COPY ./app/landing/yarn.lock /land/
+RUN --mount=type=cache,target=/land/node_modules yarn install
 
 WORKDIR /app
-COPY ./app/website/package*.json /app/
-RUN --mount=type=cache,target=/app/node_modules npm i --silent --no-audit
+COPY ./app/website/package.json /app/
+COPY ./app/website/yarn.lock /app/
+RUN --mount=type=cache,target=/app/node_modules yarn install
 
 WORKDIR /land
 COPY ./app/landing /land

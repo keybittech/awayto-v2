@@ -1,3 +1,9 @@
+#!/bin/bash
+
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+
+\c sysmaindb
+
 CREATE OR REPLACE VIEW 
     enabled_budgets
 AS
@@ -57,8 +63,8 @@ AS
 SELECT 
     id,
     name,
-		email,
-		phone,
+        email,
+        phone,
     row_number() OVER () as row
 FROM contacts
 WHERE enabled = true;
@@ -69,7 +75,7 @@ AS
 SELECT 
     id,
     name,
-		overbook,
+        overbook,
     row_number() OVER () as row
 FROM schedules
 WHERE enabled = true;
@@ -125,8 +131,8 @@ CREATE OR REPLACE VIEW
 AS
 SELECT 
     id,
-		contact_id as "contactId",
-		details,
+        contact_id as "contactId",
+        details,
     row_number() OVER () as row
 FROM payments
 WHERE enabled = true;
@@ -136,11 +142,11 @@ CREATE OR REPLACE VIEW
 AS
 SELECT 
     id,
-		service_tier_id as "serviceTierId",
-		contact_id as "contactId",
-		payment_id as "paymentId",
-		agreement,
-		description,
+        service_tier_id as "serviceTierId",
+        contact_id as "contactId",
+        payment_id as "paymentId",
+        agreement,
+        description,
     row_number() OVER () as row
 FROM bookings
 WHERE enabled = true;
@@ -150,9 +156,9 @@ CREATE OR REPLACE VIEW
 AS
 SELECT 
     id,
-		booking_id as "bookingId",
-		schedule_bracket_id as "scheduleBracketId",
-		duration,
+        booking_id as "bookingId",
+        schedule_bracket_id as "scheduleBracketId",
+        duration,
     row_number() OVER () as row
 FROM booking_schedule_brackets
 WHERE enabled = true;
@@ -162,16 +168,16 @@ CREATE OR REPLACE VIEW
 AS
 SELECT 
     est.*,
-	essa.* as addons
+    essa.* as addons
 FROM enabled_service_tiers est
 LEFT JOIN LATERAL (
-	SELECT JSON_AGG(s1.*) as addons
-	FROM (
-		SELECT esa.id, esa.name
-		FROM service_tier_addons sta
-		LEFT JOIN enabled_service_addons esa ON esa.id = sta.service_addon_id
-		WHERE sta.service_tier_id = est.id
-	) s1
+    SELECT JSON_AGG(s1.*) as addons
+    FROM (
+        SELECT esa.id, esa.name
+        FROM service_tier_addons sta
+        LEFT JOIN enabled_service_addons esa ON esa.id = sta.service_addon_id
+        WHERE sta.service_tier_id = est.id
+    ) s1
 ) as essa ON true;
 
 CREATE OR REPLACE VIEW
@@ -182,12 +188,12 @@ SELECT
     eest.* as tiers
 FROM enabled_services es
 LEFT JOIN LATERAL (
-	SELECT JSON_AGG(s1.*) as tiers
-	FROM (
-		SELECT este.*
-		FROM enabled_service_tiers_ext este
-		WHERE este."serviceId" = es.id
-	) s1
+    SELECT JSON_AGG(s1.*) as tiers
+    FROM (
+        SELECT este.*
+        FROM enabled_service_tiers_ext este
+        WHERE este."serviceId" = es.id
+    ) s1
 ) as eest ON true;
 
 CREATE OR REPLACE VIEW 
@@ -195,27 +201,27 @@ CREATE OR REPLACE VIEW
 AS
 SELECT 
     es.*,
-		row_to_json(est.*) term,
-		eesb.*,
-		eess.*
+        row_to_json(est.*) term,
+        eesb.*,
+        eess.*
 FROM enabled_schedules es
 LEFT JOIN enabled_schedule_terms est ON est."scheduleId" = es.id
 LEFT JOIN LATERAL (
-	SELECT JSON_AGG(s2.*) as brackets
-	FROM (
-		SELECT esb.*
-		FROM enabled_schedule_brackets esb
-		WHERE esb."scheduleId" = es.id
-	) s2
+    SELECT JSON_AGG(s2.*) as brackets
+    FROM (
+        SELECT esb.*
+        FROM enabled_schedule_brackets esb
+        WHERE esb."scheduleId" = es.id
+    ) s2
 ) as eesb ON true
 LEFT JOIN LATERAL (
-	SELECT JSON_AGG(s3.*) as services
-	FROM (
-		SELECT ess.*
-		FROM schedule_services ss
-		LEFT JOIN enabled_services_ext ess ON ess.id = ss.service_id
-		WHERE ss.schedule_id = es.id
-	) s3
+    SELECT JSON_AGG(s3.*) as services
+    FROM (
+        SELECT ess.*
+        FROM schedule_services ss
+        LEFT JOIN enabled_services_ext ess ON ess.id = ss.service_id
+        WHERE ss.schedule_id = es.id
+    ) s3
 ) as eess ON true;
 
 CREATE OR REPLACE VIEW 
@@ -251,11 +257,13 @@ LEFT JOIN enabled_services es ON es.id = est."serviceId"
 LEFT JOIN enabled_payments ep ON ep.id = eb."paymentId"
 LEFT JOIN enabled_contacts ec ON ec.id = eb."contactId"
 LEFT JOIN LATERAL (
-	SELECT JSON_AGG(s1.*) as brackets
-	FROM (
-		SELECT esb.*, bsb.duration
-		FROM booking_schedule_brackets bsb
-		LEFT JOIN enabled_schedule_brackets esb ON bsb.schedule_bracket_id = esb.id
-		WHERE bsb.booking_id = eb.id
-	) s1
+    SELECT JSON_AGG(s1.*) as brackets
+    FROM (
+        SELECT esb.*, bsb.duration
+        FROM booking_schedule_brackets bsb
+        LEFT JOIN enabled_schedule_brackets esb ON bsb.schedule_bracket_id = esb.id
+        WHERE bsb.booking_id = eb.id
+    ) s1
 ) as eess ON true;
+
+EOSQL

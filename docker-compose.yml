@@ -33,9 +33,10 @@ services:
     build:
       context: ./
       dockerfile: ./auth/Dockerfile
-    ports:
-      - 9001:9000
-      - 8443:8443
+    network_mode: host
+    # ports:
+    #   - 9001:9000
+    #   - 8443:8443
     environment:
       - KC_SPI_TRUSTSTORE_FILE_FILE=/opt/keycloak/conf/KeyStore.jks
       - KC_SPI_TRUSTSTORE_FILE_PASSWORD=123456
@@ -61,18 +62,24 @@ services:
       - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
       - KC_REALM=devel
   db: # postgres
-    image: wcdb
+    image: postgres:13.0
     ports:
       - 8082:5432
     environment:
+      - POSTGRES_DB=sysmaindb
+      - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres #SECRET
-    volumes:
-      - pgdata:/var/lib/postgresql/data
+    volumes: 
+      - ./db/scripts:/docker-entrypoint-initdb.d
+      - pgstore:/var/lib/postgresql/data
+    # volumes:
+    #   - pgvol:/var/lib/postgresql/data
   api: # express passport for keycloak auth
     image: wcapi
     build:
       context: ./
       dockerfile: ./api/Dockerfile
+    # network_mode: host
     ports:
       - 8083:9443
     environment:
@@ -80,7 +87,7 @@ services:
       - KC_REALM=devel
       - KC_CLIENT=devel-client
       - KC_API_CLIENT_ID=api-client
-      - KC_API_CLIENT_SECRET=Px1s9VDXfs8cECKynUMSfL6oc4RtK3Cg
+      - KC_API_CLIENT_SECRET=GjwwglNAgujrqoIJTt87Nw2ij2ieIDF8
       - PG_HOST=${CUST_HOST_IP} #NONSECRET
       - PG_PORT=8082 #NONSECRET
       - PG_USER=postgres #SECRET
@@ -96,8 +103,7 @@ services:
   turn: # STUN/TURN server for WebRTC
     image: wcturn
     network_mode: host
-    build:
-      context: ./turn
+    build: ./turn
     restart: always
     environment:
       - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
@@ -147,7 +153,7 @@ services:
       - elasticsearch
     ports:
       # Graylog web interface and REST API
-      - 9000:9000
+      - 9090:9000
       # Syslog TCP
       - 1514:1514
       # Syslog UDP
@@ -158,9 +164,13 @@ services:
       - 12201:12201/udp
     volumes: # DONE
       - graylogdata:/usr/share/graylog/data
+  mail:
+    image: bytemark/smtp
+    restart: always
+    network_mode: host
 
 volumes:
-  pgdata:
+  pgstore:
     external: true
   graylogdata:
     external: true

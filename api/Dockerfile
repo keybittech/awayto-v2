@@ -7,11 +7,12 @@ RUN mkdir -p /api/build
 
 WORKDIR /api
 
-COPY ./api/package*.json /api/
-RUN --mount=type=cache,target=/api/node_modules npm i --silent --no-audit
+COPY ./api/package.json /api/
+COPY ./api/yarn.lock /api/
+RUN --mount=type=cache,target=/api/node_modules yarn install
 
-COPY ./core /core
 COPY ./api /api
+COPY ./app/website/src/core /api/src/core
 
 RUN --mount=type=cache,target=/api/node_modules npm run build
 

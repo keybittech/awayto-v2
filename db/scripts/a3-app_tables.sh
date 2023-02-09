@@ -1,3 +1,9 @@
+#!/bin/bash
+
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+
+\c sysmaindb
+
 CREATE TABLE budgets (
 	id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
 	name VARCHAR ( 50 ) NOT NULL UNIQUE,
@@ -11,9 +17,9 @@ CREATE TABLE budgets (
 INSERT INTO
 	budgets (name)
 VALUES
-  ('$500 - $1,000'),
-  ('$1,000 - $10,000'),
-  ('$10,000 - $100,000');
+	('\$500 - \$1,000'),
+	('\$1,000 - \$10,000'),
+	('\$10,000 - \$100,000');
 
 CREATE TABLE timelines (
 	id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -28,9 +34,9 @@ CREATE TABLE timelines (
 INSERT INTO
 	timelines (name)
 VALUES
-  ('1 month'),
-  ('6 months'),
-  ('1 year');
+	('1 month'),
+	('6 months'),
+	('1 year');
 
 CREATE TABLE services (
 	id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -46,9 +52,9 @@ CREATE TABLE services (
 INSERT INTO
 	services (name, cost)
 VALUES
-  ('Architecture', 200),
-  ('Development', 200),
-  ('Consulting/Tutoring', 100);
+	('Architecture', 200),
+	('Development', 200),
+	('Consulting/Tutoring', 100);
 
 CREATE TABLE schedule_contexts (
 	id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -63,13 +69,13 @@ CREATE TABLE schedule_contexts (
 INSERT INTO
 	schedule_contexts (name)
 VALUES
-  ('seconds'),
-  ('minutes'),
-  ('hours'),
-  ('days'),
-  ('weeks'),
-  ('months'),
-  ('years');
+	('seconds'),
+	('minutes'),
+	('hours'),
+	('days'),
+	('weeks'),
+	('months'),
+	('years');
 
 CREATE TABLE service_addons (
 	id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -120,7 +126,7 @@ CREATE TABLE contacts (
 CREATE TABLE schedules (
 	id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
 	name VARCHAR ( 50 ),
-  overbook BOOLEAN NOT NULL DEFAULT false,
+	overbook BOOLEAN NOT NULL DEFAULT false,
 	created_on TIMESTAMP NOT NULL DEFAULT NOW(),
 	created_sub VARCHAR ( 50 ),
 	updated_on TIMESTAMP,
@@ -132,7 +138,7 @@ CREATE TABLE schedule_terms (
 	id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
 	schedule_id uuid NOT NULL REFERENCES schedules (id) ON DELETE CASCADE,
 	schedule_context_id uuid NOT NULL REFERENCES schedule_contexts (id) ON DELETE CASCADE,
-  duration INTEGER NOT NULL,
+	duration INTEGER NOT NULL,
 	created_on TIMESTAMP NOT NULL DEFAULT NOW(),
 	created_sub VARCHAR ( 50 ),
 	updated_on TIMESTAMP,
@@ -144,8 +150,8 @@ CREATE TABLE schedule_brackets (
 	id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
 	schedule_id uuid NOT NULL REFERENCES schedules (id) ON DELETE CASCADE,
 	schedule_context_id uuid NOT NULL REFERENCES schedule_contexts (id) ON DELETE CASCADE,
-  bracket INTEGER NOT NULL,
-  multiplier DECIMAL NOT NULL,
+	bracket INTEGER NOT NULL,
+	multiplier DECIMAL NOT NULL,
 	created_on TIMESTAMP NOT NULL DEFAULT NOW(),
 	created_sub VARCHAR ( 50 ),
 	updated_on TIMESTAMP,
@@ -167,13 +173,13 @@ CREATE TABLE schedule_services (
 CREATE TABLE quotes (
 	id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
 	name VARCHAR ( 250 ) NOT NULL,
-  description VARCHAR ( 5000 ) NOT NULL,
+	description VARCHAR ( 5000 ) NOT NULL,
 	budget_id uuid NOT NULL REFERENCES budgets (id) ON DELETE CASCADE,
 	timeline_id uuid NOT NULL REFERENCES timelines (id) ON DELETE CASCADE,
 	service_tier_id uuid NOT NULL REFERENCES service_tiers (id) ON DELETE CASCADE,
 	desired_duration INTEGER NOT NULL,
 	contact_id uuid NOT NULL REFERENCES contacts (id) ON DELETE CASCADE,
-  respond_by TIMESTAMP NOT NULL,
+	respond_by TIMESTAMP NOT NULL,
 	created_on TIMESTAMP NOT NULL DEFAULT NOW(),
 	created_sub VARCHAR ( 50 ),
 	updated_on TIMESTAMP,
@@ -184,7 +190,7 @@ CREATE TABLE quotes (
 CREATE TABLE payments (
 	id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
 	contact_id uuid NOT NULL REFERENCES contacts (id) ON DELETE CASCADE,
-  details jsonb NOT NULL,
+	details jsonb NOT NULL,
 	created_on TIMESTAMP NOT NULL DEFAULT NOW(),
 	created_sub VARCHAR ( 50 ),
 	updated_on TIMESTAMP,
@@ -197,8 +203,8 @@ CREATE TABLE bookings (
 	service_tier_id uuid NOT NULL REFERENCES service_tiers (id) ON DELETE CASCADE,
 	contact_id uuid NOT NULL REFERENCES contacts (id) ON DELETE CASCADE,
 	payment_id uuid NOT NULL REFERENCES payments (id) ON DELETE CASCADE,
-  agreement BOOLEAN NOT NULL,
-  description VARCHAR ( 5000 ) NOT NULL,
+	agreement BOOLEAN NOT NULL,
+	description VARCHAR ( 5000 ) NOT NULL,
 	created_on TIMESTAMP NOT NULL DEFAULT NOW(),
 	created_sub VARCHAR ( 50 ),
 	updated_on TIMESTAMP,
@@ -219,7 +225,4 @@ CREATE TABLE booking_schedule_brackets (
 	UNIQUE (booking_id, schedule_bracket_id)
 );
 
-
-
-
-
+EOSQL

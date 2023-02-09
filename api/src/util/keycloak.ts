@@ -2,7 +2,6 @@
 
 import KcAdminClient from '@keycloak/keycloak-admin-client';
 import { Issuer, Strategy, StrategyVerifyCallbackUserInfo } from 'openid-client';
-import { IUserProfileState } from 'awayto';
 import { Credentials } from '@keycloak/keycloak-admin-client/lib/utils/auth';
 
 const {
@@ -42,10 +41,12 @@ const keycloakClient = new keycloakIssuer.Client({
   response_types: ['code']
 });
 
-const strategyResponder: StrategyVerifyCallbackUserInfo<IUserProfileState> = (tokenSet, userInfo, done) => {
+const strategyResponder: StrategyVerifyCallbackUserInfo<Express.User> = (tokenSet, userInfo, done) => {
   const { preferred_username: username, given_name: firstName, family_name: lastName, email, sub } = tokenSet.claims();
   
-  const userProfileClaims: IUserProfileState = {
+  console.log({ claims: tokenSet.claims(), userInfo })
+
+  const userProfileClaims: Express.User = {
     username,
     firstName,
     lastName,
@@ -56,7 +57,7 @@ const strategyResponder: StrategyVerifyCallbackUserInfo<IUserProfileState> = (to
   return done(null, userProfileClaims);
 }
 
-const keycloakStrategy = new Strategy<IUserProfileState>({ client: keycloakClient }, strategyResponder);
+const keycloakStrategy = new Strategy<Express.User>({ client: keycloakClient }, strategyResponder);
 
 export { 
   keycloak,
