@@ -27,6 +27,7 @@ CREATE TABLE groups (
 	id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
 	external_id VARCHAR(255) NOT NULL UNIQUE,
 	name VARCHAR ( 50 ) NOT NULL UNIQUE,
+	code TEXT NOT NULL,
 	created_on TIMESTAMP NOT NULL DEFAULT NOW(),
 	created_sub VARCHAR ( 50 ),
 	updated_on TIMESTAMP,

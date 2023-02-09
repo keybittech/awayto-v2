@@ -138,14 +138,14 @@ try {
     const requestId = uuid();
     try {
       const body = req.body as AuthEvent;
-      const { type, userId, ipAddress } = body;
+      const { type, userId, ipAddress, details } = body;
 
       // Create trace event
       const event = {
         requestId,
         method: 'POST',
         path: '/api/auth/webhook',
-        username: '',
+        username: details.username || '',
         public: false,
         userSub: userId,
         sourceIp: ipAddress,

@@ -1,5 +1,6 @@
 import { IUserProfile } from 'awayto';
 import { ApiModule, buildUpdate } from '../util/db';
+import { keycloak } from '../util/keycloak';
 
 const users: ApiModule = [
 
@@ -42,6 +43,15 @@ const users: ApiModule = [
           WHERE id = $1
           RETURNING id, first_name as "firstName", last_name as "lastName", email, image
         `, updateProps.array);
+
+        try {
+          await keycloak.users.update({
+            id: props.event.userSub
+          }, {
+            firstName: first_name,
+            lastName: last_name
+          })
+        } catch (error) { }
 
         return user;
 

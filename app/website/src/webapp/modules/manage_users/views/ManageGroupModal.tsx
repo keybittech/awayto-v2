@@ -143,7 +143,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
                 <Typography variant="h6">Roles</Typography>
               </Grid>
               <Grid item xs={12}>
-                <SelectLookup lookupName="Roles" lookups={roles} lookupChange={setRoleIds} lookupValue={roleIds} refetchAction={getRolesAction} multiple createActionType={postRoleAction} deleteActionType={deleteRoleAction} {...props} />
+                <SelectLookup lookupName="Role" lookups={roles} lookupChange={setRoleIds} lookupValue={roleIds} refetchAction={getRolesAction} multiple createActionType={postRoleAction} deleteActionType={deleteRoleAction} {...props} />
               </Grid>
             </Grid>
           </Grid>

@@ -1,5 +1,5 @@
 import GroupRepresentation from '@keycloak/keycloak-admin-client/lib/defs/groupRepresentation';
-import type { IGroup, IUuidRoles, DbError, IUserProfile, IGroupState } from 'awayto';
+import type { IGroup, IUuidRoles, DbError, IUserProfile, IGroupState, IRole } from 'awayto';
 import { ApiModule, asyncForEach, buildUpdate } from '../util/db';
 
 import { keycloak } from '../util/keycloak';
@@ -10,27 +10,31 @@ const groups: ApiModule = [
     method: 'POST',
     path : 'groups',
     cmnd : async (props) => {
+      let externalId: string = '';
+
       try {
 
         const { name, roles } = props.event.body as IGroup;
 
         console.log(roles.map(({ name }) => ({ name })) as GroupRepresentation[]);
 
-        const { id: externalId } = await keycloak.groups.create({
+        const { id: keycloakGroupId } = await keycloak.groups.create({
           name,
-          subGroups: [{}] // roles.map(({ name }) => ({ name })) as GroupRepresentation[]
+          subGroups: [{}]
         });
 
+        externalId = keycloakGroupId;
+
         const { rows: [ group ] } = await props.client.query<IGroup>(`
-          INSERT INTO groups (external_id, name, created_on, created_sub)
-          VALUES ($1, $2, $3, $4)
+          INSERT INTO groups (external_id, code, name, created_on, created_sub)
+          VALUES ($1, $2, $3, $4, $5)
           ON CONFLICT (name) DO NOTHING
           RETURNING id, name, created_sub
-        `, [externalId, name, new Date(), props.event.userSub]);
+        `, [externalId, 'code', name, new Date(), props.event.userSub]);
 
         await asyncForEach(roles, async ({ id: roleId, name }) => {
 
-          keycloak.groups.setOrCreateChild({ id: externalId }, { name });
+          await keycloak.groups.setOrCreateChild({ id: externalId }, { name });
 
           await props.client.query(`
             INSERT INTO uuid_roles (parent_uuid, role_id, created_on, created_sub)
@@ -57,7 +61,10 @@ const groups: ApiModule = [
       } catch (error) {
         const { constraint } = error as DbError;
         
-        if ('unique_owner' === constraint) {
+        if (externalId && 'unique_owner' === constraint) {
+
+          await keycloak.groups.del({ id: externalId })
+
           throw { reason: 'Only 1 group can be managed at a time.'}
         }
 
@@ -79,7 +86,7 @@ const groups: ApiModule = [
           UPDATE groups
           SET ${updateProps.string}
           WHERE id = $1
-          RETURNING id, name
+          RETURNING id, name, external_id as "externalId"
         `, updateProps.array);
 
         const roleIds = roles.map(r => r.id);
@@ -87,15 +94,31 @@ const groups: ApiModule = [
           SELECT id, role_id as "roleId" 
           FROM uuid_roles 
           WHERE parent_uuid = $1
-        `, [group.id])).rows.filter(r => !roleIds.includes(r.roleId)).map(r => r.id) as string[];
+        `, [group.id])).rows.filter(r => !roleIds.includes(r.roleId));
 
         if (diffs.length) {
-          await asyncForEach(diffs, async diff => {
-            await props.client.query('DELETE FROM uuid_roles WHERE id = $1', [diff]);
-          });          
+          await asyncForEach(diffs.map(d => d.id), async diff => {
+            if (diff) {
+              await props.client.query('DELETE FROM uuid_roles WHERE id = $1', [diff]);
+            }
+          });
+          
+          const externalGroup = await keycloak.groups.findOne({ id: group.externalId });
+          if (externalGroup?.subGroups) {
+            const roleNames = (await props.client.query<IRole>(`SELECT name FROM roles WHERE id = ANY($1::uuid[])`, [diffs.map(r => r.roleId)])).rows.map(r => r.name);
+            await asyncForEach(externalGroup?.subGroups.filter(sg => roleNames.indexOf(sg.name as string) > -1 ), async subGroup => {
+              if (subGroup.id) {
+                await keycloak.groups.del({ id: subGroup.id });
+              }
+            });
+          }
         }
 
         await asyncForEach(roles, async role => {
+          try {
+            await keycloak.groups.setOrCreateChild({ id: group.externalId }, { name: role.name });
+          } catch (error) { }
+
           await props.client.query(`
             INSERT INTO uuid_roles (parent_uuid, role_id, created_on, created_sub)
             VALUES ($1, $2, $3, $4)
@@ -105,7 +128,7 @@ const groups: ApiModule = [
 
         group.roles = roles;
 
-        return group;
+        return [group];
         
       } catch (error) {
         throw error;
@@ -146,7 +169,7 @@ const groups: ApiModule = [
           WHERE id = $1
         `, [id]);
         
-        return response.rows[0];
+        return response.rows;
         
       } catch (error) {
         throw error;
@@ -290,6 +313,62 @@ const groups: ApiModule = [
 
         // return { checkingName: false, isValid: count == 0 };
         
+      } catch (error) {
+        throw error;
+      }
+
+    }
+  },
+
+  {
+    method: 'POST',
+    path : 'groups/join/:code',
+    cmnd : async (props) => {
+      try {
+        const { code } = props.event.body as IGroup;
+
+        const [{ id: groupId }] = (await props.client.query<IGroup>(`
+          SELECT id FROM groups WHERE code = $1
+        `, [code])).rows;
+
+        const [{ id: userId }] = (await props.client.query<IUserProfile>(`
+          SELECT id FROM users WHERE sub = $1
+        `, [props.event.userSub])).rows;
+
+        await props.client.query(`
+          INSERT INTO uuid_groups (parent_uuid, group_id)
+          VALUES ($1, $2);
+        `, [userId, groupId]);
+
+        return true;
+      } catch (error) {
+        throw error;
+      }
+
+    }
+  },
+
+  {
+    method: 'POST',
+    path : 'groups/leave/:code',
+    cmnd : async (props) => {
+      try {
+        const { code } = props.event.body as IGroup;
+
+        const [{ id: groupId }] = (await props.client.query<IGroup>(`
+          SELECT id FROM groups WHERE code = $1
+        `, [code])).rows;
+
+        const [{ id: userId }] = (await props.client.query<IUserProfile>(`
+          SELECT id FROM users WHERE sub = $1
+        `, [props.event.userSub])).rows;
+
+        await props.client.query(`
+          DELETE FROM uuid_groups
+          WHERE parent_uuid = $1 AND group_id = $2;
+        `, [userId, groupId]);
+
+        return true;
       } catch (error) {
         throw error;
       }

@@ -28,9 +28,10 @@ CREATE OR REPLACE VIEW
 AS
 SELECT 
     id,
-    external_id,
+    external_id as "externalId",
     name,
-    created_sub,
+    code,
+    created_sub as "createdSub",
     row_number() OVER () as row
 FROM groups
 WHERE enabled = true;

@@ -27,7 +27,9 @@ declare global {
 export type IGroup = {
   id: string;
   externalId: string;
+  createdSub: string;
   name: string;
+  code: string;
   users: number;
   roles: IRole[];
 }
@@ -61,7 +63,9 @@ export enum IGroupActionTypes {
   DELETE_GROUPS = "DELETE/groups/:ids",
   DISABLE_GROUPS = "PUT/groups/:id/disable",
   CHECK_GROUPS_NAME = "GET/groups/valid/:name",
-  GROUPS_USERS_INVITE = "POST/groups/users/invite"
+  GROUPS_USERS_INVITE = "POST/groups/users/invite",
+  GROUPS_JOIN = "POST/groups/join/:code",
+  GROUPS_LEAVE = "POST/groups/leave/:code",
 }
 
 /**
@@ -103,6 +107,16 @@ export type ICheckGroupsNameAction = PayloadAction<IGroupActionTypes.CHECK_GROUP
  * @category Group
  */
 export type IGroupsUsersInviteAction = PayloadAction<IGroupActionTypes.GROUPS_USERS_INVITE, IGroupState>;
+
+/**
+ * @category Group
+ */
+export type IGroupsJoinAction = PayloadAction<IGroupActionTypes.GROUPS_JOIN, IGroupState>;
+
+/**
+ * @category Group
+ */
+export type IGroupsLeaveAction = PayloadAction<IGroupActionTypes.GROUPS_LEAVE, IGroupState>;
 
 /**
  * @category Group

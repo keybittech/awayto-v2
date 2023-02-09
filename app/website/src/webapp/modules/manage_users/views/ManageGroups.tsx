@@ -8,12 +8,17 @@ import Button from '@mui/material/Button';
 import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 import GroupAdd from '@mui/icons-material/GroupAdd';
+import Logout from '@mui/icons-material/Logout';
 
-import { IGroup, IActionTypes, IRole } from 'awayto';
-import { useRedux, useApi } from 'awayto-hooks';
+import { IUtilActionTypes, IGroup, IActionTypes, IRole, IGroupActionTypes } from 'awayto';
+import { useRedux, useApi, useAct } from 'awayto-hooks';
 
 import ManageGroupModal from './ManageGroupModal';
 import InviteUsersModal from './InviteUsersModal';
+import JoinGroupModal from './JoinGroupModal';
+
+const { OPEN_CONFIRM } = IUtilActionTypes;
+const { GROUPS_LEAVE } = IGroupActionTypes;
 
 export type ManageGroupsActions = {
   getAction?: IActionTypes;
@@ -35,8 +40,10 @@ declare global {
 export function ManageGroups(props: IProps): JSX.Element {
   const { getAction, deleteAction, groups } = props as Required<ManageGroupsActions>;
 
+  const act = useAct();
   const api = useApi();
   const util = useRedux(state => state.util);
+  const profile = useRedux(state => state.profile);
   const [group, setGroup] = useState<IGroup>();
   const [toggle, setToggle] = useState(false);
   const [dialog, setDialog] = useState('');
@@ -46,23 +53,37 @@ export function ManageGroups(props: IProps): JSX.Element {
 
   const columns = useMemo(() => [
     { name: 'Name', selector: row => row.name },
+    { name: 'Code', selector: row => row.code },
     { name: 'Users', cell: (group: IGroup) => group.users || 0 },
     { name: 'Roles', cell: (group: IGroup) => group.roles ? group.roles.map(r => r.name).join(', ') : '' },
   ] as TableColumn<IGroup>[], undefined);
 
   const actions = useMemo(() => {
     const { length } = selected;
+    const isOwner = selected[0]?.createdSub === profile.sub;
     const actions = length == 1 ? [
-      <IconButton key={'groups_users_invite'} onClick={() => {
-        setGroup(selected.pop());
-        setDialog('groups_users_invite');
-        setToggle(!toggle);
+      // <IconButton key={'groups_users_invite'} onClick={() => {
+      //   setGroup(selected.pop());
+      //   setDialog('groups_users_invite');
+      //   setToggle(!toggle);
+      // }}>
+      //   <GroupAdd />
+      // </IconButton>,
+      !isOwner && <IconButton key={'groups_leave'} onClick={() => {
+        void act(OPEN_CONFIRM, {
+          isConfirming: true,
+          message: 'Are you sure you want to leave this group?',
+          action: async () => {
+            await api(GROUPS_LEAVE, true, { code: selected.pop()?.code });
+            setToggle(!toggle);
+          }
+        });
       }}>
-        <GroupAdd />
+        <Logout />
       </IconButton>,
-      <IconButton key={'manage_group'} onClick={() => {
+      isOwner && <IconButton key={'groups_manage'} onClick={() => {
         setGroup(selected.pop());
-        setDialog('manage_group');
+        setDialog('groups_manage');
         setToggle(!toggle);
       }}>
         <CreateIcon />
@@ -93,10 +114,28 @@ export function ManageGroups(props: IProps): JSX.Element {
       </Suspense>
     </Dialog>
 
-    <Dialog open={dialog === 'groups_users_invite'} fullWidth maxWidth="sm">
+    {/* <Dialog open={dialog === 'groups_users_invite'} fullWidth maxWidth="sm">
       <Suspense>
         <InviteUsersModal {...props} editGroup={group} closeModal={() => {
           setDialog('');
+        }} />
+      </Suspense>
+    </Dialog> */}
+
+    <Dialog open={dialog === 'groups_join'} fullWidth maxWidth="sm">
+      <Suspense>
+        <JoinGroupModal {...props} editGroup={group} closeModal={() => {
+          setDialog('');
+          void api(getAction);
+        }} />
+      </Suspense>
+    </Dialog>
+
+    <Dialog open={dialog === 'groups_manage'} fullWidth maxWidth="sm">
+      <Suspense>
+        <ManageGroupModal {...props} editGroup={group} closeModal={() => {
+          setDialog('');
+          void api(getAction);
         }} />
       </Suspense>
     </Dialog>
@@ -108,7 +147,7 @@ export function ManageGroups(props: IProps): JSX.Element {
       actions={[
         <Button key={'join_group_button'} onClick={() => {
           setGroup(undefined);
-          setDialog('join_group');
+          setDialog('groups_join');
         }}>Join</Button>,
         <Button key={'create_group_button'} onClick={() => {
           setGroup(undefined);

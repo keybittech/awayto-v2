@@ -13,11 +13,11 @@ const roles: ApiModule = [
 
         const { name } = props.event.body as IRole;
 
-        try {
-          await keycloak.roles.create({
-            name
-          });
-        } catch (error) {}
+        // try {
+        //   await keycloak.roles.create({
+        //     name
+        //   });
+        // } catch (error) {}
 
         const { rows: [ role ] } = await props.client.query<IRole>(`
           WITH input_rows(name, created_sub) as (VALUES ($1, $2)), ins AS (
