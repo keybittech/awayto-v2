@@ -33,7 +33,7 @@ const uuidGroups: ApiModule = [
       try {
         const { id, parentUuid: parent_uuid, groupId: group_id } = props.event.body as IUuidGroups;
 
-        if (!id) throw 'Must have an ID to update uuid_groups';
+        if (!id || !props.event.userSub) return false;
 
         const updateProps = buildUpdate({ id, parent_uuid, group_id, updated_on: (new Date()).toString(), updated_sub: props.event.userSub });
 

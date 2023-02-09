@@ -41,7 +41,9 @@ export type ApiProps = {
   event: {
     method: string;
     path: string;
-    userSub: string;
+    public: boolean;
+    username?: string;
+    userSub?: string;
     sourceIp: string;
     pathParameters: Record<string, string>,
     queryParameters: Record<string, string>,

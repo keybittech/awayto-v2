@@ -35,6 +35,8 @@ const files: ApiModule = [
       try {
         const { id, name, fileTypeId: file_type_id, location } = props.event.body as Required<IFile>;
 
+        if (!id || !props.event.userSub) return false;
+
         const updateProps = buildUpdate({ id, name, file_type_id, location, updated_on: (new Date()).toString(), updated_sub: props.event.userSub });
 
         await props.client.query(`

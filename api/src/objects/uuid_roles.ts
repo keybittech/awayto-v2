@@ -38,7 +38,7 @@ const uuidRoles: ApiModule = [
       try {
         const { id, parentUuid: parent_uuid, roleId: role_id } = props.event.body as IUuidRoles;
 
-        if (!id) return false;
+        if (!id || !props.event.userSub) return false;
 
         const updateProps = buildUpdate({ id, parent_uuid, role_id, updated_on: (new Date()).toString(), updated_sub: props.event.userSub });
 

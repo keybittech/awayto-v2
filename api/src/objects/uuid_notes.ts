@@ -32,6 +32,8 @@ const uuidNotes: ApiModule = [
       try {
         const { id, parentUuid: parent_uuid, note } = props.event.body as IUuidNotes;
 
+        if (!id || !props.event.userSub) return false;
+
         const updateProps = buildUpdate({ id, parent_uuid, note, updated_on: (new Date()).toString(), updated_sub: props.event.userSub });
 
         await props.client.query(`

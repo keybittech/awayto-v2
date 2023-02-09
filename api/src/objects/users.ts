@@ -32,6 +32,8 @@ const users: ApiModule = [
       try {
         const { id, firstName: first_name, lastName: last_name, email, image } = props.event.body as IUserProfile;
 
+        if (!id || !props.event.userSub) return false;
+
         const updateProps = buildUpdate({ id, first_name, last_name, email, image, updated_on: (new Date()).toISOString(), updated_sub: props.event.userSub });
 
         const { rows: [ user ] } = await props.client.query<IUserProfile>(`

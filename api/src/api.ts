@@ -14,7 +14,7 @@ import passport from 'passport';
 import Objects from './objects';
 import { IUserProfileState, IUserProfile, ApiErrorResponse } from 'awayto';
 import { keycloakStrategy } from './util/keycloak';
-import { AuthEvent } from './util/db';
+import { ApiProps, AuthEvent } from './util/db';
 
 const {
   GRAYLOG_HOST,
@@ -132,6 +132,9 @@ try {
   app.use(express.json());
   
   app.post('/api/auth/webhook', async (req, res, next) => {
+
+    // TODO send secret from auth in header to reject unauth'd public calls
+    
     const requestId = uuid();
     try {
       const body = req.body as AuthEvent;
@@ -142,6 +145,8 @@ try {
         requestId,
         method: 'POST',
         path: '/api/auth/webhook',
+        username: '',
+        public: false,
         userSub: userId,
         sourceIp: ipAddress,
         pathParameters: req.params,
@@ -182,6 +187,8 @@ try {
         requestId,
         method,
         path,
+        public: false,
+        username: user.username,
         userSub: user.sub,
         sourceIp: req.headers['x-forwarded-for'] as string,
         pathParameters: req.params,
@@ -189,7 +196,7 @@ try {
         body: req.body
       }
 
-      logger.log('request attempt', event);
+      logger.log('App API Request', event);
 
       try {
         // Handle request
@@ -221,7 +228,7 @@ try {
       const event = {
         method: route.method,
         path: route.path,
-        userSub: 'string',
+        public: true,
         sourceIp: req.headers['x-forwarded-for'] as string,
         pathParameters: req.params,
         queryParameters: req.query as Record<string, string>,

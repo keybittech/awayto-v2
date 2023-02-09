@@ -32,6 +32,8 @@ const uuidFiles: ApiModule = [
       try {
         const { id, parentUuid: parent_uuid, fileId: file_id } = props.event.body as IUuidFiles;
 
+        if (!id || !props.event.userSub) return false;
+
         const updateProps = buildUpdate({ id, parent_uuid, file_id, updated_on: (new Date()).toString(), updated_sub: props.event.userSub });
 
         await props.client.query(`
