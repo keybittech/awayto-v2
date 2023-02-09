@@ -4,6 +4,7 @@ import DataTable, { TableColumn } from 'react-data-table-component';
 import IconButton from '@mui/material/IconButton';
 import Dialog from '@mui/material/Dialog';
 import Button from '@mui/material/Button';
+import Tooltip from '@mui/material/Tooltip';
 
 import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -69,7 +70,7 @@ export function ManageGroups(props: IProps): JSX.Element {
       // }}>
       //   <GroupAdd />
       // </IconButton>,
-      !isOwner && <IconButton key={'groups_leave'} onClick={() => {
+      !isOwner && <Tooltip key={'groups_leave'} title="Leave"><IconButton onClick={() => {
         void act(OPEN_CONFIRM, {
           isConfirming: true,
           message: 'Are you sure you want to leave this group?',
@@ -80,23 +81,23 @@ export function ManageGroups(props: IProps): JSX.Element {
         });
       }}>
         <Logout />
-      </IconButton>,
-      isOwner && <IconButton key={'groups_manage'} onClick={() => {
+      </IconButton></Tooltip>,
+      isOwner && <Tooltip key={'groups_manage'} title="Manage"><IconButton onClick={() => {
         setGroup(selected.pop());
         setDialog('groups_manage');
         setToggle(!toggle);
       }}>
         <CreateIcon />
-      </IconButton>
+      </IconButton></Tooltip>
     ] : [];
 
     return [
       ...actions,
-      <IconButton key={'delete_group'} onClick={async () => {
+      isOwner && <Tooltip key={'delete_group'} title="Delete"><IconButton onClick={async () => {
         await api(deleteAction, true, { ids: selected.map(s => s.id).join(',') })
         setToggle(!toggle);
         void api(getAction, true);
-      }}><DeleteIcon /></IconButton>
+      }}><DeleteIcon /></IconButton></Tooltip>
     ];
   }, [selected]);
 

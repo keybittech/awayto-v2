@@ -1,8 +1,7 @@
-import GroupRepresentation from '@keycloak/keycloak-admin-client/lib/defs/groupRepresentation';
 import type { IGroup, IUuidRoles, DbError, IUserProfile, IGroupState, IRole } from 'awayto';
 import { ApiModule, asyncForEach, buildUpdate } from '../util/db';
 
-import { keycloak } from '../util/keycloak';
+import { keycloak, appClient, appRoles } from '../util/keycloak';
 
 const groups: ApiModule = [
 
@@ -10,49 +9,67 @@ const groups: ApiModule = [
     method: 'POST',
     path : 'groups',
     cmnd : async (props) => {
-      let externalId: string = '';
 
       try {
 
-        const { name, roles } = props.event.body as IGroup;
+        const { name, roles, roleId } = props.event.body as IGroup;
+        let primaryRoleSubgroupId = '';
 
-        console.log(roles.map(({ name }) => ({ name })) as GroupRepresentation[]);
-
-        const { id: keycloakGroupId } = await keycloak.groups.create({
-          name,
-          subGroups: [{}]
-        });
-
-        externalId = keycloakGroupId;
-
+        // Create a group in app db if user has no groups and name is unique
         const { rows: [ group ] } = await props.client.query<IGroup>(`
-          INSERT INTO groups (external_id, code, name, created_on, created_sub)
+          INSERT INTO groups (external_id, code, role_id, name, created_sub)
           VALUES ($1, $2, $3, $4, $5)
           ON CONFLICT (name) DO NOTHING
           RETURNING id, name, created_sub
-        `, [externalId, 'code', name, new Date(), props.event.userSub]);
+        `, [props.event.userSub, props.event.userSub, roleId, name, props.event.userSub]);
 
-        await asyncForEach(roles, async ({ id: roleId, name }) => {
+        // Create a keycloak group if the previous operation was allowed
+        const { id: externalId } = await keycloak.groups.create({ name });
 
-          await keycloak.groups.setOrCreateChild({ id: externalId }, { name });
+        // Update the group with keycloak reference id
+        await props.client.query(`UPDATE groups SET external_id = $1 WHERE id = $2`, [externalId, group.id]);
+
+        // For each group role, create a keycloak subgroup and attach to group uuid
+        await asyncForEach(roles, async ({ id: subgroupId, name }) => {
+
+          const { id: kcSubgroupId } = await keycloak.groups.setOrCreateChild({ id: externalId }, { name });
+
+          // If this is the admin role, attach the core roles
+          if (subgroupId === roleId) {
+            primaryRoleSubgroupId = kcSubgroupId;
+
+            await keycloak.groups.addClientRoleMappings({ 
+              clientUniqueId: appClient.id!,
+              id: primaryRoleSubgroupId,
+              roles: appRoles as { id: string, name: string }[]
+             });
+          }
 
           await props.client.query(`
-            INSERT INTO uuid_roles (parent_uuid, role_id, created_on, created_sub)
-            VALUES ($1, $2, $3, $4)
+            INSERT INTO uuid_roles (parent_uuid, role_id, external_id, created_on, created_sub)
+            VALUES ($1, $2, $3, $4, $5)
             ON CONFLICT (parent_uuid, role_id) DO NOTHING
-          `, [group.id, roleId, new Date(), props.event.userSub])
+          `, [group.id, subgroupId, kcSubgroupId, new Date(), props.event.userSub])
         });
         
+        // Get the user uuid from the sub
         const { rows: [{ id: userId }] } = await props.client.query<IUserProfile>(`
           SELECT id FROM users WHERE sub = $1
         `, [props.event.userSub]);
 
+        // Attach the user to the group in the app db
         await props.client.query(`
           INSERT INTO uuid_groups (parent_uuid, group_id, created_sub)
           VALUES ($1, $2, $3)
           ON CONFLICT (parent_uuid, group_id) DO NOTHING
           RETURNING id
         `, [userId, group.id, props.event.userSub]);
+
+        // Attach the user to the primary role subgroup
+        await keycloak.users.addToGroup({
+          id: props.event.userSub as string,
+          groupId: primaryRoleSubgroupId
+        });
 
         group.roles = roles;
         
@@ -61,10 +78,7 @@ const groups: ApiModule = [
       } catch (error) {
         const { constraint } = error as DbError;
         
-        if (externalId && 'unique_owner' === constraint) {
-
-          await keycloak.groups.del({ id: externalId })
-
+        if ('unique_group_owner' === constraint) {
           throw { reason: 'Only 1 group can be managed at a time.'}
         }
 

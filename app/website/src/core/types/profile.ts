@@ -167,6 +167,7 @@ export type IUuidRoles = {
   id?: string;
   parentUuid: string;
   roleId: string;
+  externalId: string;
 }
 
 /**

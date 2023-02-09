@@ -28,6 +28,7 @@ export type IGroup = {
   id: string;
   externalId: string;
   createdSub: string;
+  roleId: string;
   name: string;
   code: string;
   users: number;

@@ -29,6 +29,7 @@ AS
 SELECT 
     id,
     external_id as "externalId",
+    role_id as "roleId",
     name,
     code,
     created_sub as "createdSub",
@@ -65,6 +66,7 @@ SELECT
     id,
     parent_uuid as "parentUuid",
     role_id as "roleId",
+    external_id as "externalId",
     row_number() OVER () as row
 FROM uuid_roles
 WHERE enabled = true;

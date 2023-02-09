@@ -17,7 +17,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import ArrowRightAlt from '@mui/icons-material/ArrowRightAlt';
 import NotInterestedIcon from '@mui/icons-material/NotInterested';
 
-import { IGroup, IUtilActionTypes } from 'awayto';
+import { IGroup, IRole, IUtilActionTypes } from 'awayto';
 import { useAct, useApi, useRedux, useComponents } from 'awayto-hooks';
 import { ManageGroupsActions } from './ManageGroups';
 
@@ -36,6 +36,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
   const act = useAct();
   const { SelectLookup } = useComponents();
   const { isValid, needCheckName, checkedName, checkingName } = useRedux(state => state.manageGroups);
+  const [primaryRole, setPrimaryRole] = useState('');
   const [roleIds, setRoleIds] = useState<string[]>([]);
   const [group, setGroup] = useState<Partial<IGroup>>({
     name: '',
@@ -56,6 +57,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
     
     group.name = formatName(name);
     group.roles = roles?.filter(r => roleIds.includes(r.id));
+    group.roleId = primaryRole;
     await api(id ? putAction : postAction, true, group);
 
     if (closeModal)
@@ -87,6 +89,12 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
       void api(checkNameAction, true, { name: checkedName })
     }
   }, [needCheckName]);
+
+  useEffect(() => {
+    if (!primaryRole) {
+      setPrimaryRole(roleIds[0]);
+    }
+  }, [roleIds])
   
   return <>
     <Card>
@@ -145,6 +153,19 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
               <Grid item xs={12}>
                 <SelectLookup lookupName="Role" lookups={roles} lookupChange={setRoleIds} lookupValue={roleIds} refetchAction={getRolesAction} multiple createActionType={postRoleAction} deleteActionType={deleteRoleAction} {...props} />
               </Grid>
+              {primaryRole && <Grid item xs={12}>
+                <TextField
+                  select
+                  id={`group-primary-role-selection`}
+                  fullWidth
+                  helperText={'Set the group admin role'}
+                  label={`Roles`}
+                  onChange={e => setPrimaryRole(e.target.value)}
+                  value={primaryRole}
+                >
+                  {roleIds.map(roleId => <MenuItem key={`${roleId}_primary_role_select`} value={roleId}>{roles.find(role => role.id === roleId)?.name || ''}</MenuItem>)}
+                </TextField>
+              </Grid>}
             </Grid>
           </Grid>
         </Grid>

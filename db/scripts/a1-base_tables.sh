@@ -26,6 +26,7 @@ CREATE TABLE users (
 CREATE TABLE groups (
 	id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
 	external_id VARCHAR(255) NOT NULL UNIQUE,
+	role_id uuid NOT NULL REFERENCES roles (id) ON DELETE CASCADE,
 	name VARCHAR ( 50 ) NOT NULL UNIQUE,
 	code TEXT NOT NULL,
 	created_on TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -68,6 +69,7 @@ CREATE TABLE uuid_roles (
 	id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
 	parent_uuid uuid NOT NULL,
 	role_id uuid NOT NULL REFERENCES roles (id) ON DELETE CASCADE,
+	external_id VARCHAR(255),
 	created_on TIMESTAMP NOT NULL DEFAULT NOW(),
 	created_sub VARCHAR ( 50 ),
 	updated_on TIMESTAMP,

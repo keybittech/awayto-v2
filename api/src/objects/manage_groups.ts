@@ -33,7 +33,7 @@ const manageGroups: ApiModule = [
       } catch (error) {
         const { constraint } = error as DbError;
         
-        if ('unique_owner' === constraint) {
+        if ('unique_group_owner' === constraint) {
           throw { reason: 'Only 1 group can be managed at a time.'}
         }
 

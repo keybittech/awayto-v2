@@ -19,6 +19,7 @@
     "express": "^4.18.2",
     "graylog2": "^0.2.1",
     "http-proxy": "^1.18.1",
+    "jwt-decode": "^3.1.2",
     "keycloak-connect": "^20.0.3",
     "openid-client": "^5.3.2",
     "passport": "^0.6.0",
