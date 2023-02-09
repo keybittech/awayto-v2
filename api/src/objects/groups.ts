@@ -1,5 +1,8 @@
-import type { IGroup, IUuidRoles, DbError, IUserProfile } from 'awayto';
+import GroupRepresentation from '@keycloak/keycloak-admin-client/lib/defs/groupRepresentation';
+import type { IGroup, IUuidRoles, DbError, IUserProfile, IGroupState } from 'awayto';
 import { ApiModule, asyncForEach, buildUpdate } from '../util/db';
+
+import { keycloak } from '../util/keycloak';
 
 const groups: ApiModule = [
 
@@ -11,19 +14,29 @@ const groups: ApiModule = [
 
         const { name, roles } = props.event.body as IGroup;
 
+        console.log(roles.map(({ name }) => ({ name })) as GroupRepresentation[]);
+
+        const { id: externalId } = await keycloak.groups.create({
+          name,
+          subGroups: [{}] // roles.map(({ name }) => ({ name })) as GroupRepresentation[]
+        });
+
         const { rows: [ group ] } = await props.client.query<IGroup>(`
-          INSERT INTO groups (name, created_on, created_sub)
-          VALUES ($1, $2, $3)
+          INSERT INTO groups (external_id, name, created_on, created_sub)
+          VALUES ($1, $2, $3, $4)
           ON CONFLICT (name) DO NOTHING
           RETURNING id, name, created_sub
-        `, [name, new Date(), props.event.userSub]);
+        `, [externalId, name, new Date(), props.event.userSub]);
 
-        await asyncForEach(roles, async role => {
+        await asyncForEach(roles, async ({ id: roleId, name }) => {
+
+          keycloak.groups.setOrCreateChild({ id: externalId }, { name });
+
           await props.client.query(`
             INSERT INTO uuid_roles (parent_uuid, role_id, created_on, created_sub)
             VALUES ($1, $2, $3, $4)
             ON CONFLICT (parent_uuid, role_id) DO NOTHING
-          `, [group.id, role.id, new Date(), props.event.userSub])
+          `, [group.id, roleId, new Date(), props.event.userSub])
         });
         
         const { rows: [{ id: userId }] } = await props.client.query<IUserProfile>(`
@@ -151,11 +164,24 @@ const groups: ApiModule = [
         const { ids } = props.event.pathParameters;
 
         await asyncForEach(ids.split(','), async id => {
+
+          const { rows :[{ externalId }] } = await props.client.query<IGroup>(`
+            SELECT external_id as "externalId"
+            FROM groups
+            WHERE id = $1 
+          `, [id]);
+      
+          await keycloak.groups.del({
+            id: externalId
+          });
+
+          // Delete roles assigned to the group
           await props.client.query(`
             DELETE FROM uuid_roles
             WHERE parent_uuid = $1
           `, [id]);
 
+          // Delete group
           await props.client.query(`
             DELETE FROM groups
             WHERE id = $1
@@ -197,7 +223,7 @@ const groups: ApiModule = [
 
   {
     method: 'GET',
-    path : 'group/valid/:name',
+    path : 'groups/valid/:name',
     cmnd : async (props) => {
       try {
         const { name } = props.event.pathParameters;
@@ -209,6 +235,60 @@ const groups: ApiModule = [
         `, [name]);
 
         return { checkingName: false, isValid: count == 0 };
+        
+      } catch (error) {
+        throw error;
+      }
+
+    }
+  },
+
+  {
+    
+    method: 'POST',
+    path : 'groups/users/invite',
+    cmnd : async (props) => {
+      const { users } = props.event.body as IGroupState;
+
+      await asyncForEach(users, async ({ email }) => {
+        try {
+          
+          const { id: userId } = await keycloak.users.create({
+            email,
+            username: email,
+            enabled: true,
+            requiredActions: ['UPDATE_PASSWORD', 'UPDATE_PROFILE', 'VERIFY_EMAIL']
+          });
+
+          await keycloak.users.sendVerifyEmail({ id: userId });
+        } catch (error) {
+          console.log('Invite Failure', error);
+        }
+      })
+
+      return users;
+    }
+  },
+
+  {
+    method: 'POST',
+    path : 'groups/user/role',
+    cmnd : async (props) => {
+      try {
+
+        // manipulate group user roles association
+
+        return true;
+
+        // const { name } = props.event.body;
+
+        // const { rows: [{ count }] } = await props.client.query<{count: number}>(`
+        //   SELECT COUNT(*) as count
+        //   FROM groups
+        //   WHERE name = $1
+        // `, [name]);
+
+        // return { checkingName: false, isValid: count == 0 };
         
       } catch (error) {
         throw error;

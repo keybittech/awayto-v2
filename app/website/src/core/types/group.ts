@@ -1,4 +1,4 @@
-import { PayloadAction, IRole } from '.';
+import { PayloadAction, IRole, IUserProfile } from '.';
 
 declare global {
   /**
@@ -26,6 +26,7 @@ declare global {
  */
 export type IGroup = {
   id: string;
+  externalId: string;
   name: string;
   users: number;
   roles: IRole[];
@@ -41,6 +42,7 @@ export type IGroups = Record<string, IGroup>;
  */
 export type IGroupState = {
   groups: IGroups,
+  users: IUserProfile[],
   isValid: boolean,
   needCheckName: boolean,
   checkingName: boolean,
@@ -59,6 +61,7 @@ export enum IGroupActionTypes {
   DELETE_GROUPS = "DELETE/groups/:ids",
   DISABLE_GROUPS = "PUT/groups/:id/disable",
   CHECK_GROUPS_NAME = "GET/groups/valid/:name",
+  GROUPS_USERS_INVITE = "POST/groups/users/invite"
 }
 
 /**
@@ -95,6 +98,11 @@ export type IDisableGroupAction = PayloadAction<IGroupActionTypes.DISABLE_GROUPS
  * @category Group
  */
 export type ICheckGroupsNameAction = PayloadAction<IGroupActionTypes.CHECK_GROUPS_NAME, IGroupState>;
+
+/**
+ * @category Group
+ */
+export type IGroupsUsersInviteAction = PayloadAction<IGroupActionTypes.GROUPS_USERS_INVITE, IGroupState>;
 
 /**
  * @category Group

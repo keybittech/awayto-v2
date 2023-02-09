@@ -1,6 +1,8 @@
 import { IRole, IUserProfile } from 'awayto';
 import { ApiModule, asyncForEach, buildUpdate } from '../util/db';
 
+import { keycloak } from '../util/keycloak';
+
 const roles: ApiModule = [
 
   {
@@ -10,6 +12,12 @@ const roles: ApiModule = [
       try {
 
         const { name } = props.event.body as IRole;
+
+        try {
+          await keycloak.roles.create({
+            name
+          });
+        } catch (error) {}
 
         const { rows: [ role ] } = await props.client.query<IRole>(`
           WITH input_rows(name, created_sub) as (VALUES ($1, $2)), ins AS (
@@ -26,6 +34,8 @@ const roles: ApiModule = [
           JOIN roles s USING (name);
         `, [name, props.event.userSub]);
         
+            console.log(props.event)
+
         const { rows: [{ id: userId }] } = await props.client.query<IUserProfile>(`
           SELECT id FROM users WHERE sub = $1
         `, [props.event.userSub]);

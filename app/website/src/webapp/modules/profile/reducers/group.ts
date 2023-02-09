@@ -14,6 +14,7 @@ import {
 
 const initialGroupState: IGroupState = {
   groups: {} as Record<string, IGroup>,
+  users: [],
   checkedName: '',
   checkingName: false,
   error: '',

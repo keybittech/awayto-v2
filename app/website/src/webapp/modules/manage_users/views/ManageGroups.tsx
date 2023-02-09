@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useMemo, useCallback, Suspense } from 'react';
 import DataTable, { TableColumn } from 'react-data-table-component';
 
 import IconButton from '@mui/material/IconButton';
@@ -7,11 +7,13 @@ import Button from '@mui/material/Button';
 
 import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
+import GroupAdd from '@mui/icons-material/GroupAdd';
 
 import { IGroup, IActionTypes, IRole } from 'awayto';
 import { useRedux, useApi } from 'awayto-hooks';
 
 import ManageGroupModal from './ManageGroupModal';
+import InviteUsersModal from './InviteUsersModal';
 
 export type ManageGroupsActions = {
   getAction?: IActionTypes;
@@ -27,10 +29,10 @@ export type ManageGroupsActions = {
 };
 
 declare global {
-  interface IProps extends ManageGroupsActions {}
+  interface IProps extends ManageGroupsActions { }
 }
 
-export function ManageGroups (props: IProps): JSX.Element {
+export function ManageGroups(props: IProps): JSX.Element {
   const { getAction, deleteAction, groups } = props as Required<ManageGroupsActions>;
 
   const api = useApi();
@@ -39,7 +41,7 @@ export function ManageGroups (props: IProps): JSX.Element {
   const [toggle, setToggle] = useState(false);
   const [dialog, setDialog] = useState('');
   const [selected, setSelected] = useState<IGroup[]>([]);
-  
+
   const updateState = useCallback((state: { selectedRows: IGroup[] }) => setSelected(state.selectedRows), [setSelected]);
 
   const columns = useMemo(() => [
@@ -47,10 +49,17 @@ export function ManageGroups (props: IProps): JSX.Element {
     { name: 'Users', cell: (group: IGroup) => group.users || 0 },
     { name: 'Roles', cell: (group: IGroup) => group.roles ? group.roles.map(r => r.name).join(', ') : '' },
   ] as TableColumn<IGroup>[], undefined);
-  
+
   const actions = useMemo(() => {
     const { length } = selected;
     const actions = length == 1 ? [
+      <IconButton key={'groups_users_invite'} onClick={() => {
+        setGroup(selected.pop());
+        setDialog('groups_users_invite');
+        setToggle(!toggle);
+      }}>
+        <GroupAdd />
+      </IconButton>,
       <IconButton key={'manage_group'} onClick={() => {
         setGroup(selected.pop());
         setDialog('manage_group');
@@ -76,10 +85,20 @@ export function ManageGroups (props: IProps): JSX.Element {
 
   return <>
     <Dialog open={dialog === 'create_group'} fullWidth maxWidth="sm">
-      <ManageGroupModal {...props} editGroup={group} closeModal={() => {
-        setDialog('');
-        void api(getAction);
-      }} />
+      <Suspense>
+        <ManageGroupModal {...props} editGroup={group} closeModal={() => {
+          setDialog('');
+          void api(getAction);
+        }} />
+      </Suspense>
+    </Dialog>
+
+    <Dialog open={dialog === 'groups_users_invite'} fullWidth maxWidth="sm">
+      <Suspense>
+        <InviteUsersModal {...props} editGroup={group} closeModal={() => {
+          setDialog('');
+        }} />
+      </Suspense>
     </Dialog>
 
 

@@ -231,7 +231,7 @@ export type IManageGroupsState = Partial<IManageGroups>;
  */
 export enum IManageGroupsActionTypes {
   GET_MANAGE_GROUPS = "GET/manage/groups",
-  CHECK_GROUP_NAME = "GET/manage/group/valid/:name",
+  CHECK_GROUP_NAME = "GET/manage/groups/valid/:name",
   POST_MANAGE_GROUPS = "POST/manage/groups",
   PUT_MANAGE_GROUPS = "PUT/manage/groups",
   DELETE_MANAGE_GROUPS = "DELETE/manage/groups",

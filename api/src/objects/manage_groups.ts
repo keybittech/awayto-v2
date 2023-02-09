@@ -177,7 +177,7 @@ const manageGroups: ApiModule = [
 
   {
     method: 'GET',
-    path : 'manage/group/valid/:name',
+    path : 'manage/groups/valid/:name',
     cmnd : async (props) => {
       try {
         const { name } = props.event.pathParameters;
