@@ -3,16 +3,23 @@ import DataTable, { TableColumn } from 'react-data-table-component';
 
 import Checkbox from '@mui/material/Checkbox';
 
-import { IManageRolesActionTypes } from 'awayto';
+import { IRoles, IActionTypes } from 'awayto';
 import { useApi, useRedux } from 'awayto-hooks';
 
-const { GET_MANAGE_ROLES } = IManageRolesActionTypes;
+export type ManageUsersProps = {
+  getRolesAction?: IActionTypes;
+  roles?: IRoles;
+};
 
-export function ManageRoleActions (): JSX.Element {
+declare global {
+  interface IProps extends ManageUsersProps { }
+}
+
+export function ManageRoleActions ({ getRolesAction }: IProps & Required<ManageUsersProps>): JSX.Element {
 
   const api = useApi();
   const util = useRedux(state => state.util);
-  const { roles = [] } = useRedux(state => state.manageRoles);
+  const { roles } = useRedux(state => state.role);
 
   const options = useMemo(
     () =>
@@ -22,14 +29,14 @@ export function ManageRoleActions (): JSX.Element {
 
   const columns = useMemo(() => [
     { name: '', selector: row => row.name },
-    ...roles.reduce((memo, { name }) => {
+    ...Object.values(roles).reduce((memo, { name }) => {
       memo.push({ name, cell: ({  }) => <Checkbox /> }); // TODO Need to take action here to create groupRoleActions
       return memo;
     }, [] as TableColumn<{ name: string }>[])
   ], [roles])
 
   useEffect(() => {
-    void api(GET_MANAGE_ROLES, true);
+    void api(getRolesAction, true);
   }, []);
 
   return <>

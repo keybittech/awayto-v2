@@ -78,8 +78,12 @@ const roles: ApiModule = [
       try {
 
         const response = await props.client.query<IRole>(`
-          SELECT * FROM enabled_roles
-        `);
+          SELECT eur.id, er.name 
+          FROM enabled_roles er
+          LEFT JOIN enabled_uuid_roles eur ON er.id = eur."roleId"
+          LEFT JOIN users u ON u.id = eur."parentUuid"
+          WHERE u.sub = $1
+        `, [props.event.userSub]);
         
         return response.rows;
         

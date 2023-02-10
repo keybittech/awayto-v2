@@ -50,8 +50,8 @@ export function ScheduleHome(props: IProps): JSX.Element {
   const [newTerm, setNewTerm] = useState<IScheduleTerm>({ ...termSchema });
   const [newBracket, setNewBracket] = useState<IScheduleBracket>({ ...bracketSchema });
 
-  const { services } = useRedux(state => state.services);
-  const { schedules } = useRedux(state => state.schedules);
+  const { services } = useRedux(state => state.service);
+  const { schedules } = useRedux(state => state.schedule);
   const { scheduleContexts } = useRedux(state => state.forms);
 
   useEffect(() => {

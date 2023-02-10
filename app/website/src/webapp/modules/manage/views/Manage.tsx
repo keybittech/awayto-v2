@@ -64,7 +64,9 @@ export function Manage(props: IProps): JSX.Element {
           postAction={POST_ROLES}
         />
       case 'matrix':
-        return <ManageRoleActions {...props} />
+        return <ManageRoleActions {...props}
+          getRolesAction={GET_ROLES}  
+        />
       default:
         return;
     }

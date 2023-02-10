@@ -40,7 +40,7 @@ export function BookingHome(props: IProps): JSX.Element {
   const classes = useStyles();
   const api = useApi();
   const { FileManager } = useComponents();
-  const { schedules } = useRedux(state => state.schedules);
+  const { schedules } = useRedux(state => state.schedule);
   const { budgets, timelines, scheduleContexts } = useRedux(state => state.forms);
 
   const [schedule, setSchedule] = useState<ISchedule>();

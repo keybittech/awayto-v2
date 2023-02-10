@@ -41,9 +41,10 @@ const users: ApiModule = [
       try {
 
         const response = await props.client.query<IUser>(`
-          SELECT * FROM enabled_users eu
-          LEFT JOIN enabled_groups eg ON eg."createdSub" = $1
-          LEFT JOIN enabled_uuid_groups eug ON eug."parentUuid" = eg.id
+          SELECT eu.* FROM enabled_users eu
+          LEFT JOIN enabled_uuid_groups eug ON eug."parentUuid" = eu.id
+          LEFT JOIN enabled_groups eg ON eg.id = eug."groupId"
+          WHERE eg."createdSub" = $1
         `, [props.event.userSub]);
         
         return response.rows;

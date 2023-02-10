@@ -42,7 +42,7 @@ export function ServiceHome(props: IProps): JSX.Element {
   const [newServiceTier, setNewServiceTier] = useState<IServiceTier>({ ...serviceTierSchema });
   const [serviceTierAddonIds, setServiceTierAddonIds] = useState<string[]>([]);
 
-  const { services } = useRedux(state => state.services);
+  const { services } = useRedux(state => state.service);
   const { serviceAddons } = useRedux(state => state.forms);
 
   useEffect(() => {

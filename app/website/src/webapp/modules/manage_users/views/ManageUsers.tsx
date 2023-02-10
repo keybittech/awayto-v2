@@ -105,7 +105,6 @@ export function ManageUsers(props: IProps): JSX.Element {
       pagination={true}
       paginationPerPage={5}
       paginationRowsPerPageOptions={[5, 10, 25]}
-      noDataComponent={<CircularProgress />}
     />
   </>
 }
