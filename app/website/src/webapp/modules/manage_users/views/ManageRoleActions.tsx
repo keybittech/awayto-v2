@@ -36,7 +36,8 @@ export function ManageRoleActions ({ getRolesAction }: IProps & Required<ManageU
   ], [roles])
 
   useEffect(() => {
-    void api(getRolesAction, true);
+    const [abort] = api(getRolesAction, true);
+    return () => abort();
   }, []);
 
   return <>

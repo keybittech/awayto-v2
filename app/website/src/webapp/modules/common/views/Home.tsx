@@ -84,9 +84,7 @@ export function Home(props: IProps): JSX.Element {
   const [pendingSDPs, setPendingSDPs] = useState<{ [prop: string]: RTCSessionDescriptionInit }>({});
   const [pendingICEs, setPendingICEs] = useState<{ [prop: string]: RTCIceCandidateInit }>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-
-
+  
   useEffect(() => {
     async function go() {
       try {

@@ -47,7 +47,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
     name.replaceAll(/__+/g, '_').replaceAll(/\s/g, '_').replaceAll(/[\W]+/g, '_').replaceAll(/__+/g, '_').replaceAll(/__+/g, '').toLowerCase()
     , []);
 
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = useCallback(() => {
     const { id, name } = group;
 
     if (!name || !roleIds.length) {
@@ -58,17 +58,12 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
     group.name = formatName(name);
     group.roles = Object.values(roles).filter(r => roleIds.includes(r.id));
     group.roleId = primaryRole;
-    await api(id ? putAction : postAction, true, group);
+    api(id ? putAction : postAction, true, group);
 
     if (closeModal)
       closeModal();
 
   }, [group, roles, roleIds, primaryRole]);
-
-  useEffect(() => {
-    if (!roleIds.length && group.roles?.length)
-      setRoleIds(group.roles.map(r => r.id))
-  }, [roleIds, group.roles]);
 
   const badName = !checkingName && !isValid && !!group?.name && formatName(group.name) == checkedName;
 
@@ -84,14 +79,19 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
   }, [group, setGroup]);
 
   useEffect(() => {
+    if (!roleIds.length && group.roles?.length)
+      setRoleIds(group.roles.map(r => r.id))
+  }, [roleIds, group.roles]);
+
+  useEffect(() => {
     if (needCheckName && checkedName) {
       act(checkNameAction, { checkingName: true, needCheckName: false, isValid: false });
-      void api(checkNameAction, true, { name: checkedName })
+      const [abort] = api(checkNameAction, true, { name: checkedName });
+      return () => abort();
     }
   }, [needCheckName]);
 
   useEffect(() => {
-    console.log('roles changed', roleIds, primaryRole)
     if (!primaryRole) {
       setPrimaryRole(roleIds[0]);
     }

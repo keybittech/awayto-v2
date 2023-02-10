@@ -47,11 +47,16 @@ export function ManageUserModal({ editUser, closeModal }: IProps): JSX.Element {
   });
 
   useEffect(() => {
-    void api(GET_MANAGE_GROUPS, true);
-
-    if (editUser?.id)
-      void api(GET_MANAGE_USERS_BY_ID, true, { id: editUser.id });
+    const [abort] = api(GET_MANAGE_GROUPS, true);
+    return () => abort();
   }, []);
+
+  useEffect(() =>{
+    if (editUser?.id) {
+      const [abort] = api(GET_MANAGE_USERS_BY_ID, true, { id: editUser.id });
+      return () => abort();
+    }
+  }, [editUser]);
 
   useEffect(() => {
     const { groups: userGroups } = editUser || {};
@@ -65,46 +70,46 @@ export function ManageUserModal({ editUser, closeModal }: IProps): JSX.Element {
   const handleProfile = useCallback(({ target: { name, value } }: React.ChangeEvent<HTMLTextAreaElement>) => setProfile({ ...profile, [name]: value }), [profile])
 
   const handleSubmit = useCallback(() => {
-    async function submitUser() {
-      let user = profile as IUserProfile;
-      const { id, sub } = user;
+    // async function submitUser() {
+    //   let user = profile as IUserProfile;
+    //   const { id, sub } = user;
 
-      const groupRoleKeys = Object.keys(userGroupRoles);
+    //   const groupRoleKeys = Object.keys(userGroupRoles);
 
-      if (!groupRoleKeys.length)
-        return act(SET_SNACK, { snackType: 'error', snackOn: 'Group roles must be assigned.' });
+    //   if (!groupRoleKeys.length)
+    //     return act(SET_SNACK, { snackType: 'error', snackOn: 'Group roles must be assigned.' });
 
-      user.groups = groupRoleKeys // { "g1": [...], "g2": [...] } => ["g1", "g2"];
-        .reduce((memo, key) => {
-          if (userGroupRoles[key].length) { // [...].length
-            const group = { ...groups?.find(g => g.name == key) } as IGroup; // Get a copy from repository
-            if (group.roles) {
-              group.roles = group.roles.filter(r => userGroupRoles[key].includes(r.name)) // Filter roles
-              memo.push(group);
-            }
-          }
-          return memo;
-        }, [] as IGroup[]);
+    //   user.groups = groupRoleKeys // { "g1": [...], "g2": [...] } => ["g1", "g2"];
+    //     .reduce((memo, key) => {
+    //       if (userGroupRoles[key].length) { // [...].length
+    //         const group = { ...groups?.find(g => g.name == key) } as IGroup; // Get a copy from repository
+    //         if (group.roles) {
+    //           group.roles = group.roles.filter(r => userGroupRoles[key].includes(r.name)) // Filter roles
+    //           memo.push(group);
+    //         }
+    //       }
+    //       return memo;
+    //     }, [] as IGroup[]);
 
-      // User Update - 3 Scenarios
-      // User-Originated - A user signed up in the wild, created a cognito account, has not done anything to 
-      //                  generate an application account, and now an admin is generating one
-      // Admin-Originated - A user being created by an admin in the manage area
-      // Admin-Updated - A user being updated by an admin in the manage area
+    //   // User Update - 3 Scenarios
+    //   // User-Originated - A user signed up in the wild, created a cognito account, has not done anything to 
+    //   //                  generate an application account, and now an admin is generating one
+    //   // Admin-Originated - A user being created by an admin in the manage area
+    //   // Admin-Updated - A user being updated by an admin in the manage area
 
-      // If there's already a sub, PUT/manage/users will update the sub in cognito;
-      // else we'll POST/manage/users/sub for a new sub
-      user = await api(sub ? PUT_MANAGE_USERS : POST_MANAGE_USERS_SUB, true, sub ? user : { ...user, password }) as IUserProfile;
+    //   // If there's already a sub, PUT/manage/users will update the sub in cognito;
+    //   // else we'll POST/manage/users/sub for a new sub
+    //   user = await api(sub ? PUT_MANAGE_USERS : POST_MANAGE_USERS_SUB, true, sub ? user : { ...user, password }) as IUserProfile;
 
-      // Add user to application db if needed no user.id
-      if (!id)
-        user = await api(sub ? POST_MANAGE_USERS_APP_ACCT : POST_MANAGE_USERS, true, user) as IUserProfile;
+    //   // Add user to application db if needed no user.id
+    //   if (!id)
+    //     user = await api(sub ? POST_MANAGE_USERS_APP_ACCT : POST_MANAGE_USERS, true, user) as IUserProfile;
       
-      if (closeModal)
-        closeModal();
-    }
+    //   if (closeModal)
+    //     closeModal();
+    // }
 
-    void submitUser();
+    // void submitUser();
   }, [profile, password, groups, userGroupRoles]);
 
   const passwordGenerator = useCallback(() => {

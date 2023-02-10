@@ -12,9 +12,18 @@ const serviceAddons: ApiModule = [
         const { name } = props.event.body as IServiceAddon;
 
         const response = await props.client.query<IServiceAddon>(`
-          INSERT INTO service_addons (name)
-          VALUES ($1)
-          RETURNING id, name
+          WITH input_rows(name) as (VALUES ($1)), ins AS (
+            INSERT INTO service_addons (name)
+            SELECT * FROM input_rows
+            ON CONFLICT (name) DO NOTHING
+            RETURNING id, name
+          )
+          SELECT id, name
+          FROM ins
+          UNION ALL
+          SELECT sa.id, sa.name
+          FROM input_rows
+          JOIN service_addons sa USING (name);
         `, [name]);
         
         return response.rows;

@@ -140,8 +140,7 @@ export class ApiResponse {
  * @category Awayto
  */
 export interface CallApi {
-  path?: string;
-  method?: string;
+  actionType: IActionTypes;
   body?: string;
 }
 

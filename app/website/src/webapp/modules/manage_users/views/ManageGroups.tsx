@@ -74,8 +74,8 @@ export function ManageGroups(props: IProps): JSX.Element {
         void act(OPEN_CONFIRM, {
           isConfirming: true,
           message: 'Are you sure you want to leave this group?',
-          action: async () => {
-            await api(GROUPS_LEAVE, true, { code: selected.pop()?.code });
+          action: () => {
+            api(GROUPS_LEAVE, true, { code: selected.pop()?.code });
             setToggle(!toggle);
           }
         });
@@ -94,15 +94,17 @@ export function ManageGroups(props: IProps): JSX.Element {
     return [
       ...actions,
       isOwner && <Tooltip key={'delete_group'} title="Delete"><IconButton onClick={async () => {
-        await api(deleteAction, true, { ids: selected.map(s => s.id).join(',') })
+        const [, res] = api(deleteAction, true, { ids: selected.map(s => s.id).join(',') })
+        await res;
         setToggle(!toggle);
-        void api(getAction, true);
+        api(getAction, true);
       }}><DeleteIcon /></IconButton></Tooltip>
     ];
   }, [selected]);
 
   useEffect(() => {
-    void api(getAction);
+    const [abort] = api(getAction);
+    return () => abort();
   }, []);
 
   return <>

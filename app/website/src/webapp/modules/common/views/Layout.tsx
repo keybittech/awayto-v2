@@ -52,8 +52,12 @@ const Layout = (props: IProps): JSX.Element => {
 
   useEffect(() => {
     if (keycloak.authenticated) {
-      void api(GET_USER_PROFILE_DETAILS);
-      void api(GET_FORMS);
+      const [abort1] = api(GET_USER_PROFILE_DETAILS);
+      const [abort2] = api(GET_FORMS);
+      return () => {
+        abort1();
+        abort2();
+      }
     }
   }, []);
 

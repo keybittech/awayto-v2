@@ -41,7 +41,7 @@ VALUES
 CREATE TABLE services (
 	id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
 	name VARCHAR ( 50 ) NOT NULL UNIQUE,
-	cost INTEGER NOT NULL,
+	cost VARCHAR(50) NOT NULL,
 	created_on TIMESTAMP NOT NULL DEFAULT NOW(),
 	created_sub VARCHAR ( 50 ),
 	updated_on TIMESTAMP,

@@ -33,7 +33,7 @@ declare global {
  * @category Awayto
  */
 export type IUtil = {
-  action(): Promise<void>;
+  action(): void | Promise<void>;
   isConfirming: boolean;
   isLoading: boolean;
   loadingMessage: string;

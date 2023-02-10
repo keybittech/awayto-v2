@@ -2,19 +2,17 @@ import { useCallback } from 'react';
 // import { HttpResponse } from '@aws-sdk/types';
 import routeMatch, { RouteMatch } from 'route-match';
 
-import { 
-  ApiResponseBody, 
-  CallApi, 
-  IActionTypes, 
-  IUtilActionTypes, 
+import {
+  IActionTypes,
+  IUtilActionTypes,
   IFilesActionTypes,
   IScheduleActionTypes,
   IScheduleContextActionTypes,
   IServiceActionTypes,
   IServiceAddonActionTypes,
-  IManageUsersActionTypes, 
-  IManageGroupsActionTypes, 
-  IManageRolesActionTypes, 
+  IManageUsersActionTypes,
+  IManageGroupsActionTypes,
+  IManageRolesActionTypes,
   IUserProfileActionTypes,
   IGroupActionTypes,
   IRoleActionTypes,
@@ -57,33 +55,6 @@ const generator = new PathGenerator(routeCollection);
 
 const { START_LOADING, API_SUCCESS, STOP_LOADING, SET_SNACK } = IUtilActionTypes;
 
-const callApi = async ({ path = '', method = 'GET', body }: CallApi): Promise<Response> => {
-
-  type ApiResponse = Response & Partial<ApiResponseBody> & Response;
-  
-  const response = await fetch(`/api/${path}`, {
-    method, body, headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${keycloak.token as string}`
-    }
-  } as RequestInit) as ApiResponse;
-
-  console.log('This is whats resolved from fetch ', response, response.ok);
-
-  if (response.ok) {
-    try {
-      return await response.json() as Response;
-    } catch (error) {
-      console.log(error )
-      // void keycloak.login();
-    }
-  } else if (403 === response.statusCode) {
-    
-  }
-
-  throw await response.json() as ApiErrorResponse;
-};
-
 
 /**
  * The `useApi` hook provides type-bound api functionality. By passing in a {@link IActionTypes} we can control the structure of the api request, and more easily handle it on the backend.
@@ -108,35 +79,66 @@ const callApi = async ({ path = '', method = 'GET', body }: CallApi): Promise<Re
  * 
  * @category Hooks
  */
-export function useApi(): <T = unknown>(actionType: IActionTypes, load?: boolean, body?: T, meta?: unknown) => Promise<unknown> {
+
+
+export function useApi(): <T = unknown, R = unknown>(actionType: IActionTypes, load?: boolean, body?: Partial<T>, meta?: unknown) => [(reason?: string)=> void, Promise<R> | undefined] {
   const act = useAct();
 
-  const func = useCallback(async <T = unknown>(actionType: IActionTypes, load?: boolean, body?: T, meta?: unknown) => {
-    
-    const methodAndPath = actionType.valueOf().split(/\/(.+)/);
-    const method = methodAndPath[0];
-    let path = methodAndPath[1];
+  const api = useCallback(<T = unknown, R = unknown>(actionType: IActionTypes, load?: boolean, body?: Partial<T>, meta?: unknown): [(reason?: string)=> void, Promise<R> | undefined] => {
 
-    if (load) act(START_LOADING, { isLoading: true });
-    
-    if (['delete', 'get'].indexOf(method.toLowerCase()) > -1 && body && Object.keys(body).length) {
-      // Get the key of the enum from ApiActions based on the path (actionType)
-      const pathKey = Object.keys(ApiActions).filter((x) => ApiActions[x] == actionType)[0];
-      path = generator.generate(pathKey, body as unknown as Record<string, string>).split(/\/(.+)/)[1];
-      body = undefined;
+    const abortController: AbortController = new AbortController();
+    function abort(reason?: string) {
+      abortController.abort(reason);
     }
 
     try {
-      const response = await callApi({
-        path,
+
+      if (load) act(START_LOADING, { isLoading: true });
+
+      let parsedBody = !body ? undefined : 'string' == typeof body ? body : JSON.stringify(body);
+
+      const methodAndPath = actionType.valueOf().split(/\/(.+)/);
+      const method = methodAndPath[0];
+      let path = methodAndPath[1];
+
+      if (['delete', 'get'].indexOf(method.toLowerCase()) > -1 && parsedBody && Object.keys(parsedBody).length) {
+        // Get the key of the enum from ApiActions based on the path (actionType)
+        const pathKey = Object.keys(ApiActions).filter((x) => ApiActions[x] == actionType)[0];
+        path = generator.generate(pathKey, parsedBody as unknown as Record<string, string>).split(/\/(.+)/)[1];
+        parsedBody = undefined;
+      }
+
+      const response = fetch(`/api/${path}`, {
+        signal: abortController.signal,
         method,
-        body: !body ? undefined : 'string' == typeof body ? body : JSON.stringify(body)
+        body: parsedBody,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${keycloak.token as string}`
+        }
+      }).catch(() => {
+        console.warn(method, path, 'Fetch was cancelled due to abort.');
       });
 
-      const responseBody = ('string' === typeof response.body ? JSON.parse(response.body) : response) as T;
-      act(actionType || API_SUCCESS, responseBody as ILoadedState, meta);
-      return responseBody;
-      
+      void response.then(async res => {
+
+        if (res) {
+          console.log('This is whats resolved from fetch ', res, res.ok);
+          try {
+            if (res.ok) {
+              const payload = await res.json() as R;
+              act(actionType || API_SUCCESS, payload as ILoadedState, meta);
+              return payload;
+            } else if (403 === res.status) { }
+  
+            throw await res.json() as ApiErrorResponse;
+          } catch (error) {
+            console.error('Critical error with parsing http response', error)
+          }
+        }
+      });
+
+      return [abort, response as Promise<R>];
     } catch (error) {
       const { requestId, reason } = error as ApiErrorResponse;
       act(SET_SNACK, {
@@ -144,11 +146,12 @@ export function useApi(): <T = unknown>(actionType: IActionTypes, load?: boolean
         snackType: 'error',
         snackOn: 'Error: ' + (reason ? reason : 'Internal service error. You can report this if needed.')
       });
+      
+      return [abort, undefined];
     } finally {
       if (load) act(STOP_LOADING, { isLoading: false });
     }
-
   }, []);
 
-  return func;
+  return api;
 }

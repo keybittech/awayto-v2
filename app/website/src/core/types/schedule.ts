@@ -105,7 +105,7 @@ export type IScheduleContextActions = LogoutAction
   scheduleId?: string;
   scheduleContextId?: string;
   scheduleContextName: string;
-  duration: number;
+  duration: number | null;
 };
 
 /**
@@ -116,7 +116,7 @@ export type IScheduleContextActions = LogoutAction
   scheduleId?: string;
   scheduleContextId?: string;
   scheduleContextName: string;
-  bracket: number;
+  bracket: number | null;
   multiplier: string;
 };
 

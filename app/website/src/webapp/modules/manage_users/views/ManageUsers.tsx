@@ -65,18 +65,19 @@ export function ManageUsers(props: IProps): JSX.Element {
     return [
       ...actions,
       <IconButton key={'lock_user'} onClick={() => {
-        void api(LOCK_MANAGE_USERS, true, selected.map(u => ({ username: u.username })));
+        api(LOCK_MANAGE_USERS, true, selected.map(u => ({ username: u.username })));
         setToggle(!toggle);
       }}><LockIcon /></IconButton>,
       <IconButton key={'unlock_user'} onClick={() => {
-        void api(UNLOCK_MANAGE_USERS, true, selected.map(u => ({ username: u.username })));
+        api(UNLOCK_MANAGE_USERS, true, selected.map(u => ({ username: u.username })));
         setToggle(!toggle);
       }}><LockOpenIcon /></IconButton>,
     ];
   }, [selected])
 
   useEffect(() => {
-    void api(getAction, true);
+    const [abort] = api(getAction, true);
+    return () => abort();
   }, []);
 
   // When we update a user's profile, this will refresh their state in the table once the API has updated manageUsers redux state

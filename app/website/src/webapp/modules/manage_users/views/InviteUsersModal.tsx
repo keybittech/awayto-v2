@@ -22,7 +22,6 @@ export function InviteUsersModal({ closeModal, ...props }: IProps): JSX.Element 
 
   const api = useApi();
   const act = useAct();
-  const theme = useTheme();
 
   const [email, setEmail] = useState('');
   const [users, setUsers] = useState<Partial<IUserProfile>[]>([]);
@@ -32,13 +31,13 @@ export function InviteUsersModal({ closeModal, ...props }: IProps): JSX.Element 
     setEmail('');
   }, [users, email])
 
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = useCallback(() => {
     if (!users.length) {
       act(SET_SNACK, { snackType: 'error', snackOn: 'Please provide at least 1 email.' });
       return;
     }
 
-    await api(GROUPS_USERS_INVITE, true, { users });
+    api(GROUPS_USERS_INVITE, true, { users });
 
     if (closeModal)
       closeModal();

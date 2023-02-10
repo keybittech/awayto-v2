@@ -33,7 +33,7 @@ declare global {
 export type IService = {
   id?: string;
   name: string;
-  cost: number;
+  cost: string;
   tiers: IServiceTier[];
 };
 

@@ -54,7 +54,8 @@ export function Profile(props: IProps): JSX.Element {
   });
 
   useEffect(() => {
-    void api(GET_USER_PROFILE_DETAILS, true);
+    const [abort] = api(GET_USER_PROFILE_DETAILS, true);
+    return () => abort();
   }, []);
 
   useEffect(() => {
@@ -62,12 +63,12 @@ export function Profile(props: IProps): JSX.Element {
   }, [file]);
 
   useEffect(() => {
-    async function getImage() {
+    async function go() {
       if (fileStore && profile.image) {
         setDisplayImage(await fileStore.get(profile.image));
       }
     }
-    void getImage();
+    void go();
   }, [fileStore, profile.image]);
 
   useEffect(() => {

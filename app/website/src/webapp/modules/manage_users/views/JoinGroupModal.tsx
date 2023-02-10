@@ -20,13 +20,13 @@ export function JoinGroupModal ({ closeModal }: IProps): JSX.Element {
 
   const [code, setCode] = useState('');
 
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = useCallback(() => {
     if (!code) {
       act(SET_SNACK, { snackType: 'error', snackOn: 'Please provide at least 1 code.' });
       return;
     }
 
-    await api(GROUPS_JOIN, true, { code });
+    api(GROUPS_JOIN, true, { code });
 
     if (closeModal)
       closeModal();

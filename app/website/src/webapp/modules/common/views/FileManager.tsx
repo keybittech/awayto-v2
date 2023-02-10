@@ -37,20 +37,20 @@ export function FileManager (): JSX.Element {
     }
   }
 
-  useEffect(() => {
-    if (newFiles.length) {
-      async function go() {
-        const postFiles: IFile[] = [];
-        for (let i = 0, v = newFiles.length; i < v; i++) {
-          const file = newFiles[i];
-          const location = await fileStore.post(file);
-          postFiles.push({ location, name: file.name, fileTypeName: FileStoreStrategies.FILE_SYSTEM })
-        }
-        void api(POST_FILES, true, postFiles);
-      }
-      void go();
-    }
-  }, [newFiles])
+  // useEffect(() => {
+  //   if (newFiles.length) {
+  //     async function go() {
+  //       const postFiles: IFile[] = [];
+  //       for (let i = 0, v = newFiles.length; i < v; i++) {
+  //         const file = newFiles[i];
+  //         const location = await fileStore.post(file);
+  //         postFiles.push({ location, name: file.name, fileTypeName: FileStoreStrategies.FILE_SYSTEM })
+  //       }
+  //       void api(POST_FILES, true, postFiles);
+  //     }
+  //     void go();
+  //   }
+  // }, [newFiles])
 
   const columns = useMemo(() => [
     { name: 'Name', selector: row => row.name },
