@@ -102,7 +102,7 @@ export function ScheduleHome(props: IProps): JSX.Element {
                 <SelectLookup lookupName="Schedule Context" lookups={scheduleContexts} lookupChange={(val: string) => {
                   const context = scheduleContexts?.find(c => c.id === val);
                   setNewTerm({ ...newTerm, scheduleContextName: context ? context.name : '', scheduleContextId: context ? context.id : '' })
-                }} lookupValue={newTerm.scheduleContextId} createActionType={POST_SCHEDULE_CONTEXT} deleteActionType={DELETE_SCHEDULE_CONTEXT} refetchAction={GET_FORMS} {...props} />
+                }} lookupValue={newTerm.scheduleContextId} refetchAction={GET_FORMS} {...props} />
               </Box>
 
               {newTerm.scheduleContextName && <Box mb={4}>
@@ -167,7 +167,7 @@ export function ScheduleHome(props: IProps): JSX.Element {
                 <SelectLookup lookupName="Bracket Duration" lookups={scheduleContexts} lookupChange={(val: string) => {
                   const context = scheduleContexts?.find(c => c.id === val);
                   setNewBracket({ ...newBracket, scheduleContextName: context ? context.name : '', scheduleContextId: context ? context.id : '' })
-                }} lookupValue={newBracket.scheduleContextId} createActionType={POST_SCHEDULE_CONTEXT} deleteActionType={DELETE_SCHEDULE_CONTEXT} refetchAction={GET_FORMS} {...props} />
+                }} lookupValue={newBracket.scheduleContextId} refetchAction={GET_FORMS} {...props} />
               </Box>
 
               {newBracket.scheduleContextName && <Box mb={4}>
@@ -207,16 +207,16 @@ export function ScheduleHome(props: IProps): JSX.Element {
           <Grid container>
             <Grid item xs={12} md={6}>
 
-              <Box mb={4}>
+              <Box>
                 <Typography variant="h6">Brackets</Typography>
                 <Typography variant="body2">Brackets will be shown here and take effect in the order you add them.</Typography>
-                <Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                {newSchedule.brackets.length > 0 && <Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
                   {newSchedule.brackets.map((bracket, i) => {
                     return <Box key={`bracket-chip${i + 1}new`} m={1}><Chip label={`#${i + 1} ${bracket.bracket || ''} ${bracket.scheduleContextName} (${bracket.multiplier}x)`} onDelete={() => {
                       setNewSchedule({ ...newSchedule, brackets: newSchedule.brackets?.filter((b, z) => i !== z) });
                     }} /></Box>
                   })}
-                </Box>
+                </Box>}
               </Box>
 
             </Grid>

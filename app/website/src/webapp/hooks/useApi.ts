@@ -81,10 +81,10 @@ const { START_LOADING, API_SUCCESS, STOP_LOADING, SET_SNACK } = IUtilActionTypes
  */
 
 
-export function useApi(): <T = unknown, R = unknown>(actionType: IActionTypes, load?: boolean, body?: Partial<T>, meta?: unknown) => [(reason?: string)=> void, Promise<R> | undefined] {
+export function useApi(): <T = unknown, R = ILoadedState>(actionType: IActionTypes, load?: boolean, body?: Partial<T>, meta?: unknown) => [(reason?: string)=> void, Promise<void | R> | undefined] {
   const act = useAct();
 
-  const api = useCallback(<T = unknown, R = unknown>(actionType: IActionTypes, load?: boolean, body?: Partial<T>, meta?: unknown): [(reason?: string)=> void, Promise<R> | undefined] => {
+  const api = useCallback(<T = unknown, R = ILoadedState>(actionType: IActionTypes, load?: boolean, body?: Partial<T>, meta?: unknown): [(reason?: string)=> void, Promise<void | R> | undefined] => {
 
     const abortController: AbortController = new AbortController();
     function abort(reason?: string) {
@@ -95,50 +95,39 @@ export function useApi(): <T = unknown, R = unknown>(actionType: IActionTypes, l
 
       if (load) act(START_LOADING, { isLoading: true });
 
-      let parsedBody = !body ? undefined : 'string' == typeof body ? body : JSON.stringify(body);
-
       const methodAndPath = actionType.valueOf().split(/\/(.+)/);
       const method = methodAndPath[0];
       let path = methodAndPath[1];
 
-      if (['delete', 'get'].indexOf(method.toLowerCase()) > -1 && parsedBody && Object.keys(parsedBody).length) {
+      let jsonBody: string | undefined = JSON.stringify(body);
+
+      if (['delete', 'get'].indexOf(method.toLowerCase()) > -1 && body) {
         // Get the key of the enum from ApiActions based on the path (actionType)
         const pathKey = Object.keys(ApiActions).filter((x) => ApiActions[x] == actionType)[0];
-        path = generator.generate(pathKey, parsedBody as unknown as Record<string, string>).split(/\/(.+)/)[1];
-        parsedBody = undefined;
+        path = generator.generate(pathKey, body as Record<string, string>).split(/\/(.+)/)[1];
+        jsonBody = undefined;
       }
 
       const response = fetch(`/api/${path}`, {
         signal: abortController.signal,
         method,
-        body: parsedBody,
+        body: jsonBody,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${keycloak.token as string}`
         }
-      }).catch(() => {
+      })
+      .then(res => res.json())
+      .then((data: R) => {
+        console.log('This is whats resolved from fetch ', data);
+        act(actionType || API_SUCCESS, data as ILoadedState, meta);
+        return data;
+      })
+      .catch(() => {
         console.warn(method, path, 'Fetch was cancelled due to abort.');
       });
 
-      void response.then(async res => {
-
-        if (res) {
-          console.log('This is whats resolved from fetch ', res, res.ok);
-          try {
-            if (res.ok) {
-              const payload = await res.json() as R;
-              act(actionType || API_SUCCESS, payload as ILoadedState, meta);
-              return payload;
-            } else if (403 === res.status) { }
-  
-            throw await res.json() as ApiErrorResponse;
-          } catch (error) {
-            console.error('Critical error with parsing http response', error)
-          }
-        }
-      });
-
-      return [abort, response as Promise<R>];
+      return [abort, response];
     } catch (error) {
       const { requestId, reason } = error as ApiErrorResponse;
       act(SET_SNACK, {

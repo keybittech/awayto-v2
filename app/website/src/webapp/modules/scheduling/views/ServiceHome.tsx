@@ -61,14 +61,18 @@ export function ServiceHome(props: IProps): JSX.Element {
       <Card>
         <CardHeader title="Service" />
         <CardContent sx={{ padding: '0 15px' }}>
-          <Box mx={4}>
-            <Typography variant="body2">A service is the base level object that will be offered for sale to your users. Services can have tiers and features, which can increase the cost of the base service via a multiplier on the tier. Or create a base tier and add all</Typography>
-            <Typography variant="h6">Current Services: <Typography style={{ verticalAlign: 'middle' }} variant="caption">{Object.values(services).map(({ id, name }, i) => <Chip key={`del_serv_${i}`} label={name} onDelete={() => {
-              console.log('deleting', id)
+          <Grid container>
+            <Grid item>
+              <Box mb={2}>
+                <Typography variant="body2">A service is the base level object that will be offered for sale to your users. Services can have tiers and features, which can increase the cost of the base service via a multiplier on the tier. Or create a base tier and add all</Typography>
+                <Typography variant="h6">Current Services: <Typography style={{ verticalAlign: 'middle' }} variant="caption">{Object.values(services).map(({ id, name }, i) => <Chip key={`del_serv_${i}`} label={name} onDelete={() => {
+                  console.log('deleting', id)
 
-              void api(DELETE_SERVICE, true, { id });
-            }}></Chip>)}</Typography></Typography>
-          </Box>
+                  void api(DELETE_SERVICE, true, { id });
+                }}></Chip>)}</Typography></Typography>
+              </Box>
+            </Grid>
+          </Grid>
         </CardContent>
       </Card>
     </Grid>
@@ -84,7 +88,7 @@ export function ServiceHome(props: IProps): JSX.Element {
               </Box>
 
               <Box>
-                <TextField fullWidth label="Cost" value={newService.cost || ''} onChange={e => validCost(e.target.value) && setNewService({ ...newService, cost: e.target.value })} />
+                <TextField fullWidth label="Cost" value={newService.cost || ''} onChange={e => validCost(e.target.value) && setNewService({ ...newService, cost: /\.\d\d/.test(e.target.value) ? parseFloat(e.target.value).toFixed(2) : e.target.value })} />
               </Box>
             </Grid>
           </Grid>
@@ -99,7 +103,7 @@ export function ServiceHome(props: IProps): JSX.Element {
             <Grid item xs={12} md={6}>
               <Box mb={4}>
                 <Typography variant="h6">Add Tier</Typography>
-                <Typography variant="body1">Some services divide their offering up into tiers. For example, a "Basic" tier may some basic features, and the "Advanced" tier has more features. You should have at least 1 tier which describes the features offered by your service. During booking, your users will see the information.</Typography>
+                <Typography variant="body2">Some services divide their offering up into tiers. For example, a "Basic" tier may some basic features, and the "Advanced" tier has more features. You should have at least 1 tier which describes the features offered by your service. During booking, your users will see the information.</Typography>
               </Box>
 
               <Box mb={4}>
@@ -110,7 +114,7 @@ export function ServiceHome(props: IProps): JSX.Element {
               <Box mb={4} sx={{ display: 'flex', alignItems: 'baseline' }}>
                 <SelectLookup lookupName="Feature" lookups={serviceAddons} lookupChange={(val: string[]) => {
                   const sa = serviceAddons.filter(s => val.includes(s.id as string)).map(s => s.id as string);
-                  setServiceTierAddonIds([ ...sa ])
+                  setServiceTierAddonIds([...sa])
                 }} lookupValue={serviceTierAddonIds} multiple createActionType={POST_SERVICE_ADDON} deleteActionType={DELETE_SERVICE_ADDON} refetchAction={GET_FORMS} {...props} />
               </Box>
 
@@ -125,13 +129,13 @@ export function ServiceHome(props: IProps): JSX.Element {
           </Grid>
         </CardContent>
         <CardActionArea onClick={() => {
-          if (newServiceTier.name) {
+          if (newServiceTier.name && serviceTierAddonIds.length) {
             newServiceTier.addons = serviceTierAddonIds?.map(id => ({ name: serviceAddons.find(sa => sa.id === id)?.name as string }));
             newService.tiers?.push(newServiceTier);
             setNewServiceTier({ ...serviceTierSchema });
             setServiceTierAddonIds([]);
           } else {
-            void act(SET_SNACK, { snackOn: 'Provide a tier name.', snackType: 'info' });
+            void act(SET_SNACK, { snackOn: 'Provide a tier name and at least 1 feature.', snackType: 'info' });
           }
         }}>
           <Box mx={2} sx={{ display: 'flex', alignItems: 'center' }}>
@@ -140,20 +144,20 @@ export function ServiceHome(props: IProps): JSX.Element {
         </CardActionArea>
       </Card>
     </Grid>
-    
+
     <Grid item xs={12}>
       <Card>
         <CardContent sx={{ padding: '0 15px' }}>
-          <Box mb={4}>
+          <Box>
             <Typography variant="h6">Tiers</Typography>
-            <Typography variant="body1">The order that tiers appear here is the order they will be listed during booking.</Typography>
-            <Box mt={4} sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+            <Typography variant="body2">The order that tiers appear here is the order they will be listed during booking.</Typography>
+            {newService.tiers?.length > 0 && <Box mt={4} sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
               {newService.tiers?.map((tier, i) => {
                 return <Box key={`service-tier-chip${i + 1}new`} m={1}><Chip classes={{ root: classes.chipRoot, label: classes.chipLabel }} label={<Typography>{`#${i + 1} ` + tier.name + ' (' + tier.multiplier + 'x): ' + (tier.addons.length ? tier.addons.map(a => a.name).join(', ') : 'No features.')}</Typography>} onDelete={() => {
                   setNewService({ ...newService, tiers: newService.tiers?.filter(t => t.name !== tier.name) });
                 }} /></Box>
               })}
-            </Box>
+            </Box>}
           </Box>
         </CardContent>
       </Card>
@@ -163,7 +167,7 @@ export function ServiceHome(props: IProps): JSX.Element {
       <Card>
         <CardActionArea onClick={() => {
           if (newService.name && newService.tiers?.length) {
-            const [,res] = api(POST_SERVICE, true, { ...newService })
+            const [, res] = api(POST_SERVICE, true, { ...newService })
             if (res) {
               void res.then(() => {
                 act(SET_SNACK, { snackOn: 'Successfully added ' + (newService.name || ''), snackType: 'info' });
@@ -171,13 +175,13 @@ export function ServiceHome(props: IProps): JSX.Element {
                 setServiceTierAddonIds([]);
               });
             }
-            
+
           } else {
             void act(SET_SNACK, { snackOn: 'Provide a service name, cost and at least 1 tier.', snackType: 'info' });
           }
         }}>
           <Box mx={2} sx={{ display: 'flex', alignItems: 'center' }}>
-            <Typography variant="button">Create</Typography>
+            <Typography variant="button">Create Service</Typography>
           </Box>
         </CardActionArea>
       </Card>

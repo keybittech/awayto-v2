@@ -62,16 +62,11 @@ export function BookingHome(props: IProps): JSX.Element {
   useEffect(() => {
     const [id] = Object.keys(schedules);
     if (id && !schedules[id].services) {
-
       const [abort, res] = api<ISchedule, ISchedule[]>(GET_SCHEDULE_BY_ID, true, { id })
       if (res) {
-        void res.then(res => {
-          if (res) {
-            const [sched] = res;
-            // Here we'll use the response in this special case to get the deeply
-            // structured object on first load, rather than wait for redux to update
-            // otherwise we'd require a new useEffect watching the first object of schedules, bad
-            
+        res?.then(data => {
+          if (data) {
+            const [sched] = data;
             setSchedule(sched);
             setService(sched.services?.at(0));
             setTier(sched.services?.at(0)?.tiers?.at(0))
