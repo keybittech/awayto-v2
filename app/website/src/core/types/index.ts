@@ -169,6 +169,7 @@ export * from './profile';
 
 export * from './group';
 export * from './role';
+export * from './user';
 
 export * from './booking';
 export * from './contact';

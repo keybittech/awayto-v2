@@ -1,9 +1,8 @@
 import { IUserProfile } from 'awayto';
-import { keycloak } from '../util/keycloak';
-import { AuthEvent, AuthEventHandler } from '../util/db';
-import users from './users';
+import { AuthEvent, IWebhooks } from '../util/db';
+import profiles from './profiles';
 
-export const AuthEventHandlers: AuthEventHandler = { 
+export const AuthWebhooks: IWebhooks = { 
   AUTH_REGISTER: async (props) => {
     const { userId, details, ipAddress } = props.event.body as AuthEvent;
 
@@ -18,9 +17,9 @@ export const AuthEventHandlers: AuthEventHandler = {
     props.event.sourceIp = ipAddress;
     props.event.body = user;
 
-    const usersApiPostUser = users.findIndex(api => 'post' === api.method.toLowerCase() && 'users' === api.path.toLowerCase());
+    const postUserProfile = profiles.findIndex(api => 'post' === api.method.toLowerCase() && 'profile' === api.path.toLowerCase());
 
-    await users[usersApiPostUser].cmnd(props) as IUserProfile;
+    await profiles[postUserProfile].cmnd(props) as IUserProfile;
   },
   AUTH_LOGIN: async event => {
   },

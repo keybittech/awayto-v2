@@ -8,9 +8,10 @@ import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 
-import { IGroupActionTypes, IRoleActionTypes } from 'awayto';
+import { IGroupActionTypes, IRoleActionTypes, IUserActionTypes } from 'awayto';
 import { useComponents, useRedux } from 'awayto-hooks';
 
+const { GET_USERS } = IUserActionTypes; 
 const { GET_ROLES, PUT_ROLES, POST_ROLES } = IRoleActionTypes;
 const { CHECK_GROUPS_NAME, PUT_GROUPS, POST_GROUPS, GET_GROUPS, DELETE_GROUPS } = IGroupActionTypes;
 
@@ -28,8 +29,7 @@ export function Manage(props: IProps): JSX.Element {
 
   const user = useRedux(state => state.profile);
   const { roles } = useRedux(state => state.role);
-
-  console.log(Object.values(roles))
+  const { users } = useRedux(state => state.user);
 
   const { ManageUsers, ManageGroups, ManageRoles, ManageRoleActions } = useComponents();
 
@@ -42,7 +42,10 @@ export function Manage(props: IProps): JSX.Element {
   const viewPage = useMemo(() => {
     switch (component) {
       case 'users':
-        return <ManageUsers {...props} />
+        return <ManageUsers {...props}
+          users={users}
+          getAction={GET_USERS}
+        />
       case 'groups':
         return <ManageGroups {...props}
           groups={user.groups}
@@ -65,7 +68,7 @@ export function Manage(props: IProps): JSX.Element {
       default:
         return;
     }
-  }, [roles, user.groups, user.roles, component])
+  }, [roles, users, user.groups, user.roles, component])
 
   return <>
     <h1>Manage</h1>

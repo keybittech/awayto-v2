@@ -18,6 +18,7 @@ import {
   IUserProfileActionTypes,
   IGroupActionTypes,
   IRoleActionTypes,
+  IUserActionTypes,
   ApiErrorResponse,
   ILoadedState
 } from 'awayto';
@@ -41,7 +42,8 @@ let ApiActions = Object.assign(
   IManageRolesActionTypes,
   IUserProfileActionTypes,
   IGroupActionTypes,
-  IRoleActionTypes
+  IRoleActionTypes,
+  IUserActionTypes
 ) as Record<string, string>;
 
 const { Route, RouteCollection, PathGenerator } = routeMatch as RouteMatch;
@@ -146,7 +148,7 @@ export function useApi(): <T = unknown>(actionType: IActionTypes, load?: boolean
       if (load) act(STOP_LOADING, { isLoading: false });
     }
 
-  }, [])
+  }, []);
 
   return func;
 }

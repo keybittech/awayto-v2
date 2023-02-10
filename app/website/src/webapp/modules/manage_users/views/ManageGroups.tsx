@@ -11,7 +11,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import GroupAdd from '@mui/icons-material/GroupAdd';
 import Logout from '@mui/icons-material/Logout';
 
-import { IUtilActionTypes, IGroup, IActionTypes, IRole, IGroupActionTypes } from 'awayto';
+import { IUtilActionTypes, IGroup, IActionTypes, IRoles, IGroups, IGroupActionTypes } from 'awayto';
 import { useRedux, useApi, useAct } from 'awayto-hooks';
 
 import ManageGroupModal from './ManageGroupModal';
@@ -30,8 +30,8 @@ export type ManageGroupsActions = {
   checkNameAction?: IActionTypes;
   postRoleAction?: IActionTypes;
   deleteRoleAction?: IActionTypes;
-  groups?: IGroup[];
-  roles?: IRole[];
+  groups?: IGroups;
+  roles?: IRoles;
 };
 
 declare global {
@@ -156,7 +156,7 @@ export function ManageGroups(props: IProps): JSX.Element {
         }}>Create</Button>
       ]}
       contextActions={actions}
-      data={groups ? groups : []}
+      data={groups ? Object.values(groups) : []}
       theme={util.theme}
       columns={columns}
       selectableRows

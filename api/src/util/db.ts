@@ -29,7 +29,7 @@ export type AuthEvent = {
   details: Record<string, string>
 };
 
-export type AuthEventHandler = {
+export type IWebhooks = {
   [prop: string]: (event: ApiProps) => Promise<void>;
 };
 

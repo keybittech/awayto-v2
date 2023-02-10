@@ -1,25 +1,17 @@
-import { IUserProfile } from 'awayto';
-import { ApiModule, buildUpdate } from '../util/db';
-import { keycloak } from '../util/keycloak';
+import { IUser } from 'awayto';
+import { ApiModule, asyncForEach } from '../util/db';
 
 const users: ApiModule = [
 
   {
     method: 'POST',
-    path: 'users',
-    cmnd: async (props) => {
+    path : 'users',
+    cmnd : async (props) => {
       try {
 
-        const { firstName, lastName, username, email, image, sub } = props.event.body as IUserProfile;
-            
-        const { rows: [ user ] } = await props.client.query<IUserProfile>(`
-          INSERT INTO users(sub, username, first_name, last_name, email, image, created_on, created_sub, ip_address)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-          RETURNING id, sub, username, first_name as "firstName", last_name as "lastName", email, image
-        `, [sub || props.event.userSub, username, firstName, lastName, email, image, new Date(), props.event.userSub, props.event.sourceIp]);
-
-        return user;
-
+        // A group owner is trying to post a new user here?
+        // Probably doesn't happen
+        return true;
       } catch (error) {
         throw error;
       }
@@ -28,52 +20,34 @@ const users: ApiModule = [
 
   {
     method: 'PUT',
-    path: 'users',
-    cmnd: async (props) => {
+    path : 'users',
+    cmnd : async (props) => {
       try {
-        const { id, firstName: first_name, lastName: last_name, email, image } = props.event.body as IUserProfile;
 
-        if (!id || !props.event.userSub) return false;
-
-        const updateProps = buildUpdate({ id, first_name, last_name, email, image, updated_on: (new Date()).toISOString(), updated_sub: props.event.userSub });
-
-        const { rows: [ user ] } = await props.client.query<IUserProfile>(`
-          UPDATE users
-          SET ${updateProps.string}
-          WHERE id = $1
-          RETURNING id, first_name as "firstName", last_name as "lastName", email, image
-        `, updateProps.array);
-
-        try {
-          await keycloak.users.update({
-            id: props.event.userSub
-          }, {
-            firstName: first_name,
-            lastName: last_name
-          })
-        } catch (error) { }
-
-        return user;
-
+        // A group owner is trying to put an existing user here?
+        // Probably doesn't happen
+        return true;
       } catch (error) {
         throw error;
       }
+
     }
   },
 
   {
     method: 'GET',
-    path: 'users/details',
-    cmnd: async (props) => {
+    path : 'users',
+    cmnd : async (props) => {
       try {
-        const response = await props.client.query<IUserProfile>(`
-          SELECT * 
-          FROM enabled_users_ext
-          WHERE sub = $1
+
+        const response = await props.client.query<IUser>(`
+          SELECT * FROM enabled_users eu
+          LEFT JOIN enabled_groups eg ON eg."createdSub" = $1
+          LEFT JOIN enabled_uuid_groups eug ON eug."parentUuid" = eg.id
         `, [props.event.userSub]);
-
-        return response.rows[0] || {};
-
+        
+        return response.rows;
+        
       } catch (error) {
         throw error;
       }
@@ -83,81 +57,57 @@ const users: ApiModule = [
 
   {
     method: 'GET',
-    path: 'users/details/sub/:sub',
-    cmnd: async (props) => {
-      const { sub } = props.event.pathParameters;
-
-      try {
-        const response = await props.client.query<IUserProfile>(`
-          SELECT * FROM enabled_users
-          WHERE sub = $1 
-        `, [sub]);
-
-        return response.rows[0] || {};
-
-      } catch (error) {
-        throw error;
-      }
-
-    }
-  },
-
-  {
-    method: 'GET',
-    path: 'users/details/id/:id',
-    cmnd: async (props) => {
-      try {
-        const { id } = props.event.pathParameters;
-
-        const response = await props.client.query<IUserProfile>(`
-          SELECT * FROM enabled_users
-          WHERE id = $1 
-        `, [id]);
-
-        return response.rows[0] || {};
-
-      } catch (error) {
-        throw error;
-      }
-
-    }
-  },
-
-  // {
-  //   method: 'POST',
-  //   path: 'users/push_token',
-  //   cmnd: async (props) => {
-  //     try {
-
-  //       const response = await props.client.query(`
-  //         UPDATE users
-  //         SET push_token = $2
-  //         WHERE sub = $1
-  //       `, [props.event.userSub, props.event.body.token]);
-
-  //       return response.rows;
-
-  //     } catch (error) {
-  //       throw error;
-  //     }
-
-  //   }
-  // },
-
-  {
-    method: 'PUT',
-    path : 'users/:id/disable',
+    path : 'users/:id',
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;
 
-        await props.client.query(`
-          UPDATE users
-          SET enabled = false
+        const response = await props.client.query<IUser>(`
+          SELECT * FROM enabled_users
           WHERE id = $1
         `, [id]);
+        
+        return response.rows[0];
+        
+      } catch (error) {
+        throw error;
+      }
 
-        return { id };
+    }
+  },
+
+  {
+    method: 'DELETE',
+    path : 'users/:ids',
+    cmnd : async (props) => {
+      try {
+
+        // A group owner is trying to post a new user here?
+        // Probably doesn't happen
+        return true;        
+      } catch (error) {
+        throw error;
+      }
+
+    }
+  },
+
+  {
+    method: 'PUT',
+    path : 'users/disable',
+    cmnd : async (props) => {
+      try {
+        const users = props.event.body as IUser[];
+
+        await asyncForEach(users, async role => {
+          await props.client.query(`
+            UPDATE users
+            SET enabled = false
+            WHERE id = $1
+          `, [role.id]);
+        });
+
+        return users;
         
       } catch (error) {
         throw error;

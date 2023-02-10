@@ -5,7 +5,7 @@ declare global {
    * @category Awayto Redux
    */
   interface ISharedState { 
-    groups: IGroupState
+    group: IGroupState
   }
 
   /**
@@ -17,7 +17,7 @@ declare global {
    * @category Awayto Redux
    */
   interface ISharedActionTypes {
-    groups: IGroupActionTypes;
+    group: IGroupActionTypes;
   }
 }
 
@@ -128,4 +128,7 @@ export type IGroupActions = IPostGroupAction
   | IGetGroupByIdAction
   | IDeleteGroupAction
   | IDisableGroupAction
-  | ICheckGroupsNameAction;
+  | ICheckGroupsNameAction
+  | IGroupsUsersInviteAction
+  | IGroupsJoinAction
+  | IGroupsLeaveAction;

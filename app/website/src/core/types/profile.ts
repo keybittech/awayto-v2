@@ -58,12 +58,12 @@ export enum IUserProfileActionTypes {
   HAS_CODE = "login/HAS_CODE",
   SIGNUP_USER = "login/SIGNUP_USER",
   KC_LOGIN = "GET/kc/auth/login",
-  POST_USER_PROFILE = "POST/users",
-  PUT_USER_PROFILE = "PUT/users",
-  GET_USER_PROFILE_DETAILS = "GET/users/details",
-  GET_USER_PROFILE_DETAILS_BY_SUB = "GET/users/details/sub/:sub",
-  GET_USER_PROFILE_DETAILS_BY_ID = "GET/users/details/id/:id",
-  DISABLE_USER_PROFILE = "PUT/users/:id/disable"
+  POST_USER_PROFILE = "POST/profile",
+  PUT_USER_PROFILE = "PUT/profile",
+  GET_USER_PROFILE_DETAILS = "GET/profile/details",
+  GET_USER_PROFILE_DETAILS_BY_SUB = "GET/profile/details/sub/:sub",
+  GET_USER_PROFILE_DETAILS_BY_ID = "GET/profile/details/id/:id",
+  DISABLE_USER_PROFILE = "PUT/profile/:id/disable"
 }
 
 

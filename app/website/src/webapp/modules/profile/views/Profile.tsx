@@ -17,7 +17,7 @@ import { useStyles } from '../../../style';
 const { SET_SNACK } = IUtilActionTypes;
 const { POST_ROLES, DELETE_ROLES } = IRoleActionTypes;
 const { CHECK_GROUPS_NAME, DELETE_GROUPS, POST_GROUPS, PUT_GROUPS } = IGroupActionTypes;
-const { GET_USER_PROFILE_DETAILS, POST_USER_PROFILE, PUT_USER_PROFILE } = IUserProfileActionTypes;
+const { GET_USER_PROFILE_DETAILS, PUT_USER_PROFILE } = IUserProfileActionTypes;
 
 export function Profile(props: IProps): JSX.Element {
   const classes = useStyles();
@@ -86,7 +86,7 @@ export function Profile(props: IProps): JSX.Element {
       profile.image = await fileStore?.put(file);
     }
     console.log('just put profile with image', profile);
-    void api(profile.id ? PUT_USER_PROFILE : POST_USER_PROFILE, true, profile);
+    void api(PUT_USER_PROFILE, true, profile);
     act(SET_SNACK, { snackType: 'success', snackOn: 'Profile updated!' });
     setFile(undefined);
   }

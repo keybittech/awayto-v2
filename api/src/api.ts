@@ -12,9 +12,9 @@ import { v4 as uuid } from 'uuid';
 import passport from 'passport';
 
 import Objects from './objects';
-import { IUserProfileState, IUserProfile, ApiErrorResponse } from 'awayto';
+import { IUserProfileState, IUserProfile } from 'awayto';
 import { keycloakStrategy } from './util/keycloak';
-import { ApiProps, AuthEvent } from './util/db';
+import { AuthEvent } from './util/db';
 
 const {
   GRAYLOG_HOST,
@@ -156,7 +156,7 @@ try {
 
       logger.log('webhook received', event);
 
-      await Objects.events[`AUTH_${type}`]({ event, client });
+      await Objects.webhooks[`AUTH_${type}`]({ event, client });
 
       res.status(200).end();
     } catch (error) {

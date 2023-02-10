@@ -11,17 +11,29 @@ import CreateIcon from '@mui/icons-material/Create';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 
-import { IManageUsersActionTypes, IUserProfile } from 'awayto';
+import { IManageUsersActionTypes, IUserProfile, IActionTypes, IUsers } from 'awayto';
 import { useRedux, useApi } from 'awayto-hooks';
 
 import ManageUserModal from './ManageUserModal';
 
 const { LOCK_MANAGE_USERS, UNLOCK_MANAGE_USERS, GET_MANAGE_USERS } = IManageUsersActionTypes;
 
+export type ManageUsersProps = {
+  getAction?: IActionTypes;
+  deleteAction?: IActionTypes;
+  putAction?: IActionTypes;
+  postAction?: IActionTypes;
+  users?: IUsers;
+};
+
+declare global {
+  interface IProps extends ManageUsersProps { }
+}
+
 export function ManageUsers(props: IProps): JSX.Element {
+  const { users, getAction } = props as IProps & Required<ManageUsersProps>;
   const api = useApi();
   const util = useRedux(state => state.util);
-  const { users } = useRedux(state => state.manageUsers);
   const [user, setUser] = useState<IUserProfile>();
   const [selected, setSelected] = useState<IUserProfile[]>([]);
   const [toggle, setToggle] = useState(false);
@@ -64,12 +76,12 @@ export function ManageUsers(props: IProps): JSX.Element {
   }, [selected])
 
   useEffect(() => {
-    void api(GET_MANAGE_USERS, true);
+    void api(getAction, true);
   }, []);
 
   // When we update a user's profile, this will refresh their state in the table once the API has updated manageUsers redux state
   useEffect(() => {
-    if (users?.length && user) setUser(users?.find(u => u.id == user.id));
+    if (users?.length && user) setUser(users[user.id]);
   }, [users]);
 
   return <>
@@ -82,7 +94,7 @@ export function ManageUsers(props: IProps): JSX.Element {
       title="Users"
       actions={<Button onClick={() => { setUser(undefined); setDialog('manage_user') }}>New</Button>}
       contextActions={actions}
-      data={users ? users : []}
+      data={users ? Object.values(users) : []}
       theme={util.theme}
       columns={columns}
       selectableRows

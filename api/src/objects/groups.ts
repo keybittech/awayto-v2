@@ -308,25 +308,20 @@ const groups: ApiModule = [
   },
 
   {
-    method: 'POST',
-    path : 'groups/user/role',
+    method: 'GET',
+    path : 'groups/users',
     cmnd : async (props) => {
       try {
 
-        // manipulate group user roles association
+        const { rows: users } = await props.client.query<IUserProfile>(`
+          SELECT *
+          FROM enabled_users_ext eux
+          JOIN enabled_groups_ext ege ON ege."createdSub" = '93cc6bca-473e-4161-adf5-15ad63a0cbc6'
+          JOIN enabled_uuid_groups eug ON eug."parentUuid" = ege.id
+        `, [props.event.userSub]);
 
-        return true;
-
-        // const { name } = props.event.body;
-
-        // const { rows: [{ count }] } = await props.client.query<{count: number}>(`
-        //   SELECT COUNT(*) as count
-        //   FROM groups
-        //   WHERE name = $1
-        // `, [name]);
-
-        // return { checkingName: false, isValid: count == 0 };
-        
+        return users;
+      
       } catch (error) {
         throw error;
       }

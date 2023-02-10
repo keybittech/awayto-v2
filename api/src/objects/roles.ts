@@ -13,12 +13,6 @@ const roles: ApiModule = [
 
         const { name } = props.event.body as IRole;
 
-        // try {
-        //   await keycloak.roles.create({
-        //     name
-        //   });
-        // } catch (error) {}
-
         const { rows: [ role ] } = await props.client.query<IRole>(`
           WITH input_rows(name, created_sub) as (VALUES ($1, $2)), ins AS (
             INSERT INTO roles (name, created_sub)
@@ -33,8 +27,6 @@ const roles: ApiModule = [
           FROM input_rows
           JOIN roles s USING (name);
         `, [name, props.event.userSub]);
-        
-            console.log(props.event)
 
         const { rows: [{ id: userId }] } = await props.client.query<IUserProfile>(`
           SELECT id FROM users WHERE sub = $1

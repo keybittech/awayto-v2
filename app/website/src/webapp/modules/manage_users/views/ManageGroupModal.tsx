@@ -56,14 +56,14 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
     }
     
     group.name = formatName(name);
-    group.roles = roles?.filter(r => roleIds.includes(r.id));
+    group.roles = Object.values(roles).filter(r => roleIds.includes(r.id));
     group.roleId = primaryRole;
     await api(id ? putAction : postAction, true, group);
 
     if (closeModal)
       closeModal();
 
-  }, [group, roles, roleIds]);
+  }, [group, roles, roleIds, primaryRole]);
 
   useEffect(() => {
     if (!roleIds.length && group.roles?.length)
@@ -91,6 +91,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
   }, [needCheckName]);
 
   useEffect(() => {
+    console.log('roles changed', roleIds, primaryRole)
     if (!primaryRole) {
       setPrimaryRole(roleIds[0]);
     }
@@ -163,7 +164,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
                   onChange={e => setPrimaryRole(e.target.value)}
                   value={primaryRole}
                 >
-                  {roleIds.map(roleId => <MenuItem key={`${roleId}_primary_role_select`} value={roleId}>{roles.find(role => role.id === roleId)?.name || ''}</MenuItem>)}
+                  {roleIds.map(roleId => <MenuItem key={`${roleId}_primary_role_select`} value={roleId}>{Object.values(roles).find(role => role.id === roleId)?.name || ''}</MenuItem>)}
                 </TextField>
               </Grid>}
             </Grid>

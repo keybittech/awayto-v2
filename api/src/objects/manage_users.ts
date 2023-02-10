@@ -4,8 +4,7 @@ import { keycloak } from '../util/keycloak';
 // import { adminCreateUser, adminDisableUser, adminEnableUser, getUserInfo, parseGroupString, parseGroupArray, updateUserAttributesAdmin, listUsers, attachCognitoInfoToUser } from "../util/cognito";
 import { ApiModule, ApiModulet, asyncForEach } from "../util/db";
 import { parseGroupArray } from "../util/auth";
-import usersApi from './users';
-import users from './users';
+import users from './profiles';
 
 const manageUsers: ApiModule = [
 
