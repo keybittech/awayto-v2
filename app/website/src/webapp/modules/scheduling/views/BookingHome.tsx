@@ -63,17 +63,14 @@ export function BookingHome(props: IProps): JSX.Element {
     const [id] = Object.keys(schedules);
     if (id && !schedules[id].services) {
       const [abort, res] = api<ISchedule, ISchedule[]>(GET_SCHEDULE_BY_ID, true, { id })
-      if (res) {
-        res?.then(data => {
-          if (data) {
-            const [sched] = data;
-            setSchedule(sched);
-            setService(sched.services?.at(0));
-            setTier(sched.services?.at(0)?.tiers?.at(0))
-          }
-        });
-      }
-
+      res?.then(data => {
+        if (data) {
+          const [sched] = data;
+          setSchedule(sched);
+          setService(sched.services?.at(0));
+          setTier(sched.services?.at(0)?.tiers?.at(0))
+        }
+      });
       return () => abort();
     }
   }, [schedules]);

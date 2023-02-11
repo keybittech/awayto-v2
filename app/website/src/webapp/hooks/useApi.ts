@@ -121,6 +121,7 @@ export function useApi(): <T = unknown, R = ILoadedState>(actionType: IActionTyp
       .then((data: R) => {
         console.log('This is whats resolved from fetch ', data);
         act(actionType || API_SUCCESS, data as ILoadedState, meta);
+        if (load) act(STOP_LOADING, { isLoading: false });
         return data;
       })
       .catch(() => {
@@ -136,9 +137,10 @@ export function useApi(): <T = unknown, R = ILoadedState>(actionType: IActionTyp
         snackOn: 'Error: ' + (reason ? reason : 'Internal service error. You can report this if needed.')
       });
       
+      if (load) act(STOP_LOADING, { isLoading: false });
       return [abort, undefined];
     } finally {
-      if (load) act(STOP_LOADING, { isLoading: false });
+      // whatever final
     }
   }, []);
 

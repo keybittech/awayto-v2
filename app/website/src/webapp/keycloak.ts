@@ -23,7 +23,6 @@ export function initKeycloak(this: { cb: () => void }): void {
     checkLoginIframe: false,
     token,
     refreshToken
-
   }).then(async (authenticated) => {
     if (authenticated) {
       localStorage.setItem('kc_token', keycloak.token as string);
@@ -34,7 +33,7 @@ export function initKeycloak(this: { cb: () => void }): void {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${keycloak.token as string}`
         }
-      } as RequestInit) as ApiResponse;
+      });
 
       this.cb();
     }

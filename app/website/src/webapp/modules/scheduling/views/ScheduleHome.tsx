@@ -19,14 +19,11 @@ const { GET_SCHEDULES, DELETE_SCHEDULE, POST_SCHEDULE } = IScheduleActionTypes;
 const { GET_SERVICES } = IServiceActionTypes;
 const { SET_SNACK } = IUtilActionTypes;
 const { GET_FORMS } = IFormActionTypes;
-const { POST_SCHEDULE_CONTEXT, DELETE_SCHEDULE_CONTEXT } = IScheduleContextActionTypes;
 
 const scheduleSchema = {
   name: '',
   overbook: false,
-  services: [] as IService[],
   term: {} as IScheduleTerm,
-  brackets: []
 }
 
 const termSchema = {
@@ -47,7 +44,7 @@ export function ScheduleHome(props: IProps): JSX.Element {
   const act = useAct();
   const { SelectLookup } = useComponents();
 
-  const [newSchedule, setNewSchedule] = useState<ISchedule>({ ...scheduleSchema });
+  const [newSchedule, setNewSchedule] = useState<ISchedule>({ ...scheduleSchema, services: [], brackets: [] });
   const [newTerm, setNewTerm] = useState<IScheduleTerm>({ ...termSchema });
   const [newBracket, setNewBracket] = useState<IScheduleBracket>({ ...bracketSchema });
 
@@ -72,12 +69,14 @@ export function ScheduleHome(props: IProps): JSX.Element {
         <CardContent sx={{ padding: '0 15px' }}>
           <Grid container>
             <Grid item>
-              <Box mb={2}>
+              <Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
                 <Typography variant="body2">A schedule allows your services to be billed at different intervals. You can have multiple available schedules, each with multiple cost brackets. Brackets allow you to define a sliding scale for the cost of your services.</Typography>
-                {/* <Typography variant="caption">For example, if your schedule term is 60 hours, and you create a bracket for 40 hours at 1x multiplier, that means the first 40 of 60 hours will be listed at its regular cost. If you added a second bracket for 20 hours at 2x multiplier, the remaining 20 hours of the schedule term would be listed at a 2x cost multiplier.</Typography> */}
-                <Typography variant="h6">Current Schedules: <Typography style={{ verticalAlign: 'middle' }} variant="caption">{Object.values(schedules).length ? Object.values(schedules).map(({ id, name }, i) => <Chip key={`del_sched_${i}`} label={name} onDelete={() => {
-                  void api(DELETE_SCHEDULE, true, { id });
-                }}></Chip>) : 'None'}</Typography></Typography>
+                <Typography variant="h6">Current Schedules: </Typography>
+                {Object.values(schedules).map((schedule, i) => {
+                  return <Box key={`schedule-chip${i + 1}new`} m={1}><Chip label={`${schedule.name}`} onDelete={() => {
+                    void api(DELETE_SCHEDULE, true, { id: schedule.id });
+                  }} /></Box>
+                })}
               </Box>
             </Grid>
           </Grid>
@@ -194,7 +193,7 @@ export function ScheduleHome(props: IProps): JSX.Element {
           }
         }}>
           <Box mx={2} sx={{ display: 'flex', alignItems: 'center' }}>
-            <Typography variant="button">Add to Schedule</Typography>
+            <Typography color="secondary" variant="button">Add to Schedule</Typography>
           </Box>
         </CardActionArea>
       </Card>
@@ -233,20 +232,18 @@ export function ScheduleHome(props: IProps): JSX.Element {
             newSchedule.term = newTerm;
 
             const [,res] = api(POST_SCHEDULE, true, { ...newSchedule })
-            if (res) {
-              void res.then(() => {
-                act(SET_SNACK, { snackOn: 'Successfully added ' + name, snackType: 'info' });
-                setNewSchedule({ ...scheduleSchema, brackets: [], services: [] });
-                setNewTerm({ ...termSchema });
-              });
-            }
+            res?.then(() => {
+              act(SET_SNACK, { snackOn: 'Successfully added ' + name, snackType: 'info' });
+              setNewSchedule({ ...scheduleSchema, brackets: [], services: [] });
+              setNewTerm({ ...termSchema });
+            });
             
           } else {
             act(SET_SNACK, { snackOn: 'Provide a schedule name, service, term details and a bracket.', snackType: 'info' });
           }
         }}>
           <Box mx={2} sx={{ display: 'flex', alignItems: 'center' }}>
-            <Typography variant="button">Create Schedule</Typography>
+            <Typography color="secondary" variant="button">Create Schedule</Typography>
           </Box>
         </CardActionArea>
       </Card>
