@@ -11,19 +11,22 @@ import CardHeader from '@mui/material/CardHeader';
 import Grid from '@mui/material/Grid';
 import Chip from '@mui/material/Chip';
 
-import { IService, IServiceActionTypes, IServiceTier, IServiceAddonActionTypes, IUtilActionTypes, IFormActionTypes } from 'awayto';
+import { IService, IServiceActionTypes, IServiceTier, IGroupServiceAddonActionTypes, IServiceAddonActionTypes, IGroupServiceActionTypes, IUtilActionTypes, IFormActionTypes, IServiceState, IGroup } from 'awayto';
 import { useApi, useRedux, useComponents, useAct } from 'awayto-hooks';
 
 import { useStyles } from '../../../style';
 
 const { GET_SERVICES, DELETE_SERVICE, POST_SERVICE } = IServiceActionTypes;
-const { POST_SERVICE_ADDON, DELETE_SERVICE_ADDON } = IServiceAddonActionTypes;
+const { POST_SERVICE_ADDON } = IServiceAddonActionTypes;
+const { POST_GROUP_SERVICE } = IGroupServiceActionTypes;
+const { GET_GROUP_SERVICE_ADDONS, POST_GROUP_SERVICE_ADDON, DELETE_GROUP_SERVICE_ADDON } = IGroupServiceAddonActionTypes;
 const { SET_SNACK } = IUtilActionTypes;
 const { GET_FORMS } = IFormActionTypes;
 
 const serviceSchema = {
   name: '',
-  cost: ''
+  cost: '',
+  groupId: ''
 };
 
 const serviceTierSchema = {
@@ -35,6 +38,8 @@ const validCost = function (cost: string): boolean {
   return /(^$|^\$?\d+(,\d{3})*(\.\d*)?$)/.test(cost);
 }
 
+// In theory there's no difference between theory and practice, but in practice there is.
+
 export function ServiceHome(props: IProps): JSX.Element {
   const classes = useStyles();
   const api = useApi();
@@ -44,14 +49,33 @@ export function ServiceHome(props: IProps): JSX.Element {
   const [newService, setNewService] = useState<IService>({ ...serviceSchema, tiers: [] });
   const [newServiceTier, setNewServiceTier] = useState<IServiceTier>({ ...serviceTierSchema, addons: [] });
   const [serviceTierAddonIds, setServiceTierAddonIds] = useState<string[]>([]);
-
   const { services } = useRedux(state => state.service);
-  const { serviceAddons } = useRedux(state => state.forms);
+  const { groupServiceAddons } = useRedux(state => state.groupServiceAddon);
+  const { groups } = useRedux(state => state.profile);
+  const [groupId, setGroupId] = useState('');
+  const [group, setGroup] = useState<IGroup>();
+
+  useEffect(() => {
+    if (!group) return;
+    const [abort, res] = api(GET_GROUP_SERVICE_ADDONS, false, { groupName: group.name });
+    res?.then(() => setServiceTierAddonIds([]));
+    return () => abort();
+  }, [group]);
 
   useEffect(() => {
     const [abort] = api(GET_SERVICES, true);
     return () => abort();
   }, []);
+
+  useEffect(() => {
+    if (groups) {
+      if (groupId) {
+        setGroup(groups.find(g => g.id === groupId));
+      } else {
+        setGroupId(groups[0].id);
+      }
+    }
+  }, [groups,groupId])
 
   return <Grid container spacing={2}>
 
@@ -70,6 +94,26 @@ export function ServiceHome(props: IProps): JSX.Element {
                   }} /></Box>
                 })}
               </Box>
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
+    </Grid>
+
+    <Grid item xs={12}>
+      <Card style={{ display: 'flex', flexDirection: 'column' }}>
+        <CardHeader title="Group" />
+        <CardContent sx={{ padding: '0 15px' }}>
+          <Grid container>
+            <Grid item xs={12} md={6}>
+              <SelectLookup
+                noEmptyValue
+                lookupName="Group"
+                lookups={groups}
+                lookupValue={groupId}
+                lookupChange={setGroupId}
+                {...props}
+               />
             </Grid>
           </Grid>
         </CardContent>
@@ -111,10 +155,24 @@ export function ServiceHome(props: IProps): JSX.Element {
               </Box>
 
               <Box mb={4} sx={{ display: 'flex', alignItems: 'baseline' }}>
-                <SelectLookup lookupName="Feature" lookups={serviceAddons} lookupChange={(val: string[]) => {
-                  const sa = serviceAddons.filter(s => val.includes(s.id as string)).map(s => s.id as string);
-                  setServiceTierAddonIds([...sa])
-                }} lookupValue={serviceTierAddonIds} multiple createActionType={POST_SERVICE_ADDON} deleteActionType={DELETE_SERVICE_ADDON} refetchAction={GET_FORMS} {...props} />
+                <SelectLookup
+                  multiple
+                  lookupName='Feature'
+                  lookups={Object.values(groupServiceAddons)}
+                  lookupValue={serviceTierAddonIds}
+                  parentUuid={group?.name}
+                  parentUuidName='groupName'
+                  lookupChange={(val: string[]) => {
+                    const gsa = Object.values(groupServiceAddons).filter(s => val.includes(s.id as string)).map(s => s.id as string);
+                    setServiceTierAddonIds(gsa);
+                  }}
+                  createAction={POST_SERVICE_ADDON}
+                  deleteAction={DELETE_GROUP_SERVICE_ADDON}
+                  refetchAction={GET_GROUP_SERVICE_ADDONS}
+                  attachAction={POST_GROUP_SERVICE_ADDON}
+                  attachName='serviceAddonId'
+                  {...props}
+                />
               </Box>
 
               <Box>
@@ -129,7 +187,7 @@ export function ServiceHome(props: IProps): JSX.Element {
         </CardContent>
         <CardActionArea onClick={() => {
           if (newServiceTier.name && serviceTierAddonIds.length) {
-            newServiceTier.addons = serviceTierAddonIds?.map(id => ({ name: serviceAddons.find(sa => sa.id === id)?.name as string }));
+            newServiceTier.addons = serviceTierAddonIds?.map(id => ({ id, name: Object.values(groupServiceAddons).find(sa => sa.id === id)?.name as string }));
             newService.tiers?.push(newServiceTier);
             setNewServiceTier({ ...serviceTierSchema, addons: [] });
             setServiceTierAddonIds([]);
@@ -166,15 +224,23 @@ export function ServiceHome(props: IProps): JSX.Element {
       <Card>
         <CardActionArea onClick={() => {
           if (newService.name && newService.tiers?.length) {
-            const [, res] = api(POST_SERVICE, true, { ...newService })
-            res?.then(() => {
-              act(SET_SNACK, { snackOn: 'Successfully added ' + (newService.name || ''), snackType: 'info' });
-              console.log(' set a new service')
-              setNewService({ ...serviceSchema, tiers: [] });
-              setServiceTierAddonIds([]);
+            const [, res] = api(POST_SERVICE, true, { ...newService });
+
+            res?.then(services => {
+              if (services && group) {
+                const [service] = services as IService[];
+
+                const [, rez] = api(POST_GROUP_SERVICE, true, { serviceId: service.id, groupName: group.name });
+
+                rez?.then(() => {
+                  act(SET_SNACK, { snackOn: 'Successfully added ' + (service.name || ''), snackType: 'info' });
+                  setNewService({ ...serviceSchema, tiers: [] });
+                  setServiceTierAddonIds([]);
+                });
+              }
             });
           } else {
-            void act(SET_SNACK, { snackOn: 'Provide a service name, cost and at least 1 tier.', snackType: 'info' });
+            void act(SET_SNACK, { snackOn: 'Provide a group, service name, cost and at least 1 tier.', snackType: 'info' });
           }
         }}>
           <Box mx={2} sx={{ display: 'flex', alignItems: 'center' }}>

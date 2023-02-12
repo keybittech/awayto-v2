@@ -1,23 +1,27 @@
-import { PayloadAction, IRole, IUserProfile } from '.';
+import { PayloadAction, IRole, IUserProfile, IService, IServiceAddon } from '.';
 
 declare global {
   /**
    * @category Awayto Redux
    */
-  interface ISharedState { 
-    group: IGroupState
+  interface ISharedState {
+    group: IGroupState;
+    groupService: IGroupServiceState;
+    groupServiceAddon: IGroupServiceAddonState;
   }
 
   /**
    * @category Awayto Redux
    */
-  type IGroupModuleActions = IGroupActions;
+  type IGroupModuleActions = IGroupActions | IGroupServiceActions | IGroupServiceAddonActions;
 
   /**
    * @category Awayto Redux
    */
   interface ISharedActionTypes {
     group: IGroupActionTypes;
+    groupService: IGroupServiceActionTypes;
+    groupServiceAddon: IGroupServiceAddonActionTypes;
   }
 }
 
@@ -36,12 +40,12 @@ export type IGroup = {
 }
 
 /**
- * @category Manage Groups
+ * @category Groups
  */
 export type IGroups = Record<string, IGroup>;
 
 /**
- * @category Manage Groups
+ * @category Groups
  */
 export type IGroupState = {
   groups: IGroups,
@@ -122,9 +126,9 @@ export type IGroupsLeaveAction = PayloadAction<IGroupActionTypes.GROUPS_LEAVE, I
 /**
  * @category Group
  */
-export type IGroupActions = IPostGroupAction 
-  | IPutGroupAction 
-  | IGetGroupsAction 
+export type IGroupActions = IPostGroupAction
+  | IPutGroupAction
+  | IGetGroupsAction
   | IGetGroupByIdAction
   | IDeleteGroupAction
   | IDisableGroupAction
@@ -132,3 +136,111 @@ export type IGroupActions = IPostGroupAction
   | IGroupsUsersInviteAction
   | IGroupsJoinAction
   | IGroupsLeaveAction;
+
+
+
+
+/**
+ * @category Group
+ */
+export type IGroupServiceAddon = IServiceAddon & {
+  groupId: string;
+};
+
+/**
+ * @category Group
+ */
+export type IGroupServiceAddons = Record<string, IGroupServiceAddon>;
+
+/**
+ * @category Group
+ */
+export type IGroupServiceAddonState = {
+  groupServiceAddons: IGroupServiceAddons;
+};
+
+/**
+ * @category Action Types
+ */
+export enum IGroupServiceAddonActionTypes {
+  POST_GROUP_SERVICE_ADDON = "POST/group/:groupName/service_addons/:serviceAddonId",
+  GET_GROUP_SERVICE_ADDONS = "GET/group/:groupName/service_addons",
+  DELETE_GROUP_SERVICE_ADDON = "DELETE/group/:groupName/service_addons/:serviceAddonId"
+}
+
+/**
+ * @category Group
+ */
+export type IPostGroupServiceAddonAction = PayloadAction<IGroupServiceAddonActionTypes.POST_GROUP_SERVICE_ADDON, IGroupServiceAddon[]>;
+
+/**
+ * @category Group
+ */
+export type IGetGroupServiceAddonsAction = PayloadAction<IGroupServiceAddonActionTypes.GET_GROUP_SERVICE_ADDONS, IGroupServiceAddon[]>;
+
+/**
+ * @category Group
+ */
+export type IDeleteGroupServiceAddonAction = PayloadAction<IGroupServiceAddonActionTypes.DELETE_GROUP_SERVICE_ADDON, IGroupServiceAddon[]>;
+
+/**
+ * @category Group
+ */
+export type IGroupServiceAddonActions = IPostGroupServiceAddonAction
+  | IGetGroupServiceAddonsAction
+  | IDeleteGroupServiceAddonAction;
+
+
+
+
+/**
+ * @category Group
+ */
+export type IGroupService = IService & {
+  groupId: string;
+  groupName: string;
+  serviceId: string;
+};
+
+/**
+ * @category Group
+ */
+export type IGroupServices = Record<string, IGroupService> | IGroupService[];
+
+/**
+ * @category Group
+ */
+export type IGroupServiceState = {
+  groupServices: IGroupServices;
+};
+
+/**
+ * @category Action Types
+ */
+export enum IGroupServiceActionTypes {
+  POST_GROUP_SERVICE = "POST/group/:groupName/services/:serviceId",
+  GET_GROUP_SERVICES = "GET/group/:groupName/services",
+  DELETE_GROUP_SERVICE = "DELETE/group/:groupName/services/:serviceId"
+}
+
+/**
+ * @category Group
+ */
+export type IPostGroupServiceAction = PayloadAction<IGroupServiceActionTypes.POST_GROUP_SERVICE, IGroupService[]>;
+
+/**
+ * @category Group
+ */
+export type IGetGroupServicesAction = PayloadAction<IGroupServiceActionTypes.GET_GROUP_SERVICES, IGroupService[]>;
+
+/**
+ * @category Group
+ */
+export type IDeleteGroupServiceAction = PayloadAction<IGroupServiceActionTypes.DELETE_GROUP_SERVICE, IGroupService[]>;
+
+/**
+ * @category Group
+ */
+export type IGroupServiceActions = IPostGroupServiceAction
+  | IGetGroupServicesAction
+  | IDeleteGroupServiceAction;

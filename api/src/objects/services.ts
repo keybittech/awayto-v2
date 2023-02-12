@@ -1,4 +1,4 @@
-import { IService, IServiceAddon, IServiceTier } from 'awayto';
+import { IService, IServiceTier } from 'awayto';
 import { ApiModule, buildUpdate, asyncForEach } from '../util/db';
 
 const services: ApiModule = [
@@ -43,26 +43,11 @@ const services: ApiModule = [
           `, [t.name, service.id, t.multiplier])).rows[0];
 
           await asyncForEach(t.addons, async a => {
-            const addon = (await props.client.query<IServiceAddon>(`
-              WITH input_rows(name) as (VALUES ($1)), ins AS (
-                INSERT INTO service_addons (name)
-                SELECT * FROM input_rows
-                ON CONFLICT (name) DO NOTHING
-                RETURNING id
-              )
-              SELECT id
-              FROM ins
-              UNION ALL
-              SELECT sa.id
-              FROM input_rows
-              JOIN service_addons sa USING (name);
-            `, [a.name])).rows[0];
-
             await props.client.query(`
               INSERT INTO service_tier_addons (service_addon_id, service_tier_id)
               VALUES ($1, $2)
               ON CONFLICT (service_addon_id, service_tier_id) DO NOTHING
-            `, [addon.id, serviceTier.id]);
+            `, [a.id, serviceTier.id]);
           })
         });
         

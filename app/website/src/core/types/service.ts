@@ -37,12 +37,13 @@ export type IService = {
   tiers: IServiceTier[];
 };
 
+export type IServices = Record<string, IService>;
 
 /**
  * @category Service
  */
 export type IServiceState = {
-  services: Record<string, IService>;
+  services: IServices | IService[];
 };
 
 /**

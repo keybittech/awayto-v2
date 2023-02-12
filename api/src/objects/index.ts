@@ -22,6 +22,7 @@ import Quotes from './quotes';
 import ScheduleContexts from './schedule_contexts';
 import Schedules from './schedules';
 import ServiceAddons from './service_addons';
+import GroupServiceAddons from './group_service_addons';
 import ServiceTiers from './service_tiers';
 import Services from './services';
 
@@ -53,6 +54,7 @@ export default  {
     ...ScheduleContexts,
     ...Schedules,
     ...ServiceAddons,
+    ...GroupServiceAddons,
     ...ServiceTiers,
     ...Services
   ],

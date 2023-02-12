@@ -2,8 +2,7 @@ import { Reducer } from 'redux';
 import {
   ILoginState,
   ILoginActions,
-  ILoginActionTypes,
-  ILogoutActionTypes
+  ILoginActionTypes
 } from 'awayto';
 
 const initialLoginState: ILoginState = {
@@ -19,8 +18,6 @@ function reduceLogin(state: ILoginState, action: ILoginActions): ILoginState {
 
 const loginReducer: Reducer<ILoginState, ILoginActions> = (state = initialLoginState, action) => {
   switch (action.type) {
-    case ILogoutActionTypes.LOGOUT:
-      return  { ...initialLoginState, ...{ isLoggedIn: false } };
     case ILoginActionTypes.LOGIN_USER:
     case ILoginActionTypes.AUTH_USER:
     case ILoginActionTypes.AUTH_SUCCESS:

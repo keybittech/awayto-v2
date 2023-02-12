@@ -1,4 +1,3 @@
-import { LogoutAction } from 'awayto';
 import { PayloadAction } from '.';
 
 declare global {
@@ -82,8 +81,7 @@ export type IDisablePaymentAction = PayloadAction<IPaymentActionTypes.DISABLE_PA
 /**
  * @category Payment
  */
-export type IPaymentActions = LogoutAction
-  | IPostPaymentAction 
+export type IPaymentActions = IPostPaymentAction 
   | IPutPaymentAction 
   | IGetPaymentsAction 
   | IGetPaymentByIdAction

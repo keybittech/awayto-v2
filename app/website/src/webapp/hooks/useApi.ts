@@ -9,16 +9,18 @@ import {
   IScheduleActionTypes,
   IScheduleContextActionTypes,
   IServiceActionTypes,
-  IServiceAddonActionTypes,
   IManageUsersActionTypes,
   IManageGroupsActionTypes,
   IManageRolesActionTypes,
   IUserProfileActionTypes,
   IGroupActionTypes,
+  IGroupServiceActionTypes,
+  IGroupServiceAddonActionTypes,
   IRoleActionTypes,
   IUserActionTypes,
   ApiErrorResponse,
-  ILoadedState
+  ILoadedState,
+  IServiceAddonActionTypes
 } from 'awayto';
 
 import { useAct } from './useAct';
@@ -40,6 +42,8 @@ let ApiActions = Object.assign(
   IManageRolesActionTypes,
   IUserProfileActionTypes,
   IGroupActionTypes,
+  IGroupServiceActionTypes,
+  IGroupServiceAddonActionTypes,
   IRoleActionTypes,
   IUserActionTypes
 ) as Record<string, string>;
@@ -101,10 +105,13 @@ export function useApi(): <T = unknown, R = ILoadedState>(actionType: IActionTyp
 
       let jsonBody: string | undefined = JSON.stringify(body);
 
-      if (['delete', 'get'].indexOf(method.toLowerCase()) > -1 && body) {
+      if (path.includes('/:')) {
         // Get the key of the enum from ApiActions based on the path (actionType)
         const pathKey = Object.keys(ApiActions).filter((x) => ApiActions[x] == actionType)[0];
         path = generator.generate(pathKey, body as Record<string, string>).split(/\/(.+)/)[1];
+      }
+
+      if (['delete', 'get'].indexOf(method.toLowerCase()) > -1 && body) {
         jsonBody = undefined;
       }
 
@@ -117,26 +124,30 @@ export function useApi(): <T = unknown, R = ILoadedState>(actionType: IActionTyp
           'Authorization': `Bearer ${keycloak.token as string}`
         }
       })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw res.json();
+        return res.json()
+      })
       .then((data: R) => {
         console.log('This is whats resolved from fetch ', data);
         act(actionType || API_SUCCESS, data as ILoadedState, meta);
         if (load) act(STOP_LOADING, { isLoading: false });
         return data;
       })
-      .catch(() => {
+      .catch(err => {
+        console.log({ errzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz: err as Error })
         console.warn(method, path, 'Fetch was cancelled due to abort.');
       });
 
       return [abort, response];
     } catch (error) {
-      const { requestId, reason } = error as ApiErrorResponse;
+      const { requestId, reason, message } = error as ApiErrorResponse;
       act(SET_SNACK, {
         snackRequestId: requestId,
         snackType: 'error',
         snackOn: 'Error: ' + (reason ? reason : 'Internal service error. You can report this if needed.')
       });
-      
+      console.error(message);
       if (load) act(STOP_LOADING, { isLoading: false });
       return [abort, undefined];
     } finally {

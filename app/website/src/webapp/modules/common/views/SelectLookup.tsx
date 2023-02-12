@@ -15,14 +15,19 @@ import { useApi, useAct } from 'awayto-hooks';
 declare global {
   interface IProps {
     multiple?: boolean;
+    noEmptyValue?: boolean;
     lookups?: ILookup[];
     lookupName?: string;
     helperText?: string;
     lookupChange?(value: string | string[]): void;
     lookupValue?: string | string[];
-    createActionType?: IActionTypes;
-    deleteActionType?: IActionTypes;
+    createAction?: IActionTypes;
+    deleteAction?: IActionTypes;
     refetchAction?: IActionTypes;
+    parentUuidName?: string;
+    parentUuid?: string;
+    attachAction?: IActionTypes;
+    attachName?: string;
   }
 }
 
@@ -32,7 +37,7 @@ function isStringArray(str?: string | string[]): str is string[] {
   return (str as string[]).forEach !== undefined;
 }
 
-export function SelectLookup({ refetchAction, lookups, lookupName, helperText, lookupValue, lookupChange, multiple = false, createActionType, deleteActionType }: IProps): JSX.Element {
+export function SelectLookup({ attachAction, attachName, refetchAction, parentUuidName, parentUuid, lookups, lookupName, helperText, lookupValue, lookupChange, multiple = false, noEmptyValue = false, createAction, deleteAction }: IProps): JSX.Element {
   const api = useApi();
   const act = useAct();
   const [addingNew, setAddingNew] = useState<boolean | undefined>();
@@ -41,21 +46,31 @@ export function SelectLookup({ refetchAction, lookups, lookupName, helperText, l
 
   if (!lookupName || !lookupChange) return <Grid container justifyContent="center"><CircularProgress /></Grid>;
 
+  const refresh = () => {
+    setAddingNew(false);
+    setNewLookup({ name: '' })
+
+    if (refetchAction) {
+      api(refetchAction, true, parentUuidName && parentUuid ? { [parentUuidName]: parentUuid } : {});
+    }
+  }
+
   const handleSubmit = useCallback(() => {
     setLookupUpdater(newLookup.name);
-    if (createActionType) {
-      const [, response] = api(createActionType, true, newLookup);
+    if (createAction) {
+      const [, res] = api(createAction, true, newLookup);
 
-      response?.then(() => {
-        setAddingNew(false);
-        setNewLookup({ name: '' })
-
-        if (refetchAction) {
-          api(refetchAction);
+      res?.then(lookup => {
+        const [{ id: lookupId }] = lookup as ILookup[];
+        if (attachAction && lookupId && parentUuid && parentUuidName && attachName) {
+          const [, rez] = api(attachAction, true, { [parentUuidName]: parentUuid, [attachName]: lookupId })
+          rez?.then(() => refresh());
+        } else {
+          refresh();
         }
       })
     }
-  }, [lookupUpdater, createActionType, newLookup, refetchAction])
+  }, [newLookup, createAction, attachAction, attachName, parentUuid, parentUuidName])
 
   useEffect(() => {
     if (lookups?.length && isStringArray(lookupValue) && lookupUpdater) {
@@ -98,7 +113,7 @@ export function SelectLookup({ refetchAction, lookups, lookupName, helperText, l
           </InputAdornment>
         ),
       }}
-    /> : <TextField
+    /> : !lookups ? <></> : <TextField
       select
       autoFocus={!!lookupUpdater}
       id={`${lookupName}-lookup-selection`}
@@ -124,21 +139,26 @@ export function SelectLookup({ refetchAction, lookups, lookupName, helperText, l
       }}
       
     >
-      {!multiple && <MenuItem value="">No selection</MenuItem>}
-      {createActionType && <MenuItem value="new" onClick={e => {
+      {!multiple && !noEmptyValue && <MenuItem value="">No selection</MenuItem>}
+      {createAction && <MenuItem value="new" onClick={e => {
         e.preventDefault();
         setAddingNew(true);
       }}>Add a {lookupName} to this list</MenuItem>}
       {!lookups?.length && <MenuItem disabled>You have no pre-defined {lookupName}s.<br /> Click the button above to add some.</MenuItem>}
-      {lookups?.length ? lookups.map((p, i) => (
-        <MenuItem key={i} style={{ display: 'flex' }} value={p.id}>
-          <span style={{ flex: '1' }}>{p.name}</span>
-          {refetchAction && deleteActionType && <ClearIcon style={{ color: 'red', marginRight: '8px' }} onClick={e => {
+      {lookups?.length ? lookups.map((lookup, i) => (
+        <MenuItem key={i} style={{ display: 'flex' }} value={lookup.id}>
+          <span style={{ flex: '1' }}>{lookup.name}</span>
+          {refetchAction && deleteAction && <ClearIcon style={{ color: 'red', marginRight: '8px' }} onClick={e => {
             e.stopPropagation();
-            const [, response] = api(deleteActionType, true, { id: p.id });
-            response?.then(() => {
+            if (isStringArray(lookupValue) && lookup.id) {
+              lookupChange([...lookupValue.filter(l => l !== lookup.id)]);
+            } else if (lookupValue === lookup.id) {
+              lookupChange('');
+            }
+            const [, res] = api(deleteAction, true, parentUuidName && attachName ? { [parentUuidName]: parentUuid, [attachName]: lookup.id } : { id: lookup.id });
+            res?.then(() => {
               if (refetchAction) {
-                api(refetchAction);
+                api(refetchAction, true, parentUuidName && parentUuid ? { [parentUuidName]: parentUuid } : {});
               }
             });
           }} />}

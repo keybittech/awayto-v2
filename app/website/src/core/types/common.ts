@@ -219,8 +219,7 @@ export type IForcePassChangeAction = PayloadAction<ILoginActionTypes.FORCE_PASS_
 /**
  * @category Login
  */
-export type ILoginActions = LogoutAction
-  | ILoginUserAction
+export type ILoginActions = ILoginUserAction
   | ILogoutUserAction
   | IAuthUserAction
   | IAuthUserSuccessAction

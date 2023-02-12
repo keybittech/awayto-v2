@@ -1,4 +1,4 @@
-import { IService, LogoutAction } from 'awayto';
+import { IService } from 'awayto';
 import { PayloadAction } from '.';
 
 declare global {
@@ -85,8 +85,7 @@ export type IDisableScheduleContextAction = PayloadAction<IScheduleContextAction
 /**
  * @category ScheduleContext
  */
-export type IScheduleContextActions = LogoutAction
-  | IPostScheduleContextAction 
+export type IScheduleContextActions = IPostScheduleContextAction 
   | IPutScheduleContextAction 
   | IGetScheduleContextsAction 
   | IGetScheduleContextByIdAction

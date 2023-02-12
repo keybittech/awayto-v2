@@ -39,6 +39,18 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     enabled = true;
 
   CREATE
+  OR REPLACE VIEW enabled_uuid_service_addons AS
+  SELECT
+    id,
+    parent_uuid as "parentUuid",
+    service_addon_id as "serviceAddonId",
+    row_number() OVER () as row
+  FROM
+    uuid_service_addons
+  WHERE
+    enabled = true;
+
+  CREATE
   OR REPLACE VIEW enabled_uuid_services AS
   SELECT
     id,

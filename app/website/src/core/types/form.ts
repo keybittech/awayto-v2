@@ -1,4 +1,3 @@
-import { LogoutAction } from 'awayto';
 import { PayloadAction } from '.';
 
 declare global {
@@ -60,5 +59,4 @@ export type IGetFormsAction = PayloadAction<IFormActionTypes.GET_FORMS, IForm>;
 /**
  * @category Form
  */
-export type IFormActions = LogoutAction
-  | IGetFormsAction;
+export type IFormActions = IGetFormsAction;
