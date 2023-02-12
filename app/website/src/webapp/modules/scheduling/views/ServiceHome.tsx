@@ -4,6 +4,7 @@ import TextField from '@mui/material/TextField';
 import Slider from '@mui/material/Slider';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+import MenuItem from '@mui/material/MenuItem';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardActionArea from '@mui/material/CardActionArea';
@@ -16,12 +17,11 @@ import { useApi, useRedux, useComponents, useAct } from 'awayto-hooks';
 
 import { useStyles } from '../../../style';
 
-const { GET_SERVICES, DELETE_SERVICE, POST_SERVICE } = IServiceActionTypes;
+const { DELETE_SERVICE, POST_SERVICE } = IServiceActionTypes;
 const { POST_SERVICE_ADDON } = IServiceAddonActionTypes;
-const { POST_GROUP_SERVICE } = IGroupServiceActionTypes;
+const { GET_GROUP_SERVICES, POST_GROUP_SERVICE } = IGroupServiceActionTypes;
 const { GET_GROUP_SERVICE_ADDONS, POST_GROUP_SERVICE_ADDON, DELETE_GROUP_SERVICE_ADDON } = IGroupServiceAddonActionTypes;
 const { SET_SNACK } = IUtilActionTypes;
-const { GET_FORMS } = IFormActionTypes;
 
 const serviceSchema = {
   name: '',
@@ -49,33 +49,21 @@ export function ServiceHome(props: IProps): JSX.Element {
   const [newService, setNewService] = useState<IService>({ ...serviceSchema, tiers: [] });
   const [newServiceTier, setNewServiceTier] = useState<IServiceTier>({ ...serviceTierSchema, addons: [] });
   const [serviceTierAddonIds, setServiceTierAddonIds] = useState<string[]>([]);
-  const { services } = useRedux(state => state.service);
+  const { groupServices } = useRedux(state => state.groupService);
   const { groupServiceAddons } = useRedux(state => state.groupServiceAddon);
   const { groups } = useRedux(state => state.profile);
-  const [groupId, setGroupId] = useState('');
-  const [group, setGroup] = useState<IGroup>();
+  const [group, setGroup] = useState(groups.at(0) as unknown as IGroup);
 
   useEffect(() => {
-    if (!group) return;
-    const [abort, res] = api(GET_GROUP_SERVICE_ADDONS, false, { groupName: group.name });
-    res?.then(() => setServiceTierAddonIds([]));
-    return () => abort();
-  }, [group]);
-
-  useEffect(() => {
-    const [abort] = api(GET_SERVICES, true);
-    return () => abort();
-  }, []);
-
-  useEffect(() => {
-    if (groups) {
-      if (groupId) {
-        setGroup(groups.find(g => g.id === groupId));
-      } else {
-        setGroupId(groups[0].id);
-      }
+    if (!group.name) return;
+    const [abort1] = api(GET_GROUP_SERVICES, true, { groupName: group.name });
+    const [abort2, rez] = api(GET_GROUP_SERVICE_ADDONS, false, { groupName: group.name });
+    rez?.then(() => setServiceTierAddonIds([]));
+    return () => {
+      abort1();
+      abort2();
     }
-  }, [groups,groupId])
+  }, [group]);
 
   return <Grid container spacing={2}>
 
@@ -88,7 +76,7 @@ export function ServiceHome(props: IProps): JSX.Element {
               <Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
                 <Typography variant="body2">A service is the base level object that will be offered for sale to your users. Services can have tiers and features, which can increase the cost of the base service via a multiplier on the tier. Or create a base tier and add all</Typography>
                 <Typography variant="h6">Current Services: </Typography>
-                {Object.values(services).map((service, i) => {
+                {Object.values(groupServices).map((service, i) => {
                   return <Box key={`service-chip${i + 1}new`} m={1}><Chip label={`${service.name}`} onDelete={() => {
                     void api(DELETE_SERVICE, true, { id: service.id });
                   }} /></Box>
@@ -100,25 +88,29 @@ export function ServiceHome(props: IProps): JSX.Element {
       </Card>
     </Grid>
 
-    <Grid item xs={12}>
+    {group?.id && <Grid item xs={12}>
       <Card style={{ display: 'flex', flexDirection: 'column' }}>
         <CardHeader title="Group" />
         <CardContent sx={{ padding: '0 15px' }}>
           <Grid container>
             <Grid item xs={12} md={6}>
-              <SelectLookup
-                noEmptyValue
-                lookupName="Group"
-                lookups={groups}
-                lookupValue={groupId}
-                lookupChange={setGroupId}
-                {...props}
-               />
+              
+              <TextField
+                select
+                fullWidth
+                label="Groups"
+                helperText="Select the group for this service."
+                value={group.id}
+                onChange={e => setGroup(Object.values(groups).filter(g => g.id === e.target.value)[0])}
+              >
+                {Object.values(groups).map(group => <MenuItem key={`group-select${group.id}`} value={group.id}>{group.name}</MenuItem>)}
+              </TextField>
+
             </Grid>
           </Grid>
         </CardContent>
       </Card>
-    </Grid>
+    </Grid>}
 
     <Grid item xs={12}>
       <Card style={{ display: 'flex', flexDirection: 'column' }}>
@@ -196,7 +188,7 @@ export function ServiceHome(props: IProps): JSX.Element {
           }
         }}>
           <Box mx={2} sx={{ display: 'flex', alignItems: 'center' }}>
-            <Typography color="secondary" variant="button">Add to Service</Typography>
+            <Typography color="secondary" variant="button">Add Tier to Service</Typography>
           </Box>
         </CardActionArea>
       </Card>
@@ -233,7 +225,7 @@ export function ServiceHome(props: IProps): JSX.Element {
                 const [, rez] = api(POST_GROUP_SERVICE, true, { serviceId: service.id, groupName: group.name });
 
                 rez?.then(() => {
-                  act(SET_SNACK, { snackOn: 'Successfully added ' + (service.name || ''), snackType: 'info' });
+                  act(SET_SNACK, { snackOn: `Successfully added ${service.name} to ${group.name}`, snackType: 'info' });
                   setNewService({ ...serviceSchema, tiers: [] });
                   setServiceTierAddonIds([]);
                 });

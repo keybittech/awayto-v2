@@ -49,7 +49,7 @@ export type IUserProfile = {
 /**
  * @category User Profile
  */
-export type IUserProfileState = Partial<IUserProfile>;
+export type IUserProfileState = IUserProfile;
 
 /**
  * @category Action Types

@@ -198,20 +198,18 @@ export type IGroupServiceAddonActions = IPostGroupServiceAddonAction
  */
 export type IGroupService = IService & {
   groupId: string;
-  groupName: string;
-  serviceId: string;
 };
 
 /**
  * @category Group
  */
-export type IGroupServices = Record<string, IGroupService> | IGroupService[];
+export type IGroupServices = Record<string, IGroupService>;
 
 /**
  * @category Group
  */
 export type IGroupServiceState = {
-  groupServices: IGroupServices;
+  groupServices: IGroupServices | IGroupService[];
 };
 
 /**

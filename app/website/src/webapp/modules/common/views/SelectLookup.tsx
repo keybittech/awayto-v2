@@ -80,7 +80,14 @@ export function SelectLookup({ attachAction, attachName, refetchAction, parentUu
         setLookupUpdater('');
       }
     }
-  }, [lookups, lookupValue, lookupUpdater])
+  }, [lookups, lookupValue, lookupUpdater]);
+
+  useEffect(() => {
+    if (lookups && lookups?.length && noEmptyValue && !lookupValue?.length) {
+      const firstLookup = lookups.at(0) as Required<ILookup>;
+      lookupChange(isStringArray(lookupValue) ? [firstLookup.id] : firstLookup.id);
+    }
+  }, [lookups, lookupValue, noEmptyValue])
 
   return (addingNew ?
     <TextField

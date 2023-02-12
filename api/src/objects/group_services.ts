@@ -47,9 +47,9 @@ const groupServices: ApiModule = [
         `, [groupName])).rows
 
         const response = await props.client.query<IGroupServiceAddon>(`
-          SELECT esa.*, eusa."parentId" as "groupId"
+          SELECT esa.*, eusa."parentUuid" as "groupId"
           FROM enabled_uuid_services eusa
-          LEFT JOIN enabled_services esa ON esa.id = eusa."groupServiceId"
+          LEFT JOIN enabled_services esa ON esa.id = eusa."serviceId"
           WHERE eusa."parentUuid" = $1
         `, [groupId]);
         

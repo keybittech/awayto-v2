@@ -5,9 +5,11 @@ import {
   IUserProfileActions
 } from 'awayto';
 
-const initialUserProfileState: IUserProfileState = {};
+const initialUserProfileState: Partial<IUserProfileState> = {
+  groups: []
+};
 
-const profileReducer: Reducer<IUserProfileState, IUserProfileActions> = (state = initialUserProfileState, action) => {
+const profileReducer: Reducer<Partial<IUserProfileState>, IUserProfileActions> = (state = initialUserProfileState, action) => {
   switch (action.type) {
     case IUserProfileActionTypes.HAS_CODE:
     case IUserProfileActionTypes.SIGNUP_USER:

@@ -19,12 +19,13 @@ import Bookings from './bookings';
 import Contacts from './contacts';
 import Payments from './payments';
 import Quotes from './quotes';
-import ScheduleContexts from './schedule_contexts';
-import Schedules from './schedules';
+import Services from './services';
+import GroupServices from './group_services';
 import ServiceAddons from './service_addons';
 import GroupServiceAddons from './group_service_addons';
 import ServiceTiers from './service_tiers';
-import Services from './services';
+import ScheduleContexts from './schedule_contexts';
+import Schedules from './schedules';
 
 import { AuthWebhooks } from './auth';
 
@@ -54,6 +55,7 @@ export default  {
     ...ScheduleContexts,
     ...Schedules,
     ...ServiceAddons,
+    ...GroupServices,
     ...GroupServiceAddons,
     ...ServiceTiers,
     ...Services

@@ -12,13 +12,13 @@ import Chip from '@mui/material/Chip';
 import Slider from '@mui/material/Slider';
 import MenuItem from '@mui/material/MenuItem';
 
-import { IScheduleActionTypes, IServiceActionTypes, IUtilActionTypes, IScheduleContextActionTypes, ISchedule, IService, IScheduleTerm, IScheduleBracket, IFormActionTypes } from 'awayto';
+import { IScheduleActionTypes, IUtilActionTypes, ISchedule, IScheduleTerm, IScheduleBracket, IGroupServiceActionTypes, IGroup } from 'awayto';
 import { useApi, useRedux, useComponents, useAct } from 'awayto-hooks';
 
+const { GET_GROUP_SERVICES } = IGroupServiceActionTypes;
+
 const { GET_SCHEDULES, DELETE_SCHEDULE, POST_SCHEDULE } = IScheduleActionTypes;
-const { GET_SERVICES } = IServiceActionTypes;
 const { SET_SNACK } = IUtilActionTypes;
-const { GET_FORMS } = IFormActionTypes;
 
 const scheduleSchema = {
   name: '',
@@ -48,16 +48,23 @@ export function ScheduleHome(props: IProps): JSX.Element {
   const [newTerm, setNewTerm] = useState<IScheduleTerm>({ ...termSchema });
   const [newBracket, setNewBracket] = useState<IScheduleBracket>({ ...bracketSchema });
 
-  const { services } = useRedux(state => state.service);
   const { schedules } = useRedux(state => state.schedule);
   const { scheduleContexts } = useRedux(state => state.forms);
+  const { groups } = useRedux(state => state.profile);
+  const { groupServices } = useRedux(state => state.groupService);
+  const [group, setGroup] = useState(groups.at(0) as unknown as IGroup);
 
   useEffect(() => {
-    const [abort1, res] = api(GET_SCHEDULES, true);
-    const [abort2] = api(GET_SERVICES, true);
+    if (!group.name) return;
+    const [abort, res] = api(GET_GROUP_SERVICES, true, { groupName: group.name });
+    res?.then(() => setNewSchedule({ ...newSchedule, services: [] }));
+    return () => abort();
+  }, [group]);
+
+  useEffect(() => {
+    const [abort1] = api(GET_SCHEDULES, true);
     return () => {
       abort1();
-      abort2();
     }
   }, []);
 
@@ -84,6 +91,30 @@ export function ScheduleHome(props: IProps): JSX.Element {
       </Card>
     </Grid>
 
+    {group?.id && <Grid item xs={12}>
+      <Card style={{ display: 'flex', flexDirection: 'column' }}>
+        <CardHeader title="Group" />
+        <CardContent sx={{ padding: '0 15px' }}>
+          <Grid container>
+            <Grid item xs={12} md={6}>
+              
+              <TextField
+                select
+                fullWidth
+                label="Groups"
+                helperText="Select the group for this schedule."
+                value={group.id}
+                onChange={e => setGroup(Object.values(groups).filter(g => g.id === e.target.value)[0])}
+              >
+                {Object.values(groups).map(group => <MenuItem key={`group-select${group.id}`} value={group.id}>{group.name}</MenuItem>)}
+              </TextField>
+
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
+    </Grid>}
+
 
     <Grid item xs={12}>
       <Card style={{ display: 'flex', flexDirection: 'column' }}>
@@ -96,12 +127,12 @@ export function ScheduleHome(props: IProps): JSX.Element {
               </Box>
 
               <Box mb={4}>
-                <Typography variant="h6">Schedule Context</Typography>
-                <Typography variant="body2">The length of time the schedule will run over. This determines how brackets are divided. For example, if your schedule is 40 hours per week, here you can configure a <strong>1 week Schedule Context</strong>.</Typography>
+                <Typography variant="h6">Schedule Length</Typography>
+                <Typography variant="body2">The length of time the schedule will run over. This determines how brackets are divided. For example, if your schedule is 40 hours per week, here you can configure a <strong>1 week Schedule Length</strong>.</Typography>
                 <SelectLookup lookupName="Schedule Context" lookups={scheduleContexts} lookupChange={(val: string) => {
                   const context = scheduleContexts?.find(c => c.id === val);
                   setNewTerm({ ...newTerm, scheduleContextName: context ? context.name : '', scheduleContextId: context ? context.id : '' })
-                }} lookupValue={newTerm.scheduleContextId} refetchAction={GET_FORMS} {...props} />
+                }} lookupValue={newTerm.scheduleContextId} {...props} />
               </Box>
 
               {newTerm.scheduleContextName && <Box mb={4}>
@@ -121,17 +152,15 @@ export function ScheduleHome(props: IProps): JSX.Element {
                 <TextField
                   select
                   fullWidth
-
                   label="Services"
                   helperText="Select to add to schedule."
                   value={''}
                   onChange={e => {
-                    newSchedule.services.push(Object.values(services).filter(s => s.id === e.target.value)[0]);
+                    newSchedule.services.push(Object.values(groupServices).filter(s => s.id === e.target.value)[0]);
                     setNewSchedule({ ...newSchedule, services: newSchedule.services })
                   }}
                 >
-                  {Object.values(services).filter(s => newSchedule.services.indexOf(s) < 0).map(service => <MenuItem key={`service-select${service.id as string}`} value={service.id}>{service.name}</MenuItem>)}
-
+                  {Object.values(groupServices).filter(s => newSchedule.services.indexOf(s) < 0).map(service => <MenuItem key={`service-select${service.id as string}`} value={service.id}>{service.name}</MenuItem>)}
                 </TextField>
 
                 <Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
@@ -166,7 +195,7 @@ export function ScheduleHome(props: IProps): JSX.Element {
                 <SelectLookup lookupName="Bracket Duration" lookups={scheduleContexts} lookupChange={(val: string) => {
                   const context = scheduleContexts?.find(c => c.id === val);
                   setNewBracket({ ...newBracket, scheduleContextName: context ? context.name : '', scheduleContextId: context ? context.id : '' })
-                }} lookupValue={newBracket.scheduleContextId} refetchAction={GET_FORMS} {...props} />
+                }} lookupValue={newBracket.scheduleContextId} {...props} />
               </Box>
 
               {newBracket.scheduleContextName && <Box mb={4}>
@@ -227,8 +256,8 @@ export function ScheduleHome(props: IProps): JSX.Element {
     <Grid item xs={12}>
       <Card>
         <CardActionArea onClick={() => {
-          const { name, services, brackets } = newSchedule;
-          if (name && services.length && newTerm.scheduleContextName && newTerm.duration && brackets.length) {
+          const { name, services: s, brackets } = newSchedule;
+          if (name && s.length && newTerm.scheduleContextName && newTerm.duration && brackets.length) {
             newSchedule.term = newTerm;
 
             const [,res] = api(POST_SCHEDULE, true, { ...newSchedule })
