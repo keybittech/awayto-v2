@@ -16,6 +16,7 @@ import {
   IGroupActionTypes,
   IGroupServiceActionTypes,
   IGroupServiceAddonActionTypes,
+  IGroupScheduleActionTypes,
   IRoleActionTypes,
   IUserActionTypes,
   ApiErrorResponse,
@@ -44,6 +45,7 @@ let ApiActions = Object.assign(
   IGroupActionTypes,
   IGroupServiceActionTypes,
   IGroupServiceAddonActionTypes,
+  IGroupScheduleActionTypes,
   IRoleActionTypes,
   IUserActionTypes
 ) as Record<string, string>;

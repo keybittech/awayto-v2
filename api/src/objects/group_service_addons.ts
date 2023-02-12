@@ -1,10 +1,10 @@
 import { IGroup, IGroupServiceAddon } from 'awayto';
-import { ApiModule, buildUpdate } from '../util/db';
+import { ApiModule } from '../util/db';
 
 const groupServiceAddons: ApiModule = [
 
   {
-    method: 'POST',
+    method: 'GET',
     path : 'group/:groupName/service_addons/:serviceAddonId',
     cmnd : async (props) => {
       try {
@@ -82,7 +82,6 @@ const groupServiceAddons: ApiModule = [
         `, [groupId, serviceAddonId]);
         
         return [{ id: serviceAddonId }];
-        
       } catch (error) {
         throw error;
       }

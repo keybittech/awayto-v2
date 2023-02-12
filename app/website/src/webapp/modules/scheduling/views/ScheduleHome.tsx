@@ -12,12 +12,13 @@ import Chip from '@mui/material/Chip';
 import Slider from '@mui/material/Slider';
 import MenuItem from '@mui/material/MenuItem';
 
-import { IScheduleActionTypes, IUtilActionTypes, ISchedule, IScheduleTerm, IScheduleBracket, IGroupServiceActionTypes, IGroup } from 'awayto';
+import { IScheduleActionTypes, IUtilActionTypes, ISchedule, IScheduleTerm, IScheduleBracket, IGroupServiceActionTypes, IGroupScheduleActionTypes, IGroup } from 'awayto';
 import { useApi, useRedux, useComponents, useAct } from 'awayto-hooks';
 
 const { GET_GROUP_SERVICES } = IGroupServiceActionTypes;
+const { GET_GROUP_SCHEDULES, POST_GROUP_SCHEDULE, DELETE_GROUP_SCHEDULE } = IGroupScheduleActionTypes;
 
-const { GET_SCHEDULES, DELETE_SCHEDULE, POST_SCHEDULE } = IScheduleActionTypes;
+const { DELETE_SCHEDULE, POST_SCHEDULE } = IScheduleActionTypes;
 const { SET_SNACK } = IUtilActionTypes;
 
 const scheduleSchema = {
@@ -48,25 +49,22 @@ export function ScheduleHome(props: IProps): JSX.Element {
   const [newTerm, setNewTerm] = useState<IScheduleTerm>({ ...termSchema });
   const [newBracket, setNewBracket] = useState<IScheduleBracket>({ ...bracketSchema });
 
-  const { schedules } = useRedux(state => state.schedule);
-  const { scheduleContexts } = useRedux(state => state.forms);
   const { groups } = useRedux(state => state.profile);
   const { groupServices } = useRedux(state => state.groupService);
+  const { groupSchedules } = useRedux(state => state.groupSchedule);
+  const { scheduleContexts } = useRedux(state => state.forms);
   const [group, setGroup] = useState(groups.at(0) as unknown as IGroup);
 
   useEffect(() => {
     if (!group.name) return;
-    const [abort, res] = api(GET_GROUP_SERVICES, true, { groupName: group.name });
+    const [abort1, res] = api(GET_GROUP_SERVICES, true, { groupName: group.name });
+    const [abort2] = api(GET_GROUP_SCHEDULES, true, { groupName: group.name});
     res?.then(() => setNewSchedule({ ...newSchedule, services: [] }));
-    return () => abort();
-  }, [group]);
-
-  useEffect(() => {
-    const [abort1] = api(GET_SCHEDULES, true);
     return () => {
       abort1();
+      abort2();
     }
-  }, []);
+  }, [group]);
 
   return <Grid container spacing={2}>
 
@@ -79,9 +77,12 @@ export function ScheduleHome(props: IProps): JSX.Element {
               <Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
                 <Typography variant="body2">A schedule allows your services to be billed at different intervals. You can have multiple available schedules, each with multiple cost brackets. Brackets allow you to define a sliding scale for the cost of your services.</Typography>
                 <Typography variant="h6">Current Schedules: </Typography>
-                {Object.values(schedules).map((schedule, i) => {
+                {Object.values(groupSchedules).map((schedule, i) => {
                   return <Box key={`schedule-chip${i + 1}new`} m={1}><Chip label={`${schedule.name}`} onDelete={() => {
-                    void api(DELETE_SCHEDULE, true, { id: schedule.id });
+                    const [, res] = api(DELETE_GROUP_SCHEDULE, true, { groupName: group.name, scheduleId: schedule.id });   
+                    res?.then(() => {
+                      api(DELETE_SCHEDULE, true, { id: schedule.id });
+                    });
                   }} /></Box>
                 })}
               </Box>
@@ -222,7 +223,7 @@ export function ScheduleHome(props: IProps): JSX.Element {
           }
         }}>
           <Box mx={2} sx={{ display: 'flex', alignItems: 'center' }}>
-            <Typography color="secondary" variant="button">Add to Schedule</Typography>
+            <Typography color="secondary" variant="button">Add Bracket to Schedule</Typography>
           </Box>
         </CardActionArea>
       </Card>
@@ -259,12 +260,18 @@ export function ScheduleHome(props: IProps): JSX.Element {
           const { name, services: s, brackets } = newSchedule;
           if (name && s.length && newTerm.scheduleContextName && newTerm.duration && brackets.length) {
             newSchedule.term = newTerm;
-
-            const [,res] = api(POST_SCHEDULE, true, { ...newSchedule })
-            res?.then(() => {
-              act(SET_SNACK, { snackOn: 'Successfully added ' + name, snackType: 'info' });
-              setNewSchedule({ ...scheduleSchema, brackets: [], services: [] });
-              setNewTerm({ ...termSchema });
+            const [, res] = api(POST_SCHEDULE, true, { ...newSchedule })
+            res?.then(schedules => {
+              if (schedules) {
+                const [schedule] = schedules as ISchedule[];
+                const [, rez] = api(POST_GROUP_SCHEDULE, true, { scheduleId: schedule.id, groupName: group.name });
+                rez?.then(() => {
+                  api(GET_GROUP_SCHEDULES, true, { groupName: group.name });
+                  act(SET_SNACK, { snackOn: 'Successfully added ' + name, snackType: 'info' });
+                  setNewSchedule({ ...scheduleSchema, brackets: [], services: [] });
+                  setNewTerm({ ...termSchema });
+                });
+              }
             });
             
           } else {

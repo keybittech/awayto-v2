@@ -19,7 +19,7 @@ import { useStyles } from '../../../style';
 
 const { DELETE_SERVICE, POST_SERVICE } = IServiceActionTypes;
 const { POST_SERVICE_ADDON } = IServiceAddonActionTypes;
-const { GET_GROUP_SERVICES, POST_GROUP_SERVICE } = IGroupServiceActionTypes;
+const { GET_GROUP_SERVICES, POST_GROUP_SERVICE, DELETE_GROUP_SERVICE } = IGroupServiceActionTypes;
 const { GET_GROUP_SERVICE_ADDONS, POST_GROUP_SERVICE_ADDON, DELETE_GROUP_SERVICE_ADDON } = IGroupServiceAddonActionTypes;
 const { SET_SNACK } = IUtilActionTypes;
 
@@ -78,7 +78,10 @@ export function ServiceHome(props: IProps): JSX.Element {
                 <Typography variant="h6">Current Services: </Typography>
                 {Object.values(groupServices).map((service, i) => {
                   return <Box key={`service-chip${i + 1}new`} m={1}><Chip label={`${service.name}`} onDelete={() => {
-                    void api(DELETE_SERVICE, true, { id: service.id });
+                    const [, res] = api(DELETE_GROUP_SERVICE, true, { groupName: group.name, serviceId: service.id });
+                    res?.then(() => {
+                      api(DELETE_SERVICE, true, { id: service.id });
+                    })
                   }} /></Box>
                 })}
               </Box>
@@ -221,10 +224,9 @@ export function ServiceHome(props: IProps): JSX.Element {
             res?.then(services => {
               if (services && group) {
                 const [service] = services as IService[];
-
                 const [, rez] = api(POST_GROUP_SERVICE, true, { serviceId: service.id, groupName: group.name });
-
                 rez?.then(() => {
+                  api(GET_GROUP_SERVICES, true, { groupName: group.name });
                   act(SET_SNACK, { snackOn: `Successfully added ${service.name} to ${group.name}`, snackType: 'info' });
                   setNewService({ ...serviceSchema, tiers: [] });
                   setServiceTierAddonIds([]);

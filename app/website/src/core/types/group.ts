@@ -1,4 +1,4 @@
-import { PayloadAction, IRole, IUserProfile, IService, IServiceAddon } from '.';
+import { PayloadAction, IRole, IUserProfile, IService, IServiceAddon, ISchedule } from '.';
 
 declare global {
   /**
@@ -8,12 +8,13 @@ declare global {
     group: IGroupState;
     groupService: IGroupServiceState;
     groupServiceAddon: IGroupServiceAddonState;
+    groupSchedule: IGroupScheduleState;
   }
 
   /**
    * @category Awayto Redux
    */
-  type IGroupModuleActions = IGroupActions | IGroupServiceActions | IGroupServiceAddonActions;
+  type IGroupModuleActions = IGroupActions | IGroupServiceActions | IGroupServiceAddonActions | IGroupScheduleActions;
 
   /**
    * @category Awayto Redux
@@ -22,6 +23,7 @@ declare global {
     group: IGroupActionTypes;
     groupService: IGroupServiceActionTypes;
     groupServiceAddon: IGroupServiceAddonActionTypes;
+    groupSchedule: IGroupScheduleActionTypes;
   }
 }
 
@@ -163,7 +165,7 @@ export type IGroupServiceAddonState = {
  * @category Action Types
  */
 export enum IGroupServiceAddonActionTypes {
-  POST_GROUP_SERVICE_ADDON = "POST/group/:groupName/service_addons/:serviceAddonId",
+  POST_GROUP_SERVICE_ADDON = "GET/group/:groupName/service_addons/:serviceAddonId",
   GET_GROUP_SERVICE_ADDONS = "GET/group/:groupName/service_addons",
   DELETE_GROUP_SERVICE_ADDON = "DELETE/group/:groupName/service_addons/:serviceAddonId"
 }
@@ -216,7 +218,7 @@ export type IGroupServiceState = {
  * @category Action Types
  */
 export enum IGroupServiceActionTypes {
-  POST_GROUP_SERVICE = "POST/group/:groupName/services/:serviceId",
+  POST_GROUP_SERVICE = "GET/group/:groupName/services/:serviceId",
   GET_GROUP_SERVICES = "GET/group/:groupName/services",
   DELETE_GROUP_SERVICE = "DELETE/group/:groupName/services/:serviceId"
 }
@@ -242,3 +244,56 @@ export type IDeleteGroupServiceAction = PayloadAction<IGroupServiceActionTypes.D
 export type IGroupServiceActions = IPostGroupServiceAction
   | IGetGroupServicesAction
   | IDeleteGroupServiceAction;
+
+
+
+
+  /**
+   * @category Group
+   */
+  export type IGroupSchedule = ISchedule & {
+    groupId: string;
+  };
+  
+  /**
+   * @category Group
+   */
+  export type IGroupSchedules = Record<string, IGroupSchedule>;
+  
+  /**
+   * @category Group
+   */
+  export type IGroupScheduleState = {
+    groupSchedules: IGroupSchedules | IGroupSchedule[];
+  };
+  
+  /**
+   * @category Action Types
+   */
+  export enum IGroupScheduleActionTypes {
+    POST_GROUP_SCHEDULE = "GET/group/:groupName/schedules/:scheduleId",
+    GET_GROUP_SCHEDULES = "GET/group/:groupName/schedules",
+    DELETE_GROUP_SCHEDULE = "DELETE/group/:groupName/schedules/:scheduleId"
+  }
+  
+  /**
+   * @category Group
+   */
+  export type IPostGroupScheduleAction = PayloadAction<IGroupScheduleActionTypes.POST_GROUP_SCHEDULE, IGroupSchedule[]>;
+  
+  /**
+   * @category Group
+   */
+  export type IGetGroupSchedulesAction = PayloadAction<IGroupScheduleActionTypes.GET_GROUP_SCHEDULES, IGroupSchedule[]>;
+  
+  /**
+   * @category Group
+   */
+  export type IDeleteGroupScheduleAction = PayloadAction<IGroupScheduleActionTypes.DELETE_GROUP_SCHEDULE, IGroupSchedule[]>;
+  
+  /**
+   * @category Group
+   */
+  export type IGroupScheduleActions = IPostGroupScheduleAction
+    | IGetGroupSchedulesAction
+    | IDeleteGroupScheduleAction;

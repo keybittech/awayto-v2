@@ -1,5 +1,6 @@
-import Tests from './tests';
+// import Tests from './tests';
 import Public from './public';
+import Forms from './forms';
 import Files from './files';
 import Profiles from './profiles';
 import UuidGroups from './uuid_groups';
@@ -8,24 +9,24 @@ import UuidNotes from './uuid_notes';
 import UuidRoles from './uuid_roles';
 import Roles from './roles';
 import ManageRoles from './manage_roles';
-import Groups from './groups';
 import ManageGroups from './manage_groups';
 import Users from './users';
 import ManageUsers from './manage_users';
-
-import Forms from './forms';
 
 import Bookings from './bookings';
 import Contacts from './contacts';
 import Payments from './payments';
 import Quotes from './quotes';
 import Services from './services';
-import GroupServices from './group_services';
 import ServiceAddons from './service_addons';
-import GroupServiceAddons from './group_service_addons';
 import ServiceTiers from './service_tiers';
-import ScheduleContexts from './schedule_contexts';
 import Schedules from './schedules';
+import ScheduleContexts from './schedule_contexts';
+
+import Groups from './groups';
+import GroupServices from './group_services';
+import GroupServiceAddons from './group_service_addons';
+import GroupSchedules from './group_schedules';
 
 import { AuthWebhooks } from './auth';
 
@@ -34,31 +35,32 @@ export default  {
     ...AuthWebhooks
   },
   protected: [
-    ...Tests,
+    // ...Tests,
     ...Files,
+    ...Forms,
     ...Profiles,
     ...UuidGroups,
     ...UuidFiles,
     ...UuidNotes,
     ...UuidRoles,
     ...Roles,
-    ...ManageRoles,
-    ...Groups,
-    ...ManageGroups,
     ...Users,
+    ...ManageRoles,
+    ...ManageGroups,
     ...ManageUsers,
-    ...Forms,
     ...Bookings,
     ...Contacts,
     ...Payments,
     ...Quotes,
-    ...ScheduleContexts,
     ...Schedules,
+    ...ScheduleContexts,
+    ...Services,
     ...ServiceAddons,
+    ...ServiceTiers,
+    ...Groups,
     ...GroupServices,
     ...GroupServiceAddons,
-    ...ServiceTiers,
-    ...Services
+    ...GroupSchedules
   ],
   public: [
     ...Public
