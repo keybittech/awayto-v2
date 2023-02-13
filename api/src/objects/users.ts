@@ -41,9 +41,9 @@ const users: ApiModule = [
       try {
 
         const response = await props.client.query<IUser>(`
-          SELECT eu.* FROM enabled_users eu
-          LEFT JOIN enabled_uuid_groups eug ON eug."parentUuid" = eu.id
-          LEFT JOIN enabled_groups eg ON eg.id = eug."groupId"
+          SELECT eu.* FROM dbview_schema.enabled_users eu
+          LEFT JOIN dbview_schema.enabled_uuid_groups eug ON eug."parentUuid" = eu.id
+          LEFT JOIN dbview_schema.enabled_groups eg ON eg.id = eug."groupId"
           WHERE eg."createdSub" = $1
         `, [props.event.userSub]);
         
@@ -64,7 +64,7 @@ const users: ApiModule = [
         const { id } = props.event.pathParameters;
 
         const response = await props.client.query<IUser>(`
-          SELECT * FROM enabled_users
+          SELECT * FROM dbview_schema.enabled_users
           WHERE id = $1
         `, [id]);
         

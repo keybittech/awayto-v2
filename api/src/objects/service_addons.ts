@@ -68,7 +68,7 @@ const serviceAddons: ApiModule = [
       try {
 
         const response = await props.client.query<IServiceAddon>(`
-          SELECT * FROM enabled_service_addons
+          SELECT * FROM dbview_schema.enabled_service_addons
         `);
         
         return response.rows;
@@ -88,7 +88,7 @@ const serviceAddons: ApiModule = [
         const { id } = props.event.pathParameters;
 
         const response = await props.client.query<IServiceAddon>(`
-          SELECT * FROM enabled_service_addons
+          SELECT * FROM dbview_schema.enabled_service_addons
           WHERE id = $1
         `, [id]);
         

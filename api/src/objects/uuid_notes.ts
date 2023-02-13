@@ -58,7 +58,7 @@ const uuidNotes: ApiModule = [
       try {
 
         const response = await props.client.query<IUuidNotes>(`
-          SELECT * FROM enabled_uuid_notes
+          SELECT * FROM dbview_schema.enabled_uuid_notes
         `);
         
         return response.rows;
@@ -78,7 +78,7 @@ const uuidNotes: ApiModule = [
         const { id } = props.event.pathParameters;
 
         const response = await props.client.query<IUuidNotes>(`
-          SELECT * FROM enabled_uuid_notes
+          SELECT * FROM dbview_schema.enabled_uuid_notes
           WHERE id = $1
         `, [id]);
         

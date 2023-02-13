@@ -93,7 +93,7 @@ const manageGroups: ApiModule = [
       try {
 
         const response = await props.client.query<IGroup>(`
-          SELECT * FROM enabled_groups_ext
+          SELECT * FROM dbview_schema.enabled_groups_ext
         `);
         
         return response.rows;
@@ -113,7 +113,7 @@ const manageGroups: ApiModule = [
         const { id } = props.event.pathParameters;
 
         const response = await props.client.query<IGroup>(`
-          SELECT * FROM enabled_groups_ext
+          SELECT * FROM dbview_schema.enabled_groups_ext
           WHERE id = $1
         `, [id]);
         

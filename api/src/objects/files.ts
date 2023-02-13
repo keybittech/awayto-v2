@@ -61,7 +61,7 @@ const files: ApiModule = [
       try {
 
         const response = await props.client.query<IFile>(`
-          SELECT * FROM enabled_files
+          SELECT * FROM dbview_schema.enabled_files
         `);
         
         return response.rows;
@@ -81,7 +81,7 @@ const files: ApiModule = [
         const { id } = props.event.pathParameters;
 
         const response = await props.client.query<IFile>(`
-          SELECT * FROM enabled_files
+          SELECT * FROM dbview_schema.enabled_files
           WHERE id = $1
         `, [id]);
         

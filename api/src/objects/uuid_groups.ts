@@ -59,7 +59,7 @@ const uuidGroups: ApiModule = [
       try {
 
         const response = await props.client.query<IUuidGroups>(`
-          SELECT * FROM enabled_uuid_groups
+          SELECT * FROM dbview_schema.enabled_uuid_groups
         `);
         
         return response.rows;
@@ -79,7 +79,7 @@ const uuidGroups: ApiModule = [
         const { id } = props.event.pathParameters;
 
         const response = await props.client.query<IUuidGroups>(`
-          SELECT * FROM enabled_uuid_groups
+          SELECT * FROM dbview_schema.enabled_uuid_groups
           WHERE id = $1
         `, [id]);
         
@@ -100,7 +100,7 @@ const uuidGroups: ApiModule = [
         const { parentUuid } = props.event.pathParameters;
 
         const response = await props.client.query<IUuidGroups>(`
-          SELECT * FROM enabled_uuid_groups
+          SELECT * FROM dbview_schema.enabled_uuid_groups
           WHERE "parentUuid" = $1
         `, [parentUuid]);
         
@@ -121,7 +121,7 @@ const uuidGroups: ApiModule = [
         const { groupId } = props.event.pathParameters;
 
         const response = await props.client.query<IUuidGroups>(`
-          SELECT * FROM enabled_uuid_groups
+          SELECT * FROM dbview_schema.enabled_uuid_groups
           WHERE "groupId" = $1
         `, [groupId]);
         

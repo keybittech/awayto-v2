@@ -58,7 +58,7 @@ const uuidFiles: ApiModule = [
       try {
 
         const response = await props.client.query<IUuidFiles>(`
-          SELECT * FROM enabled_uuid_files
+          SELECT * FROM dbview_schema.enabled_uuid_files
         `);
         
         return response.rows;
@@ -78,7 +78,7 @@ const uuidFiles: ApiModule = [
         const { id } = props.event.pathParameters;
 
         const response = await props.client.query<IUuidFiles>(`
-          SELECT * FROM enabled_uuid_files
+          SELECT * FROM dbview_schema.enabled_uuid_files
           WHERE id = $1
         `, [id]);
         

@@ -105,7 +105,7 @@ const schedules: ApiModule = [
       try {
 
         const response = await props.client.query<ISchedule>(`
-          SELECT * FROM enabled_schedules
+          SELECT * FROM dbview_schema.enabled_schedules
         `);
 
         return response.rows;
@@ -125,7 +125,7 @@ const schedules: ApiModule = [
         const { id } = props.event.pathParameters;
 
         const response = await props.client.query<ISchedule>(`
-          SELECT * FROM enabled_schedules_ext
+          SELECT * FROM dbview_schema.enabled_schedules_ext
           WHERE id = $1
         `, [id]);
 

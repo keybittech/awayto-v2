@@ -59,7 +59,7 @@ const scheduleContexts: ApiModule = [
       try {
 
         const response = await props.client.query<IScheduleContext>(`
-          SELECT * FROM enabled_schedule_contexts
+          SELECT * FROM dbview_schema.enabled_schedule_contexts
         `);
         
         return response.rows;
@@ -79,7 +79,7 @@ const scheduleContexts: ApiModule = [
         const { id } = props.event.pathParameters;
 
         const response = await props.client.query<IScheduleContext>(`
-          SELECT * FROM enabled_schedule_contexts
+          SELECT * FROM dbview_schema.enabled_schedule_contexts
           WHERE id = $1
         `, [id]);
         

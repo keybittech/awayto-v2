@@ -64,7 +64,7 @@ const uuidRoles: ApiModule = [
       try {
 
         const response = await props.client.query<IUuidRoles>(`
-          SELECT * FROM enabled_uuid_roles
+          SELECT * FROM dbview_schema.enabled_uuid_roles
         `);
         
         return response.rows;
@@ -84,7 +84,7 @@ const uuidRoles: ApiModule = [
         const { id } = props.event.pathParameters;
 
         const response = await props.client.query<IUuidRoles>(`
-          SELECT * FROM enabled_uuid_roles
+          SELECT * FROM dbview_schema.enabled_uuid_roles
           WHERE id = $1
         `, [id]);
         

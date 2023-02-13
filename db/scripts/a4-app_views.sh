@@ -5,10 +5,11 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
   \ c sysmaindb 
 
   CREATE
-  OR REPLACE VIEW enabled_budgets AS
+  OR REPLACE VIEW dbview_schema.enabled_budgets AS
   SELECT
     id,
     name,
+    created_on as "createdOn",
     row_number() OVER () as row
   FROM
     budgets
@@ -16,10 +17,11 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     enabled = true;
 
   CREATE
-  OR REPLACE VIEW enabled_timelines AS
+  OR REPLACE VIEW dbview_schema.enabled_timelines AS
   SELECT
     id,
     name,
+    created_on as "createdOn",
     row_number() OVER () as row
   FROM
     timelines
@@ -27,11 +29,12 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     enabled = true;
 
   CREATE
-  OR REPLACE VIEW enabled_services AS
+  OR REPLACE VIEW dbview_schema.enabled_services AS
   SELECT
     id,
     name,
     cost,
+    created_on as "createdOn",
     row_number() OVER () as row
   FROM
     services
@@ -39,11 +42,12 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     enabled = true;
 
   CREATE
-  OR REPLACE VIEW enabled_uuid_service_addons AS
+  OR REPLACE VIEW dbview_schema.enabled_uuid_service_addons AS
   SELECT
     id,
     parent_uuid as "parentUuid",
     service_addon_id as "serviceAddonId",
+    created_on as "createdOn",
     row_number() OVER () as row
   FROM
     uuid_service_addons
@@ -51,11 +55,12 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     enabled = true;
 
   CREATE
-  OR REPLACE VIEW enabled_uuid_services AS
+  OR REPLACE VIEW dbview_schema.enabled_uuid_services AS
   SELECT
     id,
     parent_uuid as "parentUuid",
     service_id as "serviceId",
+    created_on as "createdOn",
     row_number() OVER () as row
   FROM
     uuid_services
@@ -63,10 +68,11 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     enabled = true;
 
   CREATE
-  OR REPLACE VIEW enabled_service_addons AS
+  OR REPLACE VIEW dbview_schema.enabled_service_addons AS
   SELECT
     id,
     name,
+    created_on as "createdOn",
     row_number() OVER () as row
   FROM
     service_addons
@@ -74,12 +80,13 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     enabled = true;
 
   CREATE
-  OR REPLACE VIEW enabled_service_tiers AS
+  OR REPLACE VIEW dbview_schema.enabled_service_tiers AS
   SELECT
     id,
     name,
     service_id as "serviceId",
     multiplier,
+    created_on as "createdOn",
     row_number() OVER () as row
   FROM
     service_tiers
@@ -87,12 +94,13 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     enabled = true;
 
   CREATE
-  OR REPLACE VIEW enabled_contacts AS
+  OR REPLACE VIEW dbview_schema.enabled_contacts AS
   SELECT
     id,
     name,
     email,
     phone,
+    created_on as "createdOn",
     row_number() OVER () as row
   FROM
     contacts
@@ -100,11 +108,12 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     enabled = true;
 
   CREATE
-  OR REPLACE VIEW enabled_schedules AS
+  OR REPLACE VIEW dbview_schema.enabled_schedules AS
   SELECT
     id,
     name,
     overbook,
+    created_on as "createdOn",
     row_number() OVER () as row
   FROM
     schedules
@@ -112,11 +121,12 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     enabled = true;
 
   CREATE
-  OR REPLACE VIEW enabled_uuid_schedules AS
+  OR REPLACE VIEW dbview_schema.enabled_uuid_schedules AS
   SELECT
     id,
     parent_uuid as "parentUuid",
     schedule_id as "scheduleId",
+    created_on as "createdOn",
     row_number() OVER () as row
   FROM
     uuid_schedules
@@ -124,13 +134,14 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     enabled = true;
 
   CREATE
-  OR REPLACE VIEW enabled_schedule_terms AS
+  OR REPLACE VIEW dbview_schema.enabled_schedule_terms AS
   SELECT
     st.id,
     st.schedule_id as "scheduleId",
     st.schedule_context_id as "scheduleContextId",
     sc.name as "scheduleContextName",
     st.duration,
+    st.created_on as "createdOn",
     row_number() OVER () as row
   FROM
     schedule_terms st
@@ -139,7 +150,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     st.enabled = true;
 
   CREATE
-  OR REPLACE VIEW enabled_schedule_brackets AS
+  OR REPLACE VIEW dbview_schema.enabled_schedule_brackets AS
   SELECT
     sb.id,
     sb.schedule_id as "scheduleId",
@@ -147,6 +158,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     sc.name as "scheduleContextName",
     sb.bracket,
     sb.multiplier,
+    sb.created_on as "createdOn",
     row_number() OVER () as row
   FROM
     schedule_brackets sb
@@ -155,7 +167,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     sb.enabled = true;
 
   CREATE
-  OR REPLACE VIEW enabled_quotes AS
+  OR REPLACE VIEW dbview_schema.enabled_quotes AS
   SELECT
     id,
     name,
@@ -166,6 +178,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     contact_id as "contactId",
     desired_duration as "desiredDuration",
     respond_by as "respondBy",
+    created_on as "createdOn",
     row_number() OVER () as row
   FROM
     quotes
@@ -173,11 +186,12 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     enabled = true;
 
   CREATE
-  OR REPLACE VIEW enabled_uuid_quotes AS
+  OR REPLACE VIEW dbview_schema.enabled_uuid_quotes AS
   SELECT
     id,
     parent_uuid as "parentUuid",
     quote_id as "quoteId",
+    created_on as "createdOn",
     row_number() OVER () as row
   FROM
     uuid_quotes
@@ -185,11 +199,12 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     enabled = true;
 
   CREATE
-  OR REPLACE VIEW enabled_payments AS
+  OR REPLACE VIEW dbview_schema.enabled_payments AS
   SELECT
     id,
     contact_id as "contactId",
     details,
+    created_on as "createdOn",
     row_number() OVER () as row
   FROM
     payments
@@ -197,11 +212,12 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     enabled = true;
 
   CREATE
-  OR REPLACE VIEW enabled_uuid_payments AS
+  OR REPLACE VIEW dbview_schema.enabled_uuid_payments AS
   SELECT
     id,
     parent_uuid as "parentUuid",
     payment_id as "paymentId",
+    created_on as "createdOn",
     row_number() OVER () as row
   FROM
     uuid_payments
@@ -209,7 +225,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     enabled = true;
 
   CREATE
-  OR REPLACE VIEW enabled_bookings AS
+  OR REPLACE VIEW dbview_schema.enabled_bookings AS
   SELECT
     id,
     service_tier_id as "serviceTierId",
@@ -217,6 +233,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     payment_id as "paymentId",
     agreement,
     description,
+    created_on as "createdOn",
     row_number() OVER () as row
   FROM
     bookings
@@ -224,11 +241,12 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     enabled = true;
 
   CREATE
-  OR REPLACE VIEW enabled_uuid_bookings AS
+  OR REPLACE VIEW dbview_schema.enabled_uuid_bookings AS
   SELECT
     id,
     parent_uuid as "parentUuid",
     booking_id as "bookingId",
+    created_on as "createdOn",
     row_number() OVER () as row
   FROM
     uuid_bookings
@@ -236,12 +254,13 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     enabled = true;
 
   CREATE
-  OR REPLACE VIEW enabled_booking_schedule_brackets AS
+  OR REPLACE VIEW dbview_schema.enabled_booking_schedule_brackets AS
   SELECT
     id,
     booking_id as "bookingId",
     schedule_bracket_id as "scheduleBracketId",
     duration,
+    created_on as "createdOn",
     row_number() OVER () as row
   FROM
     booking_schedule_brackets
@@ -249,12 +268,12 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     enabled = true;
 
   CREATE
-  OR REPLACE VIEW enabled_service_tiers_ext AS
+  OR REPLACE VIEW dbview_schema.enabled_service_tiers_ext AS
   SELECT
     est.*,
     essa.* as addons
   FROM
-    enabled_service_tiers est
+    dbview_schema.enabled_service_tiers est
     LEFT JOIN LATERAL (
       SELECT
         JSON_AGG(s1.*) as addons
@@ -265,19 +284,19 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
             esa.name
           FROM
             service_tier_addons sta
-            LEFT JOIN enabled_service_addons esa ON esa.id = sta.service_addon_id
+            LEFT JOIN dbview_schema.enabled_service_addons esa ON esa.id = sta.service_addon_id
           WHERE
             sta.service_tier_id = est.id
         ) s1
     ) as essa ON true;
 
   CREATE
-  OR REPLACE VIEW enabled_services_ext AS
+  OR REPLACE VIEW dbview_schema.enabled_services_ext AS
   SELECT
     es.*,
     eest.* as tiers
   FROM
-    enabled_services es
+    dbview_schema.enabled_services es
     LEFT JOIN LATERAL (
       SELECT
         JSON_AGG(s1.*) as tiers
@@ -286,22 +305,22 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
           SELECT
             este.*
           FROM
-            enabled_service_tiers_ext este
+            dbview_schema.enabled_service_tiers_ext este
           WHERE
             este."serviceId" = es.id
         ) s1
     ) as eest ON true;
 
   CREATE
-  OR REPLACE VIEW enabled_schedules_ext AS
+  OR REPLACE VIEW dbview_schema.enabled_schedules_ext AS
   SELECT
     es.*,
     row_to_json(est.*) term,
     eesb.*,
     eess.*
   FROM
-    enabled_schedules es
-    LEFT JOIN enabled_schedule_terms est ON est."scheduleId" = es.id
+    dbview_schema.enabled_schedules es
+    LEFT JOIN dbview_schema.enabled_schedule_terms est ON est."scheduleId" = es.id
     LEFT JOIN LATERAL (
       SELECT
         JSON_AGG(s2.*) as brackets
@@ -310,7 +329,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
           SELECT
             esb.*
           FROM
-            enabled_schedule_brackets esb
+            dbview_schema.enabled_schedule_brackets esb
           WHERE
             esb."scheduleId" = es.id
         ) s2
@@ -324,14 +343,14 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
             ess.*
           FROM
             schedule_services ss
-            LEFT JOIN enabled_services_ext ess ON ess.id = ss.service_id
+            LEFT JOIN dbview_schema.enabled_services_ext ess ON ess.id = ss.service_id
           WHERE
             ss.schedule_id = es.id
         ) s3
     ) as eess ON true;
 
   CREATE
-  OR REPLACE VIEW enabled_quotes_ext AS
+  OR REPLACE VIEW dbview_schema.enabled_quotes_ext AS
   SELECT
     eq.*,
     eb.name as "budgetName",
@@ -340,15 +359,15 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     row_to_json(s.*) as service,
     row_to_json(ec.*) as contact
   FROM
-    enabled_quotes eq
-    LEFT JOIN enabled_budgets eb ON eb.id = eq."budgetId"
-    LEFT JOIN enabled_timelines et ON et.id = eq."timelineId"
-    LEFT JOIN enabled_service_tiers es ON es.id = eq."serviceTierId"
-    LEFT JOIN enabled_services s ON s.id = es."serviceId"
-    LEFT JOIN enabled_contacts ec ON ec.id = eq."contactId";
+    dbview_schema.enabled_quotes eq
+    LEFT JOIN dbview_schema.enabled_budgets eb ON eb.id = eq."budgetId"
+    LEFT JOIN dbview_schema.enabled_timelines et ON et.id = eq."timelineId"
+    LEFT JOIN dbview_schema.enabled_service_tiers es ON es.id = eq."serviceTierId"
+    LEFT JOIN dbview_schema.enabled_services s ON s.id = es."serviceId"
+    LEFT JOIN dbview_schema.enabled_contacts ec ON ec.id = eq."contactId";
 
   CREATE
-  OR REPLACE VIEW enabled_bookings_ext AS
+  OR REPLACE VIEW dbview_schema.enabled_bookings_ext AS
   SELECT
     eb.*,
     row_to_json(es.*) as service,
@@ -357,11 +376,11 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     row_to_json(ec.*) as contact,
     eess.* as brackets
   FROM
-    enabled_bookings eb
-    LEFT JOIN enabled_service_tiers est ON est.id = eb."serviceTierId"
-    LEFT JOIN enabled_services es ON es.id = est."serviceId"
-    LEFT JOIN enabled_payments ep ON ep.id = eb."paymentId"
-    LEFT JOIN enabled_contacts ec ON ec.id = eb."contactId"
+    dbview_schema.enabled_bookings eb
+    LEFT JOIN dbview_schema.enabled_service_tiers est ON est.id = eb."serviceTierId"
+    LEFT JOIN dbview_schema.enabled_services es ON es.id = est."serviceId"
+    LEFT JOIN dbview_schema.enabled_payments ep ON ep.id = eb."paymentId"
+    LEFT JOIN dbview_schema.enabled_contacts ec ON ec.id = eb."contactId"
     LEFT JOIN LATERAL (
       SELECT
         JSON_AGG(s1.*) as brackets
@@ -372,7 +391,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
             bsb.duration
           FROM
             booking_schedule_brackets bsb
-            LEFT JOIN enabled_schedule_brackets esb ON bsb.schedule_bracket_id = esb.id
+            LEFT JOIN dbview_schema.enabled_schedule_brackets esb ON bsb.schedule_bracket_id = esb.id
           WHERE
             bsb.booking_id = eb.id
         ) s1

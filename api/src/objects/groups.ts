@@ -158,7 +158,7 @@ const groups: ApiModule = [
       try {
 
         const response = await props.client.query<IGroup>(`
-          SELECT * FROM enabled_groups_ext
+          SELECT * FROM dbview_schema.enabled_groups_ext
           WHERE "createdSub" = $1
         `, [props.event.userSub]);
         
@@ -179,7 +179,7 @@ const groups: ApiModule = [
         const { id } = props.event.pathParameters;
 
         const response = await props.client.query<IGroup>(`
-          SELECT * FROM enabled_groups_ext
+          SELECT * FROM dbview_schema.enabled_groups_ext
           WHERE id = $1
         `, [id]);
         
@@ -315,9 +315,9 @@ const groups: ApiModule = [
 
         const { rows: users } = await props.client.query<IUserProfile>(`
           SELECT *
-          FROM enabled_users_ext eux
-          JOIN enabled_groups_ext ege ON ege."createdSub" = '93cc6bca-473e-4161-adf5-15ad63a0cbc6'
-          JOIN enabled_uuid_groups eug ON eug."parentUuid" = ege.id
+          FROM dbview_schema.enabled_users_ext eux
+          JOIN dbview_schema.enabled_groups_ext ege ON ege."createdSub" = '93cc6bca-473e-4161-adf5-15ad63a0cbc6'
+          JOIN dbview_schema.enabled_uuid_groups eug ON eug."parentUuid" = ege.id
         `, [props.event.userSub]);
 
         return users;

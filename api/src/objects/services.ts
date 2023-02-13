@@ -93,7 +93,7 @@ const services: ApiModule = [
       try {
 
         const response = await props.client.query<IService>(`
-          SELECT * FROM enabled_services
+          SELECT * FROM dbview_schema.enabled_services
         `);
         
         return response.rows;
@@ -113,7 +113,7 @@ const services: ApiModule = [
         const { id } = props.event.pathParameters;
 
         const response = await props.client.query<IService>(`
-          SELECT * FROM enabled_services_ext
+          SELECT * FROM dbview_schema.enabled_services_ext
           WHERE id = $1
         `, [id]);
         

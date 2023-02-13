@@ -59,7 +59,7 @@ const quotes: ApiModule = [
       try {
 
         const response = await props.client.query<IQuote>(`
-          SELECT * FROM enabled_quotes
+          SELECT * FROM dbview_schema.enabled_quotes
         `);
         
         return response.rows;
@@ -79,7 +79,7 @@ const quotes: ApiModule = [
         const { id } = props.event.pathParameters;
 
         const response = await props.client.query<IQuote>(`
-          SELECT * FROM enabled_quotes_ext
+          SELECT * FROM dbview_schema.enabled_quotes_ext
           WHERE id = $1
         `, [id]);
         

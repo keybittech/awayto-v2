@@ -88,7 +88,7 @@ const bookings: ApiModule = [
       try {
 
         const response = await props.client.query<IBooking>(`
-          SELECT * FROM enabled_bookings
+          SELECT * FROM dbview_schema.enabled_bookings
         `);
         
         return response.rows;
@@ -108,7 +108,7 @@ const bookings: ApiModule = [
         const { id } = props.event.pathParameters;
 
         const response = await props.client.query<IBooking>(`
-          SELECT * FROM enabled_bookings_ext
+          SELECT * FROM dbview_schema.enabled_bookings_ext
           WHERE id = $1
         `, [id]);
         

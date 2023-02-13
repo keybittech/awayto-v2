@@ -59,7 +59,7 @@ const service_tiers: ApiModule = [
       try {
 
         const response = await props.client.query<IServiceTier>(`
-          SELECT * FROM enabled_service_tiers
+          SELECT * FROM dbview_schema.enabled_service_tiers
         `);
         
         return response.rows;
@@ -79,7 +79,7 @@ const service_tiers: ApiModule = [
         const { id } = props.event.pathParameters;
 
         const response = await props.client.query<IServiceTier>(`
-          SELECT * FROM enabled_service_tiers_ext
+          SELECT * FROM dbview_schema.enabled_service_tiers_ext
           WHERE id = $1
         `, [id]);
         

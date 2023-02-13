@@ -12,7 +12,7 @@ const groupServiceAddons: ApiModule = [
 
         const [{ id: groupId }] = (await props.client.query<IGroup>(`
           SELECT id
-          FROM enabled_groups
+          FROM dbview_schema.enabled_groups
           WHERE name = $1
         `, [groupName])).rows
 
@@ -41,14 +41,14 @@ const groupServiceAddons: ApiModule = [
 
         const [{ id: groupId }] = (await props.client.query<IGroup>(`
           SELECT id
-          FROM enabled_groups
+          FROM dbview_schema.enabled_groups
           WHERE name = $1
         `, [groupName])).rows
 
         const response = await props.client.query<IGroupServiceAddon>(`
           SELECT esa.*, eusa."parentUuid" as "groupId"
-          FROM enabled_uuid_service_addons eusa
-          LEFT JOIN enabled_service_addons esa ON esa.id = eusa."serviceAddonId"
+          FROM dbview_schema.enabled_uuid_service_addons eusa
+          LEFT JOIN dbview_schema.enabled_service_addons esa ON esa.id = eusa."serviceAddonId"
           WHERE eusa."parentUuid" = $1
         `, [groupId]);
         
@@ -71,7 +71,7 @@ const groupServiceAddons: ApiModule = [
 
         const [{ id: groupId }] = (await props.client.query<IGroup>(`
           SELECT id
-          FROM enabled_groups
+          FROM dbview_schema.enabled_groups
           WHERE name = $1
         `, [groupName])).rows
 
@@ -99,7 +99,7 @@ const groupServiceAddons: ApiModule = [
 
         // const [{ id: groupId }] = (await props.client.query<IGroup>(`
         //   SELECT id
-        //   FROM enabled_groups
+        //   FROM dbview_schema.enabled_groups
         //   WHERE name = $1
         // `, [groupName])).rows
 

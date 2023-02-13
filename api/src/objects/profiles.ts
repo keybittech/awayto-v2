@@ -68,7 +68,7 @@ const profile: ApiModule = [
       try {
         const response = await props.client.query<IUserProfile>(`
           SELECT * 
-          FROM enabled_users_ext
+          FROM dbview_schema.enabled_users_ext
           WHERE sub = $1
         `, [props.event.userSub]);
 
@@ -89,7 +89,7 @@ const profile: ApiModule = [
 
       try {
         const response = await props.client.query<IUserProfile>(`
-          SELECT * FROM enabled_users
+          SELECT * FROM dbview_schema.enabled_users
           WHERE sub = $1 
         `, [sub]);
 
@@ -110,7 +110,7 @@ const profile: ApiModule = [
         const { id } = props.event.pathParameters;
 
         const response = await props.client.query<IUserProfile>(`
-          SELECT * FROM enabled_users
+          SELECT * FROM dbview_schema.enabled_users
           WHERE id = $1 
         `, [id]);
 

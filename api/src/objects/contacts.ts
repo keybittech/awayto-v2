@@ -59,7 +59,7 @@ const contacts: ApiModule = [
       try {
 
         const response = await props.client.query<IContact>(`
-          SELECT * FROM enabled_contacts
+          SELECT * FROM dbview_schema.enabled_contacts
         `);
         
         return response.rows;
@@ -79,7 +79,7 @@ const contacts: ApiModule = [
         const { id } = props.event.pathParameters;
 
         const response = await props.client.query<IContact>(`
-          SELECT * FROM enabled_contacts
+          SELECT * FROM dbview_schema.enabled_contacts
           WHERE id = $1
         `, [id]);
         

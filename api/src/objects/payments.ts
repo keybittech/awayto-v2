@@ -57,7 +57,7 @@ const payments: ApiModule = [
       try {
 
         const response = await props.client.query<IPayment>(`
-          SELECT * FROM enabled_payments
+          SELECT * FROM dbview_schema.enabled_payments
         `);
         
         return response.rows;
@@ -77,7 +77,7 @@ const payments: ApiModule = [
         const { id } = props.event.pathParameters;
 
         const response = await props.client.query<IPayment>(`
-          SELECT * FROM enabled_payments
+          SELECT * FROM dbview_schema.enabled_payments
           WHERE id = $1
         `, [id]);
         

@@ -78,11 +78,11 @@ const roles: ApiModule = [
       try {
 
         const response = await props.client.query<IRole>(`
-          SELECT eur.id, er.name 
-          FROM enabled_roles er
-          LEFT JOIN enabled_uuid_roles eur ON er.id = eur."roleId"
-          LEFT JOIN users u ON u.id = eur."parentUuid"
-          WHERE u.sub = $1
+          SELECT eur.id, er.name, eur."createdOn" 
+          FROM dbview_schema.enabled_roles er
+          LEFT JOIN dbview_schema.enabled_uuid_roles eur ON er.id = eur."roleId"
+          LEFT JOIN dbview_schema.enabled_users eu ON eu.id = eur."parentUuid"
+          WHERE eu.sub = $1
         `, [props.event.userSub]);
         
         return response.rows;
@@ -102,7 +102,7 @@ const roles: ApiModule = [
         const { id } = props.event.pathParameters;
 
         const response = await props.client.query<IRole>(`
-          SELECT * FROM enabled_roles
+          SELECT * FROM dbview_schema.enabled_roles
           WHERE id = $1
         `, [id]);
         
@@ -120,8 +120,6 @@ const roles: ApiModule = [
     path : 'roles/:ids',
     cmnd : async (props) => {
       try {
-
-        console.log({ props })
 
         const { ids } = props.event.pathParameters;
         

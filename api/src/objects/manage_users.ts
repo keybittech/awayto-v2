@@ -49,7 +49,7 @@ const manageUsers: ApiModule = [
         const { id } = await users[usersApiPostUser].cmnd(props) as IUserProfile;
 
         const { rows: [ user ] } = await props.client.query<IUserProfile>(`
-          SELECT * FROM enabled_users_ext
+          SELECT * FROM dbview_schema.enabled_users_ext
           WHERE id = $1 
         `, [id]);
 
@@ -102,7 +102,7 @@ const manageUsers: ApiModule = [
       try {
         // const { Users } = await listUsers();
         
-        // const { rows: dbUsers } = await props.client.query<IUserProfile>('SELECT * FROM enabled_users_ext');
+        // const { rows: dbUsers } = await props.client.query<IUserProfile>('SELECT * FROM dbview_schema.enabled_users_ext');
 
         // const users = Users?.map(u => {
         //   return {
@@ -140,7 +140,7 @@ const manageUsers: ApiModule = [
       try {
 
         const response = await props.client.query(`
-          SELECT * FROM enabled_users_ext
+          SELECT * FROM dbview_schema.enabled_users_ext
           WHERE row > $1
           LIMIT $2
         `, [minId, perPage]);
@@ -162,7 +162,7 @@ const manageUsers: ApiModule = [
         const { id } = props.event.pathParameters;
 
         const response = await props.client.query(`
-          SELECT * FROM enabled_users_ext
+          SELECT * FROM dbview_schema.enabled_users_ext
           WHERE id = $1 
         `, [id]);
 
@@ -187,7 +187,7 @@ const manageUsers: ApiModule = [
         const { sub } = props.event.pathParameters;
 
         const response = await props.client.query(`
-          SELECT * FROM enabled_users_ext
+          SELECT * FROM dbview_schema.enabled_users_ext
           WHERE sub = $1 
         `, [sub]);
 

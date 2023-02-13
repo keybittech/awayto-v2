@@ -57,7 +57,7 @@ const manageRoles: ApiModule = [
       try {
 
         const response = await props.client.query<IRole>(`
-          SELECT * FROM enabled_roles
+          SELECT * FROM dbview_schema.enabled_roles
         `);
         
         return response.rows;
@@ -77,7 +77,7 @@ const manageRoles: ApiModule = [
         const { id } = props.event.pathParameters;
 
         const response = await props.client.query<IRole>(`
-          SELECT * FROM enabled_roles
+          SELECT * FROM dbview_schema.enabled_roles
           WHERE id = $1
         `, [id]);
         
