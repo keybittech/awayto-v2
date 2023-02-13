@@ -62,7 +62,7 @@ export function ManageGroups(props: IProps): JSX.Element {
   const actions = useMemo(() => {
     const { length } = selected;
     const isOwner = selected[0]?.createdSub === profile.sub;
-    const actions = length == 1 ? [
+    const acts = length == 1 ? [
       // <IconButton key={'groups_users_invite'} onClick={() => {
       //   setGroup(selected.pop());
       //   setDialog('groups_users_invite');
@@ -92,7 +92,7 @@ export function ManageGroups(props: IProps): JSX.Element {
     ] : [];
 
     return [
-      ...actions,
+      ...acts,
       isOwner && <Tooltip key={'delete_group'} title="Delete"><IconButton onClick={async () => {
         const [, res] = api(deleteGroupsAction, true, { ids: selected.map(s => s.id).join(',') })
         await res;
@@ -112,7 +112,7 @@ export function ManageGroups(props: IProps): JSX.Element {
       <Suspense>
         <ManageGroupModal {...props} editGroup={group} closeModal={() => {
           setDialog('');
-          void api(getGroupsAction);
+          api(getGroupsAction);
         }} />
       </Suspense>
     </Dialog>

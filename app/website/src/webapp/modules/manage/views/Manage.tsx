@@ -62,13 +62,15 @@ export function Manage(props: IProps): JSX.Element {
         />
       case 'roles':
         return <ManageRoles {...props}
-          roles={roles}
+          roles={user.roles}
           getRolesAction={GET_USER_PROFILE_DETAILS}
           putRolesAction={PUT_ROLES}
           postRolesAction={POST_ROLES}
+          deleteRolesAction={DELETE_ROLES}
         />
       case 'matrix':
         return <ManageRoleActions {...props}
+          roles={user.roles}
           getRolesAction={GET_USER_PROFILE_DETAILS}  
         />
       default:

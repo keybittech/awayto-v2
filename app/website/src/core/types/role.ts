@@ -49,7 +49,7 @@ export enum IRoleActionTypes {
   PUT_ROLES = "PUT/roles",
   GET_ROLES = "GET/roles",
   GET_ROLES_BY_ID = "GET/roles/:id",
-  DELETE_ROLES = "DELETE/roles/:id",
+  DELETE_ROLES = "DELETE/roles/:ids",
   DISABLE_ROLES = "PUT/roles/:id/disable"
 }
 

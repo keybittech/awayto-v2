@@ -17,7 +17,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import ArrowRightAlt from '@mui/icons-material/ArrowRightAlt';
 import NotInterestedIcon from '@mui/icons-material/NotInterested';
 
-import { IGroup, IRole, IUtilActionTypes } from 'awayto';
+import { IGroup, IUtilActionTypes } from 'awayto';
 import { useAct, useApi, useRedux, useComponents } from 'awayto-hooks';
 import { ManageGroupsActions } from './ManageGroups';
 
@@ -58,10 +58,12 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
     group.name = formatName(name);
     group.roles = Object.values(roles).filter(r => roleIds.includes(r.id));
     group.roleId = primaryRole;
-    api(id ? putGroupsAction : postGroupsAction, true, group);
+    const [, res] = api(id ? putGroupsAction : postGroupsAction, true, group);
 
-    if (closeModal)
-      closeModal();
+    res?.then(() => {
+      if (closeModal)
+        closeModal();
+    });
 
   }, [group, roles, roleIds, primaryRole]);
 
@@ -101,8 +103,6 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
     <Card>
       <CardContent>
         <Typography variant="button">Manage {editGroup ? editGroup.name : 'group'}</Typography>
-      </CardContent>
-      <CardContent>
         <Grid container direction="row" spacing={2}>
           <Grid item xs={12}>
             <Grid container direction="column" spacing={4} justifyContent="space-evenly" >
@@ -150,6 +150,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
             <Grid container direction="column" spacing={4} justifyContent="space-evenly">
               <Grid item>
                 <Typography variant="h6">Roles</Typography>
+                <Typography variant="body2">Each group needs a set of roles to assign to its users. After creating this group, visit the Matrix page to assign site functionality to your roles.</Typography>
               </Grid>
               <Grid item xs={12}>
                 <SelectLookup

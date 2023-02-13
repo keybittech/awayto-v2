@@ -22,7 +22,7 @@ declare global {
 }
 
 export function ManageRoleModal ({ editRole, closeModal, ...props }: IProps): JSX.Element {
-  const { putAction, postAction } = props as IProps & Required<ManageRolesActions>;
+  const { putRolesAction, postRolesAction } = props as IProps & Required<ManageRolesActions>;
 
   const api = useApi();
   const act = useAct();
@@ -35,23 +35,23 @@ export function ManageRoleModal ({ editRole, closeModal, ...props }: IProps): JS
     const { id, name } = role;
 
     if (!name) {
-      act(SET_SNACK, {snackType: 'error', snackOn: 'Groups must have a name.' });
+      act(SET_SNACK, {snackType: 'error', snackOn: 'Roles must have a name.' });
       return;
     }
 
-    void api(id ? putAction : postAction, true, role);
+    const [, res] = api(id ? putRolesAction : postRolesAction, true, role);
     
-    if (closeModal)
-      closeModal();
-      
+    res?.then(() => {
+      if (closeModal)
+        closeModal();
+    });
+
   }, [role]);
 
   return <>
     <Card>
       <CardContent>
         <Typography variant="button">Manage role</Typography>
-      </CardContent>
-      <CardContent>
         <Grid container direction="row" spacing={2}>
           <Grid item xs={12}>
             <Grid container direction="column" spacing={4} justifyContent="space-evenly" >
@@ -59,7 +59,19 @@ export function ManageRoleModal ({ editRole, closeModal, ...props }: IProps): JS
                 <Typography variant="h6">Role</Typography>
               </Grid>
               <Grid item>
-                <TextField fullWidth id="name" label="Name" value={role.name} name="name" onChange={e => setRole({ ...role, name: e.target.value })} />
+                <TextField
+                  fullWidth
+                  autoFocus
+                  id="name"
+                  label="Name"
+                  name="name"
+                  value={role.name}
+                  onKeyDown={e => {
+                    if ('Enter' === e.key) {
+                      handleSubmit();
+                    }
+                  }}
+                  onChange={e => setRole({ ...role, name: e.target.value })} />
               </Grid>
             </Grid>
           </Grid>

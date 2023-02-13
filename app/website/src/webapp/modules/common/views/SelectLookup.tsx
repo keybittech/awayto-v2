@@ -162,7 +162,8 @@ export function SelectLookup({ lookupChange, attachAction, attachName, refetchAc
             } else if (lookupValue === lookup.id) {
               lookupChange('');
             }
-            const [, res] = api(deleteAction, true, parentUuidName && attachName ? { [parentUuidName]: parentUuid, [attachName]: lookup.id } : { id: lookup.id });
+            const actionIdentifier = deleteAction.substring(deleteAction.lastIndexOf(':')+1, deleteAction.length);
+            const [, res] = api(deleteAction, true, parentUuidName && attachName ? { [parentUuidName]: parentUuid, [attachName]: lookup.id } : { [actionIdentifier]: lookup.id });
             res?.then(() => {
               if (refetchAction) {
                 api(refetchAction, true, parentUuidName && parentUuid ? { [parentUuidName]: parentUuid } : {});

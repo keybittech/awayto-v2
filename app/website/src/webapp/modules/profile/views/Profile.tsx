@@ -159,16 +159,15 @@ export function Profile(props: IProps): JSX.Element {
             <ManageGroups {...props}
               groups={user.groups}
               roles={user.roles}
-              getAction={GET_USER_PROFILE_DETAILS}
-              deleteAction={DELETE_GROUPS}
-              putAction={PUT_GROUPS}
-              postAction={POST_GROUPS}
+              getGroupsAction={GET_USER_PROFILE_DETAILS}
+              deleteGroupsAction={DELETE_GROUPS}
+              putGroupsAction={PUT_GROUPS}
+              postGroupsAction={POST_GROUPS}
               getRolesAction={GET_USER_PROFILE_DETAILS}
               postRolesAction={POST_ROLES}
               deleteRolesAction={DELETE_ROLES}
               checkNameAction={CHECK_GROUPS_NAME}
             />
-
           </Grid>
         </Grid>
       </Grid>
