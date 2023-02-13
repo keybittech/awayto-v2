@@ -1,20 +1,26 @@
 
 
 import KcAdminClient from '@keycloak/keycloak-admin-client';
-import { Issuer, Strategy, StrategyVerifyCallbackUserInfo } from 'openid-client';
+import { IdTokenClaims, Issuer, Strategy, StrategyVerifyCallbackUserInfo } from 'openid-client';
 import { Credentials } from '@keycloak/keycloak-admin-client/lib/utils/auth';
 import RealmRepresentation from '@keycloak/keycloak-admin-client/lib/defs/realmRepresentation';
 import ClientRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientRepresentation';
 import RoleRepresentation from '@keycloak/keycloak-admin-client/lib/defs/roleRepresentation';
-import jwtDecode from 'jwt-decode';
+import GroupRepresentation from '@keycloak/keycloak-admin-client/lib/defs/groupRepresentation';
+import { asyncForEach } from './db';
+import MappingsRepresentation from '@keycloak/keycloak-admin-client/lib/defs/mappingsRepresentation';
 
 let realm: RealmRepresentation = {};
 let appClient: ClientRepresentation = {};
 let appRoles: RoleRepresentation[] = [];
+let appGroups: Record<string, GroupRepresentation> = {};
+
+
 
 const {
   CUST_APP_HOSTNAME,
   KC_REALM,
+  KC_CLIENT,
   KC_API_CLIENT_ID,
   KC_API_CLIENT_SECRET
 } = process.env as { [prop: string]: string };
@@ -36,7 +42,28 @@ try {
   await keycloak.auth(credentials);
 
   // Refresh api credentials every 58 seconds
-  setInterval(() => keycloak.auth(credentials), 58 * 1000); // 58 seconds
+  setInterval(async () => {
+    await keycloak.auth(credentials);
+
+    const groups = await keycloak.groups.find();
+  
+
+    await asyncForEach(groups, async group => {
+
+      const [subgroup] = group.subGroups as GroupRepresentation[];
+      const roleMappings = await keycloak.groups.listRoleMappings({ id: subgroup.id as string }) as {
+        clientMappings: {
+          [prop: string]: {
+            mappings: MappingsRepresentation[]
+          }
+        }
+      };
+
+      subgroup.clientRoles = roleMappings.clientMappings[KC_CLIENT].mappings;
+
+    });
+
+  } , 5 * 1000); // 58 seconds
   
   // Get a reference to the realm we're connected to
   const realmRequest = (await keycloak.realms.find()).find(r => r.realm === process.env.KC_REALM);
@@ -62,7 +89,22 @@ try {
   console.log('init error', error)
 }
 
+export type DecodedJWTToken = IdTokenClaims & {
+  resource_access: {
+    [prop: string]: { roles: string[] }
+  },
+  groups: string[]
+}
 
+export type StrategyUser = Express.User & {
+  test?: string;
+  username?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  sub?: string;
+  groups?: string[];
+}
 
 // KC Passport & OIDC Client
 const keycloakIssuer = await Issuer.discover(`https://${CUST_APP_HOSTNAME}/auth/realms/${KC_REALM}`);
@@ -74,37 +116,22 @@ const keycloakClient = new keycloakIssuer.Client({
   response_types: ['code']
 });
 
-type DecodedJWTToken = {
-  resource_access: {
-    [prop: string]: { roles: string[] }
-  }
-}
-
-const strategyResponder: StrategyVerifyCallbackUserInfo<Express.User> = (tokenSet, userInfo, done) => {
-  let roles: string[] = [];
-
-  // Attach client roles to user on login
-  // If a user's client roles are ever removed, they should be logged out
-  if (tokenSet.access_token) {
-    const token = jwtDecode<DecodedJWTToken>(tokenSet.access_token);
-    roles = token.resource_access[process.env.KC_CLIENT!]?.roles;
-  }
+const strategyResponder: StrategyVerifyCallbackUserInfo<StrategyUser> = (tokenSet, userInfo, done) => {
 
   const { preferred_username: username, given_name: firstName, family_name: lastName, email, sub } = tokenSet.claims();
 
-  const userProfileClaims: Express.User = {
+  const userProfileClaims: StrategyUser = {
     username,
     firstName,
     lastName,
     email,
-    sub,
-    roles
+    sub
   };
 
   return done(null, userProfileClaims);
 }
 
-const keycloakStrategy = new Strategy<Express.User>({ client: keycloakClient }, strategyResponder);
+const keycloakStrategy = new Strategy<StrategyUser>({ client: keycloakClient }, strategyResponder);
 
 export { 
   keycloak,

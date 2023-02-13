@@ -45,6 +45,7 @@ export type ApiProps = {
     username?: string;
     userSub?: string;
     sourceIp: string;
+    groups?: string[];
     pathParameters: Record<string, string>,
     queryParameters: Record<string, string>,
     body: Array<ILoadedState> | Record<string, unknown> | AuthEvent

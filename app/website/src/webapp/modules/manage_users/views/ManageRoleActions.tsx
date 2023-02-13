@@ -19,7 +19,7 @@ export function ManageRoleActions ({ getRolesAction }: IProps & Required<ManageU
 
   const api = useApi();
   const util = useRedux(state => state.util);
-  const { roles } = useRedux(state => state.role);
+  const { roles } = useRedux(state => state.profile);
 
   const options = useMemo(
     () =>

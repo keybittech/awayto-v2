@@ -25,6 +25,7 @@
     "passport": "^0.6.0",
     "pg": "^8.8.0",
     "pg-native": "^3.0.1",
+    "route-match": "^0.1.6",
     "uuid": "^9.0.0"
   },
   "devDependencies": {

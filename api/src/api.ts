@@ -3,6 +3,7 @@ import fs from 'fs';
 import https from 'https';
 import express, { Express, NextFunction, Request, Response } from 'express';
 import postgres from 'pg';
+import routeMatch, { RouteMatch } from 'route-match';
 import cookieSession from 'cookie-session';
 import cookieParser from 'cookie-parser';
 import httpProxy from 'http-proxy';
@@ -11,10 +12,23 @@ import { v4 as uuid } from 'uuid';
 
 import passport from 'passport';
 
-import Objects from './objects';
-import { IUserProfileState, IUserProfile } from 'awayto';
-import { keycloakStrategy } from './util/keycloak';
+import APIs from './objects';
+import { keycloakStrategy, StrategyUser, DecodedJWTToken } from './util/keycloak';
 import { AuthEvent } from './util/db';
+import jwtDecode from 'jwt-decode';
+import assert from 'assert';
+
+
+const { Route, RouteCollection, PathMatcher } = routeMatch as RouteMatch;
+
+
+const paths = APIs.protected.map(api => {
+  const path = `${api.method}/${api.path}`;
+  return new Route(path, path);
+});
+const routeCollection = new RouteCollection(paths);
+const pathMatcher = new PathMatcher(routeCollection);
+
 
 const {
   GRAYLOG_HOST,
@@ -97,7 +111,7 @@ try {
     done(null, user);
   });
 
-  passport.deserializeUser<IUserProfileState>(function (user, done) {
+  passport.deserializeUser<Express.User>(function (user, done) {
     done(null, user);
   });
 
@@ -156,7 +170,7 @@ try {
 
       logger.log('webhook received', event);
 
-      await Objects.webhooks[`AUTH_${type}`]({ event, client });
+      await APIs.webhooks[`AUTH_${type}`]({ event, client });
 
       res.status(200).end();
     } catch (error) {
@@ -173,14 +187,73 @@ try {
     }
   });
 
+
+  app.all(`/api/v1/:code`, checkAuthenticated, async (req: Request, res: Response) => {
+
+    assert(req.headers.authorization, 'No auth header.');
+
+    const requestId = uuid();
+
+    const user = req.user as StrategyUser;
+    const token = jwtDecode<DecodedJWTToken>(req.headers.authorization);
+    const method = req.method;
+    const path = Buffer.from(req.params.code, 'base64').toString();
+
+    // Create trace event
+    const event = {
+      requestId,
+      method,
+      path,
+      public: false,
+      groups: token.groups,
+      username: user.username,
+      userSub: user.sub,
+      sourceIp: req.headers['x-forwarded-for'] as string,
+      pathParameters: req.params,
+      queryParameters: req.query as Record<string, string>,
+      body: req.body
+    }
+
+    logger.log('App API Request', event);
+
+    try {
+      const pathMatch = pathMatcher.match(`${method}/${path}`);
+      event.pathParameters = pathMatch._params;
+
+      const route = pathMatch._route.split(/\/(.*)/s)[1];
+
+      const [{ cmnd }] = APIs.protected.filter(o => o.method === method && o.path === route)
+
+      // Handle request
+      const result = await cmnd({ event, client });
+
+      // Respond
+      res.status(200).json(result);
+
+    } catch (error) {
+      const err = error as Error & { reason: string };
+
+      console.log('protected error', err);
+      logger.log('error response', { requestId, error: err });
+
+      // Handle failures
+      res.status(500).send({
+        requestId,
+        reason: err.reason || err.message
+      });
+    }
+  });
+
   // Define protected routes
-  Objects.protected.forEach(({ method, path, cmnd }) => {
+  APIs.protected.forEach(({ method, path, cmnd }) => {
 
     // Here we make use of the extra /api from the reverse proxy
-    app[method.toLowerCase() as keyof Express](`/api/${path}`, checkAuthenticated, async (req: Request, res: Response) => {
+    app[method.toLowerCase() as keyof Express](`/api/${path}`, checkAuthenticated, async (req: Request & { headers: { authorization: string } }, res: Response) => {
       const requestId = uuid();
 
-      const user = req.user as IUserProfile;
+      const user = req.user as StrategyUser;
+
+      const token = jwtDecode<DecodedJWTToken>(req.headers.authorization);
 
       // Create trace event
       const event = {
@@ -188,6 +261,7 @@ try {
         method,
         path,
         public: false,
+        groups: token.groups,
         username: user.username,
         userSub: user.sub,
         sourceIp: req.headers['x-forwarded-for'] as string,
@@ -221,7 +295,7 @@ try {
   });
 
   // Define public routes
-  Objects.public.forEach((route) => {
+  APIs.public.forEach((route) => {
     app[route.method.toLowerCase() as keyof Express](`/api/${route.path}`, async (req: Request, res: Response) => {
 
       // Create trace event

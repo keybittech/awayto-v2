@@ -117,7 +117,7 @@ export function useApi(): <T = unknown, R = ILoadedState>(actionType: IActionTyp
         jsonBody = undefined;
       }
 
-      const response = fetch(`/api/${path}`, {
+      const response = fetch(`/api/v1/${btoa(path)}`, {
         signal: abortController.signal,
         method,
         body: jsonBody,
