@@ -36,7 +36,6 @@ export type IForm = {
   budgets: ILookup[];
   timelines: ILookup[];
   scheduleContexts: ILookup[];
-  serviceAddons: ILookup[];
 };
 
 /**

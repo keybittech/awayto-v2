@@ -30,8 +30,8 @@ declare global {
 }
 
 export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): JSX.Element {
-  const { roles, getRolesAction, putAction, postAction, postRoleAction, deleteRoleAction, checkNameAction } = props as Required<ManageGroupsActions>;
-
+  const { roles, getRolesAction, putGroupsAction, postGroupsAction, postRolesAction, deleteRolesAction, checkNameAction } = props as Required<ManageGroupsActions>;
+  
   const api = useApi();
   const act = useAct();
   const { SelectLookup } = useComponents();
@@ -58,7 +58,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
     group.name = formatName(name);
     group.roles = Object.values(roles).filter(r => roleIds.includes(r.id));
     group.roleId = primaryRole;
-    api(id ? putAction : postAction, true, group);
+    api(id ? putGroupsAction : postGroupsAction, true, group);
 
     if (closeModal)
       closeModal();
@@ -152,7 +152,17 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
                 <Typography variant="h6">Roles</Typography>
               </Grid>
               <Grid item xs={12}>
-                <SelectLookup lookupName="Role" lookups={roles} lookupChange={setRoleIds} lookupValue={roleIds} refetchAction={getRolesAction} multiple createAction={postRoleAction} deleteAction={deleteRoleAction} {...props} />
+                <SelectLookup
+                  multiple
+                  lookupName="Group Role"
+                  lookups={roles}
+                  lookupChange={setRoleIds}
+                  lookupValue={roleIds}
+                  refetchAction={getRolesAction}
+                  createAction={postRolesAction}
+                  deleteAction={deleteRolesAction}
+                  {...props}
+                />
               </Grid>
               {primaryRole && <Grid item xs={12}>
                 <TextField
@@ -160,7 +170,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
                   id={`group-primary-role-selection`}
                   fullWidth
                   helperText={'Set the group admin role'}
-                  label={`Roles`}
+                  label={`Admin Role`}
                   onChange={e => setPrimaryRole(e.target.value)}
                   value={primaryRole}
                 >

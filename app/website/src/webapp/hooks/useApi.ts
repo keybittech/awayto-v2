@@ -126,34 +126,34 @@ export function useApi(): <T = unknown, R = ILoadedState>(actionType: IActionTyp
           'Authorization': `Bearer ${keycloak.token as string}`
         }
       })
-      .then(res => {
-        if (!res.ok) throw res.json();
+      .then(async res => {
+        if (!res.ok) throw await res.json();
         return res.json()
       })
       .then((data: R) => {
-        console.log('This is whats resolved from fetch ', data);
         act(actionType || API_SUCCESS, data as ILoadedState, meta);
         if (load) act(STOP_LOADING, { isLoading: false });
         return data;
       })
       .catch(err => {
-        console.log({ errzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz: err as Error })
-        console.warn(method, path, 'Fetch was cancelled due to abort.');
+        const { name, requestId, reason } = err as ApiErrorResponse;
+
+        if (['AbortError'].includes(name as string)) return;
+
+        act(SET_SNACK, {
+          snackRequestId: requestId,
+          snackType: 'error',
+          snackOn: 'Error: ' + (reason ? reason : 'Internal service error. You can report this if needed.')
+        });
+        
+        if (load) act(STOP_LOADING, { isLoading: false });
       });
 
       return [abort, response];
     } catch (error) {
-      const { requestId, reason, message } = error as ApiErrorResponse;
-      act(SET_SNACK, {
-        snackRequestId: requestId,
-        snackType: 'error',
-        snackOn: 'Error: ' + (reason ? reason : 'Internal service error. You can report this if needed.')
-      });
-      console.error(message);
+      console.error('Failed to parse preflight', error);
       if (load) act(STOP_LOADING, { isLoading: false });
       return [abort, undefined];
-    } finally {
-      // whatever final
     }
   }, []);
 

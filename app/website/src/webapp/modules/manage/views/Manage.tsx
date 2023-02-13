@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router';
 
 import Grid from '@mui/material/Grid';
@@ -8,11 +8,12 @@ import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 
-import { IGroupActionTypes, IRoleActionTypes, IUserActionTypes } from 'awayto';
+import { IGroupActionTypes, IRoleActionTypes, IUserActionTypes, IUserProfileActionTypes } from 'awayto';
 import { useComponents, useRedux } from 'awayto-hooks';
 
+const { GET_USER_PROFILE_DETAILS } = IUserProfileActionTypes;
 const { GET_USERS } = IUserActionTypes; 
-const { GET_ROLES, PUT_ROLES, POST_ROLES } = IRoleActionTypes;
+const { PUT_ROLES, POST_ROLES, DELETE_ROLES } = IRoleActionTypes;
 const { CHECK_GROUPS_NAME, PUT_GROUPS, POST_GROUPS, GET_GROUPS, DELETE_GROUPS } = IGroupActionTypes;
 
 
@@ -50,22 +51,25 @@ export function Manage(props: IProps): JSX.Element {
         return <ManageGroups {...props}
           groups={user.groups}
           roles={user.roles}
-          getAction={GET_GROUPS}
-          deleteAction={DELETE_GROUPS}
-          putAction={PUT_GROUPS}
-          postAction={POST_GROUPS}
+          getGroupsAction={GET_GROUPS}
+          deleteGroupsAction={DELETE_GROUPS}
+          putGroupsAction={PUT_GROUPS}
+          postGroupsAction={POST_GROUPS}
           checkNameAction={CHECK_GROUPS_NAME}
-          getRolesAction={GET_ROLES} />
+          getRolesAction={GET_USER_PROFILE_DETAILS}
+          deleteRolesAction={DELETE_ROLES}
+          postRolesAction={POST_ROLES}
+        />
       case 'roles':
         return <ManageRoles {...props}
           roles={roles}
-          getAction={GET_ROLES}
-          putAction={PUT_ROLES}
-          postAction={POST_ROLES}
+          getRolesAction={GET_USER_PROFILE_DETAILS}
+          putRolesAction={PUT_ROLES}
+          postRolesAction={POST_ROLES}
         />
       case 'matrix':
         return <ManageRoleActions {...props}
-          getRolesAction={GET_ROLES}  
+          getRolesAction={GET_USER_PROFILE_DETAILS}  
         />
       default:
         return;

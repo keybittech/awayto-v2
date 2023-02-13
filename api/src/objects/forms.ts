@@ -19,15 +19,11 @@ const forms: ApiModule = [
         const scheduleContexts = (await props.client.query<ILookup>(`
           SELECT * FROM schedule_contexts
         `)).rows;
-        const serviceAddons = (await props.client.query<ILookup>(`
-          SELECT * FROM service_addons
-        `)).rows;
         
         return {
           budgets,
           timelines,
-          scheduleContexts,
-          serviceAddons
+          scheduleContexts
         };
         
       } catch (error) {

@@ -22,14 +22,14 @@ const { OPEN_CONFIRM } = IUtilActionTypes;
 const { GROUPS_LEAVE } = IGroupActionTypes;
 
 export type ManageGroupsActions = {
-  getAction?: IActionTypes;
-  deleteAction?: IActionTypes;
-  putAction?: IActionTypes;
-  postAction?: IActionTypes;
+  getGroupsAction?: IActionTypes;
+  deleteGroupsAction?: IActionTypes;
+  putGroupsAction?: IActionTypes;
+  postGroupsAction?: IActionTypes;
   getRolesAction?: IActionTypes;
   checkNameAction?: IActionTypes;
-  postRoleAction?: IActionTypes;
-  deleteRoleAction?: IActionTypes;
+  postRolesAction?: IActionTypes;
+  deleteRolesAction?: IActionTypes;
   groups?: IGroups;
   roles?: IRoles;
 };
@@ -39,7 +39,7 @@ declare global {
 }
 
 export function ManageGroups(props: IProps): JSX.Element {
-  const { getAction, deleteAction, groups } = props as Required<ManageGroupsActions>;
+  const { getGroupsAction, deleteGroupsAction, groups } = props as Required<ManageGroupsActions>;
 
   const act = useAct();
   const api = useApi();
@@ -94,16 +94,16 @@ export function ManageGroups(props: IProps): JSX.Element {
     return [
       ...actions,
       isOwner && <Tooltip key={'delete_group'} title="Delete"><IconButton onClick={async () => {
-        const [, res] = api(deleteAction, true, { ids: selected.map(s => s.id).join(',') })
+        const [, res] = api(deleteGroupsAction, true, { ids: selected.map(s => s.id).join(',') })
         await res;
         setToggle(!toggle);
-        api(getAction, true);
+        api(getGroupsAction, true);
       }}><DeleteIcon /></IconButton></Tooltip>
     ];
   }, [selected]);
 
   useEffect(() => {
-    const [abort] = api(getAction);
+    const [abort] = api(getGroupsAction);
     return () => abort();
   }, []);
 
@@ -112,7 +112,7 @@ export function ManageGroups(props: IProps): JSX.Element {
       <Suspense>
         <ManageGroupModal {...props} editGroup={group} closeModal={() => {
           setDialog('');
-          void api(getAction);
+          void api(getGroupsAction);
         }} />
       </Suspense>
     </Dialog>
@@ -129,7 +129,7 @@ export function ManageGroups(props: IProps): JSX.Element {
       <Suspense>
         <JoinGroupModal {...props} editGroup={group} closeModal={() => {
           setDialog('');
-          void api(getAction);
+          void api(getGroupsAction);
         }} />
       </Suspense>
     </Dialog>
@@ -138,7 +138,7 @@ export function ManageGroups(props: IProps): JSX.Element {
       <Suspense>
         <ManageGroupModal {...props} editGroup={group} closeModal={() => {
           setDialog('');
-          void api(getAction);
+          void api(getGroupsAction);
         }} />
       </Suspense>
     </Dialog>
@@ -162,6 +162,7 @@ export function ManageGroups(props: IProps): JSX.Element {
       theme={util.theme}
       columns={columns}
       selectableRows
+      selectableRowsSingle
       selectableRowsHighlight={true}
       // selectableRowsComponent={<Checkbox />}
       onSelectedRowsChange={updateState}
