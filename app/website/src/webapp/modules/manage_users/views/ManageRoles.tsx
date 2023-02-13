@@ -9,7 +9,7 @@ import Tooltip from '@mui/material/Tooltip';
 import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-import { IRole, IActionTypes, IRoles } from 'awayto';
+import { IRole, IActionTypes, IRoles, localFromNow } from 'awayto';
 import { useRedux, useApi } from 'awayto-hooks';
 
 import ManageRoleModal from './ManageRoleModal';
@@ -39,7 +39,9 @@ export function ManageRoles (props: IProps): JSX.Element {
   const updateState = useCallback((state: { selectedRows: IRole[] }) => setSelected(state.selectedRows), [setSelected]);
 
   const columns = useMemo(() => [
-    { name: 'Name', selector: row => row.name }
+    { id: 'createdOn', selector: row => row.createdOn, omit: true },
+    { name: 'Name', selector: row => row.name },
+    { name: 'Created', selector: row => localFromNow(row.createdOn) }
   ] as TableColumn<IRole>[], [])
 
   const actions = useMemo(() => {
@@ -85,6 +87,8 @@ export function ManageRoles (props: IProps): JSX.Element {
       actions={<Button onClick={() => { setRole(undefined); setDialog('manage_role') }}>New</Button>}
       contextActions={actions}
       data={roles ? Object.values(roles) : []}
+      defaultSortFieldId="createdOn"
+      defaultSortAsc={false}
       theme={util.theme}
       columns={columns}
       selectableRows

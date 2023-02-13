@@ -34,6 +34,7 @@ export type IGroup = {
   id: string;
   externalId: string;
   createdSub: string;
+  createdOn: string;
   roleId: string;
   name: string;
   code: string;

@@ -8,14 +8,12 @@ import Tooltip from '@mui/material/Tooltip';
 
 import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
-import GroupAdd from '@mui/icons-material/GroupAdd';
 import Logout from '@mui/icons-material/Logout';
 
-import { IUtilActionTypes, IGroup, IActionTypes, IRoles, IGroups, IGroupActionTypes } from 'awayto';
+import { IUtilActionTypes, IGroup, IActionTypes, IRoles, IGroups, IGroupActionTypes, localFromNow } from 'awayto';
 import { useRedux, useApi, useAct } from 'awayto-hooks';
 
 import ManageGroupModal from './ManageGroupModal';
-import InviteUsersModal from './InviteUsersModal';
 import JoinGroupModal from './JoinGroupModal';
 
 const { OPEN_CONFIRM } = IUtilActionTypes;
@@ -53,10 +51,12 @@ export function ManageGroups(props: IProps): JSX.Element {
   const updateState = useCallback((state: { selectedRows: IGroup[] }) => setSelected(state.selectedRows), [setSelected]);
 
   const columns = useMemo(() => [
+    { id: 'createdOn', selector: row => row.createdOn, omit: true },
     { name: 'Name', selector: row => row.name },
     { name: 'Code', selector: row => row.code },
     { name: 'Users', cell: (group: IGroup) => group.users || 0 },
     { name: 'Roles', cell: (group: IGroup) => group.roles ? group.roles.map(r => r.name).join(', ') : '' },
+    { name: 'Created', selector: row => localFromNow(row.createdOn) }
   ] as TableColumn<IGroup>[], undefined);
 
   const actions = useMemo(() => {
@@ -161,6 +161,8 @@ export function ManageGroups(props: IProps): JSX.Element {
       data={groups ? Object.values(groups) : []}
       theme={util.theme}
       columns={columns}
+      defaultSortFieldId="createdOn"
+      defaultSortAsc={false}
       selectableRows
       selectableRowsSingle
       selectableRowsHighlight={true}

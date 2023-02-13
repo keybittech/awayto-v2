@@ -1,3 +1,4 @@
+import moment from 'moment';
 import { IGroup, IRole } from './types';
 
 /**
@@ -62,9 +63,10 @@ export const passwordGen = (): string => {
   return pass.join('');
 }
 
-export default {
-  asyncForEach,
-  parseGroupString,
-  getAuthorization,
-  passwordGen
+export const localMoment = (date: string, format: string): string => {
+  return moment(moment.utc(date).toDate()).local().format(format);
+}
+
+export const localFromNow = (date: string): string => {
+  return moment(moment.utc(date).toDate()).local().fromNow();
 }

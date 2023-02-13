@@ -27,6 +27,7 @@ declare global {
 export type IRole = {
   id: string;
   name: string;
+  createdOn: string;
 }
 
 /**

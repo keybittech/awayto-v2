@@ -1,17 +1,15 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import DataTable, { TableColumn }  from 'react-data-table-component';
-import moment from 'moment';
 
 import IconButton from '@mui/material/IconButton';
 import Dialog from '@mui/material/Dialog';
 import Button from '@mui/material/Button';
-import CircularProgress from '@mui/material/CircularProgress';
 
 import CreateIcon from '@mui/icons-material/Create';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 
-import { IManageUsersActionTypes, IUserProfile, IActionTypes, IUsers } from 'awayto';
+import { IManageUsersActionTypes, IUserProfile, IActionTypes, IUsers, localFromNow } from 'awayto';
 import { useRedux, useApi } from 'awayto-hooks';
 
 import ManageUserModal from './ManageUserModal';
@@ -42,12 +40,13 @@ export function ManageUsers(props: IProps): JSX.Element {
   const updateSelections = useCallback((state: { selectedRows: IUserProfile[] }) => setSelected(state.selectedRows), []);
 
   const columns = useMemo(() => [
+    { id: 'createdOn', selector: row => row.createdOn, omit: true },
     { name: '', grow: 'unset', minWidth: '48px', cell: (user: IUserProfile) => user.locked ? <LockIcon /> : <LockOpenIcon /> },
     { name: 'Username', selector: row => row.username },
     { name: 'First Name', selector: row => row.firstName },
     { name: 'Last Name', selector: row => row.lastName },
-    { name: 'Group', cell: (user: IUserProfile) => user.groups ? user.groups.map(r => r.name).join(', ') : '' },
-    { name: 'Created', cell: (user: IUserProfile) => moment(user.createdOn).fromNow() },
+    { name: 'Group', selector: (user: IUserProfile) => user.groups ? user.groups.map(r => r.name).join(', ') : '' },
+    { name: 'Created', selector: (user: IUserProfile) => localFromNow(user.createdOn) },
   ] as TableColumn<IUserProfile>[], undefined)
 
   const actions = useMemo(() => {
@@ -98,6 +97,8 @@ export function ManageUsers(props: IProps): JSX.Element {
       data={users ? Object.values(users) : []}
       theme={util.theme}
       columns={columns}
+      defaultSortFieldId="createdOn"
+      defaultSortAsc={false}
       selectableRows
       selectableRowsHighlight={true}
       // selectableRowsComponent={<><Checkbox /></>}
