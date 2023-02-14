@@ -8,9 +8,6 @@ export function GroupPaths (props: IProps): JSX.Element {
 
   return <Routes>
     <Route path="manage/:component" element={<ManageGroup {...props} />} />
-    <Route path="service" element={<ServiceHome {...props} />} />
-    <Route path="schedule" element={<ScheduleHome {...props} />} />
-    <Route path="booking" element={<BookingHome {...props} />} />
   </Routes>
 }
 

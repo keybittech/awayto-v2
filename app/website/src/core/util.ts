@@ -42,7 +42,11 @@ export const parseGroupString = (value: string): IGroup[] => {
   }
 }
 
-export const hasRole = function (groupName: string, groupRoles: UserGroupRoles, targetRoles: SiteRoles[]) {
+export const hasRole = function (groupRoles: UserGroupRoles, targetRoles: SiteRoles[]) {
+  return Object.values(Object.values(groupRoles).flatMap(gr => Object.values(gr as Record<string, string[]>))).some(gr => gr.some(r => targetRoles.includes(SiteRoles[r as SiteRoles])));
+}
+
+export const hasGroupRole = function (groupName: string, groupRoles: UserGroupRoles, targetRoles: SiteRoles[]) {
   if (!groupRoles) return false;
   if (!groupRoles[groupName]) return false;
   return Object.values(groupRoles[groupName]).some((gr) => (gr as string[]).some(r => targetRoles.includes(SiteRoles[r as SiteRoles])));

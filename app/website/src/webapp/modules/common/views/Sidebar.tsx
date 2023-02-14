@@ -8,10 +8,9 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Button from '@mui/material/Button';
 
+import GroupIcon from '@mui/icons-material/Group';
 import AccountBoxIcon from '@mui/icons-material/AccountBox';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
-import VpnKeyIcon from '@mui/icons-material/VpnKey';
-import AppsIcon from '@mui/icons-material/Apps';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import BusinessIcon from '@mui/icons-material/Business';
 import EventNoteIcon from '@mui/icons-material/EventNote';
@@ -20,12 +19,13 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import Icon from '../../../img/kbt-icon.png';
 
 import keycloak from '../../../keycloak';
-import { useStyles } from 'awayto-hooks';
+import { useSecure, useStyles } from 'awayto-hooks';
+import { SiteRoles } from 'awayto';
 
-export function Sidebar (): JSX.Element {
-
-  const classes = useStyles();
+export function Sidebar(): JSX.Element {
+  const hasRole = useSecure();
   const navigate = useNavigate();
+  const classes = useStyles();
   const location = useLocation();
 
   return (
@@ -45,25 +45,21 @@ export function Sidebar (): JSX.Element {
           </Grid>
           <List component="nav">
             <ListItem className={classes.menuIcon} onClick={() => navigate('/')} button key={'home'}>
-              <ListItemIcon><VpnKeyIcon color={location.pathname === '/' ? "secondary" : "primary"} /></ListItemIcon>
-              <ListItemText classes={{ primary: classes.menuText }}>Home</ListItemText>
+              <ListItemIcon><GroupIcon color={location.pathname === '/' ? "secondary" : "primary"} /></ListItemIcon>
+              <ListItemText classes={{ primary: classes.menuText }}>Groups</ListItemText>
             </ListItem>
-            <ListItem className={classes.menuIcon} onClick={() => navigate('/manage/users')} button key={'manage'}>
-              <ListItemIcon><AppsIcon color={location.pathname === '/manage/users' ? "secondary" : "primary"} /></ListItemIcon>
-              <ListItemText classes={{ primary: classes.menuText }}>Manage</ListItemText>
-            </ListItem>
-            <ListItem className={classes.menuIcon} onClick={() => navigate('/service')} button key={'service'}>
-              <ListItemIcon><BusinessIcon color={location.pathname === '/service' ? "secondary" : "primary"} /></ListItemIcon>
-              <ListItemText classes={{ primary: classes.menuText }}>Service</ListItemText>
-            </ListItem>
-            <ListItem className={classes.menuIcon} onClick={() => navigate('/schedule')} button key={'schedule'}>
+            {hasRole([SiteRoles.APP_GROUP_SERVICES]) && <ListItem className={classes.menuIcon} onClick={() => navigate('/service')} button key={'service'}>
+                <ListItemIcon><BusinessIcon color={location.pathname === '/service' ? "secondary" : "primary"} /></ListItemIcon>
+                <ListItemText classes={{ primary: classes.menuText }}>Service</ListItemText>
+              </ListItem>}
+            {hasRole([SiteRoles.APP_GROUP_SCHEDULES]) && <ListItem className={classes.menuIcon} onClick={() => navigate('/schedule')} button key={'schedule'}>
               <ListItemIcon><EventNoteIcon color={location.pathname === '/schedule' ? "secondary" : "primary"} /></ListItemIcon>
               <ListItemText classes={{ primary: classes.menuText }}>Schedule</ListItemText>
-            </ListItem>
-            <ListItem className={classes.menuIcon} onClick={() => navigate('/booking')} button key={'booking'}>
+            </ListItem>}
+            {hasRole([SiteRoles.APP_GROUP_BOOKINGS]) && <ListItem className={classes.menuIcon} onClick={() => navigate('/booking')} button key={'booking'}>
               <ListItemIcon><LibraryBooksIcon color={location.pathname === '/booking' ? "secondary" : "primary"} /></ListItemIcon>
               <ListItemText classes={{ primary: classes.menuText }}>Booking</ListItemText>
-            </ListItem>
+            </ListItem>}
           </List>
         </Grid>
         <Grid item xs={12}>

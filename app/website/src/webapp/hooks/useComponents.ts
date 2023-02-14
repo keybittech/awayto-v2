@@ -1,4 +1,4 @@
-import { hasRole, SiteRoles } from 'awayto';
+import { hasGroupRole, SiteRoles } from 'awayto';
 import { LazyExoticComponent } from 'react';
 import { createElement, useMemo, lazy } from 'react';
 import { useParams } from 'react-router';
@@ -43,7 +43,7 @@ export function useComponents(): IBaseComponents {
 
         const compPath = views[prop];
 
-        if (groupName && roles[compPath]?.length && !hasRole(groupName, groupRoles, roles[compPath] )) {
+        if (groupName && roles[compPath]?.length && !hasGroupRole(groupName, groupRoles, roles[compPath] )) {
           components[prop] = ((): JSX.Element => createElement('div'));
         }
       

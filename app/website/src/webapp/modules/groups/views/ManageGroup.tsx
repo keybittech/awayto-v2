@@ -8,14 +8,12 @@ import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 
-import { IGroupActionTypes, IRoleActionTypes, IUserActionTypes, IUserProfileActionTypes, SiteRoles } from 'awayto';
+import { IRoleActionTypes, IUserActionTypes, IUserProfileActionTypes, SiteRoles } from 'awayto';
 import { useComponents, useRedux } from 'awayto-hooks';
 
 const { GET_USER_PROFILE_DETAILS } = IUserProfileActionTypes;
 const { GET_USERS } = IUserActionTypes; 
 const { PUT_ROLES, POST_ROLES, DELETE_ROLES } = IRoleActionTypes;
-const { CHECK_GROUPS_NAME, PUT_GROUPS, POST_GROUPS, GET_GROUPS, DELETE_GROUPS } = IGroupActionTypes;
-
 
 declare global {
   interface IProps {
@@ -24,7 +22,7 @@ declare global {
 }
 
 export function ManageGroup(props: IProps): JSX.Element {
-  const { component } = useParams();
+  const { groupName, component } = useParams();
 
   const navigate = useNavigate();
 
@@ -41,8 +39,8 @@ export function ManageGroup(props: IProps): JSX.Element {
   }
 
   const menu = ['users', 'roles', 'matrix'].map(comp =>
-    <GroupSecure key={`menu_${comp}`} contentGroupRoles={menuRoles[comp]}>
-      <Button style={comp == component ? { textDecoration: 'underline' } : undefined} onClick={() => navigate(`/manage/${comp}`)}>
+    groupName && component && <GroupSecure key={`menu_${comp}`} contentGroupRoles={menuRoles[comp]}>
+      <Button style={comp == component ? { textDecoration: 'underline' } : undefined} onClick={() => navigate(`/group/${groupName}/manage/${comp}`)}>
         {comp}
       </Button>
     </GroupSecure>

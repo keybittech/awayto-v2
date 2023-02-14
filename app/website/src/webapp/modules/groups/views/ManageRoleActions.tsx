@@ -3,7 +3,7 @@ import DataTable, { TableColumn } from 'react-data-table-component';
 
 import Checkbox from '@mui/material/Checkbox';
 
-import { IRoles, IActionTypes } from 'awayto';
+import { IRoles, IActionTypes, SiteRoles } from 'awayto';
 import { useApi, useRedux } from 'awayto-hooks';
 
 export type ManageUsersProps = {
@@ -23,8 +23,7 @@ export function ManageRoleActions ({ getRolesAction }: IProps & Required<ManageU
 
   const options = useMemo(
     () =>
-      ['TURN_OFF', 'TURN_ON', 'SOME_OPTIONS_ARE_LONG', 'AND_THERE_ARE_A_LOT_OF_OPTIONS', 'SOME_OPTIONS_ARE_LONG', 'AND_THERE_ARE_A_LOT_OF_OPTIONS', 'TURN_ON', 'SOME_OPTIONS_ARE_LONG']
-      .map(name => ({ name })) as {name: string}[]
+      Object.values(SiteRoles).map(name => ({ name })) as { name: string }[]
     , undefined);
 
   const columns = useMemo(() => [
