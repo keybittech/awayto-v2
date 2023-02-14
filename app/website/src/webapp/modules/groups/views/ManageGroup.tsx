@@ -8,7 +8,7 @@ import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 
-import { IGroupActionTypes, IRoleActionTypes, IUserActionTypes, IUserProfileActionTypes } from 'awayto';
+import { IGroupActionTypes, IRoleActionTypes, IUserActionTypes, IUserProfileActionTypes, SiteRoles } from 'awayto';
 import { useComponents, useRedux } from 'awayto-hooks';
 
 const { GET_USER_PROFILE_DETAILS } = IUserProfileActionTypes;
@@ -23,7 +23,7 @@ declare global {
   }
 }
 
-export function Manage(props: IProps): JSX.Element {
+export function ManageGroup(props: IProps): JSX.Element {
   const { component } = useParams();
 
   const navigate = useNavigate();
@@ -32,12 +32,20 @@ export function Manage(props: IProps): JSX.Element {
   const { roles } = useRedux(state => state.role);
   const { users } = useRedux(state => state.user);
 
-  const { ManageUsers, ManageGroups, ManageRoles, ManageRoleActions } = useComponents();
+  const { ManageUsers, ManageRoles, ManageRoleActions, GroupSecure } = useComponents();
 
-  const menu = ['users', 'groups', 'roles', 'matrix'].map(comp =>
-    <Button key={`menu_${comp}`} style={comp == component ? { textDecoration: 'underline' } : undefined} onClick={() => navigate(`/manage/${comp}`)}>
-      {comp}
-    </Button>
+  const menuRoles: Record<string, SiteRoles[]> = {
+    users: [SiteRoles.APP_GROUP_USERS],
+    roles: [SiteRoles.APP_GROUP_ROLES],
+    matrix: [SiteRoles.APP_GROUP_MATRIX]
+  }
+
+  const menu = ['users', 'roles', 'matrix'].map(comp =>
+    <GroupSecure key={`menu_${comp}`} contentGroupRoles={menuRoles[comp]}>
+      <Button style={comp == component ? { textDecoration: 'underline' } : undefined} onClick={() => navigate(`/manage/${comp}`)}>
+        {comp}
+      </Button>
+    </GroupSecure>
   );
 
   const viewPage = useMemo(() => {
@@ -46,19 +54,6 @@ export function Manage(props: IProps): JSX.Element {
         return <ManageUsers {...props}
           users={users}
           getAction={GET_USERS}
-        />
-      case 'groups':
-        return <ManageGroups {...props}
-          groups={user.groups}
-          roles={user.roles}
-          getGroupsAction={GET_GROUPS}
-          deleteGroupsAction={DELETE_GROUPS}
-          putGroupsAction={PUT_GROUPS}
-          postGroupsAction={POST_GROUPS}
-          checkNameAction={CHECK_GROUPS_NAME}
-          getRolesAction={GET_USER_PROFILE_DETAILS}
-          deleteRolesAction={DELETE_ROLES}
-          postRolesAction={POST_ROLES}
         />
       case 'roles':
         return <ManageRoles {...props}
@@ -101,4 +96,4 @@ export function Manage(props: IProps): JSX.Element {
 
 export const roles = [];
 
-export default Manage;
+export default ManageGroup;

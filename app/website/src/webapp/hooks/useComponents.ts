@@ -1,4 +1,4 @@
-import { IUserProfile } from 'awayto';
+import { hasRole, SiteRoles } from 'awayto';
 import { LazyExoticComponent } from 'react';
 import { createElement, useMemo, lazy } from 'react';
 import { useParams } from 'react-router';
@@ -11,18 +11,12 @@ import { useRedux } from './useRedux';
 const { views } = buildOutput as Record<string, Record<string, string>>;
 const { roles } = rolesOutput as {
   roles: {
-    [prop: string]: string[]
+    [prop: string]: SiteRoles[]
   }
 };
 
 
 const components = {} as IBaseComponents;
-
-const hasRole = function (groupName: string, groupRoles: IUserProfile['groupRoles'], compRoles: string[]) {
-  if (!groupRoles) return false;
-  if (!groupRoles[groupName]) return false;
-  return Object.values(groupRoles[groupName]).some((gr) => (gr as string[]).some(r => compRoles.includes(r)));
-}
 
 /**
  * `useComponents` takes advantage of [React.lazy](https://reactjs.org/docs/code-splitting.html#reactlazy) as well as the [Proxy API](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy). By combining these functionalities, we end up with a tool that seamlessly meshes with expanding and changing codebases.
@@ -49,7 +43,7 @@ export function useComponents(): IBaseComponents {
 
         const compPath = views[prop];
 
-        if (groupName && roles[compPath]?.length && !hasRole(groupName, groupRoles, roles[compPath])) {
+        if (groupName && roles[compPath]?.length && !hasRole(groupName, groupRoles, roles[compPath] )) {
           components[prop] = ((): JSX.Element => createElement('div'));
         }
       

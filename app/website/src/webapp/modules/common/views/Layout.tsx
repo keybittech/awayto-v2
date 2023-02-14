@@ -1,6 +1,6 @@
 import Icon from '../../../img/kbt-icon.png';
 
-import React, { Suspense, useEffect } from 'react';
+import React, { Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
 import Skeleton from '@mui/material/Skeleton';
@@ -32,7 +32,7 @@ const Layout = (props: IProps): JSX.Element => {
 
   const act = useAct();
 
-  const { Sidebar, ConfirmAction, Home, Profile, Manage, GroupPaths } = useComponents();
+  const { Sidebar, ConfirmAction, Groups, Profile, GroupPaths } = useComponents();
   const { snackOn, snackType, snackRequestId, isLoading, loadingMessage } = useRedux(state => state.util);
 
   const hideSnack = (): void => {
@@ -81,9 +81,8 @@ const Layout = (props: IProps): JSX.Element => {
           </Grid >
         }>
           <Routes>
-            <Route path="/" element={<Home {...props} />} />
+            <Route path="/" element={<Groups {...props} />} />
             <Route path="/profile"  element={<Profile {...props} />} />
-            <Route path="/manage/:component" element={<Manage {...props} />} />
             <Route path="/group/:groupName/*" element={<GroupPaths {...props} />} />
           </Routes>
         </Suspense>

@@ -7,16 +7,20 @@ import routeMatch, { RouteMatch } from 'route-match';
 import cookieSession from 'cookie-session';
 import cookieParser from 'cookie-parser';
 import httpProxy from 'http-proxy';
+import jwtDecode from 'jwt-decode';
+import assert from 'assert';
 import { graylog } from 'graylog2';
 import { v4 as uuid } from 'uuid';
 
 import passport from 'passport';
 
 import APIs from './objects';
-import { keycloakStrategy, StrategyUser, DecodedJWTToken, groupRoleActions } from './util/keycloak';
+import { keycloakStrategy, StrategyUser, groupRoleActions } from './util/keycloak';
 import { AuthEvent } from './util/db';
-import jwtDecode from 'jwt-decode';
-import assert from 'assert';
+
+import { DecodedJWTToken } from 'awayto';
+import { IdTokenClaims } from 'openid-client';
+
 
 
 const { Route, RouteCollection, PathMatcher } = routeMatch as RouteMatch;
@@ -163,6 +167,7 @@ try {
         public: false,
         userSub: userId,
         sourceIp: ipAddress,
+        groupRoles: {},
         pathParameters: req.params,
         queryParameters: req.query as Record<string, string>,
         body
@@ -195,7 +200,7 @@ try {
     const requestId = uuid();
 
     const user = req.user as StrategyUser;
-    const token = jwtDecode<DecodedJWTToken>(req.headers.authorization);
+    const token = jwtDecode<DecodedJWTToken & IdTokenClaims>(req.headers.authorization);
     const method = req.method;
     const path = Buffer.from(req.params.code, 'base64').toString();
 
@@ -215,8 +220,6 @@ try {
       body: req.body
     }
 
-
-
     try {
       const pathMatch = pathMatcher.match(`${method}/${path}`);
       event.pathParameters = pathMatch._params;
@@ -224,9 +227,6 @@ try {
       const route = pathMatch._route.split(/\/(.*)/s)[1];
 
       const [{ cmnd }] = APIs.protected.filter(o => o.method === method && o.path === route);
-
-
-      console.log(event);
 
       // Handle request
       logger.log('App API Request', event);
@@ -269,6 +269,7 @@ try {
         groups: token.groups,
         username: user.username,
         userSub: user.sub,
+        groupRoles: {},
         sourceIp: req.headers['x-forwarded-for'] as string,
         pathParameters: req.params,
         queryParameters: req.query as Record<string, string>,
@@ -308,6 +309,7 @@ try {
         method: route.method,
         path: route.path,
         public: true,
+        groupRoles: {},
         sourceIp: req.headers['x-forwarded-for'] as string,
         pathParameters: req.params,
         queryParameters: req.query as Record<string, string>,

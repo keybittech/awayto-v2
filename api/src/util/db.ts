@@ -1,5 +1,5 @@
 import { Client } from 'pg';
-import { ILoadedState } from 'awayto';
+import { ILoadedState, UserGroupRoles } from 'awayto';
 
 /**
  * @category API
@@ -46,7 +46,7 @@ export type ApiProps = {
     userSub?: string;
     sourceIp: string;
     groups?: string[];
-    groupRoles?: { [prop: string]: { [prop: string]: string | string[] } }
+    groupRoles: UserGroupRoles;
     pathParameters: Record<string, string>,
     queryParameters: Record<string, string>,
     body: Array<ILoadedState> | Record<string, unknown> | AuthEvent

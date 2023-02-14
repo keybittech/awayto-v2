@@ -15,6 +15,7 @@ import { useRedux, useApi, useAct } from 'awayto-hooks';
 
 import ManageGroupModal from './ManageGroupModal';
 import JoinGroupModal from './JoinGroupModal';
+import { useNavigate } from 'react-router';
 
 const { OPEN_CONFIRM } = IUtilActionTypes;
 const { GROUPS_LEAVE } = IGroupActionTypes;
@@ -41,6 +42,7 @@ export function ManageGroups(props: IProps): JSX.Element {
 
   const act = useAct();
   const api = useApi();
+  const navigate = useNavigate();
   const util = useRedux(state => state.util);
   const profile = useRedux(state => state.profile);
   const [group, setGroup] = useState<IGroup>();
@@ -52,6 +54,7 @@ export function ManageGroups(props: IProps): JSX.Element {
 
   const columns = useMemo(() => [
     { id: 'createdOn', selector: row => row.createdOn, omit: true },
+    { cell: row => <Button key={`group_manage_selection_${row.name}`} onClick={() => navigate(`/group/${row.name}/manage/users`)} >Manage</Button>},
     { name: 'Name', selector: row => row.name },
     { name: 'Code', selector: row => row.code },
     { name: 'Users', cell: (group: IGroup) => group.users || 0 },

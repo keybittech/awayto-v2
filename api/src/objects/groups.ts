@@ -42,7 +42,7 @@ const groups: ApiModule = [
               clientUniqueId: appClient.id!,
               id: primaryRoleSubgroupId,
               roles: appRoles as { id: string, name: string }[]
-             });
+            });
           }
 
           await props.client.query(`

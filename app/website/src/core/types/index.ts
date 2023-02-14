@@ -124,9 +124,23 @@ export declare function checkWriteBuildFile(next: () => unknown): void;
  * @category Authorization
  */
 export enum SiteRoles {
-  ADMIN = "system:admin",
-  DEMO = "public:demo",
-  GUEST = "public:guest"
+  APP_ROLE_CALL = 'APP_ROLE_CALL',
+  APP_GROUP_ADMIN = 'APP_GROUP_ADMIN',
+  APP_GROUP_ROLES = 'APP_GROUP_ROLES',
+  APP_GROUP_USERS = 'APP_GROUP_USERS',
+  APP_GROUP_MATRIX = 'APP_GROUP_MATRIX',
+  APP_GROUP_SERVICES = 'APP_GROUP_SERVICES',
+  APP_GROUP_BOOKINGS = 'APP_GROUP_BOOKINGS',
+  APP_GROUP_FEATURES = 'APP_GROUP_FEATURES',
+  APP_GROUP_SCHEDULES = 'APP_GROUP_SCHEDULES'
+}
+
+
+export type DecodedJWTToken = {
+  resource_access: {
+    [prop: string]: { roles: string[] }
+  },
+  groups: string[]
 }
 
 /**

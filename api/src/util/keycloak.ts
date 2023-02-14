@@ -1,7 +1,7 @@
 
 
 import KcAdminClient from '@keycloak/keycloak-admin-client';
-import { IdTokenClaims, Issuer, Strategy, StrategyVerifyCallbackUserInfo } from 'openid-client';
+import { Issuer, Strategy, StrategyVerifyCallbackUserInfo } from 'openid-client';
 import { Credentials } from '@keycloak/keycloak-admin-client/lib/utils/auth';
 import RealmRepresentation from '@keycloak/keycloak-admin-client/lib/defs/realmRepresentation';
 import ClientRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientRepresentation';
@@ -42,13 +42,8 @@ const credentials: Credentials = {
   grantType: 'client_credentials'
 }
 
-try {
-  // API Client admin keycloak login
+const reauth = async function() {
   await keycloak.auth(credentials);
-
-  // Refresh api credentials every 58 seconds
-  setInterval(async () => {
-    await keycloak.auth(credentials);
 
     const groups = await keycloak.groups.find();
 
@@ -85,7 +80,14 @@ try {
     groupRoleActions = newGroupRoleActions;
 
     console.log(groupRoleActions);
-  } , 5 * 1000); // 58 seconds
+}
+
+try {
+  // API Client admin keycloak login
+  await reauth();
+
+  // Refresh api credentials/groups every 58 seconds
+  setInterval(async () => await reauth(), 58 * 1000); // 58 seconds
   
   // Get a reference to the realm we're connected to
   const realmRequest = (await keycloak.realms.find()).find(r => r.realm === process.env.KC_REALM);
@@ -109,13 +111,6 @@ try {
   }
 } catch (error) {
   console.log('init error', error)
-}
-
-export type DecodedJWTToken = IdTokenClaims & {
-  resource_access: {
-    [prop: string]: { roles: string[] }
-  },
-  groups: string[]
 }
 
 export type StrategyUser = Express.User & {

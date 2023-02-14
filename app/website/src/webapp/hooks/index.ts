@@ -4,3 +4,4 @@ export { useComponents } from './useComponents';
 export { useFileStore } from './useFileStore';
 export { useRedux } from './useRedux';
 export { useStyles } from './useStyles';
+export { useGroupSecure } from './useGroupSecure';

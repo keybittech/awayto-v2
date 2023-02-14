@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { IGroup, IRole } from './types';
+import { IGroup, IRole, SiteRoles, UserGroupRoles } from './types';
 
 /**
  * @category Util
@@ -40,6 +40,12 @@ export const parseGroupString = (value: string): IGroup[] => {
     hasGroup,
     hasRole
   }
+}
+
+export const hasRole = function (groupName: string, groupRoles: UserGroupRoles, targetRoles: SiteRoles[]) {
+  if (!groupRoles) return false;
+  if (!groupRoles[groupName]) return false;
+  return Object.values(groupRoles[groupName]).some((gr) => (gr as string[]).some(r => targetRoles.includes(SiteRoles[r as SiteRoles])));
 }
 
 const sets = [

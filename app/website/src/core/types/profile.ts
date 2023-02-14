@@ -23,6 +23,8 @@ declare global {
   }
 }
 
+export type UserGroupRoles = Record<string, Record<string, string | string[]>>;
+
 /**
  * @category Awayto
  */
@@ -36,7 +38,7 @@ export type IUserProfile = {
   username: string;
   groups: IGroup[];
   roles: IRole[];
-  groupRoles?: Record<string, Record<string, string | string[]>>;
+  groupRoles: UserGroupRoles;
   createdOn: string;
   updatedOn: string;
   file: File;
