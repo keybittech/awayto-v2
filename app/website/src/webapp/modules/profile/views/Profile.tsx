@@ -10,9 +10,7 @@ import TextField from '@mui/material/TextField';
 import PersonIcon from '@mui/icons-material/Person';
 
 import { IUserProfile, IUserProfileActionTypes, IUtilActionTypes, IPreviewFile, IGroupActionTypes, IRoleActionTypes } from 'awayto';
-import { useRedux, useApi, useAct, useComponents, useFileStore } from 'awayto-hooks';
-
-import { useStyles } from '../../../style';
+import { useRedux, useApi, useAct, useComponents, useFileStore, useStyles } from 'awayto-hooks';
 
 const { SET_SNACK } = IUtilActionTypes;
 const { POST_ROLES, DELETE_ROLES } = IRoleActionTypes;

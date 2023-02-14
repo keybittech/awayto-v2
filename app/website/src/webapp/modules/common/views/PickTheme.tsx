@@ -4,10 +4,8 @@ import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 
-import { useStyles, PaletteMode } from '../../../style';
-
-import { IUtilActionTypes } from 'awayto';
-import { useAct } from 'awayto-hooks';
+import { IUtilActionTypes, PaletteMode } from 'awayto';
+import { useAct, useStyles } from 'awayto-hooks';
 
 const { SET_THEME } = IUtilActionTypes;
 

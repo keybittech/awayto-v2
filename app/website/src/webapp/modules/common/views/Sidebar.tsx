@@ -20,7 +20,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import Icon from '../../../img/kbt-icon.png';
 
 import keycloak from '../../../keycloak';
-import { useStyles } from '../../../style';
+import { useStyles } from 'awayto-hooks';
 
 export function Sidebar (): JSX.Element {
 

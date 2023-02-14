@@ -5,7 +5,7 @@ import createTheme from '@mui/material/styles/createTheme';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import keycloak from './keycloak';
 
-import { getBaseComponents, getDesignTokens, getThemedComponents } from './style';
+import { getBaseComponents, getDesignTokens, getThemedComponents } from './hooks/useStyles';
 import { IUserProfileActionTypes, IFormActionTypes } from 'awayto';
 import { useRedux, useComponents, useApi } from 'awayto-hooks';
 

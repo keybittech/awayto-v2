@@ -13,9 +13,7 @@ import Grid from '@mui/material/Grid';
 import Chip from '@mui/material/Chip';
 
 import { IService, IServiceActionTypes, IServiceTier, IGroupServiceAddonActionTypes, IServiceAddonActionTypes, IGroupServiceActionTypes, IUtilActionTypes, IFormActionTypes, IServiceState, IGroup } from 'awayto';
-import { useApi, useRedux, useComponents, useAct } from 'awayto-hooks';
-
-import { useStyles } from '../../../style';
+import { useApi, useRedux, useComponents, useAct, useStyles } from 'awayto-hooks';
 
 const { DELETE_SERVICE, POST_SERVICE } = IServiceActionTypes;
 const { POST_SERVICE_ADDON } = IServiceAddonActionTypes;

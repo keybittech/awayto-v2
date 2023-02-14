@@ -6,6 +6,8 @@ declare global {
 
 }
 
+export type PaletteMode = 'light' | 'dark';
+
 export interface Action<T = unknown> {
   type: T
 }

@@ -12,9 +12,7 @@ import MenuItem from '@mui/material/MenuItem';
 import CheckIcon from '@mui/icons-material/Check';
 
 import { IServiceActionTypes, IFormActionTypes, IScheduleActionTypes, ISchedule, IService, IServiceAddon, IServiceTier, IQuote, IContact } from 'awayto';
-import { useApi, useRedux, useComponents } from 'awayto-hooks';
-
-import { useStyles } from '../../../style';
+import { useApi, useRedux, useComponents, useStyles } from 'awayto-hooks';
 
 const { GET_SCHEDULES, GET_SCHEDULE_BY_ID } = IScheduleActionTypes;
 const { GET_SERVICE_BY_ID } = IServiceActionTypes;

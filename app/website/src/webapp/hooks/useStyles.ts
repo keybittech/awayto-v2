@@ -4,8 +4,8 @@ import makeStyles from '@mui/styles/makeStyles';
 
 import green from '@mui/material/colors/green';
 import red from '@mui/material/colors/red';
+import { PaletteMode } from 'awayto';
 
-export type PaletteMode = 'light' | 'dark';
 
 const drawerWidth = 175;
 
