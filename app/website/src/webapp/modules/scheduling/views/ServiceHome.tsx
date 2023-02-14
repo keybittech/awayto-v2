@@ -97,7 +97,7 @@ export function ServiceHome(props: IProps): JSX.Element {
         <CardContent sx={{ padding: '0 15px' }}>
           <Grid container>
             <Grid item xs={12} md={6}>
-              
+
               <TextField
                 select
                 fullWidth
@@ -245,5 +245,7 @@ export function ServiceHome(props: IProps): JSX.Element {
     </Grid>
   </Grid>
 }
+
+export const roles = [];
 
 export default ServiceHome;

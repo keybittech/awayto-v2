@@ -14,14 +14,11 @@ import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
 
-import keycloak from '../../../keycloak';
 import { useStyles } from '../../../style';
 
-import { IUtilActionTypes, IUserProfileActionTypes, IFormActionTypes } from 'awayto';
-import { useRedux, useAct, useComponents, useApi } from 'awayto-hooks';
+import { IUtilActionTypes } from 'awayto';
+import { useRedux, useAct, useComponents } from 'awayto-hooks';
 
-const { GET_USER_PROFILE_DETAILS } = IUserProfileActionTypes;
-const { GET_FORMS } = IFormActionTypes;
 const { SET_SNACK } = IUtilActionTypes;
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
@@ -31,35 +28,18 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 
-// function Alert(props: AlertProps): JSX.Element {
-//   return <MuiAlert elevation={6} variant="filled" {...props} />;
-// }
-
 const Layout = (props: IProps): JSX.Element => {
 
   const classes = useStyles();
 
-  const api = useApi();
-
   const act = useAct();
 
-  const { Sidebar, ConfirmAction, Home, Profile, Manage, ServiceHome, ScheduleHome, BookingHome } = useComponents();
+  const { Sidebar, ConfirmAction, Home, Profile, Manage, GroupPaths } = useComponents();
   const { snackOn, snackType, snackRequestId, isLoading, loadingMessage } = useRedux(state => state.util);
 
   const hideSnack = (): void => {
     act(SET_SNACK, { snackOn: '', snackRequestId: '' });
   }
-
-  useEffect(() => {
-    if (keycloak.authenticated) {
-      const [abort1] = api(GET_USER_PROFILE_DETAILS);
-      const [abort2] = api(GET_FORMS);
-      return () => {
-        abort1();
-        abort2();
-      }
-    }
-  }, []);
 
   return <>
     <CssBaseline />
@@ -104,11 +84,9 @@ const Layout = (props: IProps): JSX.Element => {
         }>
           <Routes>
             <Route path="/" element={<Home {...props} />} />
-            <Route path="/profile" element={<Profile {...props} />} />
-            <Route path="/service" element={<ServiceHome {...props} />} />
-            <Route path="/schedule" element={<ScheduleHome {...props} />} />
-            <Route path="/booking" element={<BookingHome {...props} />} />
+            <Route path="/profile"  element={<Profile {...props} />} />
             <Route path="/manage/:component" element={<Manage {...props} />} />
+            <Route path="/group/:groupName/*" element={<GroupPaths {...props} />} />
           </Routes>
         </Suspense>
       </main>

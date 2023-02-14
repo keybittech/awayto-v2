@@ -6,16 +6,21 @@ import { Credentials } from '@keycloak/keycloak-admin-client/lib/utils/auth';
 import RealmRepresentation from '@keycloak/keycloak-admin-client/lib/defs/realmRepresentation';
 import ClientRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientRepresentation';
 import RoleRepresentation from '@keycloak/keycloak-admin-client/lib/defs/roleRepresentation';
-import GroupRepresentation from '@keycloak/keycloak-admin-client/lib/defs/groupRepresentation';
 import { asyncForEach } from './db';
-import MappingsRepresentation from '@keycloak/keycloak-admin-client/lib/defs/mappingsRepresentation';
+
+type GroupRoleActions = {
+  fetch: boolean;
+  actions: string[];
+}
+
+type IGroupRoleActions = {
+  [prop: string]: GroupRoleActions
+};
 
 let realm: RealmRepresentation = {};
 let appClient: ClientRepresentation = {};
 let appRoles: RoleRepresentation[] = [];
-let appGroups: Record<string, GroupRepresentation> = {};
-
-
+let groupRoleActions: IGroupRoleActions = {};
 
 const {
   CUST_APP_HOSTNAME,
@@ -46,23 +51,40 @@ try {
     await keycloak.auth(credentials);
 
     const groups = await keycloak.groups.find();
+
+    const newGroupRoleActions: IGroupRoleActions = {};
   
-
     await asyncForEach(groups, async group => {
+      if (!group.subGroups) return;
+      await asyncForEach(group.subGroups, async ({ path, id }) => {
+        if (!path || !id) return;
+        if (true) { // !groupRoleActions[subgroup.path] || groupRoleActions[subgroup.path].fetch as boolean
 
-      const [subgroup] = group.subGroups as GroupRepresentation[];
-      const roleMappings = await keycloak.groups.listRoleMappings({ id: subgroup.id as string }) as {
-        clientMappings: {
-          [prop: string]: {
-            mappings: MappingsRepresentation[]
+          const roleMappings = await keycloak.groups.listRoleMappings({ id }) as {
+            clientMappings: {
+              [prop: string]: {
+                mappings: {
+                  name: string
+                }[]
+              }
+            }
+          };
+    
+          if (roleMappings.clientMappings) {
+            newGroupRoleActions[path] = roleMappings.clientMappings[KC_CLIENT].mappings.reduce((m: Record<string, boolean | string[]>, d) => ({ ...m, fetch: false, actions: [...(m.actions || []) as string[], d.name] }), {}) as GroupRoleActions;
           }
+
+        } else {
+          console.log(' using cache for ', path);
+          newGroupRoleActions[path as string] = groupRoleActions[path as string];
+          return
         }
-      };
-
-      subgroup.clientRoles = roleMappings.clientMappings[KC_CLIENT].mappings;
-
+      });
     });
 
+    groupRoleActions = newGroupRoleActions;
+
+    console.log(groupRoleActions);
   } , 5 * 1000); // 58 seconds
   
   // Get a reference to the realm we're connected to
@@ -138,5 +160,6 @@ export {
   keycloakStrategy,
   realm,
   appClient,
-  appRoles
+  appRoles,
+  groupRoleActions
 }

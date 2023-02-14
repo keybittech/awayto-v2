@@ -66,13 +66,15 @@ const profile: ApiModule = [
     path: 'profile/details',
     cmnd: async (props) => {
       try {
-        const response = await props.client.query<IUserProfile>(`
+        const [user] = (await props.client.query<IUserProfile>(`
           SELECT * 
           FROM dbview_schema.enabled_users_ext
           WHERE sub = $1
-        `, [props.event.userSub]);
+        `, [props.event.userSub])).rows;
 
-        return response.rows[0] || {};
+        user.groupRoles = props.event.groupRoles;
+
+        return user;
 
       } catch (error) {
         throw error;

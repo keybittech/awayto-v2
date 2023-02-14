@@ -99,4 +99,6 @@ export function Manage(props: IProps): JSX.Element {
   </>
 }
 
+export const roles = [];
+
 export default Manage;

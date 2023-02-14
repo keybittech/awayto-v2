@@ -13,7 +13,7 @@ import { v4 as uuid } from 'uuid';
 import passport from 'passport';
 
 import APIs from './objects';
-import { keycloakStrategy, StrategyUser, DecodedJWTToken } from './util/keycloak';
+import { keycloakStrategy, StrategyUser, DecodedJWTToken, groupRoleActions } from './util/keycloak';
 import { AuthEvent } from './util/db';
 import jwtDecode from 'jwt-decode';
 import assert from 'assert';
@@ -206,6 +206,7 @@ try {
       path,
       public: false,
       groups: token.groups,
+      groupRoles: token.groups.reduce((m, g) => ({ ...m, [g.split('/')[1]]: { [g.split('/')[2]]: groupRoleActions[g].actions } }), {}),
       username: user.username,
       userSub: user.sub,
       sourceIp: req.headers['x-forwarded-for'] as string,
@@ -214,7 +215,7 @@ try {
       body: req.body
     }
 
-    logger.log('App API Request', event);
+
 
     try {
       const pathMatch = pathMatcher.match(`${method}/${path}`);
@@ -222,9 +223,13 @@ try {
 
       const route = pathMatch._route.split(/\/(.*)/s)[1];
 
-      const [{ cmnd }] = APIs.protected.filter(o => o.method === method && o.path === route)
+      const [{ cmnd }] = APIs.protected.filter(o => o.method === method && o.path === route);
+
+
+      console.log(event);
 
       // Handle request
+      logger.log('App API Request', event);
       const result = await cmnd({ event, client });
 
       // Respond

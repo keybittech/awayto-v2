@@ -27,15 +27,16 @@ const { AWAYTO_CORE, AWAYTO_WEBAPP_MODULES, AWAYTO_WEBAPP } = process.env;
  */
 const buildPathObject = n => ({ [`${n[n.length - 1].split('.')[0]}`]: `${n[n.length - 3]}/${n[n.length - 2]}/${n[n.length - 1].split('.')[0]}` }) // returns { 'MyThing': 'common/views/bla' }
 
-const filePath = path.resolve(__dirname + AWAYTO_WEBAPP + '/build.json');
+const appBuildOutputPath = path.resolve(__dirname + AWAYTO_WEBAPP + '/build.json');
+const appRolesOutputPath = path.resolve(__dirname + AWAYTO_WEBAPP + '/roles.json');
 const globOpts = {
   cache: false,
   statCache: false
 };
 
 try {
-  if (!fs.existsSync(filePath))
-    fs.closeSync(fs.openSync(filePath, 'w'));
+  if (!fs.existsSync(appBuildOutputPath)) fs.closeSync(fs.openSync(appBuildOutputPath, 'w'));
+  if (!fs.existsSync(appRolesOutputPath)) fs.closeSync(fs.openSync(appRolesOutputPath, 'w'));
 } catch (error) { }
 
 /**
@@ -63,7 +64,8 @@ function parseResource(path) {
 /**
  * <p>We keep a reference to the old hash of files</p>.
  */
-let oldHash;
+let oldAppOutputHash;
+let oldRolesOutputHash;
 
 /**
  * <p>This function runs on build and when webpack dev server receives a request.</p>
@@ -74,16 +76,35 @@ let oldHash;
  */
 function checkWriteBuildFile(next) {
   try {
-    const files = JSON.stringify({
+    const files = {
       views: parseResource('.' + AWAYTO_WEBAPP_MODULES + '/**/views/*.tsx'),
       reducers: parseResource('.' + AWAYTO_WEBAPP_MODULES + '/**/reducers/*.ts')
+    };
+    const filesString = JSON.stringify(files);
+
+    const roles = {};
+    Object.values(files.views).forEach(file => {
+      const fileString = fs.readFileSync('.' + AWAYTO_WEBAPP_MODULES + '/' + file + '.tsx').toString();
+      const found = fileString.match(/(?<=export const roles = )(\[.*\])/igm);
+      if (found?.length) {
+        roles[file] = JSON.parse(found[0].replaceAll('\'', '"'));
+      }
     });
+    const rolesString = JSON.stringify({ roles });
 
-    const newHash = crypto.createHash('sha1').update(Buffer.from(files)).digest('base64');
+    const newRolesOutputHash = crypto.createHash('sha1').update(Buffer.from(rolesString)).digest('base64');
 
-    if (oldHash !== newHash) {
-      oldHash = newHash;
-      fs.writeFile(filePath, files, () => next && next())
+    if (oldRolesOutputHash !== newRolesOutputHash) {
+      oldRolesOutputHash = newRolesOutputHash;
+      fs.writeFileSync(appRolesOutputPath, rolesString);
+    }
+
+    const newAppOutputHash = crypto.createHash('sha1').update(Buffer.from(filesString)).digest('base64');
+
+    if (oldAppOutputHash !== newAppOutputHash) {
+      oldAppOutputHash = newAppOutputHash;
+      // write new roles here
+      fs.writeFile(appBuildOutputPath, filesString, () => next && next())
     } else {
       next && next()
     }
