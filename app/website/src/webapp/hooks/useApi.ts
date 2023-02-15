@@ -59,7 +59,7 @@ const paths = Object.keys(ApiActions).map(key => {
 const routeCollection = new RouteCollection(paths);
 const generator = new PathGenerator(routeCollection);
 
-const { START_LOADING, API_SUCCESS, STOP_LOADING, SET_SNACK } = IUtilActionTypes;
+const { SET_LOADING, API_SUCCESS, SET_SNACK } = IUtilActionTypes;
 
 
 /**
@@ -99,7 +99,7 @@ export function useApi(): <T = unknown, R = ILoadedState>(actionType: IActionTyp
 
     try {
 
-      if (load) act(START_LOADING, { isLoading: true });
+      if (load) act(SET_LOADING, { isLoading: true });
 
       const methodAndPath = actionType.valueOf().split(/\/(.+)/);
       const method = methodAndPath[0];
@@ -132,7 +132,7 @@ export function useApi(): <T = unknown, R = ILoadedState>(actionType: IActionTyp
       })
       .then((data: R) => {
         act(actionType || API_SUCCESS, data as ILoadedState, meta);
-        if (load) act(STOP_LOADING, { isLoading: false });
+        if (load) act(SET_LOADING, { isLoading: false });
         return data;
       })
       .catch(err => {
@@ -146,13 +146,13 @@ export function useApi(): <T = unknown, R = ILoadedState>(actionType: IActionTyp
           snackOn: 'Error: ' + (reason ? reason : 'Internal service error. You can report this if needed.')
         });
         
-        if (load) act(STOP_LOADING, { isLoading: false });
+        if (load) act(SET_LOADING, { isLoading: false });
       });
 
       return [abort, response];
     } catch (error) {
       console.error('Failed to parse preflight', error);
-      if (load) act(STOP_LOADING, { isLoading: false });
+      if (load) act(SET_LOADING, { isLoading: false });
       return [abort, undefined];
     }
   }, []);

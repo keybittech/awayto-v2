@@ -76,8 +76,8 @@ const profile: ApiModule = [
 
         try {
           await keycloak.users.delClientRoleMappings({
-            clientUniqueId: appClient.id!,
             id: user.sub,
+            clientUniqueId: appClient.id!,
             roles: roleCall
           });
         } catch (error) {}

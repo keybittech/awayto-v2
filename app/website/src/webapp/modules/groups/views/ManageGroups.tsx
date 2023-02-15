@@ -17,7 +17,7 @@ import ManageGroupModal from './ManageGroupModal';
 import JoinGroupModal from './JoinGroupModal';
 import { useNavigate } from 'react-router';
 
-const { OPEN_CONFIRM } = IUtilActionTypes;
+const { OPEN_CONFIRM, SET_LOADING } = IUtilActionTypes;
 const { GROUPS_LEAVE } = IGroupActionTypes;
 
 export type ManageGroupsActions = {
@@ -77,8 +77,10 @@ export function ManageGroups(props: IProps): JSX.Element {
         void act(OPEN_CONFIRM, {
           isConfirming: true,
           message: 'Are you sure you want to leave this group?',
-          action: () => {
-            api(GROUPS_LEAVE, true, { code: selected.pop()?.code });
+          action: async () => {
+            const [, res] = api(GROUPS_LEAVE, true, { code: selected.pop()?.code });
+            await res;
+            api(getGroupsAction);
             setToggle(!toggle);
           }
         });
@@ -106,6 +108,12 @@ export function ManageGroups(props: IProps): JSX.Element {
   }, [selected]);
 
   useEffect(() => {
+    if (Object.keys(groups || {}).length === 1 && Object.keys(profile.availableUserGroupRoles || {}).length && util.isLoading) {
+      act(SET_LOADING, { isLoading: false, loadingMessage: '' });
+    }
+  }, [groups, profile.availableUserGroupRoles, util.isLoading]);
+
+  useEffect(() => {
     const [abort] = api(getGroupsAction);
     return () => abort();
   }, []);
@@ -115,7 +123,7 @@ export function ManageGroups(props: IProps): JSX.Element {
       <Suspense>
         <ManageGroupModal {...props} editGroup={group} closeModal={() => {
           setDialog('');
-          api(getGroupsAction);
+          // api(getGroupsAction);
         }} />
       </Suspense>
     </Dialog>
@@ -132,7 +140,7 @@ export function ManageGroups(props: IProps): JSX.Element {
       <Suspense>
         <JoinGroupModal {...props} editGroup={group} closeModal={() => {
           setDialog('');
-          void api(getGroupsAction);
+          api(getGroupsAction);
         }} />
       </Suspense>
     </Dialog>
@@ -141,7 +149,7 @@ export function ManageGroups(props: IProps): JSX.Element {
       <Suspense>
         <ManageGroupModal {...props} editGroup={group} closeModal={() => {
           setDialog('');
-          void api(getGroupsAction);
+          api(getGroupsAction);
         }} />
       </Suspense>
     </Dialog>

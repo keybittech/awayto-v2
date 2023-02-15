@@ -9,10 +9,12 @@ import RoleRepresentation, { RoleMappingPayload } from '@keycloak/keycloak-admin
 import { asyncForEach } from './db';
 import { IGroupRoleActions, GroupRoleActions, SiteRoles } from 'awayto';
 import GroupRepresentation from '@keycloak/keycloak-admin-client/lib/defs/groupRepresentation';
+import { performance } from 'perf_hooks';
 
 let realm: RealmRepresentation = {};
 let appClient: ClientRepresentation = {};
 let appRoles: RoleRepresentation[] = [];
+let groupAdminRoles: RoleMappingPayload[] = [];
 let roleCall: RoleMappingPayload[] = [];
 let groupRoleActions: IGroupRoleActions = {};
 
@@ -37,15 +39,18 @@ const credentials: Credentials = {
 }
 
 const regroup = async function (groupId?: string) {
+  
   let groups: GroupRepresentation[] = [];
-
+  
   if (groupId) {
+    performance.mark("regroupOneGroupStart");
     const group = await keycloak.groups.findOne({ id: groupId });
     groups = group ? [group] : [];
+  } else {
+    performance.mark("regroupAllGroupsStart");
+    groups = groups.length ? groups : await keycloak.groups.find();
   }
-
-  groups = groups.length ? groups : await keycloak.groups.find();
-
+  
   const newGroupRoleActions: IGroupRoleActions = {};
 
   await asyncForEach(groups, async group => {
@@ -72,12 +77,19 @@ const regroup = async function (groupId?: string) {
       } else {
         console.log(' using cache for ', path);
         newGroupRoleActions[path as string] = groupRoleActions[path as string];
-        return
       }
     });
   });
 
   groupRoleActions = newGroupRoleActions;
+
+  if (groupId) {
+    performance.mark("regroupOneGroupEnd");
+    performance.measure("regroupOneGroupStart to regroupOneGroupEnd", "regroupOneGroupStart", "regroupOneGroupEnd");
+  } else {
+    performance.mark("regroupAllGroupsEnd");
+    performance.measure("regroupAllGroupsStart to regroupAllGroupsEnd", "regroupAllGroupsStart", "regroupAllGroupsEnd");
+  }
 
 }
 
@@ -108,6 +120,7 @@ try {
       
       if (appClientRolesRequest.length) {
         appRoles = appClientRolesRequest;
+        groupAdminRoles = appRoles.filter(r => r.name !== SiteRoles.APP_ROLE_CALL).map(({ id, name }) => ({ id, name })) as RoleMappingPayload[]
         roleCall = appRoles.filter(r => r.name === SiteRoles.APP_ROLE_CALL).map(({ id, name }) => ({ id, name })) as RoleMappingPayload[]
       }
     }
@@ -122,7 +135,7 @@ export type StrategyUser = Express.User & {
   firstName?: string;
   lastName?: string;
   email?: string;
-  sub?: string;
+  sub: string;
   groups?: string[];
 }
 
@@ -159,6 +172,7 @@ export {
   realm,
   appClient,
   appRoles,
+  groupAdminRoles,
   roleCall,
   groupRoleActions,
   regroup

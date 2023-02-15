@@ -43,7 +43,7 @@ export type ApiProps = {
     path: string;
     public: boolean;
     username?: string;
-    userSub?: string;
+    userSub: string;
     sourceIp: string;
     groups?: string[];
     availableUserGroupRoles: UserGroupRoles;

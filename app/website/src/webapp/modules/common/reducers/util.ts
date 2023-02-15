@@ -28,8 +28,7 @@ const utilReducer: Reducer<IUtilState, IUtilActions> = (state = initialUtilState
       return reduceUtil(state, action);
     case IUtilActionTypes.OPEN_CONFIRM:
     case IUtilActionTypes.CLOSE_CONFIRM:
-    case IUtilActionTypes.START_LOADING:
-    case IUtilActionTypes.STOP_LOADING:
+    case IUtilActionTypes.SET_LOADING:
     case IUtilActionTypes.SET_SNACK:
     case IUtilActionTypes.TEST_API:
     case IUtilActionTypes.API_ERROR:

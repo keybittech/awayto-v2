@@ -17,11 +17,12 @@ import InputAdornment from '@mui/material/InputAdornment';
 import ArrowRightAlt from '@mui/icons-material/ArrowRightAlt';
 import NotInterestedIcon from '@mui/icons-material/NotInterested';
 
-import { IGroup, IUtilActionTypes } from 'awayto';
+import { IGroup, IUtilActionTypes, IGroupActionTypes } from 'awayto';
 import { useAct, useApi, useRedux, useComponents } from 'awayto-hooks';
 import { ManageGroupsActions } from './ManageGroups';
 
-const { SET_SNACK } = IUtilActionTypes;
+const { SET_SNACK, SET_LOADING } = IUtilActionTypes;
+const { CHECK_GROUPS_NAME } = IGroupActionTypes;
 
 declare global {
   interface IProps {
@@ -30,12 +31,12 @@ declare global {
 }
 
 export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): JSX.Element {
-  const { roles, getRolesAction, putGroupsAction, postGroupsAction, postRolesAction, deleteRolesAction, checkNameAction } = props as Required<ManageGroupsActions>;
+  const { roles, getRolesAction, putGroupsAction, postGroupsAction, postRolesAction, deleteRolesAction } = props as Required<ManageGroupsActions>;
   
   const api = useApi();
   const act = useAct();
   const { SelectLookup } = useComponents();
-  const { isValid, needCheckName, checkedName, checkingName } = useRedux(state => state.manageGroups);
+  const { isValid, needCheckName, checkedName, checkingName } = useRedux(state => state.group);
   const [primaryRole, setPrimaryRole] = useState('');
   const [roleIds, setRoleIds] = useState<string[]>([]);
   const [group, setGroup] = useState<Partial<IGroup>>({
@@ -50,7 +51,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
   const handleSubmit = useCallback(() => {
     const { id, name } = group;
 
-    if (!name || !roleIds.length) {
+    if (!name || !roleIds.length || !primaryRole) {
       act(SET_SNACK, { snackType: 'error', snackOn: 'Please provide a valid group name and roles.' });
       return;
     }
@@ -58,40 +59,39 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
     group.name = formatName(name);
     group.roles = Object.values(roles).filter(r => roleIds.includes(r.id));
     group.roleId = primaryRole;
-    const [, res] = api(id ? putGroupsAction : postGroupsAction, true, group);
-
+    const [, res] = api(id ? putGroupsAction : postGroupsAction, false, group);
     res?.then(() => {
+      !id && act(SET_LOADING, { isLoading: true, loadingMessage: 'Please allow a moment for your group to be configured.' })
+      id && act(SET_SNACK, { snackType: 'success', snackOn: 'Group updated! Please allow up to a minute for any related permissions changes to persist.' } )
       if (closeModal)
-        closeModal();
+        closeModal(); 
     });
-
   }, [group, roles, roleIds, primaryRole]);
 
   const badName = !checkingName && !isValid && !!group?.name && formatName(group.name) == checkedName;
 
   const handleName = useCallback((event: ChangeEvent<HTMLTextAreaElement>) => {
-    act(checkNameAction, { checkingName: true });
+    act(CHECK_GROUPS_NAME, { checkingName: true });
     const name = event.target.value;
     if (name.length <= 50) {
       setGroup({ ...group, name });
-      act(checkNameAction, { checkedName: formatName(name), needCheckName: name != editGroup?.name }, { debounce: { time: 1000 } });
+      act(CHECK_GROUPS_NAME, { checkedName: formatName(name), needCheckName: name != editGroup?.name }, { debounce: { time: 1000 } });
     } else if (isValid) {
-      act(checkNameAction, { checkingName: false });
+      act(CHECK_GROUPS_NAME, { checkingName: false });
     }
   }, [group, setGroup]);
 
   useEffect(() => {
-    if (!roleIds.length && group.roles?.length)
+    if (!roleIds.length && group.roles?.length && !primaryRole)
       setRoleIds(group.roles.map(r => r.id))
-  }, [roleIds, group.roles]);
+  }, [roleIds, group.roles, primaryRole]);
 
   useEffect(() => {
     if (needCheckName && checkedName) {
-      act(checkNameAction, { checkingName: true, needCheckName: false, isValid: false });
-      const [abort] = api(checkNameAction, true, { name: checkedName });
-      return () => abort();
+      act(CHECK_GROUPS_NAME, { checkingName: true, needCheckName: false, isValid: false });
+      api(CHECK_GROUPS_NAME, true, { name: checkedName });
     }
-  }, [needCheckName]);
+  }, [needCheckName, checkedName]);
 
   useEffect(() => {
     if (!primaryRole) {

@@ -2,7 +2,7 @@ import { IGroup, IUuidRoles, DbError, IUserProfile, IGroupState, IRole, IGroupRo
 import { ApiModule, asyncForEach, buildUpdate } from '../util/db';
 import { performance } from 'perf_hooks';
 
-import { keycloak, appClient, appRoles, groupRoleActions, regroup, roleCall } from '../util/keycloak';
+import { keycloak, appClient, appRoles, groupAdminRoles, groupRoleActions, regroup, roleCall } from '../util/keycloak';
 
 const groups: ApiModule = [
 
@@ -13,7 +13,7 @@ const groups: ApiModule = [
 
       try {
 
-        const { name, roles, roleId } = props.event.body as IGroup;
+        const { name, roles, roleId: adminRoleId } = props.event.body as IGroup;
         let primaryRoleSubgroupId = '';
 
         // Create a group in app db if user has no groups and name is unique
@@ -22,7 +22,7 @@ const groups: ApiModule = [
           VALUES ($1, $2, $3, $4, $5)
           ON CONFLICT (name) DO NOTHING
           RETURNING id, name, created_sub
-        `, [props.event.userSub, props.event.userSub, roleId, name, props.event.userSub]);
+        `, [props.event.userSub, props.event.userSub, adminRoleId, name, props.event.userSub]);
 
         // Create a keycloak group if the previous operation was allowed
         const { id: externalId } = await keycloak.groups.create({ name });
@@ -31,18 +31,18 @@ const groups: ApiModule = [
         await props.client.query(`UPDATE groups SET external_id = $1 WHERE id = $2`, [externalId, group.id]);
 
         // For each group role, create a keycloak subgroup and attach to group uuid
-        await asyncForEach(roles, async ({ id: subgroupId, name }) => {
+        await asyncForEach(roles, async ({ id: groupRoleId, name }) => {
 
           const { id: kcSubgroupId } = await keycloak.groups.setOrCreateChild({ id: externalId }, { name });
 
           // If this is the admin role, attach the core roles
-          if (subgroupId === roleId) {
+          if (groupRoleId === adminRoleId) {
             primaryRoleSubgroupId = kcSubgroupId;
 
-            await keycloak.groups.addClientRoleMappings({
-              clientUniqueId: appClient.id!,
+            const res = await keycloak.groups.addClientRoleMappings({
               id: primaryRoleSubgroupId,
-              roles: appRoles as { id: string, name: string }[]
+              clientUniqueId: appClient.id!,
+              roles: groupAdminRoles as { id: string, name: string }[]
             });
           }
 
@@ -50,12 +50,12 @@ const groups: ApiModule = [
             INSERT INTO uuid_roles (parent_uuid, role_id, external_id, created_on, created_sub)
             VALUES ($1, $2, $3, $4, $5)
             ON CONFLICT (parent_uuid, role_id) DO NOTHING
-          `, [group.id, subgroupId, kcSubgroupId, new Date(), props.event.userSub])
+          `, [group.id, groupRoleId, kcSubgroupId, new Date(), props.event.userSub])
         });
 
         // Get the user uuid from the sub
         const { rows: [{ id: userId }] } = await props.client.query<IUserProfile>(`
-          SELECT id FROM users WHERE sub = $1
+          SELECT id FROM dbview_schema.enabled_users WHERE sub = $1
         `, [props.event.userSub]);
 
         // Attach the user to the group in the app db
@@ -66,11 +66,20 @@ const groups: ApiModule = [
           RETURNING id
         `, [userId, group.id, props.event.userSub]);
 
-        // Attach the user to the primary role subgroup
+        // Attach the user to the primary role subgroup and add ROLE_CALL
+
         await keycloak.users.addToGroup({
-          id: props.event.userSub as string,
+          id: props.event.userSub,
           groupId: primaryRoleSubgroupId
         });
+
+        await keycloak.users.addClientRoleMappings({
+          id: props.event.userSub,
+          clientUniqueId: appClient.id!,
+          roles: roleCall
+        });
+
+        await regroup(externalId);
 
         group.roles = roles;
 
@@ -93,34 +102,39 @@ const groups: ApiModule = [
     path: 'groups',
     cmnd: async (props) => {
       try {
-        const { id, name, roles } = props.event.body as IGroup;
+        const { id, name, roles, roleId: adminRoleId } = props.event.body as IGroup;
 
         const updateProps = buildUpdate({ id, name });
 
+        // Update the basic info about the group
         const { rows: [group] } = await props.client.query<IGroup>(`
           UPDATE groups
           SET ${updateProps.string}
           WHERE id = $1
-          RETURNING id, name, external_id as "externalId"
+          RETURNING id, name, external_id as "externalId", role_id as "roleId"
         `, updateProps.array);
 
+        // See if any roles have changed
         const roleIds = roles.map(r => r.id);
         const diffs = (await props.client.query<IUuidRoles>(`
-          SELECT id, role_id as "roleId" 
-          FROM uuid_roles 
-          WHERE parent_uuid = $1
+          SELECT id, "roleId" 
+          FROM dbview_schema.enabled_uuid_roles 
+          WHERE "parentUuid" = $1
         `, [group.id])).rows.filter(r => !roleIds.includes(r.roleId));
 
         if (diffs.length) {
-          await asyncForEach(diffs.map(d => d.id), async diff => {
-            if (diff) {
-              await props.client.query('DELETE FROM uuid_roles WHERE id = $1', [diff]);
-            }
-          });
 
+          // Remove any old roles from app db
+          await Promise.all(diffs.map(d => {
+            if (d.id) {
+              return props.client.query('DELETE FROM uuid_roles WHERE id = $1', [d.id]);
+            }
+          }));
+
+          // Delete keycloak subgroups under the parent group which are no longer present
           const externalGroup = await keycloak.groups.findOne({ id: group.externalId });
           if (externalGroup?.subGroups) {
-            const roleNames = (await props.client.query<IRole>(`SELECT name FROM roles WHERE id = ANY($1::uuid[])`, [diffs.map(r => r.roleId)])).rows.map(r => r.name);
+            const roleNames = (await props.client.query<IRole>(`SELECT name FROM dbview_schema.enabled_roles WHERE id = ANY($1::uuid[])`, [diffs.map(r => r.roleId)])).rows.map(r => r.name);
             await asyncForEach(externalGroup?.subGroups.filter(sg => roleNames.indexOf(sg.name as string) > -1), async subGroup => {
               if (subGroup.id) {
                 await keycloak.groups.del({ id: subGroup.id });
@@ -129,17 +143,55 @@ const groups: ApiModule = [
           }
         }
 
-        await asyncForEach(roles, async role => {
-          try {
-            await keycloak.groups.setOrCreateChild({ id: group.externalId }, { name: role.name });
-          } catch (error) { }
 
+        await asyncForEach(roles, async role => {
+          await keycloak.groups.setOrCreateChild({ id: group.externalId }, { name: role.name });
           await props.client.query(`
             INSERT INTO uuid_roles (parent_uuid, role_id, created_on, created_sub)
             VALUES ($1, $2, $3, $4)
             ON CONFLICT (parent_uuid, role_id) DO NOTHING
           `, [group.id, role.id, new Date(), props.event.userSub])
-        });
+        })
+
+
+        // If the admin role has changed
+        if (group.roleId !== adminRoleId) {
+          
+          // If the keycloak subgroup didn't get deleted earlier
+          if (!diffs.filter(d => d.roleId === group.roleId).length) {
+            const [{ externalId: oldAdminRoleExternalSubgroupId }] = (await props.client.query<IUuidRoles>(`
+              SELECT "externalId" FROM dbview_schema.enabled_uuid_roles WHERE "roleId" = $1
+            `, [group.roleId])).rows;
+
+            await keycloak.groups.delClientRoleMappings({
+              id: oldAdminRoleExternalSubgroupId,
+              clientUniqueId: appClient.id!,
+              roles: groupAdminRoles as { id: string, name: string }[]
+            });
+          }
+          
+          // Get the new admin role's externalId for its keycloak subgroup
+          const [{ externalId: newAdminRoleExternalSubgroupId }] = (await props.client.query<IUuidRoles>(`
+            SELECT "externalId" FROM dbview_schema.enabled_uuid_roles WHERE "roleId" = $1
+          `, [adminRoleId])).rows;
+
+          // Set the new admin role for the group
+          await props.client.query(`UPDATE groups SET role_id = $1 WHERE id = $2`, [adminRoleId, group.id]);
+          group.roleId = adminRoleId;
+
+          // Attach keycloak roles to the new admin role subgroup
+          await keycloak.groups.addClientRoleMappings({
+            id: newAdminRoleExternalSubgroupId,
+            clientUniqueId: appClient.id!,
+            roles: groupAdminRoles as { id: string, name: string }[]
+          });
+
+          // Attach the user to the primary role subgroup
+          await keycloak.users.addToGroup({
+            id: props.event.userSub,
+            groupId: newAdminRoleExternalSubgroupId
+          });
+        }
 
         group.roles = roles;
 
@@ -188,8 +240,8 @@ const groups: ApiModule = [
           
           if (deletions.length) {
             await keycloak.groups.delClientRoleMappings({
-              clientUniqueId: appClient.id!,
               id: groupRoleActions[subgroupPath].id as string,
+              clientUniqueId: appClient.id!,
               roles: deletions as { id: string, name: string }[]
             });
           }
@@ -203,8 +255,8 @@ const groups: ApiModule = [
 
           if (additions.length) {
             await keycloak.groups.addClientRoleMappings({
-              clientUniqueId: appClient.id!,
               id: groupRoleActions[subgroupPath].id as string,
+              clientUniqueId: appClient.id!,
               roles: additions as { id: string, name: string }[]
             });
           }
@@ -231,14 +283,15 @@ const groups: ApiModule = [
         WHERE g."externalId" = $1 AND eu.sub = ANY($2::varchar[])
       `, [externalId, sessions.map(u => u.userId)])).rows;
 
+
       await Promise.all(users.map(user => {
         return keycloak.users.addClientRoleMappings({
           id: user.sub,
           clientUniqueId: appClient.id!,
           roles: roleCall
-        })
+        });
       }));
-      
+
       performance.mark("putGroupAssignmentsEnd");
       performance.measure("putGroupAssignmentsStart to putGroupAssignmentsEnd", "putGroupAssignmentsStart", "putGroupAssignmentsEnd");
 
@@ -324,9 +377,7 @@ const groups: ApiModule = [
             WHERE id = $1 
           `, [id]);
 
-          await keycloak.groups.del({
-            id: externalId
-          });
+          await keycloak.groups.del({ id: externalId });
 
           // Delete roles assigned to the group
           await props.client.query(`
@@ -467,6 +518,11 @@ const groups: ApiModule = [
 
         return true;
       } catch (error) {
+        const { constraint } = error as DbError;
+
+        if ('uuid_groups_parent_uuid_group_id_key' === constraint) {
+          throw { reason: 'You already belong to this group.' }
+        }
         throw error;
       }
 

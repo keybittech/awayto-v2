@@ -57,8 +57,11 @@ try {
 
   // Log all performance measurements
   const obs = new PerformanceObserver(items => {
-    logger.log('performance', { body: items.getEntries() })
-    performance.clearMarks();
+    logger.log('performance', { body: items.getEntries() });
+
+    items.getEntries().forEach(measure => {
+      measure.name.split(' to ').forEach(mark => performance.clearMarks(mark));
+    });
   });
   obs.observe({ entryTypes: ['measure' ] });
 
@@ -316,28 +319,28 @@ try {
   });
 
   // Define public routes
-  APIs.public.forEach((route) => {
-    app[route.method.toLowerCase() as keyof Express](`/api/${route.path}`, async (req: Request, res: Response) => {
+  // APIs.public.forEach((route) => {
+  //   app[route.method.toLowerCase() as keyof Express](`/api/${route.path}`, async (req: Request, res: Response) => {
 
-      // Create trace event
-      const event = {
-        method: route.method,
-        path: route.path,
-        public: true,
-        availableUserGroupRoles: {},
-        sourceIp: req.headers['x-forwarded-for'] as string,
-        pathParameters: req.params,
-        queryParameters: req.query as Record<string, string>,
-        body: req.body
-      };
+  //     // Create trace event
+  //     const event = {
+  //       method: route.method,
+  //       path: route.path,
+  //       public: true,
+  //       availableUserGroupRoles: {},
+  //       sourceIp: req.headers['x-forwarded-for'] as string,
+  //       pathParameters: req.params,
+  //       queryParameters: req.query as Record<string, string>,
+  //       body: req.body
+  //     };
 
-      // Handle request
-      const result = await route.cmnd({ event, client });
+  //     // Handle request
+  //     const result = await route.cmnd({ event, client });
 
-      // Respond
-      res.json(result);
-    });
-  });
+  //     // Respond
+  //     res.json(result);
+  //   });
+  // });
 
   // Proxy to WSS
   const proxy = httpProxy.createProxyServer();

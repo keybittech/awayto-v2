@@ -16,6 +16,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 
 import { IUtilActionTypes } from 'awayto';
 import { useRedux, useAct, useComponents, useStyles } from 'awayto-hooks';
+import { Typography } from '@mui/material';
 
 const { SET_SNACK } = IUtilActionTypes;
 
@@ -106,7 +107,9 @@ const Layout = (props: IProps): JSX.Element => {
     <Backdrop className={classes.backdrop} open={!!isLoading} >
       <Grid container direction="column" alignItems="center">
         <CircularProgress color="inherit" />
-        {loadingMessage ?? ''}
+        {loadingMessage && <Box m={4}>
+          <Typography variant="caption">{loadingMessage}</Typography>
+        </Box>}
       </Grid>
     </Backdrop>
   </>

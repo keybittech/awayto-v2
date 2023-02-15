@@ -63,8 +63,7 @@ export enum IUtilActionTypes {
   CLEAR_REDUX = "util/CLEAR_REDUX",
   OPEN_CONFIRM = "util/OPEN_CONFIRM",
   CLOSE_CONFIRM = "util/CLOSE_CONFIRM",
-  START_LOADING = "util/START_LOADING",
-  STOP_LOADING = "util/STOP_LOADING",
+  SET_LOADING = "util/SET_LOADING",
   SET_THEME = "util/SET_THEME",
   SET_SNACK = "util/SET_SNACK",
   TEST_API = "util/TEST_API",
@@ -107,12 +106,7 @@ export type ICloseConfirmAction = PayloadAction<IUtilActionTypes.CLOSE_CONFIRM, 
 /**
  * @category Util
  */
-export type IStartLoadingAction = PayloadAction<IUtilActionTypes.START_LOADING, IUtilLoadingActionPayload>;
-
-/**
- * @category Util
- */
-export type IStopLoadingAction = PayloadAction<IUtilActionTypes.STOP_LOADING, IUtilLoadingActionPayload>;
+export type ISetLoadingAction = PayloadAction<IUtilActionTypes.SET_LOADING, IUtilLoadingActionPayload>;
 
 /**
  * @category Util
@@ -150,8 +144,7 @@ export type ISetUpdateAssignmentsAction = PayloadAction<IUtilActionTypes.SET_UPD
 export type IUtilActions = IClearReduxAction
   | IOpenConfirmAction
   | ICloseConfirmAction
-  | IStartLoadingAction
-  | IStopLoadingAction
+  | ISetLoadingAction
   | ISetThemeAction
   | ISetSnackAction
   | ITestApiAction

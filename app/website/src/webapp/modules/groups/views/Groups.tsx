@@ -16,7 +16,7 @@ export function Groups (props: IProps): JSX.Element {
     <ManageGroups {...props}
       groups={user.groups}
       roles={user.roles}
-      getGroupsAction={GET_GROUPS}
+      getGroupsAction={GET_USER_PROFILE_DETAILS}
       deleteGroupsAction={DELETE_GROUPS}
       putGroupsAction={PUT_GROUPS}
       postGroupsAction={POST_GROUPS}
