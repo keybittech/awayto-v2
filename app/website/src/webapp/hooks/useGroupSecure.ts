@@ -5,11 +5,11 @@ import { SiteRoles, hasGroupRole } from 'awayto';
 
 export function useGroupSecure(): (targetRoles: SiteRoles[]) => boolean {
   const { groupName } = useParams();
-  const { groupRoles } = useRedux(state => state.profile);
+  const { availableUserGroupRoles } = useRedux(state => state.profile);
 
   const hasGroupRoleCb = useCallback((targetRoles: SiteRoles[]) => {
-    return !!groupName && hasGroupRole(groupName, groupRoles, targetRoles);
-  }, [groupName, groupRoles]);
+    return !!groupName && hasGroupRole(groupName, availableUserGroupRoles, targetRoles);
+  }, [groupName, availableUserGroupRoles]);
 
   return hasGroupRoleCb;
 }

@@ -47,6 +47,8 @@ export const useStyles = makeStyles(({ mixins, spacing }: Theme) => ({
 
   dropzone: { width: '400px', height: '150px' },
 
+  datatable: { borderRadius: '4px' },
+
   //Common
   infoHeader: { fontWeight: 500, fontSize: '1rem', textTransform: 'uppercase', color: '#aaa !important' },
   infoLabel: { fontWeight: 500, fontSize: '1rem' },

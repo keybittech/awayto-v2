@@ -1,9 +1,6 @@
-// import { UserType, AttributeType } from '@aws-sdk/client-cognito-identity-provider';
-import { IUserProfile, SiteRoles } from 'awayto';
+import { IUserProfile } from 'awayto';
 import { keycloak } from '../util/keycloak';
-// import { adminCreateUser, adminDisableUser, adminEnableUser, getUserInfo, parseGroupString, parseGroupArray, updateUserAttributesAdmin, listUsers, attachCognitoInfoToUser } from "../util/cognito";
-import { ApiModule, ApiModulet, asyncForEach } from "../util/db";
-import { parseGroupArray } from "../util/auth";
+import { ApiModule } from "../util/db";
 import users from './profiles';
 
 const manageUsers: ApiModule = [
@@ -13,26 +10,27 @@ const manageUsers: ApiModule = [
     path: 'manage/users/sub',
     cmnd: async (props) => {
 
-      let user = props.event.body as IUserProfile & { password: string };
+      // let user = props.event.body as IUserProfile & { password: string };
       
-      const { username, email, password, groups } = user;
+      // const { username, email, password, groups } = user;
       try {
-        const keycloakUser = await keycloak.users.create({
-          username,
-          email,
-          credentials: [{
-            type: 'password',
-            temporary: true,
-            value: password
-          }],
-          attributes: {
-            groupRoles: parseGroupArray(groups)
-          }
-        });
+      //   const keycloakUser = await keycloak.users.create({
+      //     username,
+      //     email,
+      //     credentials: [{
+      //       type: 'password',
+      //       temporary: true,
+      //       value: password
+      //     }],
+      //     attributes: {
+      //       groupRoles: []
+      //     }
+      //   });
 
-        user.sub = keycloakUser.id;
+      //   user.sub = keycloakUser.id;
 
-        return user as IUserProfile;
+      //   return user as IUserProfile;
+        return false;
       } catch (error) {
         throw error;
       }
@@ -70,8 +68,6 @@ const manageUsers: ApiModule = [
     cmnd: async (props) => {
       try {
         const { username, groups } = props.event.body as IUserProfile;
-
-        // const groupRoles = parseGroupArray(groups)
 
         // if (groupRoles.length) {
 

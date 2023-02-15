@@ -128,14 +128,33 @@ export enum SiteRoles {
   APP_GROUP_ADMIN = 'APP_GROUP_ADMIN',
   APP_GROUP_ROLES = 'APP_GROUP_ROLES',
   APP_GROUP_USERS = 'APP_GROUP_USERS',
-  APP_GROUP_MATRIX = 'APP_GROUP_MATRIX',
+  // APP_GROUP_MATRIX = 'APP_GROUP_MATRIX',
   APP_GROUP_SERVICES = 'APP_GROUP_SERVICES',
   APP_GROUP_BOOKINGS = 'APP_GROUP_BOOKINGS',
   APP_GROUP_FEATURES = 'APP_GROUP_FEATURES',
   APP_GROUP_SCHEDULES = 'APP_GROUP_SCHEDULES'
 }
 
+/**
+ * @category Authorization
+ */
+export type GroupRoleActions = {
+  id?: string;
+  fetch?: boolean;
+  actions: {
+    id?: string;
+    name: string;
+  }[];
+}
 
+/**
+ * @category Authorization
+ */
+export type IGroupRoleActions = Record<string, GroupRoleActions>;
+
+/**
+ * @category Authorization
+ */
 export type DecodedJWTToken = {
   resource_access: {
     [prop: string]: { roles: string[] }

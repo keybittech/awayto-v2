@@ -34,7 +34,7 @@ const components = {} as IBaseComponents;
  * @category Hooks
  */
 export function useComponents(): IBaseComponents {
-  const { groupRoles } = useRedux(state => state.profile);
+  const { availableUserGroupRoles } = useRedux(state => state.profile);
   const { groupName } = useParams();
 
   const comps = useMemo(() => {
@@ -43,7 +43,7 @@ export function useComponents(): IBaseComponents {
 
         const compPath = views[prop];
 
-        if (groupName && roles[compPath]?.length && !hasGroupRole(groupName, groupRoles, roles[compPath] )) {
+        if (groupName && roles[compPath]?.length && !hasGroupRole(groupName, availableUserGroupRoles, roles[compPath] )) {
           components[prop] = ((): JSX.Element => createElement('div'));
         }
       
@@ -54,7 +54,7 @@ export function useComponents(): IBaseComponents {
         return Reflect.get(target, prop);
       }
     });
-  }, [groupRoles, groupName]);
+  }, [availableUserGroupRoles, groupName]);
 
   return comps;
 }

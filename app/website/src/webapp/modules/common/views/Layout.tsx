@@ -92,7 +92,7 @@ const Layout = (props: IProps): JSX.Element => {
       </main>
     </div>
 
-    {!!snackOn && <Snackbar anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} open={!!snackOn} autoHideDuration={15000} onClose={hideSnack}>
+    {!!snackOn && <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center' }} open={!!snackOn} autoHideDuration={15000} onClose={hideSnack}>
       <Alert onClose={hideSnack} severity={snackType || "info"}>
         <Box>{snackOn}</Box>
         <Box><sub>{snackRequestId}</sub></Box>

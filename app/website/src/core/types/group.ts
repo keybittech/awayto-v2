@@ -1,4 +1,4 @@
-import { PayloadAction, IRole, IUserProfile, IService, IServiceAddon, ISchedule } from '.';
+import { PayloadAction, IRole, IUserProfile, IService, IServiceAddon, ISchedule, GroupRoleActions, IGroupRoleActions } from '.';
 
 declare global {
   /**
@@ -51,13 +51,14 @@ export type IGroups = Record<string, IGroup>;
  * @category Groups
  */
 export type IGroupState = {
-  groups: IGroups,
-  users: IUserProfile[],
-  isValid: boolean,
-  needCheckName: boolean,
-  checkingName: boolean,
-  checkedName: string,
-  error: Error | string
+  groups: IGroups;
+  users: IUserProfile[];
+  isValid: boolean;
+  availableGroupAssignments: IGroupRoleActions;
+  needCheckName: boolean;
+  checkingName: boolean;
+  checkedName: string;
+  error: Error | string;
 }
 
 /**
@@ -74,6 +75,8 @@ export enum IGroupActionTypes {
   GROUPS_USERS_INVITE = "POST/groups/users/invite",
   GROUPS_JOIN = "POST/groups/join/:code",
   GROUPS_LEAVE = "POST/groups/leave/:code",
+  PUT_GROUPS_ASSIGNMENTS = "PUT/groups/:groupName/assignments",
+  GET_GROUPS_ASSIGNMENTS = "GET/groups/:groupName/assignments"
 }
 
 /**
@@ -129,6 +132,11 @@ export type IGroupsLeaveAction = PayloadAction<IGroupActionTypes.GROUPS_LEAVE, I
 /**
  * @category Group
  */
+export type IGetGroupsAssignmentsAction = PayloadAction<IGroupActionTypes.GET_GROUPS_ASSIGNMENTS, IGroupState>;
+
+/**
+ * @category Group
+ */
 export type IGroupActions = IPostGroupAction
   | IPutGroupAction
   | IGetGroupsAction
@@ -138,7 +146,8 @@ export type IGroupActions = IPostGroupAction
   | ICheckGroupsNameAction
   | IGroupsUsersInviteAction
   | IGroupsJoinAction
-  | IGroupsLeaveAction;
+  | IGroupsLeaveAction
+  | IGetGroupsAssignmentsAction;
 
 
 

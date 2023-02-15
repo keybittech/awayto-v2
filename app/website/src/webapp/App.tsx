@@ -40,10 +40,10 @@ const App = (props: IProps): JSX.Element => {
 
       const interval: NodeJS.Timeout = setInterval(() => {
         const resources = keycloak.tokenParsed?.resource_access;
-        if (resources && resources[REACT_APP_KC_CLIENT].roles.includes(SiteRoles.APP_ROLE_CALL)) {
+        if (resources && resources[REACT_APP_KC_CLIENT]?.roles.includes(SiteRoles.APP_ROLE_CALL)) {
           api(GET_USER_PROFILE_DETAILS);
         }
-      }, 60 * 1000);
+      }, 58 * 1000);
 
       return () => {
         abort1();

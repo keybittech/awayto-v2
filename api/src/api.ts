@@ -18,8 +18,9 @@ import APIs from './objects';
 import { keycloakStrategy, StrategyUser, groupRoleActions } from './util/keycloak';
 import { AuthEvent } from './util/db';
 
-import { DecodedJWTToken } from 'awayto';
+import { DecodedJWTToken, UserGroupRoles } from 'awayto';
 import { IdTokenClaims } from 'openid-client';
+import { PerformanceObserver, performance } from 'perf_hooks';
 
 
 
@@ -53,6 +54,13 @@ try {
       port: parseInt(GRAYLOG_PORT as string)
     }]
   });
+
+  // Log all performance measurements
+  const obs = new PerformanceObserver(items => {
+    logger.log('performance', { body: items.getEntries() })
+    performance.clearMarks();
+  });
+  obs.observe({ entryTypes: ['measure' ] });
 
   // Configure Postgres client
   const client = new postgres.Client({
@@ -167,7 +175,7 @@ try {
         public: false,
         userSub: userId,
         sourceIp: ipAddress,
-        groupRoles: {},
+        availableUserGroupRoles: {},
         pathParameters: req.params,
         queryParameters: req.query as Record<string, string>,
         body
@@ -204,6 +212,13 @@ try {
     const method = req.method;
     const path = Buffer.from(req.params.code, 'base64').toString();
 
+    const tokenGroupRoles = {} as UserGroupRoles;
+    token.groups.forEach(subgroupPath => {
+      const [groupName, subgroupName] = subgroupPath.slice(1).split('/');
+      tokenGroupRoles[groupName] = tokenGroupRoles[groupName] || {};
+      tokenGroupRoles[groupName][subgroupName] = groupRoleActions[subgroupPath].actions.map(a => a.name)
+    });
+
     // Create trace event
     const event = {
       requestId,
@@ -211,7 +226,7 @@ try {
       path,
       public: false,
       groups: token.groups,
-      groupRoles: token.groups.reduce((m, g) => ({ ...m, [g.split('/')[1]]: { [g.split('/')[2]]: groupRoleActions[g].actions } }), {}),
+      availableUserGroupRoles: tokenGroupRoles,
       username: user.username,
       userSub: user.sub,
       sourceIp: req.headers['x-forwarded-for'] as string,
@@ -238,7 +253,7 @@ try {
     } catch (error) {
       const err = error as Error & { reason: string };
 
-      console.log('protected error', err);
+      console.log('protected error', err.message);
       logger.log('error response', { requestId, error: err });
 
       // Handle failures
@@ -269,7 +284,7 @@ try {
         groups: token.groups,
         username: user.username,
         userSub: user.sub,
-        groupRoles: {},
+        availableUserGroupRoles: {},
         sourceIp: req.headers['x-forwarded-for'] as string,
         pathParameters: req.params,
         queryParameters: req.query as Record<string, string>,
@@ -309,7 +324,7 @@ try {
         method: route.method,
         path: route.path,
         public: true,
-        groupRoles: {},
+        availableUserGroupRoles: {},
         sourceIp: req.headers['x-forwarded-for'] as string,
         pathParameters: req.params,
         queryParameters: req.query as Record<string, string>,

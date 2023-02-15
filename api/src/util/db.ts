@@ -46,7 +46,7 @@ export type ApiProps = {
     userSub?: string;
     sourceIp: string;
     groups?: string[];
-    groupRoles: UserGroupRoles;
+    availableUserGroupRoles: UserGroupRoles;
     pathParameters: Record<string, string>,
     queryParameters: Record<string, string>,
     body: Array<ILoadedState> | Record<string, unknown> | AuthEvent

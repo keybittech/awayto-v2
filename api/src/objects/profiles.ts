@@ -1,7 +1,6 @@
-import { RoleMappingPayload } from '@keycloak/keycloak-admin-client/lib/defs/roleRepresentation';
-import { IUserProfile, SiteRoles } from 'awayto';
+import { IUserProfile } from 'awayto';
 import { ApiModule, buildUpdate } from '../util/db';
-import { appClient, appRoles, keycloak } from '../util/keycloak';
+import { appClient, keycloak, roleCall } from '../util/keycloak';
 
 const profile: ApiModule = [
 
@@ -73,13 +72,13 @@ const profile: ApiModule = [
           WHERE sub = $1
         `, [props.event.userSub])).rows;
 
-        user.groupRoles = props.event.groupRoles;
+        user.availableUserGroupRoles = props.event.availableUserGroupRoles;
 
         try {
           await keycloak.users.delClientRoleMappings({
             clientUniqueId: appClient.id!,
             id: user.sub,
-            roles: appRoles.filter(r => r.name === SiteRoles.APP_ROLE_CALL).map(({ id, name }) => ({ id, name })) as RoleMappingPayload[]
+            roles: roleCall
           });
         } catch (error) {}
 

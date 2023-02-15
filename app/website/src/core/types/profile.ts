@@ -38,7 +38,7 @@ export type IUserProfile = {
   username: string;
   groups: IGroup[];
   roles: IRole[];
-  groupRoles: UserGroupRoles;
+  availableUserGroupRoles: UserGroupRoles;
   createdOn: string;
   updatedOn: string;
   file: File;

@@ -24,7 +24,7 @@ export function initKeycloak(this: { cb: () => void }): void {
     token,
     refreshToken
   }).then(async (authenticated) => {
-    setInterval(() => void keycloak.updateToken(60), 60 * 1000);
+    setInterval(() => void keycloak.updateToken(58), 58 * 1000);
     if (authenticated) {
       localStorage.setItem('kc_token', keycloak.token as string);
       localStorage.setItem('kc_refreshToken', keycloak.refreshToken as string);

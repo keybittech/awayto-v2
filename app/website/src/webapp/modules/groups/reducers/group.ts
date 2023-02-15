@@ -16,6 +16,7 @@ const initialGroupState: IGroupState = {
   groups: {} as Record<string, IGroup>,
   users: [],
   checkedName: '',
+  availableGroupAssignments: {},
   checkingName: false,
   error: '',
   isValid: true,
@@ -47,6 +48,7 @@ const groupReducer: Reducer<IGroupState, IGroupActions> = (state = initialGroupS
     case IGroupActionTypes.DISABLE_GROUPS:
     case IGroupActionTypes.GET_GROUPS:
       return reduceGroups(state, action);
+    case IGroupActionTypes.GET_GROUPS_ASSIGNMENTS:
     case IGroupActionTypes.CHECK_GROUPS_NAME:
       return { ...state, ...action.payload }
     default:

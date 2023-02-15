@@ -12,6 +12,7 @@ const initialUtilState = {
   isLoading: false,
   isConfirming: false,
   hasSignUpCode: false,
+  canSubmitAssignments: true,
   theme: kbtTheme != "undefined" && kbtTheme ? kbtTheme : 'dark'
 } as IUtilState;
 
@@ -32,6 +33,7 @@ const utilReducer: Reducer<IUtilState, IUtilActions> = (state = initialUtilState
     case IUtilActionTypes.SET_SNACK:
     case IUtilActionTypes.TEST_API:
     case IUtilActionTypes.API_ERROR:
+    case IUtilActionTypes.SET_UPDATE_ASSIGNMENTS:
       return reduceUtil(state, action);
     default:
       return state;

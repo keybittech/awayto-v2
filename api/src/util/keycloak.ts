@@ -5,21 +5,15 @@ import { Issuer, Strategy, StrategyVerifyCallbackUserInfo } from 'openid-client'
 import { Credentials } from '@keycloak/keycloak-admin-client/lib/utils/auth';
 import RealmRepresentation from '@keycloak/keycloak-admin-client/lib/defs/realmRepresentation';
 import ClientRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientRepresentation';
-import RoleRepresentation from '@keycloak/keycloak-admin-client/lib/defs/roleRepresentation';
+import RoleRepresentation, { RoleMappingPayload } from '@keycloak/keycloak-admin-client/lib/defs/roleRepresentation';
 import { asyncForEach } from './db';
-
-type GroupRoleActions = {
-  fetch: boolean;
-  actions: string[];
-}
-
-type IGroupRoleActions = {
-  [prop: string]: GroupRoleActions
-};
+import { IGroupRoleActions, GroupRoleActions, SiteRoles } from 'awayto';
+import GroupRepresentation from '@keycloak/keycloak-admin-client/lib/defs/groupRepresentation';
 
 let realm: RealmRepresentation = {};
 let appClient: ClientRepresentation = {};
 let appRoles: RoleRepresentation[] = [];
+let roleCall: RoleMappingPayload[] = [];
 let groupRoleActions: IGroupRoleActions = {};
 
 const {
@@ -42,53 +36,62 @@ const credentials: Credentials = {
   grantType: 'client_credentials'
 }
 
-const reauth = async function() {
-  await keycloak.auth(credentials);
+const regroup = async function (groupId?: string) {
+  let groups: GroupRepresentation[] = [];
 
-    const groups = await keycloak.groups.find();
+  if (groupId) {
+    const group = await keycloak.groups.findOne({ id: groupId });
+    groups = group ? [group] : [];
+  }
 
-    const newGroupRoleActions: IGroupRoleActions = {};
-  
-    await asyncForEach(groups, async group => {
-      if (!group.subGroups) return;
-      await asyncForEach(group.subGroups, async ({ path, id }) => {
-        if (!path || !id) return;
-        if (true) { // !groupRoleActions[subgroup.path] || groupRoleActions[subgroup.path].fetch as boolean
+  groups = groups.length ? groups : await keycloak.groups.find();
 
-          const roleMappings = await keycloak.groups.listRoleMappings({ id }) as {
-            clientMappings: {
-              [prop: string]: {
-                mappings: {
-                  name: string
-                }[]
-              }
+  const newGroupRoleActions: IGroupRoleActions = {};
+
+  await asyncForEach(groups, async group => {
+    if (!group.subGroups) return;
+    await asyncForEach(group.subGroups, async ({ path, id: subgroupId }) => {
+      if (!path || !subgroupId) return;
+      if (!groupRoleActions[path] || groupRoleActions[path].fetch as boolean) {
+
+        const roleMappings = await keycloak.groups.listRoleMappings({ id: subgroupId }) as {
+          clientMappings: {
+            [prop: string]: {
+              mappings: {
+                id: string;
+                name: string
+              }[]
             }
-          };
-    
-          if (roleMappings.clientMappings) {
-            newGroupRoleActions[path] = roleMappings.clientMappings[KC_CLIENT].mappings.reduce((m: Record<string, boolean | string[]>, d) => ({ ...m, fetch: false, actions: [...(m.actions || []) as string[], d.name] }), {}) as GroupRoleActions;
           }
+        };
 
-        } else {
-          console.log(' using cache for ', path);
-          newGroupRoleActions[path as string] = groupRoleActions[path as string];
-          return
+        if (roleMappings.clientMappings) {
+          newGroupRoleActions[path] = roleMappings.clientMappings[KC_CLIENT].mappings.reduce((m: Record<string, string | boolean | Record<string, string>[]>, { id: actionId, name }) => ({ ...m, id: subgroupId, fetch: false, actions: [...(m.actions || []) as Record<string, string>[], { id: actionId, name }] }), {}) as GroupRoleActions;
         }
-      });
+
+      } else {
+        console.log(' using cache for ', path);
+        newGroupRoleActions[path as string] = groupRoleActions[path as string];
+        return
+      }
     });
+  });
 
-    groupRoleActions = newGroupRoleActions;
+  groupRoleActions = newGroupRoleActions;
 
-    console.log(groupRoleActions);
 }
 
 try {
   // API Client admin keycloak login
-  await reauth();
+  await keycloak.auth(credentials);
+  await regroup();
 
   // Refresh api credentials/groups every 58 seconds
-  setInterval(async () => await reauth(), 58 * 1000); // 58 seconds
-  
+  setInterval(async () => {
+    await keycloak.auth(credentials);
+    await regroup();
+  }, 58 * 1000); // 58 seconds
+
   // Get a reference to the realm we're connected to
   const realmRequest = (await keycloak.realms.find()).find(r => r.realm === process.env.KC_REALM);
 
@@ -100,12 +103,12 @@ try {
 
     if (appClientRequest) {
       appClient = appClientRequest;
-
       // Get the client roles, which are application universal roles, not specific to any group
-      const appClientRolesRequest = await keycloak.clients.listRoles({ id : appClient.id! });
-
+      const appClientRolesRequest = await keycloak.clients.listRoles({ id: appClient.id! });
+      
       if (appClientRolesRequest.length) {
         appRoles = appClientRolesRequest;
+        roleCall = appRoles.filter(r => r.name === SiteRoles.APP_ROLE_CALL).map(({ id, name }) => ({ id, name })) as RoleMappingPayload[]
       }
     }
   }
@@ -150,11 +153,13 @@ const strategyResponder: StrategyVerifyCallbackUserInfo<StrategyUser> = (tokenSe
 
 const keycloakStrategy = new Strategy<StrategyUser>({ client: keycloakClient }, strategyResponder);
 
-export { 
+export {
   keycloak,
   keycloakStrategy,
   realm,
   appClient,
   appRoles,
-  groupRoleActions
+  roleCall,
+  groupRoleActions,
+  regroup
 }

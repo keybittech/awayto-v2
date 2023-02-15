@@ -3,11 +3,11 @@ import { useRedux } from './useRedux';
 import { SiteRoles, hasRole } from 'awayto';
 
 export function useSecure(): (targetRoles: SiteRoles[]) => boolean {
-  const { groupRoles } = useRedux(state => state.profile);
+  const { availableUserGroupRoles } = useRedux(state => state.profile);
 
   const hasRoleCb = useCallback((targetRoles: SiteRoles[]) => {
-    return hasRole(groupRoles, targetRoles);
-  }, [groupRoles]);
+    return hasRole(availableUserGroupRoles, targetRoles);
+  }, [availableUserGroupRoles]);
 
   return hasRoleCb;
 }

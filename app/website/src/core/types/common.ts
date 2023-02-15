@@ -38,6 +38,7 @@ export type IUtil = {
   isLoading: boolean;
   loadingMessage: string;
   error: Error | string;
+  canSubmitAssignments: boolean;
   message: string;
   snackType: 'success' | 'info' | 'warning' | 'error';
   snackOn: string;
@@ -68,7 +69,8 @@ export enum IUtilActionTypes {
   SET_SNACK = "util/SET_SNACK",
   TEST_API = "util/TEST_API",
   API_ERROR = "util/API_ERROR",
-  API_SUCCESS = "util/API_SUCCESS"
+  API_SUCCESS = "util/API_SUCCESS",
+  SET_UPDATE_ASSIGNMENTS = "util/SET_UPDATE_ASSIGNMENTS",
 }
 
 
@@ -140,6 +142,11 @@ export type IApiSuccessAction = PayloadAction<IUtilActionTypes.API_SUCCESS, void
 /**
  * @category Util
  */
+export type ISetUpdateAssignmentsAction = PayloadAction<IUtilActionTypes.SET_UPDATE_ASSIGNMENTS, { canSubmitAssignments: boolean }>;
+
+/**
+ * @category Util
+ */
 export type IUtilActions = IClearReduxAction
   | IOpenConfirmAction
   | ICloseConfirmAction
@@ -148,7 +155,8 @@ export type IUtilActions = IClearReduxAction
   | ISetThemeAction
   | ISetSnackAction
   | ITestApiAction
-  | IApiErrorAction;
+  | IApiErrorAction
+  | ISetUpdateAssignmentsAction;
 
 
 /**
