@@ -9,54 +9,36 @@ const schedules: ApiModule = [
     cmnd: async (props) => {
       try {
 
-        const { name, brackets, scheduleContextId, duration } = props.event.body as ISchedule;
+        const schedule = props.event.body as ISchedule;
+        const { name, brackets, scheduleContextId, duration } = schedule;
 
-        const schedule = (await props.client.query<ISchedule>(`
+        const { id } = (await props.client.query<ISchedule>(`
           INSERT INTO schedules (name, schedule_context_id, duration)
           VALUES ($1, $2, $3)
-          RETURNING id, name, schedule_context_id as "scheduleContextId", duration
+          RETURNING id
         `, [name, scheduleContextId, duration])).rows[0];
 
-        const { name: scheduleContextName } = (await props.client.query<IScheduleContext>(`
-          SELECT name FROM schedule_contexts
-          WHERE id = $1
-        `, [scheduleContextId])).rows[0];
-
-        schedule.scheduleContextName = scheduleContextName;
-
-        const scheduleBrackets = [] as IScheduleBracket[];
+        schedule.id = id;
 
         await asyncForEach(brackets, async b => {
-          const scheduleBracket = (await props.client.query<IScheduleBracket>(`
-            INSERT INTO schedule_brackets (schedule_id, schedule_context_id, bracket_duration, multiplier, automatic)
-            VALUES ($1, $2, $3, $4, $5)
-            RETURNING id, schedule_id as "scheduleId", schedule_context_id as "scheduleContextId", "bracketDuration", multiplier, automatic
-          `, [schedule.id, b.scheduleContextId, b.bracketDuration, b.multiplier, b.automatic])).rows[0];
+          const { id: bracketId } = (await props.client.query<IScheduleBracket>(`
+            INSERT INTO schedule_brackets (schedule_id, schedule_context_id, bracket_duration, slot_schedule_context_id, slot_duration, multiplier, automatic, start_time)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            RETURNING id
+          `, [schedule.id, b.scheduleContextId, b.bracketDuration, b.slotScheduleContextId, b.slotDuration, b.multiplier, b.automatic, b.startTime || new Date()])).rows[0];
 
+          b.id = bracketId;
 
           await asyncForEach(b.services, async s => {
             await props.client.query(`
               INSERT INTO schedule_bracket_services (schedule_bracket_id, service_id)
               VALUES ($1, $2)
               ON CONFLICT (schedule_bracket_id, service_id) DO NOTHING
-            `, [scheduleBracket.id, s.id])
-          })
-
-          const { name: scheduleContextName } = (await props.client.query<IScheduleContext>(`
-            SELECT name FROM schedule_contexts
-            WHERE id = $1
-          `, [b.scheduleContextId])).rows[0];
-
-          scheduleBracket.scheduleContextName = scheduleContextName;
-
-          scheduleBrackets.push(scheduleBracket);
+            `, [bracketId, s.id])
+          });
         });
 
-        schedule.brackets = scheduleBrackets;
-
-
         return [schedule];
-
       } catch (error) {
         throw error;
       }

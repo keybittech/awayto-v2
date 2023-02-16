@@ -21,6 +21,7 @@ declare global {
     helperText?: string;
     lookupChange?(value: string | string[]): void;
     lookupValue?: string | string[];
+    defaultValue?: string | string[];
     createAction?: IActionTypes;
     deleteAction?: IActionTypes;
     refetchAction?: IActionTypes;
@@ -37,7 +38,7 @@ function isStringArray(str?: string | string[]): str is string[] {
   return (str as string[]).forEach !== undefined;
 }
 
-export function SelectLookup({ lookupChange, attachAction, attachName, refetchAction, parentUuidName, parentUuid, lookups, lookupName, helperText, lookupValue, multiple = false, noEmptyValue = false, createAction, deleteAction }: IProps): JSX.Element {
+export function SelectLookup({ lookupChange, defaultValue, attachAction, attachName, refetchAction, parentUuidName, parentUuid, lookups, lookupName, helperText, lookupValue, multiple = false, noEmptyValue = false, createAction, deleteAction }: IProps): JSX.Element {
   const api = useApi();
   const act = useAct();
   const [addingNew, setAddingNew] = useState<boolean | undefined>();
@@ -87,7 +88,13 @@ export function SelectLookup({ lookupChange, attachAction, attachName, refetchAc
       const firstLookup = lookups.at(0) as Required<ILookup>;
       lookupChange(isStringArray(lookupValue) ? [firstLookup.id] : firstLookup.id);
     }
-  }, [lookups, lookupValue, noEmptyValue])
+  }, [lookups, lookupValue, noEmptyValue]);
+
+  useEffect(() => {
+    if (defaultValue) {
+      lookupChange(defaultValue);
+    }
+  }, [defaultValue]);
 
   return (addingNew ?
     <TextField

@@ -1,4 +1,5 @@
 import { IService } from 'awayto';
+import { ITimeUnit, TimeUnit } from '../util';
 import { PayloadAction } from '.';
 
 declare global {
@@ -28,6 +29,15 @@ export enum BookingModes {
   FIRST_COME = "First Come First Serve",
   DISTRIBUTED = "Distributed"
 }
+
+export const scheduleContextOrder = [
+  TimeUnit.MINUTE,
+  TimeUnit.HOUR,
+  TimeUnit.DAY,
+  TimeUnit.WEEK,
+  TimeUnit.MONTH,
+  TimeUnit.YEAR
+] as ITimeUnit[];
 
 /**
  * @category ScheduleContext
@@ -108,8 +118,12 @@ export type IScheduleContextActions = IPostScheduleContextAction
   automatic: boolean;
   scheduleId?: string;
   scheduleContextId?: string;
-  scheduleContextName: string;
-  bracketDuration: number | null;
+  scheduleContextName?: ITimeUnit;
+  bracketDuration: number;
+  slotScheduleContextId?: string;
+  slotScheduleContextName?: ITimeUnit;
+  slotDuration: number;
+  startTime: string;
   multiplier: string;
   services: IService[];
 };
@@ -122,7 +136,7 @@ export type ISchedule = {
   id?: string;
   name: string;
   scheduleContextId?: string;
-  scheduleContextName: string;
+  scheduleContextName?: ITimeUnit;
   duration: number | null;
   brackets: IScheduleBracket[];
 };

@@ -58,19 +58,19 @@ export function BookingHome(props: IProps): JSX.Element {
   }, []);
 
   useEffect(() => {
-    const [id] = Object.keys(schedules);
-    if (id && !schedules[id].services) {
-      const [abort, res] = api<ISchedule, ISchedule[]>(GET_SCHEDULE_BY_ID, true, { id })
-      res?.then(data => {
-        if (data) {
-          const [sched] = data;
-          setSchedule(sched);
-          setService(sched.services?.at(0));
-          setTier(sched.services?.at(0)?.tiers?.at(0))
-        }
-      });
-      return () => abort();
-    }
+    // const [id] = Object.keys(schedules);
+    // if (id && !schedules[id].services) {
+    //   const [abort, res] = api<ISchedule, ISchedule[]>(GET_SCHEDULE_BY_ID, true, { id })
+    //   res?.then(data => {
+    //     if (data) {
+    //       const [sched] = data;
+    //       setSchedule(sched);
+    //       setService(sched.services?.at(0));
+    //       setTier(sched.services?.at(0)?.tiers?.at(0))
+    //     }
+    //   });
+    //   return () => abort();
+    // }
   }, [schedules]);
 
   useEffect(() => {
@@ -158,9 +158,9 @@ export function BookingHome(props: IProps): JSX.Element {
                           //   }
                           // });
                         }}>
-                          {schedule.services.map((service, i) => {
+                          {/* {schedule.services.map((service, i) => {
                             return <MenuItem key={i} value={service.id}>{service.name}</MenuItem>
-                          })}
+                          })} */}
                         </TextField>
                       </Grid>
                       <Grid item xs={4}>
