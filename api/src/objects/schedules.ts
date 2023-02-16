@@ -1,4 +1,4 @@
-import { ISchedule, IScheduleBracket, IScheduleContext, IScheduleTerm } from 'awayto';
+import { ISchedule, IScheduleBracket, IScheduleContext } from 'awayto';
 import { ApiModule, buildUpdate, asyncForEach } from '../util/db';
 
 const schedules: ApiModule = [
@@ -9,59 +9,51 @@ const schedules: ApiModule = [
     cmnd: async (props) => {
       try {
 
-        const { name, overbook, term, brackets, services } = props.event.body as ISchedule;
+        const { name, brackets, scheduleContextId, duration } = props.event.body as ISchedule;
 
         const schedule = (await props.client.query<ISchedule>(`
-          INSERT INTO schedules (name, overbook)
-          VALUES ($1, $2)
-          RETURNING id, name, overbook
-        `, [name, overbook])).rows[0];
-
-        const dbTerm = (await props.client.query<IScheduleTerm>(`
-          INSERT INTO schedule_terms (schedule_id, schedule_context_id, duration)
+          INSERT INTO schedules (name, schedule_context_id, duration)
           VALUES ($1, $2, $3)
-          RETURNING id, schedule_id as "scheduleId", schedule_context_id as "scheduleContextId", duration
-        `, [schedule.id, term.scheduleContextId, term.duration])).rows[0];
+          RETURNING id, name, schedule_context_id as "scheduleContextId", duration
+        `, [name, scheduleContextId, duration])).rows[0];
 
-        const { name: termContextName } = (await props.client.query<IScheduleContext>(`
+        const { name: scheduleContextName } = (await props.client.query<IScheduleContext>(`
           SELECT name FROM schedule_contexts
           WHERE id = $1
-        `, [term.scheduleContextId])).rows[0];
+        `, [scheduleContextId])).rows[0];
 
-        dbTerm.scheduleContextName = termContextName;
+        schedule.scheduleContextName = scheduleContextName;
 
-        schedule.term = dbTerm;
-
-        const dbBrackets = [] as IScheduleBracket[];
+        const scheduleBrackets = [] as IScheduleBracket[];
 
         await asyncForEach(brackets, async b => {
-          const dbBracket = (await props.client.query<IScheduleBracket>(`
-            INSERT INTO schedule_brackets (schedule_id, schedule_context_id, bracket, multiplier)
-            VALUES ($1, $2, $3, $4)
-            RETURNING id, schedule_id as "scheduleId", schedule_context_id as "scheduleContextId", bracket, multiplier
-          `, [schedule.id, b.scheduleContextId, b.bracket, b.multiplier])).rows[0];
+          const scheduleBracket = (await props.client.query<IScheduleBracket>(`
+            INSERT INTO schedule_brackets (schedule_id, schedule_context_id, bracket_duration, multiplier, automatic)
+            VALUES ($1, $2, $3, $4, $5)
+            RETURNING id, schedule_id as "scheduleId", schedule_context_id as "scheduleContextId", "bracketDuration", multiplier, automatic
+          `, [schedule.id, b.scheduleContextId, b.bracketDuration, b.multiplier, b.automatic])).rows[0];
+
+
+          await asyncForEach(b.services, async s => {
+            await props.client.query(`
+              INSERT INTO schedule_bracket_services (schedule_bracket_id, service_id)
+              VALUES ($1, $2)
+              ON CONFLICT (schedule_bracket_id, service_id) DO NOTHING
+            `, [scheduleBracket.id, s.id])
+          })
 
           const { name: scheduleContextName } = (await props.client.query<IScheduleContext>(`
             SELECT name FROM schedule_contexts
             WHERE id = $1
           `, [b.scheduleContextId])).rows[0];
 
-          dbBracket.scheduleContextName = scheduleContextName;
+          scheduleBracket.scheduleContextName = scheduleContextName;
 
-          dbBrackets.push(dbBracket);
+          scheduleBrackets.push(scheduleBracket);
         });
 
-        schedule.brackets = dbBrackets;
+        schedule.brackets = scheduleBrackets;
 
-        await asyncForEach(services, async s => {
-          await props.client.query(`
-            INSERT INTO schedule_services (schedule_id, service_id)
-            VALUES ($1, $2)
-            ON CONFLICT (schedule_id, service_id) DO NOTHING
-          `, [schedule.id, s.id])
-        })
-
-        schedule.services = services;
 
         return [schedule];
 

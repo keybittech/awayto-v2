@@ -126,10 +126,31 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     enabled BOOLEAN NOT NULL DEFAULT true
   );
 
+  CREATE TABLE schedule_contexts (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR (50) NOT NULL UNIQUE,
+    created_on TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_sub VARCHAR (50),
+    updated_on TIMESTAMP,
+    updated_sub VARCHAR (50),
+    enabled BOOLEAN NOT NULL DEFAULT true
+  );
+
+  INSERT INTO
+    schedule_contexts (name)
+  VALUES
+    ('minute'),
+    ('hour'),
+    ('day'),
+    ('week'),
+    ('month'),
+    ('year');
+
   CREATE TABLE schedules (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR (50),
-    overbook BOOLEAN NOT NULL DEFAULT false,
+    schedule_context_id uuid NOT NULL REFERENCES schedule_contexts (id) ON DELETE CASCADE,
+    duration INTEGER NOT NULL,
     created_on TIMESTAMP NOT NULL DEFAULT NOW(),
     created_sub VARCHAR (50),
     updated_on TIMESTAMP,
@@ -149,45 +170,16 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     UNIQUE (parent_uuid, schedule_id)
   );
 
-  CREATE TABLE schedule_contexts (
-    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name VARCHAR (50) NOT NULL UNIQUE,
-    created_on TIMESTAMP NOT NULL DEFAULT NOW(),
-    created_sub VARCHAR (50),
-    updated_on TIMESTAMP,
-    updated_sub VARCHAR (50),
-    enabled BOOLEAN NOT NULL DEFAULT true
-  );
-
-  INSERT INTO
-    schedule_contexts (name)
-  VALUES
-    ('seconds'),
-    ('minutes'),
-    ('hours'),
-    ('days'),
-    ('weeks'),
-    ('months'),
-    ('years');
-
-  CREATE TABLE schedule_terms (
-    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    schedule_id uuid NOT NULL REFERENCES schedules (id) ON DELETE CASCADE,
-    schedule_context_id uuid NOT NULL REFERENCES schedule_contexts (id) ON DELETE CASCADE,
-    duration INTEGER NOT NULL,
-    created_on TIMESTAMP NOT NULL DEFAULT NOW(),
-    created_sub VARCHAR (50),
-    updated_on TIMESTAMP,
-    updated_sub VARCHAR (50),
-    enabled BOOLEAN NOT NULL DEFAULT true
-  );
-
   CREATE TABLE schedule_brackets (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     schedule_id uuid NOT NULL REFERENCES schedules (id) ON DELETE CASCADE,
     schedule_context_id uuid NOT NULL REFERENCES schedule_contexts (id) ON DELETE CASCADE,
-    bracket INTEGER NOT NULL,
+    bracket_duration INTEGER NOT NULL,
+    slot_schedule_context_id uuid NOT NULL REFERENCES schedule_contexts (id) ON DELETE CASCADE,
+    slot_duration INTEGER NOT NULL,
     multiplier DECIMAL NOT NULL,
+    automatic BOOLEAN NOT NULL DEFAULT false,
+    start_time TIMESTAMP NOT NULL,
     created_on TIMESTAMP NOT NULL DEFAULT NOW(),
     created_sub VARCHAR (50),
     updated_on TIMESTAMP,
@@ -195,15 +187,26 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     enabled BOOLEAN NOT NULL DEFAULT true
   );
 
-  CREATE TABLE schedule_services (
-    schedule_id uuid NOT NULL REFERENCES schedules (id) ON DELETE CASCADE,
+  CREATE TABLE schedule_bracket_slots (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    schedule_bracket_id uuid NOT NULL REFERENCES schedule_brackets (id) ON DELETE CASCADE,
+    start_time TIMESTAMP NOT NULL,
+    created_on TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_sub VARCHAR (50),
+    updated_on TIMESTAMP,
+    updated_sub VARCHAR (50),
+    enabled BOOLEAN NOT NULL DEFAULT true
+  );
+
+  CREATE TABLE schedule_bracket_services (
+    schedule_bracket_id uuid NOT NULL REFERENCES schedule_brackets (id) ON DELETE CASCADE,
     service_id uuid NOT NULL REFERENCES services (id) ON DELETE CASCADE,
     created_on TIMESTAMP NOT NULL DEFAULT NOW(),
     created_sub VARCHAR (50),
     updated_on TIMESTAMP,
     updated_sub VARCHAR (50),
     enabled BOOLEAN NOT NULL DEFAULT true,
-    UNIQUE (schedule_id, service_id)
+    UNIQUE (schedule_bracket_id, service_id)
   );
 
   CREATE TABLE quotes (

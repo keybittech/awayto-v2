@@ -112,7 +112,8 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
   SELECT
     id,
     name,
-    overbook,
+    schedule_context_id as "scheduleContextId",
+    duration,
     created_on as "createdOn",
     row_number() OVER () as row
   FROM
@@ -134,29 +135,14 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     enabled = true;
 
   CREATE
-  OR REPLACE VIEW dbview_schema.enabled_schedule_terms AS
-  SELECT
-    st.id,
-    st.schedule_id as "scheduleId",
-    st.schedule_context_id as "scheduleContextId",
-    sc.name as "scheduleContextName",
-    st.duration,
-    st.created_on as "createdOn",
-    row_number() OVER () as row
-  FROM
-    schedule_terms st
-    LEFT JOIN schedule_contexts sc ON st.schedule_context_id = sc.id
-  WHERE
-    st.enabled = true;
-
-  CREATE
   OR REPLACE VIEW dbview_schema.enabled_schedule_brackets AS
   SELECT
     sb.id,
     sb.schedule_id as "scheduleId",
     sb.schedule_context_id as "scheduleContextId",
     sc.name as "scheduleContextName",
-    sb.bracket,
+    sb.bracket_duration as "bracketDuration",
+    sb.automatic,
     sb.multiplier,
     sb.created_on as "createdOn",
     row_number() OVER () as row
@@ -315,39 +301,37 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
   OR REPLACE VIEW dbview_schema.enabled_schedules_ext AS
   SELECT
     es.*,
-    row_to_json(est.*) term,
-    eesb.*,
-    eess.*
+    eesb.*
   FROM
     dbview_schema.enabled_schedules es
-    LEFT JOIN dbview_schema.enabled_schedule_terms est ON est."scheduleId" = es.id
     LEFT JOIN LATERAL (
       SELECT
         JSON_AGG(s2.*) as brackets
       FROM
         (
           SELECT
-            esb.*
+            esb.*,
+            eess.*
           FROM
             dbview_schema.enabled_schedule_brackets esb
+            LEFT JOIN LATERAL (
+              SELECT
+                JSON_AGG(s3.*) as services
+              FROM
+                (
+                  SELECT
+                    ese.*
+                  FROM
+                    schedule_bracket_services sbs
+                    LEFT JOIN dbview_schema.enabled_services_ext ese ON ese.id = sbs.service_id
+                  WHERE
+                    sbs.schedule_bracket_id = esb.id
+                ) s3
+            ) as eess ON true
           WHERE
             esb."scheduleId" = es.id
         ) s2
-    ) as eesb ON true
-    LEFT JOIN LATERAL (
-      SELECT
-        JSON_AGG(s3.*) as services
-      FROM
-        (
-          SELECT
-            ess.*
-          FROM
-            schedule_services ss
-            LEFT JOIN dbview_schema.enabled_services_ext ess ON ess.id = ss.service_id
-          WHERE
-            ss.schedule_id = es.id
-        ) s3
-    ) as eess ON true;
+    ) as eesb ON true;
 
   CREATE
   OR REPLACE VIEW dbview_schema.enabled_quotes_ext AS

@@ -24,6 +24,11 @@ declare global {
   }
 }
 
+export enum BookingModes {
+  FIRST_COME = "First Come First Serve",
+  DISTRIBUTED = "Distributed"
+}
+
 /**
  * @category ScheduleContext
  */
@@ -95,28 +100,18 @@ export type IScheduleContextActions = IPostScheduleContextAction
 
 
 
-
-/**
- * @category Schedule
- */
- export type IScheduleTerm = {
-  id?: string;
-  scheduleId?: string;
-  scheduleContextId?: string;
-  scheduleContextName: string;
-  duration: number | null;
-};
-
 /**
  * @category Schedule
  */
  export type IScheduleBracket = {
   id?: string;
+  automatic: boolean;
   scheduleId?: string;
   scheduleContextId?: string;
   scheduleContextName: string;
-  bracket: number | null;
+  bracketDuration: number | null;
   multiplier: string;
+  services: IService[];
 };
 
 
@@ -126,9 +121,9 @@ export type IScheduleContextActions = IPostScheduleContextAction
 export type ISchedule = {
   id?: string;
   name: string;
-  overbook: boolean;
-  services: IService[];
-  term: IScheduleTerm;
+  scheduleContextId?: string;
+  scheduleContextName: string;
+  duration: number | null;
   brackets: IScheduleBracket[];
 };
 
