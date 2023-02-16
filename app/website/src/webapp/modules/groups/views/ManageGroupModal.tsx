@@ -20,6 +20,7 @@ import NotInterestedIcon from '@mui/icons-material/NotInterested';
 import { IGroup, IUtilActionTypes, IGroupActionTypes } from 'awayto';
 import { useAct, useApi, useRedux, useComponents } from 'awayto-hooks';
 import { ManageGroupsActions } from './ManageGroups';
+import keycloak from '../../../keycloak';
 
 const { SET_SNACK, SET_LOADING } = IUtilActionTypes;
 const { CHECK_GROUPS_NAME } = IGroupActionTypes;
@@ -61,10 +62,9 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
     group.roleId = primaryRole;
     const [, res] = api(id ? putGroupsAction : postGroupsAction, false, group);
     res?.then(() => {
-      !id && act(SET_LOADING, { isLoading: true, loadingMessage: 'Please allow a moment for your group to be configured.' })
+      // !id && act(SET_LOADING, { isLoading: true, loadingMessage: 'Please allow a moment for your group to be configured.' })
       id && act(SET_SNACK, { snackType: 'success', snackOn: 'Group updated! Please allow up to a minute for any related permissions changes to persist.' } )
-      if (closeModal)
-        closeModal(); 
+      !id && keycloak.clearToken();
     });
   }, [group, roles, roleIds, primaryRole]);
 

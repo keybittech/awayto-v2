@@ -17,6 +17,8 @@ import ManageGroupModal from './ManageGroupModal';
 import JoinGroupModal from './JoinGroupModal';
 import { useNavigate } from 'react-router';
 
+import keycloak from '../../../keycloak';
+
 const { OPEN_CONFIRM, SET_LOADING } = IUtilActionTypes;
 const { GROUPS_LEAVE } = IGroupActionTypes;
 
@@ -99,10 +101,9 @@ export function ManageGroups(props: IProps): JSX.Element {
     return [
       ...acts,
       isOwner && <Tooltip key={'delete_group'} title="Delete"><IconButton onClick={async () => {
-        const [, res] = api(deleteGroupsAction, true, { ids: selected.map(s => s.id).join(',') })
+        const [, res] = api(deleteGroupsAction, true, { ids: selected.map(s => s.id).join(',') });
         await res;
-        setToggle(!toggle);
-        api(getGroupsAction, true);
+        keycloak.clearToken();
       }}><DeleteIcon /></IconButton></Tooltip>
     ];
   }, [selected]);
