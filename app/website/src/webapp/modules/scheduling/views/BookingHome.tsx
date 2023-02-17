@@ -39,7 +39,7 @@ export function BookingHome(props: IProps): JSX.Element {
   const api = useApi();
   const { FileManager } = useComponents();
   const { schedules } = useRedux(state => state.schedule);
-  const { budgets, timelines, scheduleContexts } = useRedux(state => state.forms);
+  const { budgets, timelines, timeUnits } = useRedux(state => state.forms);
 
   const [schedule, setSchedule] = useState<ISchedule>();
   const [service, setService] = useState<IService>();
@@ -105,7 +105,7 @@ export function BookingHome(props: IProps): JSX.Element {
     ]
   }, [serviceTierAddons]);
 
-  if (!schedule || !service || !tier || !scheduleContexts || !quote) return <>Check here after making a schedule...</>;
+  if (!schedule || !service || !tier || !timeUnits || !quote) return <>Check here after making a schedule...</>;
 
   return <Grid container spacing={2}>
     <Grid item xs={12}>
@@ -221,7 +221,7 @@ export function BookingHome(props: IProps): JSX.Element {
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Box sx={{ display: 'flex' }}>
                         <TextField label="Desired Duration" value={quote.desiredDuration} onChange={e => setQuote({ ...quote, desiredDuration: parseInt(e.target.value) })} type="number" />
-                        <Typography>{schedule.brackets[0].scheduleContextName}</Typography>
+                        <Typography>{schedule.bracketTimeUnitName}</Typography>
                       </Box>
                       <Box>
                         Estimated Cost:

@@ -71,7 +71,7 @@ export function SelectLookup({ lookupChange, defaultValue, attachAction, attachN
         }
       })
     }
-  }, [newLookup, createAction, attachAction, attachName, parentUuid, parentUuidName])
+  }, [newLookup, createAction, attachAction, attachName, parentUuid, parentUuidName]);
 
   useEffect(() => {
     if (lookups?.length && isStringArray(lookupValue) && lookupUpdater) {
@@ -90,11 +90,11 @@ export function SelectLookup({ lookupChange, defaultValue, attachAction, attachN
     }
   }, [lookups, lookupValue, noEmptyValue]);
 
-  useEffect(() => {
-    if (defaultValue) {
-      lookupChange(defaultValue);
-    }
-  }, [defaultValue]);
+  // useEffect(() => {
+  //   if (defaultValue && !lookupValue) {
+  //     lookupChange(defaultValue);
+  //   }
+  // }, [defaultValue, lookupValue]);
 
   return (addingNew ?
     <TextField

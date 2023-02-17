@@ -1,4 +1,4 @@
-import { ISchedule, IScheduleBracket, IScheduleContext } from 'awayto';
+import { ISchedule, IScheduleBracket } from 'awayto';
 import { ApiModule, buildUpdate, asyncForEach } from '../util/db';
 
 const schedules: ApiModule = [
@@ -10,22 +10,22 @@ const schedules: ApiModule = [
       try {
 
         const schedule = props.event.body as ISchedule;
-        const { name, brackets, scheduleContextId, duration } = schedule;
+        const { name, brackets, duration, scheduleTimeUnitId, bracketTimeUnitId, slotTimeUnitId, slotDuration } = schedule;
 
         const { id } = (await props.client.query<ISchedule>(`
-          INSERT INTO schedules (name, schedule_context_id, duration)
-          VALUES ($1, $2, $3)
+          INSERT INTO schedules (name, duration, schedule_time_unit_id, bracket_time_unit_id, slot_time_unit_id, slot_duration)
+          VALUES ($1, $2, $3, $4, $5, $6)
           RETURNING id
-        `, [name, scheduleContextId, duration])).rows[0];
+        `, [name, duration, scheduleTimeUnitId, bracketTimeUnitId, slotTimeUnitId, slotDuration])).rows[0];
 
         schedule.id = id;
 
         await asyncForEach(brackets, async b => {
           const { id: bracketId } = (await props.client.query<IScheduleBracket>(`
-            INSERT INTO schedule_brackets (schedule_id, schedule_context_id, bracket_duration, slot_schedule_context_id, slot_duration, multiplier, automatic, start_time)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            INSERT INTO schedule_brackets (schedule_id, start_time, duration, multiplier, automatic)
+            VALUES ($1, $2, $3)
             RETURNING id
-          `, [schedule.id, b.scheduleContextId, b.bracketDuration, b.slotScheduleContextId, b.slotDuration, b.multiplier, b.automatic, b.startTime || new Date()])).rows[0];
+          `, [schedule.id, b.startTime || new Date(), b.duration, b.multiplier, b.automatic])).rows[0];
 
           b.id = bracketId;
 

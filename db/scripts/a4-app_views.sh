@@ -112,8 +112,11 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
   SELECT
     id,
     name,
-    schedule_context_id as "scheduleContextId",
     duration,
+    schedule_time_unit_id as "scheduleTimeUnitId",
+    bracket_time_unit_id as "bracketTimeUnitId",
+    slot_time_unit_id as "slotTimeUnitId",
+    slot_duration as "slotDuration",
     created_on as "createdOn",
     row_number() OVER () as row
   FROM
@@ -139,16 +142,14 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
   SELECT
     sb.id,
     sb.schedule_id as "scheduleId",
-    sb.schedule_context_id as "scheduleContextId",
-    sc.name as "scheduleContextName",
-    sb.bracket_duration as "bracketDuration",
-    sb.automatic,
+    sb.start_time as "startTime",
+    sb.duration,
     sb.multiplier,
+    sb.automatic,
     sb.created_on as "createdOn",
     row_number() OVER () as row
   FROM
     schedule_brackets sb
-    LEFT JOIN schedule_contexts sc ON sb.schedule_context_id = sc.id
   WHERE
     sb.enabled = true;
 

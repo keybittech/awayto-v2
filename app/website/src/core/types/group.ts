@@ -221,7 +221,7 @@ export type IGroupServices = Record<string, IGroupService>;
  * @category Group
  */
 export type IGroupServiceState = {
-  groupServices: IGroupServices | IGroupService[];
+  groupServices: IGroupServices;
 };
 
 /**

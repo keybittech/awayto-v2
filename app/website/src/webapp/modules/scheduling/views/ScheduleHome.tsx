@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
@@ -9,10 +9,11 @@ import CardHeader from '@mui/material/CardHeader';
 import TextField from '@mui/material/TextField';
 import Switch from '@mui/material/Switch';
 import Chip from '@mui/material/Chip';
+import Button from '@mui/material/Button';
 import Slider from '@mui/material/Slider';
 import MenuItem from '@mui/material/MenuItem';
 
-import { IScheduleActionTypes, IUtilActionTypes, ISchedule, IScheduleBracket, IGroupServiceActionTypes, IGroupScheduleActionTypes, IGroup, BookingModes, scheduleContextOrder, TimeUnit, ITimeUnit } from 'awayto';
+import { IScheduleActionTypes, IUtilActionTypes, ISchedule, IScheduleBracket, IGroupServiceActionTypes, IGroupScheduleActionTypes, IGroup, BookingModes, timeUnitOrder, TimeUnit, ITimeUnitNames, IService } from 'awayto';
 import { useApi, useRedux, useComponents, useAct } from 'awayto-hooks';
 import { Mark } from '@mui/base';
 import moment from 'moment';
@@ -25,13 +26,13 @@ const { SET_SNACK } = IUtilActionTypes;
 
 const scheduleSchema = {
   name: '',
-  duration: 0
+  duration: 1,
+  slotDuration: 1
 };
 
 const bracketSchema = {
-  bracketDuration: 0,
+  duration: 1,
   startTime: '',
-  slotDuration: 1,
   automatic: false,
   multiplier: '1.00'
 };
@@ -47,7 +48,7 @@ export function ScheduleHome(props: IProps): JSX.Element {
   const { groups } = useRedux(state => state.profile);
   const { groupServices } = useRedux(state => state.groupService);
   const { groupSchedules } = useRedux(state => state.groupSchedule);
-  const { scheduleContexts } = useRedux(state => state.forms);
+  const { timeUnits } = useRedux(state => state.forms);
   const [group, setGroup] = useState(groups.at(0) as unknown as IGroup);
   const [bookingMode, setBookingMode] = useState(BookingModes.FIRST_COME);
   const [needsSlots, setNeedsSlots] = useState(true);
@@ -63,19 +64,41 @@ export function ScheduleHome(props: IProps): JSX.Element {
     }
   }, [group]);
 
+  const setDefault = useCallback((type: string) => {
+    if ('40hourweek' === type) {
+      const weekId = timeUnits.find(s => s.name === TimeUnit.WEEK)?.id;
+      const hourId = timeUnits.find(s => s.name === TimeUnit.HOUR)?.id;
+      const minuteId = timeUnits.find(s => s.name === TimeUnit.MINUTE)?.id;
+      setNewSchedule({
+        ...newSchedule,
+        duration: 1,
+        scheduleTimeUnitId: weekId,
+        scheduleTimeUnitName: TimeUnit.WEEK,
+        bracketTimeUnitId: hourId,
+        bracketTimeUnitName: TimeUnit.HOUR,
+        slotTimeUnitId: minuteId,
+        slotTimeUnitName: TimeUnit.MINUTE,
+        slotDuration: 30      
+      });
+      setNewBracket({ ...newBracket, services: Object.values(groupServices), duration: 1, automatic: true });
+    }
+  }, [timeUnits, groupServices]);
+
   const slotDurationMarks = useMemo(() => {
-    const { bracketDuration, scheduleContextName, slotScheduleContextName } = newBracket;
+    const { duration, scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName } = newSchedule;
     const factors = [] as Mark[];
-    if (!scheduleContextName || !slotScheduleContextName) return factors;
-    const subdivided = scheduleContextName !== slotScheduleContextName;
-    const duration = !subdivided ? bracketDuration : Math.round(moment.duration({ [scheduleContextName]: 1 }).as(slotScheduleContextName as moment.unitOfTime.Base));
-    for (let value = 1; value <= duration; value++) {
-      if (duration % value === 0) {
+    if (!bracketTimeUnitName || !slotTimeUnitName || !scheduleTimeUnitName || !duration) return factors;
+    const subdivided = bracketTimeUnitName !== slotTimeUnitName;
+    const finalDuration = !subdivided ? 
+      Math.round(moment.duration({ [scheduleTimeUnitName]: duration }).as(bracketTimeUnitName)) : 
+      Math.round(moment.duration({ [bracketTimeUnitName]: 1 }).as(slotTimeUnitName as moment.unitOfTime.Base));
+    for (let value = 1; value <= finalDuration; value++) {
+      if (finalDuration % value === 0) {
         factors.push({ value, label: value });
       }
     }
     return factors;
-  }, [newBracket]);
+  }, [newSchedule]);
 
   return <Grid container spacing={2}>
 
@@ -125,17 +148,51 @@ export function ScheduleHome(props: IProps): JSX.Element {
               </Box>
 
               <Box mb={4}>
-                <Typography variant="h6">Schedule Duration</Typography>
-                <Typography variant="body2">The length of time the schedule will run over. This determines the overall context of your schedule and how time will be divided and managed within. For example, a 40 hour per week schedule would require configuring a <strong>1 week Schedule Duration</strong>.</Typography>
-                <SelectLookup lookupName="Schedule Duration" lookups={scheduleContexts.filter(sc => sc.name !== TimeUnit.MINUTE)} lookupChange={(val: string) => {
-                  const context = scheduleContexts?.find(c => c.id === val);
-                  if (!context) return;
-                  setNewSchedule({ ...newSchedule, scheduleContextName: context.name as ITimeUnit, scheduleContextId: context ? context.id : '' })
-                }} lookupValue={newSchedule.scheduleContextId || ''} {...props} />
+                <Typography variant="h6">Defaults</Typography>
+                <Typography variant="body2">Use sensible defaults for the Schedule and first Bracket configuration.</Typography>
+                <Button color="secondary" onClick={() => setDefault('40hourweek')}>40 hour week</Button>
               </Box>
 
-              {newSchedule.scheduleContextName && <Box mb={4}>
-                <TextField fullWidth label={`# of ${newSchedule.scheduleContextName}s`} value={newSchedule.duration || ''} onChange={e => setNewSchedule({ ...newSchedule, duration: Math.min(Math.max(0, parseInt(e.target.value || '', 10)), 999) })} type="number" />
+              <Box mb={4}>
+                <Typography variant="h6">Schedule Duration</Typography>
+                <Typography variant="body2">The length of time the schedule will run over. This determines the overall context of your schedule and how time will be divided and managed within. For example, a 40 hour per week schedule would require configuring a <strong>1 week Schedule Duration</strong>.</Typography>
+                <SelectLookup lookupName="Schedule Duration" lookups={timeUnits.filter(sc => sc.name !== TimeUnit.MINUTE)} lookupChange={(val: string) => {
+                  const { id, name } = timeUnits?.find(c => c.id === val) || {};
+                  if (!id || !name) return;
+                  setNewSchedule({ ...newSchedule, scheduleTimeUnitName: name, scheduleTimeUnitId: id })
+                }} lookupValue={newSchedule.scheduleTimeUnitId || ''} {...props} />
+              </Box>
+
+              {newSchedule.scheduleTimeUnitName && <Box mb={4}>
+                <TextField fullWidth label={`# of ${newSchedule.scheduleTimeUnitName}s`} value={newSchedule.duration || ''} onChange={e => setNewSchedule({ ...newSchedule, duration: Math.min(Math.max(0, parseInt(e.target.value || '', 10)), 999) })} type="number" />
+              </Box>}
+              
+
+              {newSchedule.scheduleTimeUnitName && <Box mb={4}>
+                <Typography variant="h6">Bracket Duration Type</Typography>
+                <Typography variant="body2">How to measure blocks of time within the Schedule Duration. For example, in a 40 hour per week situation, blocks of time are divided in <strong>hours</strong>. Multiple brackets can be used on a single schedule, and all of them share the same Bracket Duration Type.</Typography>
+                <SelectLookup noEmptyValue lookupName="Type" lookups={timeUnits.filter(sc => timeUnitOrder.indexOf(sc.name) <= timeUnitOrder.indexOf(newSchedule.scheduleTimeUnitName as ITimeUnitNames))} lookupChange={(val: string) => {
+                  const { name, id } = timeUnits?.find(c => c.id === val) || {};
+                  if (!name || !id) return;
+                  setNewSchedule({ ...newSchedule, bracketTimeUnitName: name, bracketTimeUnitId: id, slotTimeUnitName: name, slotTimeUnitId: id, slotDuration: 1 })
+                }} lookupValue={newSchedule.bracketTimeUnitId || ''} {...props} />
+              </Box>}
+
+              
+
+              {newSchedule.bracketTimeUnitId && newSchedule.scheduleTimeUnitName && <Box mb={4}>
+                <Typography variant="h6">Booking Slot</Typography>
+                <Typography variant="body2">The # of {newSchedule.slotTimeUnitName}s to deduct from the bracket upon accepting a booking. Alternatively, if you meet with clients, this is the length of time per session.</Typography>
+                <SelectLookup noEmptyValue lookupName="Slot Division" lookups={timeUnits.filter(sc => [timeUnitOrder.indexOf(newSchedule.bracketTimeUnitName as ITimeUnitNames), Math.max(timeUnitOrder.indexOf(newSchedule.bracketTimeUnitName as ITimeUnitNames) - 1, 0)].includes(timeUnitOrder.indexOf(sc.name)))} lookupChange={(val: string) => {
+                  const { name, id } = timeUnits?.find(c => c.id === val) || {};
+                  if (!name || !id) return;
+                  setNewSchedule({ ...newSchedule, slotTimeUnitName: name, slotTimeUnitId: id, slotDuration: 1 })
+                }} lookupValue={newSchedule.slotTimeUnitId || ''} {...props} />
+
+                <Box mt={2} sx={{ display: 'flex', alignItems: 'baseline' }}>
+                  <Box>{newSchedule.slotDuration} <span>&nbsp;</span> &nbsp;</Box>
+                  <Slider value={newSchedule.slotDuration} onChange={(e, val) => setNewSchedule({ ...newSchedule, slotDuration: parseFloat(val.toString()) })} step={null} marks={slotDurationMarks} max={Math.max(...slotDurationMarks.map(m => m.value))} />
+                </Box>
               </Box>}
             </Grid>
           </Grid>
@@ -145,7 +202,8 @@ export function ScheduleHome(props: IProps): JSX.Element {
     </Grid>
 
 
-    {!!newSchedule.duration && <Grid item xs={12}>
+
+    {newSchedule.slotTimeUnitId && <Grid item xs={12}>
       <Card style={{ display: 'flex', flexDirection: 'column' }}>
         <CardHeader title="Add Bracket" />
         <CardContent sx={{ padding: '0 15px' }}>
@@ -156,6 +214,11 @@ export function ScheduleHome(props: IProps): JSX.Element {
                 <li><Typography variant="caption">Alice works <strong>40 hours per week</strong>, meets with clients in <strong>30 minute slots</strong>, and charges a single rate. <br /> - <strong>40 hours, 30 minute booking slot, 1x multiplier</strong></Typography></li>
                 <li><Typography variant="caption">Rick works <strong>10 days per month</strong>, but charges more after the first 7 days. <br /> - 2 brackets: <strong>7 days, 1x multiplier</strong>, and <strong>3 days, 2x multiplier</strong>.</Typography></li>
               </ul>
+
+              {newSchedule.bracketTimeUnitName && newSchedule.scheduleTimeUnitName && <Box mb={4}>
+                <Typography variant="body1">Number of {newSchedule.bracketTimeUnitName}s for this bracket. (Remaining: {moment.duration({ [newSchedule.scheduleTimeUnitName]: newSchedule.duration }).as(newSchedule.bracketTimeUnitName)-newSchedule.brackets.reduce((m, d) => m+d.duration, 0)})</Typography>
+                <TextField fullWidth label={`# of ${newSchedule.bracketTimeUnitName}s`} value={newBracket.duration || ''} onChange={e => setNewBracket({ ...newBracket, duration: Math.min(Math.max(0, parseInt(e.target.value || '', 10)), moment.duration({ [newSchedule.scheduleTimeUnitName as ITimeUnitNames]: newSchedule.duration }).as(newSchedule.bracketTimeUnitName as moment.unitOfTime.Base)) })} type="number" />
+              </Box>}
 
               <Box mb={2}>
                 <Typography variant="h6">Services</Typography>
@@ -185,35 +248,6 @@ export function ScheduleHome(props: IProps): JSX.Element {
 
               </Box>
 
-              {newSchedule.scheduleContextName && <Box mb={4}>
-                <Typography variant="h6">Bracket Duration</Typography>
-                <Typography variant="body2">The amount of time that is worked per Schedule Duration. For example, in a 40 hour per week situation, <strong>40 hours</strong> would be a bracket that covers the entire duration. Multiple brackets can be used, and go into effect in the order that they are added to the schedule.</Typography>
-                <SelectLookup lookupName="Bracket Duration" lookups={scheduleContexts.filter(sc => scheduleContextOrder.indexOf(sc.name as ITimeUnit) <= scheduleContextOrder.indexOf(newSchedule.scheduleContextName as ITimeUnit)+2)} lookupChange={(val: string) => {
-                  const { name, id } = scheduleContexts?.find(c => c.id === val) || {};
-                  if (!name || !id) return;
-                  setNewBracket({ ...newBracket, scheduleContextName: name as ITimeUnit, scheduleContextId: id ? id : '', bracketDuration: 1 })
-                }} lookupValue={newBracket.scheduleContextId || ''} {...props} />
-              </Box>}
-
-              {newBracket.scheduleContextName && newSchedule.scheduleContextName && <Box mb={4}>
-                <TextField fullWidth label={`# of ${newBracket.scheduleContextName}s`} value={newBracket.bracketDuration || ''} onChange={e => setNewBracket({ ...newBracket, bracketDuration: Math.min(Math.max(0, parseInt(e.target.value || '', 10)), moment.duration({ [newSchedule.scheduleContextName as ITimeUnit]: newSchedule.duration }).as(newBracket.scheduleContextName as moment.unitOfTime.Base)) })} type="number" />
-              </Box>}
-
-              {!!newBracket.bracketDuration && newBracket.scheduleContextId && newSchedule.scheduleContextName && <Box mb={4}>
-                <Typography variant="h6">Booking Slot</Typography>
-                <Typography variant="body2">The # of {newBracket.slotScheduleContextName}s to deduct from the bracket upon accepting a booking.</Typography>
-                <SelectLookup noEmptyValue lookupName="Slot Division" lookups={scheduleContexts.filter(sc => [scheduleContextOrder.indexOf(newBracket.scheduleContextName as ITimeUnit), scheduleContextOrder.indexOf(newBracket.scheduleContextName as ITimeUnit) - 1].includes(scheduleContextOrder.indexOf(sc.name as ITimeUnit)))} lookupChange={(val: string) => {
-                  const { name, id } = scheduleContexts?.find(c => c.id === val) || {};
-                  if (!name || !id) return;
-                  setNewBracket({ ...newBracket, slotScheduleContextName: name as ITimeUnit, slotScheduleContextId: id })
-                }} defaultValue={newBracket.scheduleContextId} lookupValue={newBracket.slotScheduleContextId || ''} {...props} />
-
-                <Box mt={2} sx={{ display: 'flex', alignItems: 'baseline' }}>
-                  <Box>{newBracket.slotDuration} <span>&nbsp;</span> &nbsp;</Box>
-                  <Slider value={newBracket.slotDuration} onChange={(e, val) => setNewBracket({ ...newBracket, slotDuration: parseFloat(val.toString()) })} step={null} marks={slotDurationMarks} max={Math.max(...slotDurationMarks.map(m => m.value))} />
-                </Box>
-              </Box>}
-
               <Box>
                 <Typography variant="h6">Multiplier</Typography>
                 <Typography variant="body2">Affects the cost of all services in this bracket.</Typography>
@@ -233,8 +267,8 @@ export function ScheduleHome(props: IProps): JSX.Element {
 
         </CardContent>
         <CardActionArea onClick={() => {
-          if (newBracket.bracketDuration && newBracket.scheduleContextId && newBracket.services.length) {
-            newSchedule.brackets.push(newBracket);
+          if (newBracket.duration && newBracket.services.length) {
+            setNewSchedule({ ...newSchedule, brackets: [...newSchedule.brackets, newBracket] })            
             setNewBracket({ ...bracketSchema, services: [] });
           } else {
             void act(SET_SNACK, { snackOn: 'Provide a duration, and at least 1 service.', snackType: 'info' });
@@ -259,7 +293,7 @@ export function ScheduleHome(props: IProps): JSX.Element {
                   <Typography variant="body2">Brackets will be shown here and take effect in the order you add them.</Typography>
                   {newSchedule.brackets.length > 0 && <Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
                     {newSchedule.brackets.map((bracket, i) => {
-                      return <Box key={`bracket-chip${i + 1}new`} m={1}><Chip label={`#${i + 1} ${bracket.bracketDuration} ${bracket.scheduleContextName as ITimeUnit} (${bracket.multiplier}x)`} onDelete={() => {
+                      return <Box key={`bracket-chip${i + 1}new`} m={1}><Chip label={`#${i + 1} ${bracket.duration} ${newSchedule.bracketTimeUnitName as ITimeUnitNames} (${bracket.multiplier}x)`} onDelete={() => {
                         setNewSchedule({ ...newSchedule, brackets: newSchedule.brackets?.filter((b, z) => i !== z) });
                       }} /></Box>
                     })}
@@ -275,8 +309,8 @@ export function ScheduleHome(props: IProps): JSX.Element {
       <Grid item xs={12}>
         <Card>
           <CardActionArea onClick={() => {
-            const { name, duration, scheduleContextName, brackets } = newSchedule;
-            if (name && duration && scheduleContextName && brackets.length) {
+            const { name, duration, scheduleTimeUnitName, brackets } = newSchedule;
+            if (name && duration && scheduleTimeUnitName && brackets.length) {
               const [, res] = api(POST_SCHEDULE, true, { ...newSchedule, groupName: group.name })
               res?.then(schedules => {
                 if (schedules) {
@@ -301,8 +335,10 @@ export function ScheduleHome(props: IProps): JSX.Element {
           </CardActionArea>
         </Card>
       </Grid>
-
-      <ScheduleDisplay {...props} schedule={newSchedule} />
+        
+      <Suspense>
+        <ScheduleDisplay {...props} schedule={newSchedule} />
+      </Suspense>
 
     </>}
 

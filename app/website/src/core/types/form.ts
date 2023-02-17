@@ -1,4 +1,4 @@
-import { PayloadAction } from '.';
+import { ITimeUnit, PayloadAction } from '.';
 
 declare global {
   /**
@@ -35,7 +35,7 @@ export type ILookup = {
 export type IForm = {
   budgets: ILookup[];
   timelines: ILookup[];
-  scheduleContexts: ILookup[];
+  timeUnits: ITimeUnit[];
 };
 
 /**

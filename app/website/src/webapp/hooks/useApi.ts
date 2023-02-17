@@ -7,7 +7,6 @@ import {
   IUtilActionTypes,
   IFilesActionTypes,
   IScheduleActionTypes,
-  IScheduleContextActionTypes,
   IServiceActionTypes,
   IManageUsersActionTypes,
   IManageGroupsActionTypes,
@@ -35,7 +34,6 @@ export function registerApi(api: IActionTypes): void {
 let ApiActions = Object.assign(
   IFilesActionTypes,
   IScheduleActionTypes,
-  IScheduleContextActionTypes,
   IServiceActionTypes,
   IServiceAddonActionTypes,
   IManageUsersActionTypes,

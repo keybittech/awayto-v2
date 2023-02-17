@@ -1,5 +1,5 @@
 import { IService } from 'awayto';
-import { ITimeUnit, TimeUnit } from '../util';
+import { ITimeUnitNames } from './time_unit';
 import { PayloadAction } from '.';
 
 declare global {
@@ -8,107 +8,25 @@ declare global {
    */
   interface ISharedState { 
     schedule: IScheduleState;
-    scheduleContext: IScheduleContextState;
   }
 
   /**
    * @category Awayto Redux
    */
-  type IScheduleModuleActions = IScheduleActions | IScheduleContextActions;
+  type IScheduleModuleActions = IScheduleActions;
 
   /**
    * @category Awayto Redux
    */
   interface ISharedActionTypes {
     schedules: IScheduleActionTypes;
-    scheduleContexts: IScheduleContextActionTypes;
   }
 }
 
 export enum BookingModes {
-  FIRST_COME = "First Come First Serve",
+  FIRST_COME = "First Come First Served",
   DISTRIBUTED = "Distributed"
 }
-
-export const scheduleContextOrder = [
-  TimeUnit.MINUTE,
-  TimeUnit.HOUR,
-  TimeUnit.DAY,
-  TimeUnit.WEEK,
-  TimeUnit.MONTH,
-  TimeUnit.YEAR
-] as ITimeUnit[];
-
-/**
- * @category ScheduleContext
- */
- export type IScheduleContext = {
-  id: string;
-  name: string;
-};
-
-
-/**
- * @category ScheduleContext
- */
-export type IScheduleContextState = {
-  items: Record<string, IScheduleContext>;
-};
-
-/**
- * @category Action Types
- */
-export enum IScheduleContextActionTypes {
-  POST_SCHEDULE_CONTEXT = "POST/schedule_contexts",
-  PUT_SCHEDULE_CONTEXT = "PUT/schedule_contexts",
-  GET_SCHEDULE_CONTEXTS = "GET/schedule_contexts",
-  GET_SCHEDULE_CONTEXT_BY_ID = "GET/schedule_contexts/:id",
-  DELETE_SCHEDULE_CONTEXT = "DELETE/schedule_contexts/:id",
-  DISABLE_SCHEDULE_CONTEXT = "PUT/schedule_contexts/:id/disable"
-}
-
-/**
- * @category ScheduleContext
- */
-export type IPostScheduleContextAction = PayloadAction<IScheduleContextActionTypes.POST_SCHEDULE_CONTEXT, IScheduleContext>;
-
-/**
- * @category ScheduleContext
- */
-export type IPutScheduleContextAction = PayloadAction<IScheduleContextActionTypes.PUT_SCHEDULE_CONTEXT, IScheduleContext>;
-
-/**
- * @category ScheduleContext
- */
-export type IGetScheduleContextsAction = PayloadAction<IScheduleContextActionTypes.GET_SCHEDULE_CONTEXTS, IScheduleContext[]>;
-
-/**
- * @category ScheduleContext
- */
-export type IGetScheduleContextByIdAction = PayloadAction<IScheduleContextActionTypes.GET_SCHEDULE_CONTEXT_BY_ID, IScheduleContext>;
-
-/**
- * @category ScheduleContext
- */
-export type IDeleteScheduleContextAction = PayloadAction<IScheduleContextActionTypes.DELETE_SCHEDULE_CONTEXT, IScheduleContext[]>;
-
-/**
- * @category ScheduleContext
- */
-export type IDisableScheduleContextAction = PayloadAction<IScheduleContextActionTypes.DISABLE_SCHEDULE_CONTEXT, IScheduleContext[]>;
-
-/**
- * @category ScheduleContext
- */
-export type IScheduleContextActions = IPostScheduleContextAction 
-  | IPutScheduleContextAction 
-  | IGetScheduleContextsAction 
-  | IGetScheduleContextByIdAction
-  | IDeleteScheduleContextAction
-  | IDisableScheduleContextAction;
-
-
-
 
 /**
  * @category Schedule
@@ -117,13 +35,8 @@ export type IScheduleContextActions = IPostScheduleContextAction
   id?: string;
   automatic: boolean;
   scheduleId?: string;
-  scheduleContextId?: string;
-  scheduleContextName?: ITimeUnit;
-  bracketDuration: number;
-  slotScheduleContextId?: string;
-  slotScheduleContextName?: ITimeUnit;
-  slotDuration: number;
   startTime: string;
+  duration: number;
   multiplier: string;
   services: IService[];
 };
@@ -135,9 +48,14 @@ export type IScheduleContextActions = IPostScheduleContextAction
 export type ISchedule = {
   id?: string;
   name: string;
-  scheduleContextId?: string;
-  scheduleContextName?: ITimeUnit;
   duration: number | null;
+  scheduleTimeUnitId?: string;
+  scheduleTimeUnitName?: ITimeUnitNames;
+  bracketTimeUnitId?: string;
+  bracketTimeUnitName?: ITimeUnitNames;
+  slotTimeUnitId?: string;
+  slotTimeUnitName?: ITimeUnitNames;
+  slotDuration: number;
   brackets: IScheduleBracket[];
 };
 

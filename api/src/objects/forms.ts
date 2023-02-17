@@ -1,6 +1,6 @@
 import { ApiModule } from '../util/db';
 
-import { ILookup } from 'awayto';
+import { ILookup, ITimeUnit } from 'awayto';
 
 const forms: ApiModule = [
 
@@ -16,14 +16,14 @@ const forms: ApiModule = [
         const timelines = (await props.client.query<ILookup>(`
           SELECT * FROM timelines
         `)).rows;
-        const scheduleContexts = (await props.client.query<ILookup>(`
-          SELECT * FROM schedule_contexts
+        const timeUnits = (await props.client.query<ITimeUnit>(`
+          SELECT * FROM time_units
         `)).rows;
         
         return {
           budgets,
           timelines,
-          scheduleContexts
+          timeUnits
         };
         
       } catch (error) {

@@ -21,7 +21,6 @@ import Services from './services';
 import ServiceAddons from './service_addons';
 import ServiceTiers from './service_tiers';
 import Schedules from './schedules';
-import ScheduleContexts from './schedule_contexts';
 
 import Groups from './groups';
 import GroupServices from './group_services';
@@ -53,7 +52,6 @@ export default  {
     ...Payments,
     ...Quotes,
     ...Schedules,
-    ...ScheduleContexts,
     ...Services,
     ...ServiceAddons,
     ...ServiceTiers,

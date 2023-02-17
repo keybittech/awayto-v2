@@ -1,5 +1,5 @@
 import { ApiModule, buildUpdate, asyncForEach } from '../util/db';
-import { IBooking, IBookingScheduleBracket, IScheduleBracket, IScheduleContext, ITimeUnit } from 'awayto';
+import { IBooking, IBookingScheduleBracket, IScheduleBracket, ITimeUnit, ITimeUnitNames } from 'awayto';
 
 const bookings: ApiModule = [
 
@@ -31,13 +31,6 @@ const bookings: ApiModule = [
             SELECT * FROM schedule_brackets
             WHERE id = $1;
           `, [dbBookingScheduleBracket.scheduleBracketId])).rows[0];
-
-          const scheduleContext = (await props.client.query<IScheduleContext>(`
-            SELECT * FROM schedule_contexts
-            WHERE id = $1;
-          `, [scheduleBracket.scheduleContextId])).rows[0];
-
-          scheduleBracket.scheduleContextName = scheduleContext.name as ITimeUnit;
 
           dbBookingScheduleBracket.bracket = scheduleBracket;
 

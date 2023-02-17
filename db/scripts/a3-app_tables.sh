@@ -126,7 +126,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     enabled BOOLEAN NOT NULL DEFAULT true
   );
 
-  CREATE TABLE schedule_contexts (
+  CREATE TABLE time_units (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR (50) NOT NULL UNIQUE,
     created_on TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -137,7 +137,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
   );
 
   INSERT INTO
-    schedule_contexts (name)
+    time_units (name)
   VALUES
     ('minute'),
     ('hour'),
@@ -149,8 +149,11 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
   CREATE TABLE schedules (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR (50),
-    schedule_context_id uuid NOT NULL REFERENCES schedule_contexts (id) ON DELETE CASCADE,
     duration INTEGER NOT NULL,
+    schedule_time_unit_id uuid NOT NULL REFERENCES time_units (id) ON DELETE CASCADE,
+    bracket_time_unit_id uuid NOT NULL REFERENCES time_units (id) ON DELETE CASCADE,
+    slot_time_unit_id uuid NOT NULL REFERENCES time_units (id) ON DELETE CASCADE,
+    slot_duration INTEGER NOT NULL,
     created_on TIMESTAMP NOT NULL DEFAULT NOW(),
     created_sub VARCHAR (50),
     updated_on TIMESTAMP,
@@ -173,13 +176,10 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
   CREATE TABLE schedule_brackets (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     schedule_id uuid NOT NULL REFERENCES schedules (id) ON DELETE CASCADE,
-    schedule_context_id uuid NOT NULL REFERENCES schedule_contexts (id) ON DELETE CASCADE,
-    bracket_duration INTEGER NOT NULL,
-    slot_schedule_context_id uuid NOT NULL REFERENCES schedule_contexts (id) ON DELETE CASCADE,
-    slot_duration INTEGER NOT NULL,
+    start_time TIMESTAMP NOT NULL,
+    duration INTEGER NOT NULL,
     multiplier DECIMAL NOT NULL,
     automatic BOOLEAN NOT NULL DEFAULT false,
-    start_time TIMESTAMP NOT NULL,
     created_on TIMESTAMP NOT NULL DEFAULT NOW(),
     created_sub VARCHAR (50),
     updated_on TIMESTAMP,

@@ -8,7 +8,7 @@ import {
 const initialFormState: IFormState = {
   budgets: [],
   timelines: [],
-  scheduleContexts: []
+  timeUnits: []
 };
 
 function reduceForm(state: IFormState, action: IFormActions): IFormState {

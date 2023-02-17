@@ -37,17 +37,3 @@ export const localMoment = (date: string, format: string): string => {
 export const localFromNow = (date: string): string => {
   return moment(moment.utc(date).toDate()).local().fromNow();
 }
-
-export type ITimeUnit  = 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year';
-
-
-
-export enum TimeUnit {
-  MINUTE = 'minute',
-  HOUR = 'hour',
-  DAY = 'day',
-  WEEK = 'week',
-  MONTH = 'month',
-  YEAR = 'year'
-}
-
