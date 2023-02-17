@@ -88,10 +88,10 @@ export function ScheduleHome(props: IProps): JSX.Element {
     const { duration, scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName } = newSchedule;
     const factors = [] as Mark[];
     if (!bracketTimeUnitName || !slotTimeUnitName || !scheduleTimeUnitName || !duration) return factors;
-    const subdivided = bracketTimeUnitName !== slotTimeUnitName;
-    const finalDuration = !subdivided ? 
-      Math.round(moment.duration({ [scheduleTimeUnitName]: duration }).as(bracketTimeUnitName)) : 
-      Math.round(moment.duration({ [bracketTimeUnitName]: 1 }).as(slotTimeUnitName as moment.unitOfTime.Base));
+    // const subdivided = bracketTimeUnitName !== slotTimeUnitName;
+    // const finalDuration = !subdivided ? 
+    //   Math.round(moment.duration({ [scheduleTimeUnitName]: duration }).as(bracketTimeUnitName)) : 
+    const finalDuration =  Math.round(moment.duration({ [bracketTimeUnitName]: 1 }).as(slotTimeUnitName as moment.unitOfTime.Base));
     for (let value = 1; value <= finalDuration; value++) {
       if (finalDuration % value === 0) {
         factors.push({ value, label: value });
@@ -156,10 +156,10 @@ export function ScheduleHome(props: IProps): JSX.Element {
               <Box mb={4}>
                 <Typography variant="h6">Schedule Duration</Typography>
                 <Typography variant="body2">The length of time the schedule will run over. This determines the overall context of your schedule and how time will be divided and managed within. For example, a 40 hour per week schedule would require configuring a <strong>1 week Schedule Duration</strong>.</Typography>
-                <SelectLookup lookupName="Schedule Duration" lookups={timeUnits.filter(sc => sc.name !== TimeUnit.MINUTE)} lookupChange={(val: string) => {
+                <SelectLookup lookupName="Schedule Duration" lookups={timeUnits.filter(sc => ![TimeUnit.MINUTE, TimeUnit.HOUR].includes(sc.name as TimeUnit) )} lookupChange={(val: string) => {
                   const { id, name } = timeUnits?.find(c => c.id === val) || {};
                   if (!id || !name) return;
-                  setNewSchedule({ ...newSchedule, scheduleTimeUnitName: name, scheduleTimeUnitId: id })
+                  setNewSchedule({ ...newSchedule, scheduleTimeUnitName: name, scheduleTimeUnitId: id, bracketTimeUnitId: timeUnits.find(s => s.name === timeUnitOrder[timeUnitOrder.indexOf(name)-1])?.id })
                 }} lookupValue={newSchedule.scheduleTimeUnitId || ''} {...props} />
               </Box>
 
@@ -171,7 +171,7 @@ export function ScheduleHome(props: IProps): JSX.Element {
               {newSchedule.scheduleTimeUnitName && <Box mb={4}>
                 <Typography variant="h6">Bracket Duration Type</Typography>
                 <Typography variant="body2">How to measure blocks of time within the Schedule Duration. For example, in a 40 hour per week situation, blocks of time are divided in <strong>hours</strong>. Multiple brackets can be used on a single schedule, and all of them share the same Bracket Duration Type.</Typography>
-                <SelectLookup noEmptyValue lookupName="Type" lookups={timeUnits.filter(sc => timeUnitOrder.indexOf(sc.name) <= timeUnitOrder.indexOf(newSchedule.scheduleTimeUnitName as ITimeUnitNames))} lookupChange={(val: string) => {
+                <SelectLookup noEmptyValue lookupName="Type" lookups={timeUnits.filter(sc => sc.name !== newSchedule.scheduleTimeUnitName && timeUnitOrder.indexOf(sc.name) <= timeUnitOrder.indexOf(newSchedule.scheduleTimeUnitName as ITimeUnitNames))} lookupChange={(val: string) => {
                   const { name, id } = timeUnits?.find(c => c.id === val) || {};
                   if (!name || !id) return;
                   setNewSchedule({ ...newSchedule, bracketTimeUnitName: name, bracketTimeUnitId: id, slotTimeUnitName: name, slotTimeUnitId: id, slotDuration: 1 })
@@ -335,12 +335,14 @@ export function ScheduleHome(props: IProps): JSX.Element {
           </CardActionArea>
         </Card>
       </Grid>
-        
-      <Suspense>
-        <ScheduleDisplay {...props} schedule={newSchedule} />
-      </Suspense>
 
     </>}
+
+    
+        
+    {newSchedule.slotTimeUnitName && <Suspense>
+      <ScheduleDisplay {...props} schedule={newSchedule} />
+    </Suspense>}
 
 
   </Grid>
