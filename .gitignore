@@ -3,6 +3,7 @@ build
 landing_build
 web_build
 target
+*.env
 *.cert
 *.crt
 *.key
