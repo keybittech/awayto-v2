@@ -332,13 +332,6 @@ async function go() {
         }
   
         try {
-          const pathMatch = pathMatcher.match(`${method}/${path}`);
-          event.pathParameters = pathMatch._params;
-  
-          const route = pathMatch._route.split(/\/(.*)/s)[1];
-  
-          const [{ cmnd }] = APIs.protected.filter(o => o.method === method && o.path === route);
-  
           // Handle request
           logger.log('App API Request', event);
           const result = await cmnd({ event, client });
