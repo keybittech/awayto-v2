@@ -28,7 +28,7 @@ async function jwtVerify(token, secretOrPublicKey) {
 }
 
 const authClient = jwksClient({
-  jwksUri: `https://192.168.0.3:8443/auth/realms/${process.env.KC_REALM}/protocol/openid-connect/certs`
+  jwksUri: `https://127.0.0.1:8443/auth/realms/${process.env.KC_REALM}/protocol/openid-connect/certs`
 });
 
 function getKey(header, callback) {

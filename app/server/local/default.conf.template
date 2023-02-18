@@ -12,7 +12,7 @@ upstream ${CUST_APP_HOSTNAME} {
 
 server {
 
-  server_name localhost;
+  server_name wcapp.site.com;
 
   listen 443 http2 ssl;
   listen [::]:443 http2 ssl;

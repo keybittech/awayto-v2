@@ -50,7 +50,7 @@ public class CustomEventListenerProvider implements EventListenerProvider {
             try {
                 JSONObject eventPayload = new JSONObject(event);
 
-                HttpPost request = new HttpPost("https://192.168.0.3/api/auth/webhook");
+                HttpPost request = new HttpPost("https://127.0.0.1/api/auth/webhook");
                 
                 request.setEntity(EntityBuilder.create().setText(eventPayload.toString()).setContentType(ContentType.APPLICATION_JSON).build());
 

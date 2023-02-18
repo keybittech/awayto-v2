@@ -18,9 +18,10 @@ services:
         - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
         - CUST_HOST_IP=${CUST_HOST_IP}
         - SITE_NAME=${SITE_NAME}
-    ports:
-      - 443:443
-      - 80:80
+    network_mode: host
+    # ports:
+    #   - 443:443
+    #   - 80:80
     environment:
       - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
       - CUST_LAND_HOSTNAME=${CUST_LAND_HOSTNAME}
@@ -79,9 +80,11 @@ services:
     build:
       context: ./
       dockerfile: ./api/Dockerfile
-    # network_mode: host
-    ports:
-      - 8083:9443
+    network_mode: host
+    extra_hosts:
+      - wcapp.site.com:127.0.0.1
+    # ports:
+    #   - 8083:9443
     environment:
       - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
       - KC_REALM=devel
