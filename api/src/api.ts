@@ -299,11 +299,21 @@ async function go() {
 
       // Here we make use of the extra /api from the reverse proxy
       app[method.toLowerCase() as keyof Express](`/api/${path}`, checkAuthenticated, async (req: Request & { headers: { authorization: string } }, res: Response) => {
+
+        assert(req.headers.authorization, 'No auth header.');
+  
         const requestId = uuid();
-
+  
         const user = req.user as StrategyUser;
-
-        const token = jwtDecode<DecodedJWTToken>(req.headers.authorization);
+        const token = jwtDecode<DecodedJWTToken & IdTokenClaims>(req.headers.authorization);
+        const method = req.method;
+  
+        const tokenGroupRoles = {} as UserGroupRoles;
+        token.groups.forEach(subgroupPath => {
+          const [groupName, subgroupName] = subgroupPath.slice(1).split('/');
+          tokenGroupRoles[groupName] = tokenGroupRoles[groupName] || {};
+          tokenGroupRoles[groupName][subgroupName] = groupRoleActions[subgroupPath].actions.map(a => a.name)
+        });
 
         // Create trace event
         const event = {
@@ -312,30 +322,36 @@ async function go() {
           path,
           public: false,
           groups: token.groups,
+          availableUserGroupRoles: tokenGroupRoles,
           username: user.username,
           userSub: user.sub,
-          availableUserGroupRoles: {},
           sourceIp: req.headers['x-forwarded-for'] as string,
           pathParameters: req.params,
           queryParameters: req.query as Record<string, string>,
           body: req.body
         }
-
-        logger.log('App API Request', event);
-
+  
         try {
+          const pathMatch = pathMatcher.match(`${method}/${path}`);
+          event.pathParameters = pathMatch._params;
+  
+          const route = pathMatch._route.split(/\/(.*)/s)[1];
+  
+          const [{ cmnd }] = APIs.protected.filter(o => o.method === method && o.path === route);
+  
           // Handle request
+          logger.log('App API Request', event);
           const result = await cmnd({ event, client });
-
+  
           // Respond
           res.status(200).json(result);
-
+  
         } catch (error) {
           const err = error as Error & { reason: string };
-
-          console.log('protected error', err);
+  
+          console.log('protected error', err.message);
           logger.log('error response', { requestId, error: err });
-
+  
           // Handle failures
           res.status(500).send({
             requestId,
