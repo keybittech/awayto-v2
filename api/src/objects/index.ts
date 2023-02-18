@@ -13,6 +13,8 @@ import ManageGroups from './manage_groups';
 import Users from './users';
 import ManageUsers from './manage_users';
 
+import Assist from './assist';
+
 import Bookings from './bookings';
 import Contacts from './contacts';
 import Payments from './payments';
@@ -35,6 +37,7 @@ export default  {
   },
   protected: [
     // ...Tests,
+    ...Assist,
     ...Files,
     ...Forms,
     ...Profiles,

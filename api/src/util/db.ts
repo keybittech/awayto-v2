@@ -51,7 +51,7 @@ export type ApiProps = {
     queryParameters: Record<string, string>,
     body: Array<ILoadedState> | Record<string, unknown> | AuthEvent
   };
-  client: Client; 
+  client: Client;
 }
 
 /**

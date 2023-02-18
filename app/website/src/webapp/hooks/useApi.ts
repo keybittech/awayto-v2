@@ -20,7 +20,8 @@ import {
   IUserActionTypes,
   ApiErrorResponse,
   ILoadedState,
-  IServiceAddonActionTypes
+  IServiceAddonActionTypes,
+  IAssistActionTypes
 } from 'awayto';
 
 import { useAct } from './useAct';
@@ -45,7 +46,8 @@ let ApiActions = Object.assign(
   IGroupServiceAddonActionTypes,
   IGroupScheduleActionTypes,
   IRoleActionTypes,
-  IUserActionTypes
+  IUserActionTypes,
+  IAssistActionTypes
 ) as Record<string, string>;
 
 const { Route, RouteCollection, PathGenerator } = routeMatch as RouteMatch;

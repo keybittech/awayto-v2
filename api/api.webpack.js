@@ -36,9 +36,6 @@ module.exports = {
   optimization: {
     minimize: false
   },
-  experiments: {
-    topLevelAwait: true
-  },
   plugins: [
     new Dotenv()
   ]

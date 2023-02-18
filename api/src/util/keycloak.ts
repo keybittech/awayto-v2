@@ -1,13 +1,13 @@
 
 
 import KcAdminClient from '@keycloak/keycloak-admin-client';
-import { Issuer, Strategy, StrategyVerifyCallbackUserInfo } from 'openid-client';
+import { BaseClient, Issuer, Strategy, StrategyVerifyCallbackUserInfo } from 'openid-client';
 import { Credentials } from '@keycloak/keycloak-admin-client/lib/utils/auth';
 import RealmRepresentation from '@keycloak/keycloak-admin-client/lib/defs/realmRepresentation';
 import ClientRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientRepresentation';
 import RoleRepresentation, { RoleMappingPayload } from '@keycloak/keycloak-admin-client/lib/defs/roleRepresentation';
 import { asyncForEach } from './db';
-import { IGroupRoleActions, GroupRoleActions, SiteRoles } from 'awayto';
+import { IGroupRoleActions, GroupRoleActions, SiteRoles, StrategyUser } from 'awayto';
 import GroupRepresentation from '@keycloak/keycloak-admin-client/lib/defs/groupRepresentation';
 import { performance } from 'perf_hooks';
 
@@ -17,6 +17,7 @@ let appRoles: RoleRepresentation[] = [];
 let groupAdminRoles: RoleMappingPayload[] = [];
 let roleCall: RoleMappingPayload[] = [];
 let groupRoleActions: IGroupRoleActions = {};
+let keycloakClient: BaseClient;
 
 const {
   CUST_APP_HOSTNAME,
@@ -39,9 +40,9 @@ const credentials: Credentials = {
 }
 
 const regroup = async function (groupId?: string) {
-  
+
   let groups: GroupRepresentation[] = [];
-  
+
   if (groupId) {
     performance.mark("regroupOneGroupStart");
     const group = await keycloak.groups.findOne({ id: groupId });
@@ -50,7 +51,7 @@ const regroup = async function (groupId?: string) {
     performance.mark("regroupAllGroupsStart");
     groups = groups.length ? groups : await keycloak.groups.find();
   }
-  
+
   const newGroupRoleActions: IGroupRoleActions = {};
 
   await asyncForEach(groups, async group => {
@@ -93,82 +94,64 @@ const regroup = async function (groupId?: string) {
 
 }
 
-try {
-  // API Client admin keycloak login
-  await keycloak.auth(credentials);
-  await regroup();
+async function go() {
 
-  // Refresh api credentials/groups every 58 seconds
-  setInterval(async () => {
+  try {
+    // API Client admin keycloak login
     await keycloak.auth(credentials);
     await regroup();
-  }, 58 * 1000); // 58 seconds
 
-  // Get a reference to the realm we're connected to
-  const realmRequest = (await keycloak.realms.find()).find(r => r.realm === process.env.KC_REALM);
+    // Refresh api credentials/groups every 58 seconds
+    setInterval(async () => {
+      await keycloak.auth(credentials);
+      await regroup();
+    }, 58 * 1000); // 58 seconds
 
-  if (realmRequest) {
-    realm = realmRequest;
+    // Get a reference to the realm we're connected to
+    const realmRequest = (await keycloak.realms.find()).find(r => r.realm === process.env.KC_REALM);
 
-    // Get a reference to the react application's client, as users are based there
-    const appClientRequest = (await keycloak.clients.find({ realm: process.env.KC_REALM })).find(c => c.clientId === process.env.KC_CLIENT);
+    if (realmRequest) {
+      realm = realmRequest;
 
-    if (appClientRequest) {
-      appClient = appClientRequest;
-      // Get the client roles, which are application universal roles, not specific to any group
-      const appClientRolesRequest = await keycloak.clients.listRoles({ id: appClient.id! });
-      
-      if (appClientRolesRequest.length) {
-        appRoles = appClientRolesRequest;
-        groupAdminRoles = appRoles.filter(r => r.name !== SiteRoles.APP_ROLE_CALL).map(({ id, name }) => ({ id, name })) as RoleMappingPayload[]
-        roleCall = appRoles.filter(r => r.name === SiteRoles.APP_ROLE_CALL).map(({ id, name }) => ({ id, name })) as RoleMappingPayload[]
+      // Get a reference to the react application's client, as users are based there
+      const appClientRequest = (await keycloak.clients.find({ realm: process.env.KC_REALM })).find(c => c.clientId === process.env.KC_CLIENT);
+
+      if (appClientRequest) {
+        appClient = appClientRequest;
+        // Get the client roles, which are application universal roles, not specific to any group
+        const appClientRolesRequest = await keycloak.clients.listRoles({ id: appClient.id! });
+
+        if (appClientRolesRequest.length) {
+          appRoles = appClientRolesRequest;
+          groupAdminRoles = appRoles.filter(r => r.name !== SiteRoles.APP_ROLE_CALL).map(({ id, name }) => ({ id, name })) as RoleMappingPayload[]
+          roleCall = appRoles.filter(r => r.name === SiteRoles.APP_ROLE_CALL).map(({ id, name }) => ({ id, name })) as RoleMappingPayload[]
+        }
       }
     }
+  } catch (error) {
+    console.log('init error', error)
   }
-} catch (error) {
-  console.log('init error', error)
+
+  // KC Passport & OIDC Client
+  const keycloakIssuer = await Issuer.discover(`https://${CUST_APP_HOSTNAME}/auth/realms/${KC_REALM}`);
+  keycloakClient = new keycloakIssuer.Client({
+    client_id: KC_API_CLIENT_ID,
+    client_secret: KC_API_CLIENT_SECRET,
+    redirect_uris: [`https://${CUST_APP_HOSTNAME}/api/auth/login/callback`],
+    post_logout_redirect_uris: [`https://${CUST_APP_HOSTNAME}/api/auth/logout/callback`],
+    response_types: ['code']
+  });
+
+
+
 }
 
-export type StrategyUser = Express.User & {
-  test?: string;
-  username?: string;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  sub: string;
-  groups?: string[];
-}
 
-// KC Passport & OIDC Client
-const keycloakIssuer = await Issuer.discover(`https://${CUST_APP_HOSTNAME}/auth/realms/${KC_REALM}`);
-const keycloakClient = new keycloakIssuer.Client({
-  client_id: KC_API_CLIENT_ID,
-  client_secret: KC_API_CLIENT_SECRET,
-  redirect_uris: [`https://${CUST_APP_HOSTNAME}/api/auth/login/callback`],
-  post_logout_redirect_uris: [`https://${CUST_APP_HOSTNAME}/api/auth/logout/callback`],
-  response_types: ['code']
-});
-
-const strategyResponder: StrategyVerifyCallbackUserInfo<StrategyUser> = (tokenSet, userInfo, done) => {
-
-  const { preferred_username: username, given_name: firstName, family_name: lastName, email, sub } = tokenSet.claims();
-
-  const userProfileClaims: StrategyUser = {
-    username,
-    firstName,
-    lastName,
-    email,
-    sub
-  };
-
-  return done(null, userProfileClaims);
-}
-
-const keycloakStrategy = new Strategy<StrategyUser>({ client: keycloakClient }, strategyResponder);
+void go();
 
 export {
   keycloak,
-  keycloakStrategy,
+  keycloakClient,
   realm,
   appClient,
   appRoles,

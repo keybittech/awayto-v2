@@ -199,6 +199,8 @@ export interface IPreviewFile extends File {
 
 export * from './time_unit';
 
+export * from './assist';
+
 export * from './common';
 export * from './manage';
 export * from './profile';
