@@ -1,4 +1,4 @@
-import { ApiModule } from '../util/db';
+import { ApiModule } from '../api';
 
 import { ILookup, ITimeUnit } from 'awayto';
 
@@ -10,13 +10,13 @@ const forms: ApiModule = [
     cmnd : async (props) => {
       try {
 
-        const budgets = (await props.client.query<ILookup>(`
+        const budgets = (await props.db.query<ILookup>(`
           SELECT * FROM budgets
         `)).rows;
-        const timelines = (await props.client.query<ILookup>(`
+        const timelines = (await props.db.query<ILookup>(`
           SELECT * FROM timelines
         `)).rows;
-        const timeUnits = (await props.client.query<ITimeUnit>(`
+        const timeUnits = (await props.db.query<ITimeUnit>(`
           SELECT * FROM time_units
         `)).rows;
         

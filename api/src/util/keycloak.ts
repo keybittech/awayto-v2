@@ -1,15 +1,15 @@
 
 
 import KcAdminClient from '@keycloak/keycloak-admin-client';
-import { BaseClient, Issuer, Strategy, StrategyVerifyCallbackUserInfo } from 'openid-client';
+import { BaseClient, Issuer } from 'openid-client';
 import { Credentials } from '@keycloak/keycloak-admin-client/lib/utils/auth';
 import RealmRepresentation from '@keycloak/keycloak-admin-client/lib/defs/realmRepresentation';
 import ClientRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientRepresentation';
 import RoleRepresentation, { RoleMappingPayload } from '@keycloak/keycloak-admin-client/lib/defs/roleRepresentation';
-import { asyncForEach } from './db';
-import { IGroupRoleActions, GroupRoleActions, SiteRoles, StrategyUser } from 'awayto';
 import GroupRepresentation from '@keycloak/keycloak-admin-client/lib/defs/groupRepresentation';
 import { performance } from 'perf_hooks';
+
+import { IGroupRoleActions, GroupRoleActions, SiteRoles, asyncForEach } from 'awayto';
 
 let realm: RealmRepresentation = {};
 let appClient: ClientRepresentation = {};

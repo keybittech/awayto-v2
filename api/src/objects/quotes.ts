@@ -1,5 +1,6 @@
 import { IQuote } from 'awayto';
-import { ApiModule, buildUpdate } from '../util/db';
+import { ApiModule } from '../api';
+import { buildUpdate } from '../util/db';
 
 const quotes: ApiModule = [
 
@@ -11,7 +12,7 @@ const quotes: ApiModule = [
 
         const { name, desiredDuration, budgetId, timelineId, serviceTierId, contactId, respondBy, description } = props.event.body as IQuote;
 
-        const response = await props.client.query<IQuote>(`
+        const response = await props.db.query<IQuote>(`
           INSERT INTO quotes (name, desired_duration, budget_id, timeline_id, service_tier_id, contact_id, respond_by, description)
           VALUES ($1, $2, $3, $4, $5, $6)
           RETURNING id, name, desired_duration as "desiredDuration", budget_id as "budgetId", timeline_id as "timelineId", service__tier_id as "serviceTierId", contact_id as "contactId", respond_by as "respondBy", description
@@ -36,7 +37,7 @@ const quotes: ApiModule = [
 
         const updateProps = buildUpdate({ id, budgetId, timelineId, serviceTierId, contactId, respondBy, description });
 
-        const response = await props.client.query<IQuote>(`
+        const response = await props.db.query<IQuote>(`
           UPDATE quotes
           SET ${updateProps.string}
           WHERE id = $1
@@ -58,7 +59,7 @@ const quotes: ApiModule = [
     cmnd : async (props) => {
       try {
 
-        const response = await props.client.query<IQuote>(`
+        const response = await props.db.query<IQuote>(`
           SELECT * FROM dbview_schema.enabled_quotes
         `);
         
@@ -78,7 +79,7 @@ const quotes: ApiModule = [
       try {
         const { id } = props.event.pathParameters;
 
-        const response = await props.client.query<IQuote>(`
+        const response = await props.db.query<IQuote>(`
           SELECT * FROM dbview_schema.enabled_quotes_ext
           WHERE id = $1
         `, [id]);
@@ -99,7 +100,7 @@ const quotes: ApiModule = [
       try {
         const { id } = props.event.pathParameters;
 
-        const response = await props.client.query<IQuote>(`
+        const response = await props.db.query<IQuote>(`
           DELETE FROM quotes
           WHERE id = $1
         `, [id]);
@@ -120,7 +121,7 @@ const quotes: ApiModule = [
       try {
         const { id } = props.event.pathParameters;
 
-        await props.client.query(`
+        await props.db.query(`
           UPDATE quotes
           SET enabled = false
           WHERE id = $1

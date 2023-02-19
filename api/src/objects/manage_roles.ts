@@ -1,5 +1,6 @@
 import { IRole } from 'awayto';
-import { ApiModule, buildUpdate } from '../util/db';
+import { ApiModule } from '../api';
+import { buildUpdate } from '../util/db';
 
 const manageRoles: ApiModule = [
 
@@ -11,7 +12,7 @@ const manageRoles: ApiModule = [
 
         const { name } = props.event.body as IRole;
 
-        const response = await props.client.query<IRole>(`
+        const response = await props.db.query<IRole>(`
           INSERT INTO roles (name)
           VALUES ($1)
           RETURNING id, name
@@ -34,7 +35,7 @@ const manageRoles: ApiModule = [
 
         const updateProps = buildUpdate({ id, name });
 
-        const response = await props.client.query<IRole>(`
+        const response = await props.db.query<IRole>(`
           UPDATE roles
           SET ${updateProps.string}
           WHERE id = $1
@@ -56,7 +57,7 @@ const manageRoles: ApiModule = [
     cmnd : async (props) => {
       try {
 
-        const response = await props.client.query<IRole>(`
+        const response = await props.db.query<IRole>(`
           SELECT * FROM dbview_schema.enabled_roles
         `);
         
@@ -76,7 +77,7 @@ const manageRoles: ApiModule = [
       try {
         const { id } = props.event.pathParameters;
 
-        const response = await props.client.query<IRole>(`
+        const response = await props.db.query<IRole>(`
           SELECT * FROM dbview_schema.enabled_roles
           WHERE id = $1
         `, [id]);
@@ -97,7 +98,7 @@ const manageRoles: ApiModule = [
       try {
         const { id } = props.event.pathParameters;
 
-        const response = await props.client.query<IRole>(`
+        const response = await props.db.query<IRole>(`
           DELETE FROM roles
           WHERE id = $1
         `, [id]);
@@ -118,7 +119,7 @@ const manageRoles: ApiModule = [
       try {
         const { id } = props.event.pathParameters;
 
-        await props.client.query(`
+        await props.db.query(`
           UPDATE roles
           SET enabled = false
           WHERE id = $1

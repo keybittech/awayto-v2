@@ -1,5 +1,6 @@
 import { IPayment } from 'awayto';
-import { ApiModule, buildUpdate } from '../util/db';
+import { ApiModule } from '../api';
+import { buildUpdate } from '../util/db';
 
 const payments: ApiModule = [
 
@@ -11,7 +12,7 @@ const payments: ApiModule = [
 
         const { contactId, details } = props.event.body as IPayment;
 
-        const response = await props.client.query<IPayment>(`
+        const response = await props.db.query<IPayment>(`
           INSERT INTO payments (contact_id, details)
           VALUES ($1, $2)
           RETURNING id, contact_id as "contactId", details
@@ -34,7 +35,7 @@ const payments: ApiModule = [
 
         const updateProps = buildUpdate({ id, contactId, details: JSON.stringify(details) });
 
-        const response = await props.client.query<IPayment>(`
+        const response = await props.db.query<IPayment>(`
           UPDATE payments
           SET ${updateProps.string}
           WHERE id = $1
@@ -56,7 +57,7 @@ const payments: ApiModule = [
     cmnd : async (props) => {
       try {
 
-        const response = await props.client.query<IPayment>(`
+        const response = await props.db.query<IPayment>(`
           SELECT * FROM dbview_schema.enabled_payments
         `);
         
@@ -76,7 +77,7 @@ const payments: ApiModule = [
       try {
         const { id } = props.event.pathParameters;
 
-        const response = await props.client.query<IPayment>(`
+        const response = await props.db.query<IPayment>(`
           SELECT * FROM dbview_schema.enabled_payments
           WHERE id = $1
         `, [id]);
@@ -97,7 +98,7 @@ const payments: ApiModule = [
       try {
         const { id } = props.event.pathParameters;
 
-        const response = await props.client.query<IPayment>(`
+        const response = await props.db.query<IPayment>(`
           DELETE FROM payments
           WHERE id = $1
         `, [id]);
@@ -118,7 +119,7 @@ const payments: ApiModule = [
       try {
         const { id } = props.event.pathParameters;
 
-        await props.client.query(`
+        await props.db.query(`
           UPDATE payments
           SET enabled = false
           WHERE id = $1

@@ -1,5 +1,6 @@
 import { IServiceTier } from 'awayto';
-import { ApiModule, buildUpdate } from '../util/db';
+import { ApiModule } from '../api';
+import { buildUpdate } from '../util/db';
 
 const service_tiers: ApiModule = [
 
@@ -11,7 +12,7 @@ const service_tiers: ApiModule = [
 
         const { name, serviceId, multiplier } = props.event.body as IServiceTier;
 
-        const response = await props.client.query<IServiceTier>(`
+        const response = await props.db.query<IServiceTier>(`
           INSERT INTO service_tiers (name, serviceId, multiplier)
           VALUES ($1, $2, $3)
           RETURNING id, name, serviceId, multiplier
@@ -36,7 +37,7 @@ const service_tiers: ApiModule = [
 
         const updateProps = buildUpdate({ id, name, multiplier });
 
-        const response = await props.client.query<IServiceTier>(`
+        const response = await props.db.query<IServiceTier>(`
           UPDATE service_tiers
           SET ${updateProps.string}
           WHERE id = $1
@@ -58,7 +59,7 @@ const service_tiers: ApiModule = [
     cmnd : async (props) => {
       try {
 
-        const response = await props.client.query<IServiceTier>(`
+        const response = await props.db.query<IServiceTier>(`
           SELECT * FROM dbview_schema.enabled_service_tiers
         `);
         
@@ -78,7 +79,7 @@ const service_tiers: ApiModule = [
       try {
         const { id } = props.event.pathParameters;
 
-        const response = await props.client.query<IServiceTier>(`
+        const response = await props.db.query<IServiceTier>(`
           SELECT * FROM dbview_schema.enabled_service_tiers_ext
           WHERE id = $1
         `, [id]);
@@ -99,7 +100,7 @@ const service_tiers: ApiModule = [
       try {
         const { id } = props.event.pathParameters;
 
-        const response = await props.client.query<IServiceTier>(`
+        const response = await props.db.query<IServiceTier>(`
           DELETE FROM service_tiers
           WHERE id = $1
         `, [id]);
@@ -120,7 +121,7 @@ const service_tiers: ApiModule = [
       try {
         const { id } = props.event.pathParameters;
 
-        await props.client.query(`
+        await props.db.query(`
           UPDATE service_tiers
           SET enabled = false
           WHERE id = $1

@@ -1,6 +1,6 @@
 import { IUserProfile } from 'awayto';
 import { keycloak } from '../util/keycloak';
-import { ApiModule } from "../util/db";
+import { ApiModule } from '../api';
 import users from './profiles';
 
 const manageUsers: ApiModule = [
@@ -46,7 +46,7 @@ const manageUsers: ApiModule = [
 
         const { id } = await users[usersApiPostUser].cmnd(props) as IUserProfile;
 
-        const { rows: [ user ] } = await props.client.query<IUserProfile>(`
+        const { rows: [ user ] } = await props.db.query<IUserProfile>(`
           SELECT * FROM dbview_schema.enabled_users_ext
           WHERE id = $1 
         `, [id]);
@@ -98,7 +98,7 @@ const manageUsers: ApiModule = [
       try {
         // const { Users } = await listUsers();
         
-        // const { rows: dbUsers } = await props.client.query<IUserProfile>('SELECT * FROM dbview_schema.enabled_users_ext');
+        // const { rows: dbUsers } = await props.db.query<IUserProfile>('SELECT * FROM dbview_schema.enabled_users_ext');
 
         // const users = Users?.map(u => {
         //   return {
@@ -135,7 +135,7 @@ const manageUsers: ApiModule = [
       const minId = (parseInt(page) - 1) * parseInt(perPage);
       try {
 
-        const response = await props.client.query(`
+        const response = await props.db.query(`
           SELECT * FROM dbview_schema.enabled_users_ext
           WHERE row > $1
           LIMIT $2
@@ -157,7 +157,7 @@ const manageUsers: ApiModule = [
       try {
         const { id } = props.event.pathParameters;
 
-        const response = await props.client.query(`
+        const response = await props.db.query(`
           SELECT * FROM dbview_schema.enabled_users_ext
           WHERE id = $1 
         `, [id]);
@@ -182,7 +182,7 @@ const manageUsers: ApiModule = [
       try {
         const { sub } = props.event.pathParameters;
 
-        const response = await props.client.query(`
+        const response = await props.db.query(`
           SELECT * FROM dbview_schema.enabled_users_ext
           WHERE sub = $1 
         `, [sub]);
@@ -230,7 +230,7 @@ const manageUsers: ApiModule = [
         // await asyncForEach<IUserProfile>(profiles, async (profile) => {
 
         //   console.log('profile', profile);
-        //   const result = await props.client.query<IUserProfile>(`
+        //   const result = await props.db.query<IUserProfile>(`
         //     UPDATE users
         //     SET locked = true
         //     WHERE username = $1;
@@ -253,7 +253,7 @@ const manageUsers: ApiModule = [
         const profiles = props.event.body as IUserProfile[];
 
         // await asyncForEach(profiles, async (profile) => {
-        //   await props.client.query<IUserProfile>(`
+        //   await props.db.query<IUserProfile>(`
         //     UPDATE users
         //     SET locked = false
         //     WHERE username = $1;

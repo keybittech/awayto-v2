@@ -1,5 +1,7 @@
 import type { IGroup, IUuidRoles, DbError, IGroupState } from 'awayto';
-import { ApiModule, asyncForEach, buildUpdate } from '../util/db';
+import { asyncForEach } from 'awayto';
+import { ApiModule } from '../api';
+import { buildUpdate } from '../util/db';
 
 const manageGroups: ApiModule = [
 
@@ -11,7 +13,7 @@ const manageGroups: ApiModule = [
 
         const { name, roles } = props.event.body as IGroup;
 
-        const { rows: [ group ] } = await props.client.query<IGroup>(`
+        const { rows: [ group ] } = await props.db.query<IGroup>(`
           INSERT INTO groups (name, created_on)
           VALUES ($1, $2)
           ON CONFLICT (name) DO NOTHING
@@ -19,7 +21,7 @@ const manageGroups: ApiModule = [
         `, [name, new Date()]);
 
         await asyncForEach(roles, async role => {
-          await props.client.query(`
+          await props.db.query(`
             INSERT INTO uuid_roles (parent_uuid, role_id, created_on, created_sub)
             VALUES ($1, $2, $3, $4)
             ON CONFLICT (parent_uuid, role_id) DO NOTHING
@@ -51,7 +53,7 @@ const manageGroups: ApiModule = [
 
         const updateProps = buildUpdate({ id, name });
 
-        const { rows: [ group ] } = await props.client.query<IGroup>(`
+        const { rows: [ group ] } = await props.db.query<IGroup>(`
           UPDATE groups
           SET ${updateProps.string}
           WHERE id = $1
@@ -59,16 +61,16 @@ const manageGroups: ApiModule = [
         `, updateProps.array);
 
         const roleIds = roles.map(r => r.id);
-        const diffs = (await props.client.query<IUuidRoles>('SELECT id, role_id as "roleId" FROM uuid_roles WHERE parent_uuid = $1', [group.id])).rows.filter(r => !roleIds.includes(r.roleId)).map(r => r.id) as string[];
+        const diffs = (await props.db.query<IUuidRoles>('SELECT id, role_id as "roleId" FROM uuid_roles WHERE parent_uuid = $1', [group.id])).rows.filter(r => !roleIds.includes(r.roleId)).map(r => r.id) as string[];
 
         if (diffs.length) {
           await asyncForEach(diffs, async diff => {
-            await props.client.query('DELETE FROM uuid_roles WHERE id = $1', [diff]);
+            await props.db.query('DELETE FROM uuid_roles WHERE id = $1', [diff]);
           });          
         }
 
         await asyncForEach(roles, async role => {
-          await props.client.query(`
+          await props.db.query(`
             INSERT INTO uuid_roles (parent_uuid, role_id, created_on, created_sub)
             VALUES ($1, $2, $3, $4)
             ON CONFLICT (parent_uuid, role_id) DO NOTHING
@@ -92,7 +94,7 @@ const manageGroups: ApiModule = [
     cmnd : async (props) => {
       try {
 
-        const response = await props.client.query<IGroup>(`
+        const response = await props.db.query<IGroup>(`
           SELECT * FROM dbview_schema.enabled_groups_ext
         `);
         
@@ -112,7 +114,7 @@ const manageGroups: ApiModule = [
       try {
         const { id } = props.event.pathParameters;
 
-        const response = await props.client.query<IGroup>(`
+        const response = await props.db.query<IGroup>(`
           SELECT * FROM dbview_schema.enabled_groups_ext
           WHERE id = $1
         `, [id]);
@@ -136,7 +138,7 @@ const manageGroups: ApiModule = [
         const ids = query.ids.split(',');
 
         await asyncForEach(ids, async id => {
-          await props.client.query(`
+          await props.db.query(`
             DELETE FROM groups
             WHERE id = $1
           `, [id]);
@@ -159,7 +161,7 @@ const manageGroups: ApiModule = [
         const groups = props.event.body as IGroup[];
 
         await asyncForEach(groups, async group => {
-          await props.client.query(`
+          await props.db.query(`
             UPDATE groups
             SET enabled = false
             WHERE id = $1
@@ -182,7 +184,7 @@ const manageGroups: ApiModule = [
       try {
         const { name } = props.event.pathParameters;
 
-        const { rows: [{ count }] } = await props.client.query<{count: number}>(`
+        const { rows: [{ count }] } = await props.db.query<{count: number}>(`
           SELECT COUNT(*) as count
           FROM groups
           WHERE name = $1

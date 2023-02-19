@@ -1,5 +1,6 @@
 import { IUserProfile } from 'awayto';
-import { ApiModule, buildUpdate } from '../util/db';
+import { ApiModule } from '../api';
+import { buildUpdate } from '../util/db';
 import { appClient, keycloak, roleCall } from '../util/keycloak';
 
 const profile: ApiModule = [
@@ -12,7 +13,7 @@ const profile: ApiModule = [
 
         const { firstName, lastName, username, email, image, sub } = props.event.body as IUserProfile;
             
-        const { rows: [ user ] } = await props.client.query<IUserProfile>(`
+        const { rows: [ user ] } = await props.db.query<IUserProfile>(`
           INSERT INTO users(sub, username, first_name, last_name, email, image, created_on, created_sub, ip_address)
           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
           RETURNING id, sub, username, first_name as "firstName", last_name as "lastName", email, image
@@ -37,7 +38,7 @@ const profile: ApiModule = [
 
         const updateProps = buildUpdate({ id, first_name, last_name, email, image, updated_on: (new Date()).toISOString(), updated_sub: props.event.userSub });
 
-        const { rows: [ user ] } = await props.client.query<IUserProfile>(`
+        const { rows: [ user ] } = await props.db.query<IUserProfile>(`
           UPDATE users
           SET ${updateProps.string}
           WHERE id = $1
@@ -66,7 +67,7 @@ const profile: ApiModule = [
     path: 'profile/details',
     cmnd: async (props) => {
       try {
-        const [user] = (await props.client.query<IUserProfile>(`
+        const [user] = (await props.db.query<IUserProfile>(`
           SELECT * 
           FROM dbview_schema.enabled_users_ext
           WHERE sub = $1
@@ -98,7 +99,7 @@ const profile: ApiModule = [
       const { sub } = props.event.pathParameters;
 
       try {
-        const response = await props.client.query<IUserProfile>(`
+        const response = await props.db.query<IUserProfile>(`
           SELECT * FROM dbview_schema.enabled_users
           WHERE sub = $1 
         `, [sub]);
@@ -119,7 +120,7 @@ const profile: ApiModule = [
       try {
         const { id } = props.event.pathParameters;
 
-        const response = await props.client.query<IUserProfile>(`
+        const response = await props.db.query<IUserProfile>(`
           SELECT * FROM dbview_schema.enabled_users
           WHERE id = $1 
         `, [id]);
@@ -139,7 +140,7 @@ const profile: ApiModule = [
   //   cmnd: async (props) => {
   //     try {
 
-  //       const response = await props.client.query(`
+  //       const response = await props.db.query(`
   //         UPDATE users
   //         SET push_token = $2
   //         WHERE sub = $1
@@ -161,7 +162,7 @@ const profile: ApiModule = [
       try {
         const { id } = props.event.pathParameters;
 
-        await props.client.query(`
+        await props.db.query(`
           UPDATE users
           SET enabled = false
           WHERE id = $1

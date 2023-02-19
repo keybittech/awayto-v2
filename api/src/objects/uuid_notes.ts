@@ -1,5 +1,7 @@
 import { IUuidNotes } from 'awayto';
-import { asyncForEach, ApiModule, buildUpdate } from '../util/db';
+import { asyncForEach } from 'awayto';
+import { ApiModule } from '../api';
+import { buildUpdate } from '../util/db';
 
 const uuidNotes: ApiModule = [
 
@@ -10,7 +12,7 @@ const uuidNotes: ApiModule = [
       try {
         const { parentUuid: parent_uuid, note } = props.event.body as IUuidNotes;
 
-        const response = await props.client.query<IUuidNotes>(`
+        const response = await props.db.query<IUuidNotes>(`
           INSERT INTO uuid_notes (parent_uuid, note, created_on, created_sub)
           VALUES ($1, $2, $3, $4)
           ON CONFLICT (parent_uuid, note, created_sub) DO NOTHING
@@ -36,7 +38,7 @@ const uuidNotes: ApiModule = [
 
         const updateProps = buildUpdate({ id, parent_uuid, note, updated_on: (new Date()).toString(), updated_sub: props.event.userSub });
 
-        await props.client.query(`
+        await props.db.query(`
           UPDATE uuid_notes
           SET ${updateProps.string}
           WHERE id = $1
@@ -57,7 +59,7 @@ const uuidNotes: ApiModule = [
     cmnd : async (props) => {
       try {
 
-        const response = await props.client.query<IUuidNotes>(`
+        const response = await props.db.query<IUuidNotes>(`
           SELECT * FROM dbview_schema.enabled_uuid_notes
         `);
         
@@ -77,7 +79,7 @@ const uuidNotes: ApiModule = [
       try {
         const { id } = props.event.pathParameters;
 
-        const response = await props.client.query<IUuidNotes>(`
+        const response = await props.db.query<IUuidNotes>(`
           SELECT * FROM dbview_schema.enabled_uuid_notes
           WHERE id = $1
         `, [id]);
@@ -98,7 +100,7 @@ const uuidNotes: ApiModule = [
       try {
         const { id } = props.event.pathParameters;
 
-        const response = await props.client.query<IUuidNotes>(`
+        const response = await props.db.query<IUuidNotes>(`
           DELETE FROM uuid_notes
           WHERE id = $1
         `, [id]);
@@ -120,7 +122,7 @@ const uuidNotes: ApiModule = [
         const notes = props.event.body as IUuidNotes[];
 
         await asyncForEach(notes, async note => {
-          await props.client.query(`
+          await props.db.query(`
             UPDATE uuid_notes
             SET enabled = false
             WHERE id = $1

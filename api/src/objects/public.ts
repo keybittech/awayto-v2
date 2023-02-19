@@ -1,5 +1,4 @@
-import { IRole } from 'awayto';
-import { ApiModule } from '../util/db';
+import { ApiModule } from '../api';
 
 const tests: ApiModule = [
 
@@ -25,7 +24,7 @@ const tests: ApiModule = [
 
   //       switch(path) {
   //         case 'roles':
-  //           return (await props.client.query<IRole>(`SELECT * FROM roles`)).rows;
+  //           return (await props.db.query<IRole>(`SELECT * FROM roles`)).rows;
   //         default:
   //           break;
   //       }

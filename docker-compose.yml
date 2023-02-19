@@ -110,15 +110,20 @@ services:
     restart: always
     environment:
       - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
-  
+  redis:
+    image: 'bitnami/redis:latest'
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    network_mode: host
+    volumes:
+      - redisdata:/bitnami/redis/data
+
   ## Graylog
-  
   # MongoDB: https://hub.docker.com/_/mongo/
   mongo:
     image: mongo:5.0.13
     networks:
       - graylog
-    
   # Elasticsearch: https://www.elastic.co/guide/en/elasticsearch/reference/7.10/docker.html
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2
@@ -137,7 +142,6 @@ services:
           memory: 1g
     networks:
       - graylog
-
   # Graylog: https://hub.docker.com/r/graylog/graylog/
   graylog:
     image: graylog/graylog:5.0
@@ -176,6 +180,8 @@ volumes:
   pgstore:
     external: true
   graylogdata:
+    external: true
+  redisdata:
     external: true
 
 networks:

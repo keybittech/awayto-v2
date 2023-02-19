@@ -4,29 +4,82 @@ dotenv.config({ path: __dirname + '../.env' })
 import fs from 'fs';
 import https from 'https';
 import express, { Express, NextFunction, Request, Response } from 'express';
-import postgres from 'pg';
+import { Client } from 'pg';
 import routeMatch, { RouteMatch } from 'route-match';
 import cookieSession from 'cookie-session';
 import cookieParser from 'cookie-parser';
 import httpProxy from 'http-proxy';
 import jwtDecode from 'jwt-decode';
 import assert from 'assert';
-import { graylog } from 'graylog2';
 import { v4 as uuid } from 'uuid';
 
 import passport from 'passport';
 
 import APIs from './objects/index';
 import { keycloakClient, groupRoleActions } from './util/keycloak';
-import { AuthEvent } from './util/db';
 
-import { DecodedJWTToken, UserGroupRoles, StrategyUser } from 'awayto';
+import { DecodedJWTToken, UserGroupRoles, StrategyUser, ILoadedState } from 'awayto';
 import { IdTokenClaims, Strategy, StrategyVerifyCallbackUserInfo } from 'openid-client';
-import { PerformanceObserver, performance } from 'perf_hooks';
 
-import './util/twitch';
+import redis, { RedisClient } from './util/redis';
+import logger from './util/logger';
+import { db, connected as dbConnected } from './util/db';
+
+// import './util/twitch';
 
 
+/**
+ * @category API
+ */
+export type ApiProps = {
+  event: {
+    method: string;
+    path: string;
+    public: boolean;
+    username?: string;
+    userSub: string;
+    sourceIp: string;
+    groups?: string[];
+    availableUserGroupRoles: UserGroupRoles;
+    pathParameters: Record<string, string>,
+    queryParameters: Record<string, string>,
+    body: Array<ILoadedState> | Record<string, unknown> | AuthEvent
+  };
+  db: Client;
+  redis: RedisClient;
+}
+
+export type IWebhooks = {
+  [prop: string]: (event: Partial<ApiProps>) => Promise<void>;
+};
+
+/**
+ * @category API
+ */
+export type ApiModule = ApiModulet[];
+
+/**
+ * @category API
+ */
+export type ApiModulet = {
+  roles?: string;
+  inclusive?: boolean;
+  method: string;
+  path: string;
+  cmnd(props: ApiProps, meta?: string): Promise<ILoadedState | ILoadedState[] | boolean>;
+}
+
+export type AuthEvent = {
+  id: string;
+  clientId: string;
+  realmId: string;
+  ipAddress: string;
+  sessionId: string;
+  userId: string;
+  time: string;
+  type: string;
+  details: Record<string, string>
+};
 
 const { Route, RouteCollection, PathMatcher } = routeMatch as RouteMatch;
 
@@ -40,60 +93,37 @@ const pathMatcher = new PathMatcher(routeCollection);
 
 
 const {
-  GRAYLOG_HOST,
-  GRAYLOG_PORT,
-  PG_HOST,
-  PG_PORT,
-  PG_USER,
-  PG_PASSWORD,
-  PG_DATABASE,
   SOCK_HOST,
   SOCK_PORT
 } = process.env as { [prop: string]: string } & { PG_PORT: number };
 
+let connections: Record<string, boolean>;
+
+function setConnections() {
+  connections = {
+    keycloak: !!keycloakClient,
+    db: dbConnected,
+    redis: redis.isReady,
+    logger: !!logger
+  }
+};
+
+setConnections();
+
 async function go() {
 
-  if (!keycloakClient) {
-    console.log('no client, waiting')
-    setTimeout(() => go(), 1000);
-    return;
-  }
-
   try {
-    const logger = new graylog({
-      servers: [{
-        host: GRAYLOG_HOST as string,
-        port: parseInt(GRAYLOG_PORT as string)
-      }]
-    });
 
-    // Log all performance measurements
-    const obs = new PerformanceObserver(items => {
-      logger.log('performance', { body: items.getEntries() });
+    // Gracefully wait for connections to start
+    while (Object.values(connections).includes(false)) {
+      console.log('All connections are not available, waiting', JSON.stringify(connections, null, 2));
+      await new Promise<void>(res => setTimeout(() => {
+        setConnections();
+        res();
+      }, 5000))
+    }
 
-      items.getEntries().forEach(measure => {
-        measure.name.split(' to ').forEach(mark => performance.clearMarks(mark));
-      });
-    });
-    obs.observe({ entryTypes: ['measure'] });
-
-    // Configure Postgres client
-    const client = new postgres.Client({
-      host: PG_HOST,
-      port: PG_PORT,
-      user: PG_USER,
-      password: PG_PASSWORD,
-      database: PG_DATABASE
-    });
-
-
-    // Connect to Postgres
-    client.connect((err) => {
-      if (err) {
-        console.error('Error connecting to Postgres:', err);
-        process.exit(1);
-      }
-    });
+    console.log('starting api with connections', JSON.stringify(connections, null, 2))
 
     // Create Express app
     const app: Express = express();
@@ -213,7 +243,7 @@ async function go() {
 
         logger.log('webhook received', event);
 
-        await APIs.webhooks[`AUTH_${type}`]({ event, client });
+        await APIs.webhooks[`AUTH_${type}`]({ event, db, redis });
 
         res.status(200).end();
       } catch (error) {
@@ -275,7 +305,7 @@ async function go() {
 
         // Handle request
         logger.log('App API Request', event);
-        const result = await cmnd({ event, client });
+        const result = await cmnd({ event, db, redis });
 
         // Respond
         res.status(200).json(result);
@@ -334,7 +364,7 @@ async function go() {
         try {
           // Handle request
           logger.log('App API Request', event);
-          const result = await cmnd({ event, client });
+          const result = await cmnd({ event, db, redis });
   
           // Respond
           res.status(200).json(result);
@@ -403,8 +433,8 @@ async function go() {
     app.get('/api/health', (req, res) => {
       let status = 'OK';
 
-      // Check if Postgres client is connected
-      if (!client) {
+      setConnections();
+      if (Object.values(connections).includes(false)) {
         status = 'Error';
       }
 

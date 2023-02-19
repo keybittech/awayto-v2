@@ -1,4 +1,4 @@
-import { ApiModule } from '../util/db';
+import { ApiModule } from '../api';
 
 const tests: ApiModule = [
 

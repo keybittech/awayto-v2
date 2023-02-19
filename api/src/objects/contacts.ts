@@ -1,5 +1,6 @@
 import { IContact } from 'awayto';
-import { ApiModule, buildUpdate } from '../util/db';
+import { ApiModule } from '../api';
+import { buildUpdate } from '../util/db';
 
 const contacts: ApiModule = [
 
@@ -11,7 +12,7 @@ const contacts: ApiModule = [
 
         const { name, email, phone } = props.event.body as IContact;
 
-        const response = await props.client.query<IContact>(`
+        const response = await props.db.query<IContact>(`
           INSERT INTO contacts (name, email, phone)
           VALUES ($1, $2, $3)
           RETURNING id, name, email, phone
@@ -36,7 +37,7 @@ const contacts: ApiModule = [
 
         const updateProps = buildUpdate({ id, name, email, phone });
 
-        const response = await props.client.query<IContact>(`
+        const response = await props.db.query<IContact>(`
           UPDATE contacts
           SET ${updateProps.string}
           WHERE id = $1
@@ -58,7 +59,7 @@ const contacts: ApiModule = [
     cmnd : async (props) => {
       try {
 
-        const response = await props.client.query<IContact>(`
+        const response = await props.db.query<IContact>(`
           SELECT * FROM dbview_schema.enabled_contacts
         `);
         
@@ -78,7 +79,7 @@ const contacts: ApiModule = [
       try {
         const { id } = props.event.pathParameters;
 
-        const response = await props.client.query<IContact>(`
+        const response = await props.db.query<IContact>(`
           SELECT * FROM dbview_schema.enabled_contacts
           WHERE id = $1
         `, [id]);
@@ -99,7 +100,7 @@ const contacts: ApiModule = [
       try {
         const { id } = props.event.pathParameters;
 
-        const response = await props.client.query<IContact>(`
+        const response = await props.db.query<IContact>(`
           DELETE FROM contacts
           WHERE id = $1
         `, [id]);
@@ -120,7 +121,7 @@ const contacts: ApiModule = [
       try {
         const { id } = props.event.pathParameters;
 
-        await props.client.query(`
+        await props.db.query(`
           UPDATE contacts
           SET enabled = false
           WHERE id = $1

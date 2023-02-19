@@ -1,6 +1,5 @@
-import { ApiModule } from '../util/db';
-import { Configuration, OpenAIApi } from 'openai';
-import { ApiErrorResponse } from 'awayto';
+import { IWebhooks } from '../api';
+import { OpenAIApi } from 'openai';
 
 const openai = new OpenAIApi();
 
@@ -10,37 +9,31 @@ function generatePrompt(input: string) {
   return prompt;
 }
 
-const assist: ApiModule = [
 
-  {
-    method: 'POST',
-    path: 'assist',
-    cmnd: async (props) => {
-      try {
 
-        const { message } = props.event.body as { message: string };
+export const AssistWebhooks: IWebhooks = { 
+  CHANNEL_POINT_REDEMPTION: async (props) => {
+    const { message } = props.event!.body as { message: string };
 
-        // const completion = await openai.createCompletion({
-        //   model: 
-        // },{
-        //   headers: {
-        //     'Authorization': `Bearer ${process.env.OPENAI_API_KEY as string}`
-        //   }
-        // });
-
-        
-        // console.log(JSON.stringify(completion.data))
-        
-        return true;
-
-      } catch (error) {
-        const { message } = error as ApiErrorResponse;
-        throw { message: 'oai error: ' + message };
+    console.log('assist event', props.event)
+    
+    const completion = await openai.createCompletion({
+      model: 'text-davinci-003',
+      prompt: generatePrompt(message),
+      temperature: 0.6,
+      max_tokens: 20
+    },{
+      headers: {
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY as string}`
       }
-
-    }
+    });
+    
+    
+    console.log(JSON.stringify(completion.data))
+    
   },
-
-]
-
-export default assist;
+  AUTH_LOGIN: async event => {
+  },
+  AUTH_LOGOUT: async event => {
+  }
+}

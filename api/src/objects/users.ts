@@ -1,5 +1,6 @@
 import { IUser } from 'awayto';
-import { ApiModule, asyncForEach } from '../util/db';
+import { asyncForEach } from 'awayto';
+import { ApiModule } from '../api';
 
 const users: ApiModule = [
 
@@ -40,7 +41,7 @@ const users: ApiModule = [
     cmnd : async (props) => {
       try {
 
-        const response = await props.client.query<IUser>(`
+        const response = await props.db.query<IUser>(`
           SELECT eu.* FROM dbview_schema.enabled_users eu
           LEFT JOIN dbview_schema.enabled_uuid_groups eug ON eug."parentUuid" = eu.id
           LEFT JOIN dbview_schema.enabled_groups eg ON eg.id = eug."groupId"
@@ -63,7 +64,7 @@ const users: ApiModule = [
       try {
         const { id } = props.event.pathParameters;
 
-        const response = await props.client.query<IUser>(`
+        const response = await props.db.query<IUser>(`
           SELECT * FROM dbview_schema.enabled_users
           WHERE id = $1
         `, [id]);
@@ -101,7 +102,7 @@ const users: ApiModule = [
         const users = props.event.body as IUser[];
 
         await asyncForEach(users, async role => {
-          await props.client.query(`
+          await props.db.query(`
             UPDATE users
             SET enabled = false
             WHERE id = $1

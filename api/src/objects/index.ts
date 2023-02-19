@@ -13,8 +13,6 @@ import ManageGroups from './manage_groups';
 import Users from './users';
 import ManageUsers from './manage_users';
 
-import Assist from './assist';
-
 import Bookings from './bookings';
 import Contacts from './contacts';
 import Payments from './payments';
@@ -29,15 +27,17 @@ import GroupServices from './group_services';
 import GroupServiceAddons from './group_service_addons';
 import GroupSchedules from './group_schedules';
 
+
+import { AssistWebhooks } from './assist';
 import { AuthWebhooks } from './auth';
 
 export default  {
   webhooks: {
-    ...AuthWebhooks
+    ...AuthWebhooks,
+    ...AssistWebhooks
   },
   protected: [
     // ...Tests,
-    ...Assist,
     ...Files,
     ...Forms,
     ...Profiles,

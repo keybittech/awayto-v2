@@ -1,5 +1,7 @@
 import { IService, IServiceTier } from 'awayto';
-import { ApiModule, buildUpdate, asyncForEach } from '../util/db';
+import { asyncForEach } from 'awayto';
+import { ApiModule } from '../api';
+import { buildUpdate } from '../util/db';
 
 const services: ApiModule = [
 
@@ -11,7 +13,7 @@ const services: ApiModule = [
 
         const { name, cost, tiers } = props.event.body as IService;
 
-        const service = (await props.client.query<IService>(`
+        const service = (await props.db.query<IService>(`
           WITH input_rows(name, cost) as (VALUES ($1, $2::integer)), ins AS (
             INSERT INTO services (name, cost)
             SELECT * FROM input_rows
@@ -27,7 +29,7 @@ const services: ApiModule = [
         `, [name, cost])).rows[0];
 
         await asyncForEach(tiers, async t => {
-          const serviceTier = (await props.client.query<IServiceTier>(`
+          const serviceTier = (await props.db.query<IServiceTier>(`
             WITH input_rows(name, service_id, multiplier) as (VALUES ($1, $2::uuid, $3::decimal)), ins AS (
               INSERT INTO service_tiers (name, service_id, multiplier)
               SELECT * FROM input_rows
@@ -43,7 +45,7 @@ const services: ApiModule = [
           `, [t.name, service.id, t.multiplier])).rows[0];
 
           await asyncForEach(t.addons, async a => {
-            await props.client.query(`
+            await props.db.query(`
               INSERT INTO service_tier_addons (service_addon_id, service_tier_id)
               VALUES ($1, $2)
               ON CONFLICT (service_addon_id, service_tier_id) DO NOTHING
@@ -70,7 +72,7 @@ const services: ApiModule = [
 
         const updateProps = buildUpdate({ id, name });
 
-        const response = await props.client.query<IService>(`
+        const response = await props.db.query<IService>(`
           UPDATE services
           SET ${updateProps.string}
           WHERE id = $1
@@ -92,7 +94,7 @@ const services: ApiModule = [
     cmnd : async (props) => {
       try {
 
-        const response = await props.client.query<IService>(`
+        const response = await props.db.query<IService>(`
           SELECT * FROM dbview_schema.enabled_services
         `);
         
@@ -112,7 +114,7 @@ const services: ApiModule = [
       try {
         const { id } = props.event.pathParameters;
 
-        const response = await props.client.query<IService>(`
+        const response = await props.db.query<IService>(`
           SELECT * FROM dbview_schema.enabled_services_ext
           WHERE id = $1
         `, [id]);
@@ -133,7 +135,7 @@ const services: ApiModule = [
       try {
         const { id } = props.event.pathParameters;
 
-        const response = await props.client.query<IService>(`
+        const response = await props.db.query<IService>(`
           DELETE FROM services
           WHERE id = $1
           RETURNING id
@@ -155,7 +157,7 @@ const services: ApiModule = [
       try {
         const { id } = props.event.pathParameters;
 
-        await props.client.query(`
+        await props.db.query(`
           UPDATE services
           SET enabled = false
           WHERE id = $1

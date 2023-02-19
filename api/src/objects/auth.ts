@@ -1,9 +1,10 @@
 import { IUserProfile } from 'awayto';
-import { AuthEvent, IWebhooks } from '../util/db';
+import { ApiProps, AuthEvent, IWebhooks } from '../api';
 import profiles from './profiles';
 
 export const AuthWebhooks: IWebhooks = { 
   AUTH_REGISTER: async (props) => {
+    if (!props.event) return;
     const { userId, details, ipAddress } = props.event.body as AuthEvent;
 
     const user: Partial<IUserProfile> = {
@@ -19,7 +20,7 @@ export const AuthWebhooks: IWebhooks = {
 
     const postUserProfile = profiles.findIndex(api => 'post' === api.method.toLowerCase() && 'profile' === api.path.toLowerCase());
 
-    await profiles[postUserProfile].cmnd(props) as IUserProfile;
+    await profiles[postUserProfile].cmnd(props as ApiProps) as IUserProfile;
   },
   AUTH_LOGIN: async event => {
   },

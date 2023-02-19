@@ -1,5 +1,7 @@
 import { IUuidRoles } from 'awayto';
-import { ApiModule, asyncForEach, buildUpdate } from '../util/db';
+import { asyncForEach } from 'awayto';
+import { ApiModule } from '../api';
+import { buildUpdate } from '../util/db';
 
 const uuidRoles: ApiModule = [
 
@@ -10,12 +12,12 @@ const uuidRoles: ApiModule = [
       try {
         const { parentUuid: parent_uuid, roleIds } = props.event.body as IUuidRoles & { roleIds: string[] };
         
-        await props.client.query(`
+        await props.db.query(`
           DELETE FROM uuid_roles WHERE parent_uuid = $1
         `, [parent_uuid])
 
         await asyncForEach(roleIds, async (id: string) => {
-          await props.client.query(`
+          await props.db.query(`
             INSERT INTO uuid_roles (parent_uuid, role_id, created_on, created_sub)
             VALUES ($1, $2, $3, $4)
             ON CONFLICT (parent_uuid, role_id) DO NOTHING
@@ -42,7 +44,7 @@ const uuidRoles: ApiModule = [
 
         const updateProps = buildUpdate({ id, parent_uuid, role_id, updated_on: (new Date()).toString(), updated_sub: props.event.userSub });
 
-        await props.client.query(`
+        await props.db.query(`
           UPDATE uuid_roles
           SET ${updateProps.string}
           WHERE id = $1
@@ -63,7 +65,7 @@ const uuidRoles: ApiModule = [
     cmnd : async (props) => {
       try {
 
-        const response = await props.client.query<IUuidRoles>(`
+        const response = await props.db.query<IUuidRoles>(`
           SELECT * FROM dbview_schema.enabled_uuid_roles
         `);
         
@@ -83,7 +85,7 @@ const uuidRoles: ApiModule = [
       try {
         const { id } = props.event.pathParameters;
 
-        const response = await props.client.query<IUuidRoles>(`
+        const response = await props.db.query<IUuidRoles>(`
           SELECT * FROM dbview_schema.enabled_uuid_roles
           WHERE id = $1
         `, [id]);
@@ -104,7 +106,7 @@ const uuidRoles: ApiModule = [
       try {
         const { id } = props.event.pathParameters;
 
-        const response = await props.client.query<IUuidRoles>(`
+        const response = await props.db.query<IUuidRoles>(`
           DELETE FROM uuid_roles
           WHERE id = $1
         `, [id]);
@@ -125,7 +127,7 @@ const uuidRoles: ApiModule = [
       try {
         const { id, parentUuid: parent_uuid, roleId: role_id } = props.event.body as IUuidRoles;
 
-        await props.client.query(`
+        await props.db.query(`
           UPDATE uuid_roles
           SET enabled = false
           WHERE parent_uuid = $1 AND role_id = $2

@@ -1,5 +1,6 @@
 import { IUuidGroups } from 'awayto';
-import { ApiModule, buildUpdate } from '../util/db';
+import { ApiModule } from '../api';
+import { buildUpdate } from '../util/db';
 
 const uuidGroups: ApiModule = [
 
@@ -11,7 +12,7 @@ const uuidGroups: ApiModule = [
 
         const { parentUuid, groupId } = props.event.body as IUuidGroups;
 
-        const response = await props.client.query<IUuidGroups>(`
+        const response = await props.db.query<IUuidGroups>(`
           INSERT INTO uuid_groups (parent_uuid, group_id, created_on, created_sub)
           VALUES ($1, $2, $3, $4)
           ON CONFLICT (parent_uuid, group_id) DO NOTHING
@@ -37,7 +38,7 @@ const uuidGroups: ApiModule = [
 
         const updateProps = buildUpdate({ id, parent_uuid, group_id, updated_on: (new Date()).toString(), updated_sub: props.event.userSub });
 
-        await props.client.query(`
+        await props.db.query(`
           UPDATE uuid_groups
           SET ${updateProps.string}
           WHERE id = $1
@@ -58,7 +59,7 @@ const uuidGroups: ApiModule = [
     cmnd : async (props) => {
       try {
 
-        const response = await props.client.query<IUuidGroups>(`
+        const response = await props.db.query<IUuidGroups>(`
           SELECT * FROM dbview_schema.enabled_uuid_groups
         `);
         
@@ -78,7 +79,7 @@ const uuidGroups: ApiModule = [
       try {
         const { id } = props.event.pathParameters;
 
-        const response = await props.client.query<IUuidGroups>(`
+        const response = await props.db.query<IUuidGroups>(`
           SELECT * FROM dbview_schema.enabled_uuid_groups
           WHERE id = $1
         `, [id]);
@@ -99,7 +100,7 @@ const uuidGroups: ApiModule = [
       try {
         const { parentUuid } = props.event.pathParameters;
 
-        const response = await props.client.query<IUuidGroups>(`
+        const response = await props.db.query<IUuidGroups>(`
           SELECT * FROM dbview_schema.enabled_uuid_groups
           WHERE "parentUuid" = $1
         `, [parentUuid]);
@@ -120,7 +121,7 @@ const uuidGroups: ApiModule = [
       try {
         const { groupId } = props.event.pathParameters;
 
-        const response = await props.client.query<IUuidGroups>(`
+        const response = await props.db.query<IUuidGroups>(`
           SELECT * FROM dbview_schema.enabled_uuid_groups
           WHERE "groupId" = $1
         `, [groupId]);
@@ -141,7 +142,7 @@ const uuidGroups: ApiModule = [
       try {
         const { id } = props.event.pathParameters;
         
-        const response = await props.client.query<IUuidGroups>(`
+        const response = await props.db.query<IUuidGroups>(`
           DELETE FROM uuid_groups
           WHERE id = $1
         `, [id]);

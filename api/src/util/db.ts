@@ -1,73 +1,27 @@
-import { Client } from 'pg';
-import { ILoadedState, UserGroupRoles } from 'awayto';
-
-/**
- * @category API
- */
-export type ApiModule = ApiModulet[];
-
-/**
- * @category API
- */
-export type ApiModulet = {
-  roles?: string;
-  inclusive?: boolean;
-  method: string;
-  path: string;
-  cmnd(props: ApiProps, meta?: string): Promise<ILoadedState | ILoadedState[] | boolean>;
-}
-
-export type AuthEvent = {
-  id: string;
-  clientId: string;
-  realmId: string;
-  ipAddress: string;
-  sessionId: string;
-  userId: string;
-  time: string;
-  type: string;
-  details: Record<string, string>
-};
-
-export type IWebhooks = {
-  [prop: string]: (event: ApiProps) => Promise<void>;
-};
-
-
-/**
- * @category API
- */
-export type ApiProps = {
-  event: {
-    method: string;
-    path: string;
-    public: boolean;
-    username?: string;
-    userSub: string;
-    sourceIp: string;
-    groups?: string[];
-    availableUserGroupRoles: UserGroupRoles;
-    pathParameters: Record<string, string>,
-    queryParameters: Record<string, string>,
-    body: Array<ILoadedState> | Record<string, unknown> | AuthEvent
-  };
-  client: Client;
-}
-
-/**
- * @category API
- */
-export type ApiRequestAuthorizer = {
-  userToken: string;
-  roles: string;
-  inclusive: boolean;
-}
+import postgres, { Client } from 'pg';
 
 type BuildParamTypes = string | number | boolean;
 
 interface BuildUpdateParams {
   [key: string]: BuildParamTypes;
 }
+
+const {
+  PG_HOST,
+  PG_PORT,
+  PG_USER,
+  PG_PASSWORD,
+  PG_DATABASE
+} = process.env as { [prop: string]: string } & { PG_PORT: number };
+
+export let connected: boolean = false;
+export let db: Client = new postgres.Client({
+  host: PG_HOST,
+  port: PG_PORT,
+  user: PG_USER,
+  password: PG_PASSWORD,
+  database: PG_DATABASE
+});
 
 export const buildUpdate = (params: BuildUpdateParams) => {
   const buildParams: BuildParamTypes[] = [];
@@ -78,8 +32,19 @@ export const buildUpdate = (params: BuildUpdateParams) => {
   }
 };
 
-export async function asyncForEach<T>(array: T[], callback: (item: T, idx: number, arr: T[]) => Promise<void>) {
-  for (let index = 0; index < array.length; index++) {
-    await callback(array[index], index, array);
+async function go() {
+
+  try {
+      
+    await db.connect();
+    
+    connected = true;
+    
+  } catch (error) {
+    
+    console.log({ PGCONNECTERROR: error })
+
   }
 }
+
+void go();

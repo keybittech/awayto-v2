@@ -1,5 +1,6 @@
 import { IServiceAddon } from 'awayto';
-import { ApiModule, buildUpdate } from '../util/db';
+import { ApiModule } from '../api';
+import { buildUpdate } from '../util/db';
 
 const serviceAddons: ApiModule = [
 
@@ -11,7 +12,7 @@ const serviceAddons: ApiModule = [
 
         const { name } = props.event.body as IServiceAddon;
 
-        const response = await props.client.query<IServiceAddon>(`
+        const response = await props.db.query<IServiceAddon>(`
           WITH input_rows(name) as (VALUES ($1)), ins AS (
             INSERT INTO service_addons (name)
             SELECT * FROM input_rows
@@ -45,7 +46,7 @@ const serviceAddons: ApiModule = [
 
         const updateProps = buildUpdate({ id, name });
 
-        const response = await props.client.query<IServiceAddon>(`
+        const response = await props.db.query<IServiceAddon>(`
           UPDATE service_addons
           SET ${updateProps.string}
           WHERE id = $1
@@ -67,7 +68,7 @@ const serviceAddons: ApiModule = [
     cmnd : async (props) => {
       try {
 
-        const response = await props.client.query<IServiceAddon>(`
+        const response = await props.db.query<IServiceAddon>(`
           SELECT * FROM dbview_schema.enabled_service_addons
         `);
         
@@ -87,7 +88,7 @@ const serviceAddons: ApiModule = [
       try {
         const { id } = props.event.pathParameters;
 
-        const response = await props.client.query<IServiceAddon>(`
+        const response = await props.db.query<IServiceAddon>(`
           SELECT * FROM dbview_schema.enabled_service_addons
           WHERE id = $1
         `, [id]);
@@ -108,7 +109,7 @@ const serviceAddons: ApiModule = [
       try {
         const { id } = props.event.pathParameters;
 
-        const response = await props.client.query<IServiceAddon>(`
+        const response = await props.db.query<IServiceAddon>(`
           DELETE FROM service_addons
           WHERE id = $1
           RETURNING id
@@ -130,7 +131,7 @@ const serviceAddons: ApiModule = [
       try {
         const { id } = props.event.pathParameters;
 
-        await props.client.query(`
+        await props.db.query(`
           UPDATE service_addons
           SET enabled = false
           WHERE id = $1
