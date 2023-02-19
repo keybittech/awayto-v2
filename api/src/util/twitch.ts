@@ -1,5 +1,5 @@
 import WebSocket from 'ws';
-import APIs from '../objects/index';
+import WebHooks from '../webhooks/index';
 import { v4 as uuid } from 'uuid';
 import fetch from 'node-fetch';
 
@@ -107,7 +107,7 @@ async function go() {
     
             if (rewards[contents.customRewardId]) {
               
-              await APIs.webhooks[`CHANNEL_POINT_REDEMPTION`]({ event });
+              await WebHooks[`CHANNEL_POINT_REDEMPTION`]({ event });
             }
     
     

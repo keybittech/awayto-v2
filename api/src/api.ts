@@ -15,7 +15,8 @@ import { v4 as uuid } from 'uuid';
 
 import passport from 'passport';
 
-import APIs from './objects/index';
+import APIs from './apis/index';
+import WebHooks from './webhooks/index';
 import { keycloakClient, groupRoleActions } from './util/keycloak';
 
 import { DecodedJWTToken, UserGroupRoles, StrategyUser, ILoadedState, IActionTypes } from 'awayto';
@@ -245,7 +246,7 @@ async function go() {
 
         logger.log('webhook received', event);
 
-        await APIs.webhooks[`AUTH_${type}`]({ event, db, redis });
+        await WebHooks[`AUTH_${type}`]({ event, db, redis });
 
         res.status(200).end();
       } catch (error) {

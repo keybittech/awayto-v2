@@ -1,6 +1,6 @@
 import { IUserProfile } from 'awayto';
 import { ApiProps, AuthEvent, IWebhooks } from '../api';
-import profiles from './profiles';
+import profiles from '../apis/profiles';
 
 export const AuthWebhooks: IWebhooks = { 
   AUTH_REGISTER: async (props) => {

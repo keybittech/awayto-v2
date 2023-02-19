@@ -28,14 +28,8 @@ import GroupServiceAddons from './group_service_addons';
 import GroupSchedules from './group_schedules';
 
 
-import { AssistWebhooks } from './assist';
-import { AuthWebhooks } from './auth';
 
 export default  {
-  webhooks: {
-    ...AuthWebhooks,
-    ...AssistWebhooks
-  },
   protected: [
     // ...Tests,
     ...Files,
