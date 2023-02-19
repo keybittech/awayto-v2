@@ -54,19 +54,18 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
     const setValue = function() {
       const bracket = schedule.brackets.find(b => b.id === selectedBracket.id) as IScheduleBracket;
 
+      const slot = {
+        id: (new Date()).getTime().toString(),
+        startTime: startTime.utc().toString(),
+        bracketId: selectedBracket.id
+      };
+
       if (exists) {
-        bracket.slots = bracket.slots.filter(b => b.bracketId !== selectedBracket.id);
+        bracket.slots = bracket.slots.filter(b => b.id !== exists.id);
         delete selected[target];
       } else if (Object.values(selected).filter(s => s.bracketId === selectedBracket.id).length < selectedBracket.duration) {
-        bracket.slots.push({
-          id: (new Date()).getTime().toString(),
-          startTime: startTime.utc().toString(),
-          bracketId: selectedBracket.id
-        })
-        selected[target] = {
-          startTime: startTime.utc().toString(),
-          bracketId: selectedBracket.id
-        };
+        bracket.slots.push(slot)
+        selected[target] = slot;
       } else {
         alert('you went over your allotment');
       }
@@ -78,12 +77,12 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
     return <CardActionArea
       style={props.style}
       sx={{ position: 'relative', '&:hover': { opacity: '1', boxShadow: '2' }, border: exists ? `1px solid ${bracketColors[schedule.brackets.findIndex(b => b.id === exists.bracketId)]}` : undefined, backgroundColor: '#444', opacity: !exists ? '.33' : '1', textAlign: 'center', boxShadow: exists ? '2' : undefined }}
+      onMouseLeave={() => buttonDown && setValue()}
       onMouseDown={() => setButtonDown(true)}
       onMouseUp={() => {
-        setButtonDown(false)
-        setValue()
+        setButtonDown(false);
+        setValue();
       }}
-      onMouseLeave={() => buttonDown && setValue()}
     >
       {moment.weekdaysShort()[props.columnIndex]}  {startTime.format("hh:mm A")}
     </CardActionArea>
