@@ -43,7 +43,7 @@ export function ScheduleHome(props: IProps): JSX.Element {
   const { SelectLookup, ScheduleDisplay } = useComponents();
 
   const [newSchedule, setNewSchedule] = useState<ISchedule>({ ...scheduleSchema, brackets: [] });
-  const [newBracket, setNewBracket] = useState<IScheduleBracket>({ ...bracketSchema, services: [] });
+  const [newBracket, setNewBracket] = useState<IScheduleBracket>({ ...bracketSchema, services: [], slots: [] });
 
   const { groups } = useRedux(state => state.profile);
   const { groupServices } = useRedux(state => state.groupService);
@@ -65,10 +65,12 @@ export function ScheduleHome(props: IProps): JSX.Element {
   }, [group]);
 
   const setDefault = useCallback((type: string) => {
-    if ('40hourweek' === type) {
-      const weekId = timeUnits.find(s => s.name === TimeUnit.WEEK)?.id;
-      const hourId = timeUnits.find(s => s.name === TimeUnit.HOUR)?.id;
-      const minuteId = timeUnits.find(s => s.name === TimeUnit.MINUTE)?.id;
+    const weekId = timeUnits.find(s => s.name === TimeUnit.WEEK)?.id;
+    const hourId = timeUnits.find(s => s.name === TimeUnit.HOUR)?.id;
+    const dayId = timeUnits.find(s => s.name === TimeUnit.DAY)?.id;
+    const minuteId = timeUnits.find(s => s.name === TimeUnit.MINUTE)?.id;
+    const monthId = timeUnits.find(s => s.name === TimeUnit.MONTH)?.id;
+    if ('40hoursweekly' === type) {
       setNewSchedule({
         ...newSchedule,
         duration: 1,
@@ -78,7 +80,20 @@ export function ScheduleHome(props: IProps): JSX.Element {
         bracketTimeUnitName: TimeUnit.HOUR,
         slotTimeUnitId: minuteId,
         slotTimeUnitName: TimeUnit.MINUTE,
-        slotDuration: 30      
+        slotDuration: 60
+      });
+      setNewBracket({ ...newBracket, services: Object.values(groupServices), duration: 40, automatic: true });
+    } else if ('fulldayweekly') {
+      setNewSchedule({
+        ...newSchedule,
+        duration: 1,
+        scheduleTimeUnitId: weekId,
+        scheduleTimeUnitName: TimeUnit.WEEK,
+        bracketTimeUnitId: dayId,
+        bracketTimeUnitName: TimeUnit.DAY,
+        slotTimeUnitId: dayId,
+        slotTimeUnitName: TimeUnit.DAY,
+        slotDuration: 1      
       });
       setNewBracket({ ...newBracket, services: Object.values(groupServices), duration: 1, automatic: true });
     }
@@ -150,7 +165,8 @@ export function ScheduleHome(props: IProps): JSX.Element {
               <Box mb={4}>
                 <Typography variant="h6">Defaults</Typography>
                 <Typography variant="body2">Use sensible defaults for the Schedule and first Bracket configuration.</Typography>
-                <Button color="secondary" onClick={() => setDefault('40hourweek')}>40 hour week</Button>
+                <Button color="secondary" onClick={() => setDefault('40hoursweekly')}>40 hours weekly</Button>
+                <Button color="secondary" onClick={() => setDefault('fulldayweekly')}>full day weekly</Button>
               </Box>
 
               <Box mb={4}>
@@ -268,8 +284,9 @@ export function ScheduleHome(props: IProps): JSX.Element {
         </CardContent>
         <CardActionArea onClick={() => {
           if (newBracket.duration && newBracket.services.length) {
+            newBracket.id = (new Date()).getTime().toString();
             setNewSchedule({ ...newSchedule, brackets: [...newSchedule.brackets, newBracket] })            
-            setNewBracket({ ...bracketSchema, services: [] });
+            setNewBracket({ ...bracketSchema, services: [], slots: [] });
           } else {
             void act(SET_SNACK, { snackOn: 'Provide a duration, and at least 1 service.', snackType: 'info' });
           }
@@ -320,7 +337,7 @@ export function ScheduleHome(props: IProps): JSX.Element {
                     api(GET_GROUP_SCHEDULES, true, { groupName: group.name });
                     act(SET_SNACK, { snackOn: 'Successfully added ' + name, snackType: 'info' });
                     setNewSchedule({ ...scheduleSchema, brackets: [] });
-                    setNewBracket({ ...bracketSchema, services: [] });
+                    setNewBracket({ ...bracketSchema, services: [], slots: [] });
                   });
                 }
               });
@@ -340,8 +357,8 @@ export function ScheduleHome(props: IProps): JSX.Element {
 
     
         
-    {newSchedule.slotTimeUnitName && <Suspense>
-      <ScheduleDisplay {...props} schedule={newSchedule} />
+    {newSchedule.brackets.length && <Suspense>
+      <ScheduleDisplay {...props} schedule={newSchedule} setSchedule={setNewSchedule} />
     </Suspense>}
 
 

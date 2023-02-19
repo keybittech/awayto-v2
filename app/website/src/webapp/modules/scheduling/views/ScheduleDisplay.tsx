@@ -1,16 +1,17 @@
 import React, { createRef, CSSProperties, useCallback, useMemo, useState } from 'react';
 import moment from 'moment';
 import Box from '@mui/material/Box';
-import Grid from '@mui/material/Grid';
+import Chip from '@mui/material/Chip';
 import Card from '@mui/material/Card';
 import CardActionArea from '@mui/material/CardActionArea';
 import Button from '@mui/material/Button';
 import { FixedSizeGrid } from 'react-window';
 
-import { ISchedule, TimeUnit, timeUnitOrder } from 'awayto';
+import { ISchedule, IScheduleBracket, IScheduleBracketSlot, ITimeUnitNames, TimeUnit, timeUnitOrder } from 'awayto';
 
 export type ScheduleDisplayProps = {
-  schedule?: ISchedule
+  schedule?: ISchedule;
+  setSchedule?(value: ISchedule): void;
 };
 
 type GridCell = {
@@ -21,10 +22,13 @@ declare global {
   interface IProps extends ScheduleDisplayProps { }
 }
 
+const bracketColors = ['red', 'green', 'blue', 'pink'];
 
-export default function ScheduleDisplay({ schedule }: IProps & Required<ScheduleDisplayProps>) {
+export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Required<ScheduleDisplayProps>) {
 
-  const [selected, setSelected] = useState({} as Record<string, string>);
+  const [selected, setSelected] = useState({} as Record<string, IScheduleBracketSlot>);
+  const [selectedBracket, setSelectedBracket] = useState<IScheduleBracket>(schedule.brackets[0]);
+  const [buttonDown, setButtonDown] = useState(false);
 
   const { scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName, slotDuration } = schedule;
 
@@ -43,25 +47,47 @@ export default function ScheduleDisplay({ schedule }: IProps & Required<Schedule
   }, [xAxisTypeName, yAxisTypeName, slotDuration]);
 
   const Cell = useCallback((props: GridCell) => {
-    const target = `selection_${props.columnIndex}_${props.rowIndex}`;
+    const target = `schedule_selection_${props.columnIndex}_${props.rowIndex}`;
     const exists = selected[target];
+    const startTime = moment().startOf(xAxisTypeName as moment.unitOfTime.Base).add(slotDuration * props.rowIndex, slotTimeUnitName);
+
+    const setValue = function() {
+      const bracket = schedule.brackets.find(b => b.id === selectedBracket.id) as IScheduleBracket;
+
+      if (exists) {
+        bracket.slots = bracket.slots.filter(b => b.bracketId !== selectedBracket.id);
+        delete selected[target];
+      } else if (Object.values(selected).filter(s => s.bracketId === selectedBracket.id).length < selectedBracket.duration) {
+        bracket.slots.push({
+          id: (new Date()).getTime().toString(),
+          startTime: startTime.utc().toString(),
+          bracketId: selectedBracket.id
+        })
+        selected[target] = {
+          startTime: startTime.utc().toString(),
+          bracketId: selectedBracket.id
+        };
+      } else {
+        alert('you went over your allotment');
+      }
+
+      setSchedule({ ...schedule, brackets: [...schedule.brackets] });
+      setSelected({ ...selected });
+    }
 
     return <CardActionArea
       style={props.style}
-      sx={{ position: 'relative', '&:hover': { opacity: '1', boxShadow: '2' }, backgroundColor: '#444', opacity: !exists ? '.33' : '1', textAlign: 'center', boxShadow: exists ? '2' : undefined }}
-      onClick={() => {
-        if (exists) {
-          delete selected[target];
-        } else {
-          selected[target] = moment().startOf(xAxisTypeName as moment.unitOfTime.Base).add(slotDuration * props.rowIndex, slotTimeUnitName).utc().toString()
-        }
-
-        setSelected({ ...selected })
+      sx={{ position: 'relative', '&:hover': { opacity: '1', boxShadow: '2' }, border: exists ? `1px solid ${bracketColors[schedule.brackets.findIndex(b => b.id === exists.bracketId)]}` : undefined, backgroundColor: '#444', opacity: !exists ? '.33' : '1', textAlign: 'center', boxShadow: exists ? '2' : undefined }}
+      onMouseDown={() => setButtonDown(true)}
+      onMouseUp={() => {
+        setButtonDown(false)
+        setValue()
       }}
+      onMouseLeave={() => buttonDown && setValue()}
     >
-      {moment.weekdaysShort()[props.columnIndex]}  {moment().startOf(xAxisTypeName as moment.unitOfTime.Base).add(slotDuration * (props.rowIndex), slotTimeUnitName).format("hh:mm A")}
+      {moment.weekdaysShort()[props.columnIndex]}  {startTime.format("hh:mm A")}
     </CardActionArea>
-  }, [selected, slotTimeUnitName, slotDuration, xAxisTypeName]);
+  }, [selected, buttonDown, selectedBracket, slotTimeUnitName, slotDuration, xAxisTypeName]);
 
   return <>
     <Card sx={{
@@ -82,7 +108,22 @@ export default function ScheduleDisplay({ schedule }: IProps & Required<Schedule
       >
         {Cell}
       </FixedSizeGrid>
-      <pre>{JSON.stringify(selected, null, 2)}</pre>
+      <Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+        {schedule.brackets.map((bracket, i) => {
+          return <Box key={`bracket-chip${i + 1}new`} m={1}>
+            <Chip
+              label={`#${i + 1} ${bracket.duration - Object.values(selected).filter(s => s.bracketId === bracket.id).length} ${schedule.bracketTimeUnitName as ITimeUnitNames} (${bracket.multiplier}x)`}
+              sx={{ '&:hover': { cursor: 'pointer' }, borderWidth: '1px', borderStyle: 'solid', borderColor: bracketColors[i], boxShadow: selectedBracket?.id === bracket.id ? 2 : undefined }}
+              onDelete={() => {
+                setSchedule({ ...schedule, brackets: schedule.brackets?.filter((_, z) => i !== z) });
+              }}
+              onClick={() => {
+                setSelectedBracket(bracket);
+              }}
+            />
+          </Box>
+        })}
+      </Box>
     </Card>
 
     <pre>{JSON.stringify(schedule, null, 2)}</pre>

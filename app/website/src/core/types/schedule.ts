@@ -39,7 +39,14 @@ export enum BookingModes {
   duration: number;
   multiplier: string;
   services: IService[];
+  slots: IScheduleBracketSlot[];
 };
+
+export type IScheduleBracketSlot = {
+  id?: string;
+  bracketId?: string;
+  startTime: string;
+}
 
 
 /**
