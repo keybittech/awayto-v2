@@ -125,6 +125,7 @@ export function ScheduleHome(props: IProps): JSX.Element {
             group?.id && <TextField
               select
               value={group.id}
+              label="Group"
               onChange={e => setGroup(Object.values(groups).filter(g => g.id === e.target.value)[0])}
             >
               {Object.values(groups).map(group => <MenuItem key={`group-select${group.id}`} value={group.id}>{group.name}</MenuItem>)}
@@ -269,7 +270,7 @@ export function ScheduleHome(props: IProps): JSX.Element {
                 <Typography variant="body2">Affects the cost of all services in this bracket.</Typography>
                 <Box sx={{ display: 'flex', alignItems: 'baseline' }}>
                   <Box>{newBracket.multiplier}x <span>&nbsp;</span> &nbsp;</Box>
-                  <Slider value={parseInt(newBracket.multiplier || '')} onChange={(e, val) => setNewBracket({ ...newBracket, multiplier: parseFloat(val.toString()).toFixed(2) })} step={.01} min={1} max={5} />
+                  <Slider value={parseFloat(newBracket.multiplier || '')} onChange={(_, val) => setNewBracket({ ...newBracket, multiplier: parseFloat(val.toString()).toFixed(2) })} step={.01} min={1} max={5} />
                 </Box>
               </Box>
 
