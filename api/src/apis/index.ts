@@ -3,10 +3,8 @@ import Public from './public';
 import Forms from './forms';
 import Files from './files';
 import Profiles from './profiles';
-import UuidGroups from './uuid_groups';
 import UuidFiles from './uuid_files';
 import UuidNotes from './uuid_notes';
-import UuidRoles from './uuid_roles';
 import Roles from './roles';
 import ManageRoles from './manage_roles';
 import ManageGroups from './manage_groups';
@@ -35,10 +33,8 @@ export default  {
     ...Files,
     ...Forms,
     ...Profiles,
-    ...UuidGroups,
     ...UuidFiles,
     ...UuidNotes,
-    ...UuidRoles,
     ...Roles,
     ...Users,
     ...ManageRoles,

@@ -1,12 +1,11 @@
-import { IServiceTier } from 'awayto';
+import { IServiceTier, IServiceTierActionTypes } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
 
 const service_tiers: ApiModule = [
 
   {
-    method: 'POST',
-    path : 'service_tiers',
+    action: IServiceTierActionTypes.POST_SERVICE_TIER,
     cmnd : async (props) => {
       try {
 
@@ -27,8 +26,7 @@ const service_tiers: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path : 'service_tiers',
+    action: IServiceTierActionTypes.PUT_SERVICE_TIER,
     cmnd : async (props) => {
       try {
         const { id, name, multiplier } = props.event.body as IServiceTier;
@@ -54,8 +52,7 @@ const service_tiers: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path : 'service_tiers',
+    action: IServiceTierActionTypes.GET_SERVICE_TIERS,
     cmnd : async (props) => {
       try {
 
@@ -73,8 +70,7 @@ const service_tiers: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path : 'service_tiers/:id',
+    action: IServiceTierActionTypes.GET_SERVICE_TIER_BY_ID,
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;
@@ -94,8 +90,7 @@ const service_tiers: ApiModule = [
   },
 
   {
-    method: 'DELETE',
-    path : 'service_tiers/:id',
+    action: IServiceTierActionTypes.DELETE_SERVICE_TIER,
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;
@@ -115,8 +110,7 @@ const service_tiers: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path : 'service_tiers/:id/disable',
+    action: IServiceTierActionTypes.DISABLE_SERVICE_TIER,
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;

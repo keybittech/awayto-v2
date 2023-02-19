@@ -1,4 +1,4 @@
-import { asyncForEach } from 'awayto';
+import { asyncForEach, IBookingActionTypes } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
 import { IBooking, IBookingScheduleBracket, IScheduleBracket, ITimeUnit, ITimeUnitNames } from 'awayto';
@@ -6,8 +6,7 @@ import { IBooking, IBookingScheduleBracket, IScheduleBracket, ITimeUnit, ITimeUn
 const bookings: ApiModule = [
 
   {
-    method: 'POST',
-    path : 'bookings',
+    action: IBookingActionTypes.POST_BOOKING,
     cmnd : async (props) => {
       try {
 
@@ -50,8 +49,7 @@ const bookings: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path : 'bookings',
+    action: IBookingActionTypes.PUT_BOOKING,
     cmnd : async (props) => {
       try {
         const { id, serviceTierId, contactId, paymentId, agreement, description } = props.event.body as IBooking;
@@ -77,8 +75,7 @@ const bookings: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path : 'bookings',
+    action: IBookingActionTypes.GET_BOOKINGS,
     cmnd : async (props) => {
       try {
 
@@ -96,8 +93,7 @@ const bookings: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path : 'bookings/:id',
+    action: IBookingActionTypes.GET_BOOKING_BY_ID,
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;
@@ -117,8 +113,7 @@ const bookings: ApiModule = [
   },
 
   {
-    method: 'DELETE',
-    path : 'bookings/:id',
+    action: IBookingActionTypes.DELETE_BOOKING,
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;
@@ -138,8 +133,7 @@ const bookings: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path : 'bookings/:id/disable',
+    action: IBookingActionTypes.DISABLE_BOOKING,
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;

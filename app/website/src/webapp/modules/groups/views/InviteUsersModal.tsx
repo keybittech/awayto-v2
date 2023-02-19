@@ -16,7 +16,7 @@ import { useAct, useApi, useRedux, useComponents } from 'awayto-hooks';
 import { TextField } from '@mui/material';
 
 const { SET_SNACK } = IUtilActionTypes;
-const { GROUPS_USERS_INVITE } = IGroupActionTypes;
+const { POST_GROUPS_USERS_INVITE } = IGroupActionTypes;
 
 export function InviteUsersModal({ closeModal, ...props }: IProps): JSX.Element {
 
@@ -37,7 +37,7 @@ export function InviteUsersModal({ closeModal, ...props }: IProps): JSX.Element 
       return;
     }
 
-    api(GROUPS_USERS_INVITE, true, { users });
+    api(POST_GROUPS_USERS_INVITE, true, { users });
 
     if (closeModal)
       closeModal();

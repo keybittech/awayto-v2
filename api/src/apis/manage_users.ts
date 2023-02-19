@@ -1,13 +1,12 @@
-import { IUserProfile } from 'awayto';
+import { IManageUsersActionTypes, IUserProfileActionTypes, IUserProfile } from 'awayto';
 import { keycloak } from '../util/keycloak';
 import { ApiModule } from '../api';
-import users from './profiles';
+import profileApi from './profiles';
 
 const manageUsers: ApiModule = [
 
   {
-    method: 'POST',
-    path: 'manage/users/sub',
+    action: IManageUsersActionTypes.POST_MANAGE_USERS_SUB,
     cmnd: async (props) => {
 
       // let user = props.event.body as IUserProfile & { password: string };
@@ -38,24 +37,23 @@ const manageUsers: ApiModule = [
   },
 
   {
-    method: 'POST',
-    path: 'manage/users',
+    action: IManageUsersActionTypes.POST_MANAGE_USERS,
     cmnd: async (props) => {
       try {
-        const usersApiPostUser = users.findIndex(api => 'post' === api.method.toLowerCase() && 'users' === api.path.toLowerCase());
+        // const usersApiPostUser = profileApi.find(api => api.action === IUserProfileActionTypes.POST_USER_PROFILE);
 
-        const { id } = await users[usersApiPostUser].cmnd(props) as IUserProfile;
+        // const { id } = await usersApiPostUser?.cmnd(props) as IUserProfile;
 
-        const { rows: [ user ] } = await props.db.query<IUserProfile>(`
-          SELECT * FROM dbview_schema.enabled_users_ext
-          WHERE id = $1 
-        `, [id]);
+        // const { rows: [ user ] } = await props.db.query<IUserProfile>(`
+        //   SELECT * FROM dbview_schema.enabled_users_ext
+        //   WHERE id = $1 
+        // `, [id]);
 
-        // await attachCognitoInfoToUser(user);
+        // // await attachCognitoInfoToUser(user);
 
-        const keycloakUser = await keycloak.users.findOne({ id: user.sub });
+        // const keycloakUser = await keycloak.users.findOne({ id: user.sub });
 
-        return user;
+        return false;
       } catch (error) {
         throw error;
       }
@@ -63,8 +61,7 @@ const manageUsers: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path: 'manage/users',
+    action: IManageUsersActionTypes.PUT_MANAGE_USERS,
     cmnd: async (props) => {
       try {
         const { username, groups } = props.event.body as IUserProfile;
@@ -92,8 +89,7 @@ const manageUsers: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path: 'manage/users',
+    action: IManageUsersActionTypes.GET_MANAGE_USERS,
     cmnd: async (props) => {
       try {
         // const { Users } = await listUsers();
@@ -126,33 +122,32 @@ const manageUsers: ApiModule = [
     }
   },
 
+  // {
+  //   method: 'GET',
+  //   path: 'manage/users/page/:page/:perPage',
+  //   cmnd: async (props) => {
+  //     const { page, perPage } = props.event.pathParameters;
+
+  //     const minId = (parseInt(page) - 1) * parseInt(perPage);
+  //     try {
+
+  //       const response = await props.db.query(`
+  //         SELECT * FROM dbview_schema.enabled_users_ext
+  //         WHERE row > $1
+  //         LIMIT $2
+  //       `, [minId, perPage]);
+
+  //       return (response.rows || []) as IUserProfile[];
+
+  //     } catch (error) {
+  //       throw error;
+  //     }
+
+  //   }
+  // },
+
   {
-    method: 'GET',
-    path: 'manage/users/page/:page/:perPage',
-    cmnd: async (props) => {
-      const { page, perPage } = props.event.pathParameters;
-
-      const minId = (parseInt(page) - 1) * parseInt(perPage);
-      try {
-
-        const response = await props.db.query(`
-          SELECT * FROM dbview_schema.enabled_users_ext
-          WHERE row > $1
-          LIMIT $2
-        `, [minId, perPage]);
-
-        return (response.rows || []) as IUserProfile[];
-
-      } catch (error) {
-        throw error;
-      }
-
-    }
-  },
-
-  {
-    method: 'GET',
-    path: 'manage/users/id/:id',
+    action: IManageUsersActionTypes.GET_MANAGE_USERS_BY_ID,
     cmnd: async (props) => {
       try {
         const { id } = props.event.pathParameters;
@@ -176,8 +171,7 @@ const manageUsers: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path: 'manage/users/sub/:sub',
+    action: IManageUsersActionTypes.GET_MANAGE_USERS_BY_SUB,
     cmnd: async (props) => {
       try {
         const { sub } = props.event.pathParameters;
@@ -201,8 +195,7 @@ const manageUsers: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path: 'manage/users/info',
+    action: IManageUsersActionTypes.GET_MANAGE_USERS_INFO,
     cmnd: async (props) => {
       try {
         const { users } = props.event.body as { users: IUserProfile[] };
@@ -222,8 +215,7 @@ const manageUsers: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path: 'manage/users/lock',
+    action: IManageUsersActionTypes.LOCK_MANAGE_USERS,
     cmnd: async (props) => {
       const profiles = props.event.body as IUserProfile[];
       try {
@@ -246,8 +238,7 @@ const manageUsers: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path: 'manage/users/unlock',
+    action: IManageUsersActionTypes.UNLOCK_MANAGE_USERS,
     cmnd: async (props) => {
       try {
         const profiles = props.event.body as IUserProfile[];
@@ -266,22 +257,7 @@ const manageUsers: ApiModule = [
         throw error;
       }
     }
-  },
-
-  {
-    method: 'PUT',
-    path: 'manage/users/attributes',
-    cmnd: async (props) => {
-      try {
-        const { username } = props.event.body as { username: string };
-        
-        
-        return true;
-      } catch (error) {
-        throw error;
-      }
-    }
-  },
+  }
 ];
 
 export default manageUsers;

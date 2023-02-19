@@ -11,15 +11,13 @@ declare global {
   /**
    * @category Awayto Redux
    */
-  type IProfileModuleActions = IUserProfileActions | IUuidGroupsActions | IUuidRolesActions;
+  type IProfileModuleActions = IUserProfileActions;
 
   /**
    * @category Awayto Redux
    */
   interface ISharedActionTypes {
     userProfile: IUserProfileActionTypes;
-    uuidGroups: IUuidGroupsActionTypes;
-    uuidRoles: IUuidRolesActionTypes
   }
 }
 
@@ -128,8 +126,6 @@ export type IUserProfileActions = IKCLoginAction
   | IGetUserProfileDetailsByIdAction
   | IDisableUserProfileAction;
 
-
-
 /**
  * @category Awayto
  */
@@ -140,30 +136,6 @@ export type IUuidGroups = {
 };
 
 /**
- * @category Uuid Groups
- */
-export type IUuidGroupsState = Partial<IUuidGroups>;
-
-/**
- * @category Action Types
- */
-export enum IUuidGroupsActionTypes {
-  UUID_GROUPS = "UuidGroups/UUID_GROUPS"
-}
-
-/**
- * @category Uuid Groups
- */
-export type IPostUuidGroupsAction = PayloadAction<IUuidGroupsActionTypes.UUID_GROUPS, IUuidGroups>;
-
-/**
- * @category Uuid Groups
- */
-export type IUuidGroupsActions = IPostUuidGroupsAction;
-
-
-
-/**
  * @category Awayto
  */
 export type IUuidRoles = {
@@ -172,33 +144,3 @@ export type IUuidRoles = {
   roleId: string;
   externalId: string;
 }
-
-/**
- * @category Uuid Roles
- */
-export type IUuidRolesState = Partial<IUuidRoles>;
-
-/**
- * @category Awayto
- */
-export type IManageUuidRoles = {
-  roles?: IUuidRoles[];
-  roleIds?: string[];
-}
-
-/**
- * @category Action Types
- */
-export enum IUuidRolesActionTypes {
-  UUID_ROLES = "common/UUID_ROLES"
-}
-
-/**
- * @category Uuid Roles
- */
-export type IUuidRolesUserAction = PayloadAction<IUuidRolesActionTypes.UUID_ROLES, IUuidRolesState>;
-
-/**
- * @category Uuid Roles
- */
-export type IUuidRolesActions = IUuidRolesUserAction;

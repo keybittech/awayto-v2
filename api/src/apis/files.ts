@@ -2,13 +2,12 @@ import { v4 as uuidV4 } from 'uuid';
 
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
-import { IFile } from 'awayto';
+import { IFile, IFilesActionTypes } from 'awayto';
 
 const files: ApiModule = [
 
   {
-    method: 'POST',
-    path : 'files',
+    action: IFilesActionTypes.POST_FILES,
     cmnd : async (props) => {
       try {
         const uuid = uuidV4();
@@ -29,8 +28,7 @@ const files: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path : 'files',
+    action: IFilesActionTypes.PUT_FILES,
     cmnd : async (props) => {
       try {
         const { id, name, fileTypeId: file_type_id, location } = props.event.body as Required<IFile>;
@@ -55,8 +53,7 @@ const files: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path : 'files',
+    action: IFilesActionTypes.GET_FILES,
     cmnd : async (props) => {
       try {
 
@@ -74,8 +71,7 @@ const files: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path : 'files/:id',
+    action: IFilesActionTypes.GET_FILES_BY_ID,
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;
@@ -95,8 +91,7 @@ const files: ApiModule = [
   },
 
   {
-    method: 'DELETE',
-    path : 'files/:id',
+    action: IFilesActionTypes.DELETE_FILES,
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;
@@ -116,8 +111,7 @@ const files: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path : 'files/disable',
+    action: IFilesActionTypes.DISABLE_FILES,
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;

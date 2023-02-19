@@ -1,12 +1,11 @@
-import { IQuote } from 'awayto';
+import { IQuote, IQuoteActionTypes } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
 
 const quotes: ApiModule = [
 
   {
-    method: 'POST',
-    path : 'quotes',
+    action: IQuoteActionTypes.POST_QUOTE,
     cmnd : async (props) => {
       try {
 
@@ -27,8 +26,7 @@ const quotes: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path : 'quotes',
+    action: IQuoteActionTypes.PUT_QUOTE,
     cmnd : async (props) => {
       try {
         const { id, budgetId, timelineId, serviceTierId, contactId, respondBy, description } = props.event.body as IQuote;
@@ -54,8 +52,7 @@ const quotes: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path : 'quotes',
+    action: IQuoteActionTypes.GET_QUOTES,
     cmnd : async (props) => {
       try {
 
@@ -73,8 +70,7 @@ const quotes: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path : 'quotes/:id',
+    action: IQuoteActionTypes.GET_QUOTE_BY_ID,
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;
@@ -94,8 +90,7 @@ const quotes: ApiModule = [
   },
 
   {
-    method: 'DELETE',
-    path : 'quotes/:id',
+    action: IQuoteActionTypes.DELETE_QUOTE,
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;
@@ -115,8 +110,7 @@ const quotes: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path : 'quotes/:id/disable',
+    action: IQuoteActionTypes.DISABLE_QUOTE,
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;

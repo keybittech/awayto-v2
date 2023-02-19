@@ -1,11 +1,10 @@
-import { IGroup, IGroupService, IGroupServiceAddon } from 'awayto';
+import { IGroup, IGroupService, IGroupServiceActionTypes, IGroupServiceAddon } from 'awayto';
 import { ApiModule } from '../api';
 
 const groupServices: ApiModule = [
 
   {
-    method: 'GET',
-    path : 'group/:groupName/services/:serviceId',
+    action: IGroupServiceActionTypes.POST_GROUP_SERVICE,
     cmnd : async (props) => {
       try {
 
@@ -36,8 +35,7 @@ const groupServices: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path : 'group/:groupName/services',
+    action: IGroupServiceActionTypes.GET_GROUP_SERVICES,
     cmnd : async (props) => {
       try {
         const { groupName } = props.event.pathParameters;
@@ -65,8 +63,7 @@ const groupServices: ApiModule = [
   },
 
   {
-    method: 'DELETE',
-    path : 'group/:groupName/services/:serviceId',
+    action: IGroupServiceActionTypes.DELETE_GROUP_SERVICE,
     cmnd : async (props) => {
       try {
 
@@ -93,32 +90,7 @@ const groupServices: ApiModule = [
       }
 
     }
-  },
-
-  {
-    method: 'PUT',
-    path : 'group/:groupName/services/:id/disable',
-    cmnd : async (props) => {
-      try {
-        const { groupName, id } = props.event.pathParameters;
-
-        await props.db.query(`
-          UPDATE services
-          SET enabled = false
-          WHERE id = $1
-        `, [id]);
-
-        props.redis.del(props.event.userSub + `group/${groupName}/service_addons`);
-
-        return { id };
-        
-      } catch (error) {
-        throw error;
-      }
-
-    }
   }
-
 ]
 
 export default groupServices;

@@ -1,4 +1,4 @@
-import { IUserProfile } from 'awayto';
+import { IUserActionTypes, IUserProfile, IUserProfileActionTypes } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
 import { appClient, keycloak, roleCall } from '../util/keycloak';
@@ -6,8 +6,7 @@ import { appClient, keycloak, roleCall } from '../util/keycloak';
 const profile: ApiModule = [
 
   {
-    method: 'POST',
-    path: 'profile',
+    action: IUserProfileActionTypes.POST_USER_PROFILE,
     cmnd: async (props) => {
       try {
 
@@ -28,8 +27,7 @@ const profile: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path: 'profile',
+    action: IUserProfileActionTypes.PUT_USER_PROFILE,
     cmnd: async (props) => {
       try {
         const { id, firstName: first_name, lastName: last_name, email, image } = props.event.body as IUserProfile;
@@ -63,8 +61,7 @@ const profile: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path: 'profile/details',
+    action: IUserProfileActionTypes.GET_USER_PROFILE_DETAILS,
     cmnd: async (props) => {
       try {
         const [user] = (await props.db.query<IUserProfile>(`
@@ -93,8 +90,7 @@ const profile: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path: 'profile/details/sub/:sub',
+    action: IUserProfileActionTypes.GET_USER_PROFILE_DETAILS_BY_SUB,
     cmnd: async (props) => {
       const { sub } = props.event.pathParameters;
 
@@ -114,8 +110,7 @@ const profile: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path: 'profile/details/id/:id',
+    action: IUserProfileActionTypes.GET_USER_PROFILE_DETAILS_BY_ID,
     cmnd: async (props) => {
       try {
         const { id } = props.event.pathParameters;
@@ -156,8 +151,7 @@ const profile: ApiModule = [
   // },
 
   {
-    method: 'PUT',
-    path : 'profile/:id/disable',
+    action: IUserProfileActionTypes.DISABLE_USER_PROFILE,
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;

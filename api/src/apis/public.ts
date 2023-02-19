@@ -2,17 +2,17 @@ import { ApiModule } from '../api';
 
 const tests: ApiModule = [
 
-  {
-    method: 'GET',
-    path: 'health',
-    cmnd: async () => {
-      try {
-        return true;
-      } catch (error) {
-        throw error;
-      }
-    }
-  },
+  // {
+  //   method: 'GET',
+  //   path: 'health',
+  //   cmnd: async () => {
+  //     try {
+  //       return true;
+  //     } catch (error) {
+  //       throw error;
+  //     }
+  //   }
+  // },
 
   // {
   //   method: 'GET',

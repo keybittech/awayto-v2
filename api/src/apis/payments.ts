@@ -1,12 +1,11 @@
-import { IPayment } from 'awayto';
+import { IPayment, IPaymentActionTypes } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
 
 const payments: ApiModule = [
 
   {
-    method: 'POST',
-    path : 'payments',
+    action: IPaymentActionTypes.POST_PAYMENT,
     cmnd : async (props) => {
       try {
 
@@ -27,8 +26,7 @@ const payments: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path : 'payments',
+    action: IPaymentActionTypes.PUT_PAYMENT,
     cmnd : async (props) => {
       try {
         const { id, contactId, details } = props.event.body as IPayment;
@@ -52,8 +50,7 @@ const payments: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path : 'payments',
+    action: IPaymentActionTypes.GET_PAYMENTS,
     cmnd : async (props) => {
       try {
 
@@ -71,8 +68,7 @@ const payments: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path : 'payments/:id',
+    action: IPaymentActionTypes.GET_PAYMENT_BY_ID,
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;
@@ -92,8 +88,7 @@ const payments: ApiModule = [
   },
 
   {
-    method: 'DELETE',
-    path : 'payments/:id',
+    action: IPaymentActionTypes.DELETE_PAYMENT,
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;
@@ -113,8 +108,7 @@ const payments: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path : 'payments/:id/disable',
+    action: IPaymentActionTypes.DISABLE_PAYMENT,
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;

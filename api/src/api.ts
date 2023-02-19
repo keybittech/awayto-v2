@@ -51,7 +51,7 @@ export type ApiProps = {
 }
 
 export type IWebhooks = {
-  [prop: string]: (event: Partial<ApiProps>) => Promise<void>;
+  [prop: string]: (event: ApiProps) => Promise<void>;
 };
 
 /**
@@ -67,8 +67,7 @@ export type ApiResponseBody = ILoadedState | ILoadedState[] | boolean;
 export type ApiModulet = {
   roles?: string;
   inclusive?: boolean;
-  method: string;
-  path: string;
+  action: IActionTypes;
   cmnd(props: ApiProps, meta?: string): Promise<ApiResponseBody>;
 }
 
@@ -84,12 +83,17 @@ export type AuthEvent = {
   details: Record<string, string>
 };
 
+export function getActionParts(action: IActionTypes): [string, string] {
+  const method = action.substring(0, action.indexOf('/'));
+  const path = action.substring(action.indexOf('/') + 1);
+  return [method, path];
+}
+
 const { Route, RouteCollection, PathMatcher } = routeMatch as RouteMatch;
 
 
 const paths = APIs.protected.map(api => {
-  const path = `${api.method}/${api.path}`;
-  return new Route(path, path);
+  return new Route(api.action, api.action);
 });
 const routeCollection = new RouteCollection(paths);
 const pathMatcher = new PathMatcher(routeCollection);
@@ -304,7 +308,7 @@ async function go() {
 
         const route = pathMatch._route.split(/\/(.*)/s)[1];
 
-        const [{ cmnd }] = APIs.protected.filter(o => o.method === method && o.path === route);
+        const [{ cmnd }] = APIs.protected.filter(o => o.action === `${method}/${route}`);
 
         // Handle request
         logger.log('App API Request', event);
@@ -328,7 +332,8 @@ async function go() {
     });
 
     // Define protected routes
-    APIs.protected.forEach(({ method, path, cmnd }) => {
+    APIs.protected.forEach(({ action, cmnd }) => {
+      const [method, path] = getActionParts(action);
 
       // Here we make use of the extra /api from the reverse proxy
       app[method.toLowerCase() as keyof Express](`/api/${path}`, checkAuthenticated, async (req: Request & { headers: { authorization: string } }, res: Response) => {

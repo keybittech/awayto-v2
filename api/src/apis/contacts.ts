@@ -1,12 +1,11 @@
-import { IContact } from 'awayto';
+import { IContact, IContactActionTypes } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
 
 const contacts: ApiModule = [
 
   {
-    method: 'POST',
-    path : 'contacts',
+    action: IContactActionTypes.POST_CONTACT,
     cmnd : async (props) => {
       try {
 
@@ -27,8 +26,7 @@ const contacts: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path : 'contacts',
+    action: IContactActionTypes.PUT_CONTACT,
     cmnd : async (props) => {
       try {
         const { id, name, email, phone } = props.event.body as IContact;
@@ -54,8 +52,7 @@ const contacts: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path : 'contacts',
+    action: IContactActionTypes.GET_CONTACTS,
     cmnd : async (props) => {
       try {
 
@@ -73,8 +70,7 @@ const contacts: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path : 'contacts/:id',
+    action: IContactActionTypes.GET_CONTACT_BY_ID,
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;
@@ -94,8 +90,7 @@ const contacts: ApiModule = [
   },
 
   {
-    method: 'DELETE',
-    path : 'contacts/:id',
+    action: IContactActionTypes.DELETE_CONTACT,
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;
@@ -115,8 +110,7 @@ const contacts: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path : 'contacts/:id/disable',
+    action: IContactActionTypes.DISABLE_CONTACT,
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;

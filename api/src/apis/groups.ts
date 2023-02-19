@@ -1,4 +1,4 @@
-import { IGroup, IUuidRoles, DbError, IUserProfile, IGroupState, IRole, IGroupRoleActions } from 'awayto';
+import { IGroup, IUuidRoles, DbError, IUserProfile, IGroupState, IRole, IGroupRoleActions, IGroupActionTypes } from 'awayto';
 import { asyncForEach } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
@@ -9,8 +9,7 @@ import { keycloak, appClient, appRoles, groupAdminRoles, groupRoleActions, regro
 const groups: ApiModule = [
 
   {
-    method: 'POST',
-    path: 'groups',
+    action: IGroupActionTypes.POST_GROUPS,
     cmnd: async (props) => {
 
       try {
@@ -100,8 +99,7 @@ const groups: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path: 'groups',
+    action: IGroupActionTypes.PUT_GROUPS,
     cmnd: async (props) => {
       try {
         const { id, name, roles, roleId: adminRoleId } = props.event.body as IGroup;
@@ -207,8 +205,7 @@ const groups: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path: 'groups/:groupName/assignments',
+    action: IGroupActionTypes.PUT_GROUPS_ASSIGNMENTS,
     cmnd: async (props) => {
 
       performance.mark("putGroupAssignmentsStart");
@@ -302,8 +299,7 @@ const groups: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path: 'groups',
+    action: IGroupActionTypes.GET_GROUPS,
     cmnd: async (props) => {
       try {
 
@@ -322,8 +318,7 @@ const groups: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path: 'groups/:groupName/assignments',
+    action: IGroupActionTypes.GET_GROUPS_ASSIGNMENTS,
     cmnd: async (props) => {
       try {
 
@@ -343,8 +338,7 @@ const groups: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path: 'groups/:id',
+    action: IGroupActionTypes.GET_GROUPS_BY_ID,
     cmnd: async (props) => {
       try {
         const { id } = props.event.pathParameters;
@@ -364,8 +358,7 @@ const groups: ApiModule = [
   },
 
   {
-    method: 'DELETE',
-    path: 'groups/:ids',
+    action: IGroupActionTypes.DELETE_GROUPS,
     cmnd: async (props) => {
       try {
 
@@ -404,8 +397,7 @@ const groups: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path: 'groups/disable',
+    action: IGroupActionTypes.DISABLE_GROUPS,
     cmnd: async (props) => {
       try {
         const groups = props.event.body as IGroup[];
@@ -428,8 +420,7 @@ const groups: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path: 'groups/valid/:name',
+    action: IGroupActionTypes.CHECK_GROUPS_NAME,
     cmnd: async (props) => {
       try {
         const { name } = props.event.pathParameters;
@@ -450,9 +441,7 @@ const groups: ApiModule = [
   },
 
   {
-
-    method: 'POST',
-    path: 'groups/users/invite',
+    action: IGroupActionTypes.POST_GROUPS_USERS_INVITE,
     cmnd: async (props) => {
       const { users } = props.event.body as IGroupState;
 
@@ -477,30 +466,7 @@ const groups: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path: 'groups/users',
-    cmnd: async (props) => {
-      try {
-
-        const { rows: users } = await props.db.query<IUserProfile>(`
-          SELECT *
-          FROM dbview_schema.enabled_users_ext eux
-          JOIN dbview_schema.enabled_groups_ext ege ON ege."createdSub" = '93cc6bca-473e-4161-adf5-15ad63a0cbc6'
-          JOIN dbview_schema.enabled_uuid_groups eug ON eug."parentUuid" = ege.id
-        `, [props.event.userSub]);
-
-        return users;
-
-      } catch (error) {
-        throw error;
-      }
-
-    }
-  },
-
-  {
-    method: 'POST',
-    path: 'groups/join/:code',
+    action: IGroupActionTypes.GROUPS_JOIN,
     cmnd: async (props) => {
       try {
         const { code } = props.event.body as IGroup;
@@ -532,8 +498,7 @@ const groups: ApiModule = [
   },
 
   {
-    method: 'POST',
-    path: 'groups/leave/:code',
+    action: IGroupActionTypes.GROUPS_LEAVE,
     cmnd: async (props) => {
       try {
         const { code } = props.event.body as IGroup;

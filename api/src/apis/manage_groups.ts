@@ -1,4 +1,4 @@
-import type { IGroup, IUuidRoles, DbError, IGroupState } from 'awayto';
+import { IGroup, IUuidRoles, DbError, IGroupState, IManageGroupsActionTypes } from 'awayto';
 import { asyncForEach } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
@@ -6,8 +6,7 @@ import { buildUpdate } from '../util/db';
 const manageGroups: ApiModule = [
 
   {
-    method: 'POST',
-    path : 'manage/groups',
+    action: IManageGroupsActionTypes.POST_MANAGE_GROUPS,
     cmnd : async (props) => {
       try {
 
@@ -45,8 +44,7 @@ const manageGroups: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path : 'manage/groups',
+    action: IManageGroupsActionTypes.PUT_MANAGE_GROUPS,
     cmnd : async (props) => {
       try {
         const { id, name, roles } = props.event.body as IGroup;
@@ -89,8 +87,7 @@ const manageGroups: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path : 'manage/groups',
+    action: IManageGroupsActionTypes.GET_MANAGE_GROUPS,
     cmnd : async (props) => {
       try {
 
@@ -108,29 +105,7 @@ const manageGroups: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path : 'manage/groups/:id',
-    cmnd : async (props) => {
-      try {
-        const { id } = props.event.pathParameters;
-
-        const response = await props.db.query<IGroup>(`
-          SELECT * FROM dbview_schema.enabled_groups_ext
-          WHERE id = $1
-        `, [id]);
-        
-        return response.rows[0];
-        
-      } catch (error) {
-        throw error;
-      }
-
-    }
-  },
-
-  {
-    method: 'DELETE',
-    path : 'manage/groups',
+    action: IManageGroupsActionTypes.DELETE_MANAGE_GROUPS,
     cmnd : async (props) => {
       try {
 
@@ -154,8 +129,7 @@ const manageGroups: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path : 'manage/groups/disable',
+    action: IManageGroupsActionTypes.DISABLE_MANAGE_GROUPS,
     cmnd : async (props) => {
       try {
         const groups = props.event.body as IGroup[];
@@ -178,8 +152,7 @@ const manageGroups: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path : 'manage/groups/valid/:name',
+    action: IManageGroupsActionTypes.CHECK_GROUP_NAME,
     cmnd : async (props) => {
       try {
         const { name } = props.event.pathParameters;

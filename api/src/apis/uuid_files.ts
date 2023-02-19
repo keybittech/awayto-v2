@@ -1,12 +1,11 @@
-import { IUuidFiles } from 'awayto';
+import { IUuidFiles, IUuidFilesActionTypes } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
 
 const uuidFiles: ApiModule = [
 
   {
-    method: 'POST',
-    path : 'uuid_files',
+    action: IUuidFilesActionTypes.POST_UUID_FILES,
     cmnd : async (props) => {
       try {
         const { parentUuid: parent_uuid, fileId: file_id } = props.event.body as IUuidFiles;
@@ -27,8 +26,7 @@ const uuidFiles: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path : 'uuid_files',
+    action: IUuidFilesActionTypes.PUT_UUID_FILES,
     cmnd : async (props) => {
       try {
         const { id, parentUuid: parent_uuid, fileId: file_id } = props.event.body as IUuidFiles;
@@ -53,8 +51,7 @@ const uuidFiles: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path : 'uuid_files',
+    action: IUuidFilesActionTypes.GET_UUID_FILES,
     cmnd : async (props) => {
       try {
 
@@ -72,8 +69,7 @@ const uuidFiles: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path : 'uuid_files/:id',
+    action: IUuidFilesActionTypes.GET_UUID_FILES_BY_ID,
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;
@@ -93,8 +89,7 @@ const uuidFiles: ApiModule = [
   },
 
   {
-    method: 'DELETE',
-    path : 'uuid_files/:id',
+    action: IUuidFilesActionTypes.DELETE_UUID_FILES,
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;
@@ -114,8 +109,7 @@ const uuidFiles: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path : 'uuid_files/disable',
+    action: IUuidFilesActionTypes.DISABLE_UUID_FILES,
     cmnd : async (props) => {
       try {
         const { id, parentUuid: parent_uuid, fileId: file_id } = props.event.body as IUuidFiles;

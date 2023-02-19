@@ -1,4 +1,4 @@
-import { IRole, IUserProfile } from 'awayto';
+import { IRole, IRoleActionTypes, IUserProfile } from 'awayto';
 import { asyncForEach } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
@@ -8,8 +8,7 @@ import { keycloak } from '../util/keycloak';
 const roles: ApiModule = [
 
   {
-    method: 'POST',
-    path : 'roles',
+    action: IRoleActionTypes.POST_ROLES,
     cmnd : async (props) => {
       try {
 
@@ -49,8 +48,7 @@ const roles: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path : 'roles',
+    action: IRoleActionTypes.PUT_ROLES,
     cmnd : async (props) => {
       try {
         const { id, name } = props.event.body as IRole;
@@ -74,8 +72,7 @@ const roles: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path : 'roles',
+    action: IRoleActionTypes.GET_ROLES,
     cmnd : async (props) => {
       try {
 
@@ -97,8 +94,7 @@ const roles: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path : 'roles/:id',
+    action: IRoleActionTypes.GET_ROLES_BY_ID,
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;
@@ -118,8 +114,7 @@ const roles: ApiModule = [
   },
 
   {
-    method: 'DELETE',
-    path : 'roles/:ids',
+    action: IRoleActionTypes.DELETE_ROLES,
     cmnd : async (props) => {
       try {
 
@@ -146,8 +141,7 @@ const roles: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path : 'roles/disable',
+    action: IRoleActionTypes.DISABLE_ROLES,
     cmnd : async (props) => {
       try {
         const roles = props.event.body as IRole[];
@@ -167,30 +161,7 @@ const roles: ApiModule = [
       }
 
     }
-  },
-
-  {
-    method: 'GET',
-    path : 'role/valid/:name',
-    cmnd : async (props) => {
-      try {
-        const { name } = props.event.pathParameters;
-
-        const { rows: [{ count }] } = await props.db.query<{count: number}>(`
-          SELECT COUNT(*) as count
-          FROM roles
-          WHERE name = $1
-        `, [name]);
-
-        return { checkingName: false, isValid: count == 0 };
-        
-      } catch (error) {
-        throw error;
-      }
-
-    }
   }
-
 ];
 
 export default roles;

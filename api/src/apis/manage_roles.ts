@@ -1,12 +1,11 @@
-import { IRole } from 'awayto';
+import { IManageRolesActionTypes, IRole } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
 
 const manageRoles: ApiModule = [
 
   {
-    method: 'POST',
-    path : 'manage/roles',
+    action: IManageRolesActionTypes.POST_MANAGE_ROLES,
     cmnd : async (props) => {
       try {
 
@@ -27,8 +26,7 @@ const manageRoles: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path : 'manage/roles',
+    action: IManageRolesActionTypes.PUT_MANAGE_ROLES,
     cmnd : async (props) => {
       try {
         const { id, name } = props.event.body as IRole;
@@ -52,8 +50,7 @@ const manageRoles: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path : 'manage/roles',
+    action: IManageRolesActionTypes.GET_MANAGE_ROLES,
     cmnd : async (props) => {
       try {
 
@@ -71,29 +68,7 @@ const manageRoles: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path : 'manage/roles/:id',
-    cmnd : async (props) => {
-      try {
-        const { id } = props.event.pathParameters;
-
-        const response = await props.db.query<IRole>(`
-          SELECT * FROM dbview_schema.enabled_roles
-          WHERE id = $1
-        `, [id]);
-        
-        return response.rows;
-        
-      } catch (error) {
-        throw error;
-      }
-
-    }
-  },
-
-  {
-    method: 'DELETE',
-    path : 'manage/roles/:id',
+    action: IManageRolesActionTypes.DELETE_MANAGE_ROLES,
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;
@@ -104,28 +79,6 @@ const manageRoles: ApiModule = [
         `, [id]);
         
         return response.rows;
-        
-      } catch (error) {
-        throw error;
-      }
-
-    }
-  },
-
-  {
-    method: 'PUT',
-    path : 'manage/roles/:id/disable',
-    cmnd : async (props) => {
-      try {
-        const { id } = props.event.pathParameters;
-
-        await props.db.query(`
-          UPDATE roles
-          SET enabled = false
-          WHERE id = $1
-        `, [id]);
-
-        return { id };
         
       } catch (error) {
         throw error;

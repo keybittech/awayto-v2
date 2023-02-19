@@ -1,12 +1,11 @@
-import { IServiceAddon } from 'awayto';
+import { IServiceAddon, IServiceAddonActionTypes } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
 
 const serviceAddons: ApiModule = [
 
   {
-    method: 'POST',
-    path : 'service_addons',
+    action: IServiceAddonActionTypes.POST_SERVICE_ADDON,
     cmnd : async (props) => {
       try {
 
@@ -36,8 +35,7 @@ const serviceAddons: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path : 'service_addons',
+    action: IServiceAddonActionTypes.PUT_SERVICE_ADDON,
     cmnd : async (props) => {
       try {
         const { id, name } = props.event.body as IServiceAddon;
@@ -63,8 +61,7 @@ const serviceAddons: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path : 'service_addons',
+    action: IServiceAddonActionTypes.GET_SERVICE_ADDONS,
     cmnd : async (props) => {
       try {
 
@@ -82,8 +79,7 @@ const serviceAddons: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path : 'service_addons/:id',
+    action: IServiceAddonActionTypes.GET_SERVICE_ADDON_BY_ID,
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;
@@ -103,8 +99,7 @@ const serviceAddons: ApiModule = [
   },
 
   {
-    method: 'DELETE',
-    path : 'service_addons/:id',
+    action: IServiceAddonActionTypes.DELETE_SERVICE_ADDON,
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;
@@ -125,8 +120,7 @@ const serviceAddons: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path : 'service_addons/:id/disable',
+    action: IServiceAddonActionTypes.DISABLE_SERVICE_ADDON,
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;

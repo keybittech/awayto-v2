@@ -72,7 +72,7 @@ export enum IGroupActionTypes {
   DELETE_GROUPS = "DELETE/groups/:ids",
   DISABLE_GROUPS = "PUT/groups/:id/disable",
   CHECK_GROUPS_NAME = "GET/groups/valid/:name",
-  GROUPS_USERS_INVITE = "POST/groups/users/invite",
+  POST_GROUPS_USERS_INVITE = "POST/groups/users/invite",
   GROUPS_JOIN = "POST/groups/join/:code",
   GROUPS_LEAVE = "POST/groups/leave/:code",
   PUT_GROUPS_ASSIGNMENTS = "PUT/groups/:groupName/assignments",
@@ -117,7 +117,7 @@ export type ICheckGroupsNameAction = PayloadAction<IGroupActionTypes.CHECK_GROUP
 /**
  * @category Group
  */
-export type IGroupsUsersInviteAction = PayloadAction<IGroupActionTypes.GROUPS_USERS_INVITE, IGroupState>;
+export type IGroupsUsersInviteAction = PayloadAction<IGroupActionTypes.POST_GROUPS_USERS_INVITE, IGroupState>;
 
 /**
  * @category Group

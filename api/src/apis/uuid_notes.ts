@@ -1,4 +1,4 @@
-import { IUuidNotes } from 'awayto';
+import { IUuidNotes, IUuidNotesActionTypes } from 'awayto';
 import { asyncForEach } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
@@ -6,8 +6,7 @@ import { buildUpdate } from '../util/db';
 const uuidNotes: ApiModule = [
 
   {
-    method: 'POST',
-    path : 'uuid_notes',
+    action: IUuidNotesActionTypes.POST_UUID_NOTES,
     cmnd : async (props) => {
       try {
         const { parentUuid: parent_uuid, note } = props.event.body as IUuidNotes;
@@ -28,8 +27,7 @@ const uuidNotes: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path : 'uuid_notes',
+    action: IUuidNotesActionTypes.PUT_UUID_NOTES,
     cmnd : async (props) => {
       try {
         const { id, parentUuid: parent_uuid, note } = props.event.body as IUuidNotes;
@@ -54,8 +52,7 @@ const uuidNotes: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path : 'uuid_notes',
+    action: IUuidNotesActionTypes.GET_UUID_NOTES,
     cmnd : async (props) => {
       try {
 
@@ -73,8 +70,7 @@ const uuidNotes: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path : 'uuid_notes/:id',
+    action: IUuidNotesActionTypes.GET_UUID_NOTES_BY_ID,
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;
@@ -94,8 +90,7 @@ const uuidNotes: ApiModule = [
   },
 
   {
-    method: 'DELETE',
-    path : 'uuid_notes/:id',
+    action: IUuidNotesActionTypes.DELETE_UUID_NOTES,
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;
@@ -115,8 +110,7 @@ const uuidNotes: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path : 'uuid_notes/disable',
+    action: IUuidNotesActionTypes.DISABLE_UUID_NOTES,
     cmnd : async (props) => {
       try {
         const notes = props.event.body as IUuidNotes[];

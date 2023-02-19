@@ -1,4 +1,4 @@
-import { ISchedule, IScheduleBracket } from 'awayto';
+import { ISchedule, IScheduleActionTypes, IScheduleBracket } from 'awayto';
 import { asyncForEach } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
@@ -6,8 +6,7 @@ import { buildUpdate } from '../util/db';
 const schedules: ApiModule = [
 
   {
-    method: 'POST',
-    path: 'schedules',
+    action: IScheduleActionTypes.POST_SCHEDULE,
     cmnd: async (props) => {
       try {
 
@@ -48,8 +47,7 @@ const schedules: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path: 'schedules',
+    action: IScheduleActionTypes.PUT_SCHEDULE,
     cmnd: async (props) => {
       try {
         const { id, name } = props.event.body as ISchedule;
@@ -75,8 +73,7 @@ const schedules: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path: 'schedules',
+    action: IScheduleActionTypes.GET_SCHEDULES,
     cmnd: async (props) => {
       try {
 
@@ -94,8 +91,7 @@ const schedules: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path: 'schedules/:id',
+    action: IScheduleActionTypes.GET_SCHEDULE_BY_ID,
     cmnd: async (props) => {
       try {
         const { id } = props.event.pathParameters;
@@ -115,8 +111,7 @@ const schedules: ApiModule = [
   },
 
   {
-    method: 'DELETE',
-    path: 'schedules/:id',
+    action: IScheduleActionTypes.DELETE_SCHEDULE,
     cmnd: async (props) => {
       try {
         const { id } = props.event.pathParameters;
@@ -137,8 +132,7 @@ const schedules: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path: 'schedules/:id/disable',
+    action: IScheduleActionTypes.DISABLE_SCHEDULE,
     cmnd: async (props) => {
       try {
         const { id } = props.event.pathParameters;

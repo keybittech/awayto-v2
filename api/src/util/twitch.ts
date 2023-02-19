@@ -2,6 +2,10 @@ import WebSocket from 'ws';
 import WebHooks from '../webhooks/index';
 import { v4 as uuid } from 'uuid';
 import fetch from 'node-fetch';
+import { ApiProps } from 'src/api';
+
+import redis from './redis';
+import { db } from './db';
 
 const {
   TWITCH_CLIENT_ID,
@@ -107,7 +111,7 @@ async function go() {
     
             if (rewards[contents.customRewardId]) {
               
-              await WebHooks[`CHANNEL_POINT_REDEMPTION`]({ event });
+              await WebHooks[`CHANNEL_POINT_REDEMPTION`]({ event, db, redis } as ApiProps);
             }
     
     

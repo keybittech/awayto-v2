@@ -1,18 +1,17 @@
-import { IUser } from 'awayto';
+import { IUser, IUserActionTypes } from 'awayto';
 import { asyncForEach } from 'awayto';
 import { ApiModule } from '../api';
 
 const users: ApiModule = [
 
   {
-    method: 'POST',
-    path : 'users',
+    action: IUserActionTypes.POST_USERS,
     cmnd : async (props) => {
       try {
 
         // A group owner is trying to post a new user here?
         // Probably doesn't happen
-        return true;
+        return false;
       } catch (error) {
         throw error;
       }
@@ -20,14 +19,13 @@ const users: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path : 'users',
+    action: IUserActionTypes.PUT_USERS,
     cmnd : async (props) => {
       try {
 
         // A group owner is trying to put an existing user here?
         // Probably doesn't happen
-        return true;
+        return false;
       } catch (error) {
         throw error;
       }
@@ -36,8 +34,7 @@ const users: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path : 'users',
+    action: IUserActionTypes.GET_USERS,
     cmnd : async (props) => {
       try {
 
@@ -58,8 +55,7 @@ const users: ApiModule = [
   },
 
   {
-    method: 'GET',
-    path : 'users/:id',
+    action: IUserActionTypes.GET_USERS_BY_ID,
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;
@@ -79,8 +75,7 @@ const users: ApiModule = [
   },
 
   {
-    method: 'DELETE',
-    path : 'users/:ids',
+    action: IUserActionTypes.DELETE_USERS,
     cmnd : async (props) => {
       try {
 
@@ -95,8 +90,7 @@ const users: ApiModule = [
   },
 
   {
-    method: 'PUT',
-    path : 'users/disable',
+    action: IUserActionTypes.DISABLE_USERS,
     cmnd : async (props) => {
       try {
         const users = props.event.body as IUser[];

@@ -1,4 +1,4 @@
-import { IUserProfile } from 'awayto';
+import { IUserProfile, IUserProfileActionTypes } from 'awayto';
 import { ApiProps, AuthEvent, IWebhooks } from '../api';
 import profiles from '../apis/profiles';
 
@@ -18,9 +18,9 @@ export const AuthWebhooks: IWebhooks = {
     props.event.sourceIp = ipAddress;
     props.event.body = user;
 
-    const postUserProfile = profiles.findIndex(api => 'post' === api.method.toLowerCase() && 'profile' === api.path.toLowerCase());
+    const postUserProfile = profiles.find(api => api.action === IUserProfileActionTypes.POST_USER_PROFILE);
 
-    await profiles[postUserProfile].cmnd(props as ApiProps) as IUserProfile;
+    await postUserProfile?.cmnd(props as ApiProps) as IUserProfile;
   },
   AUTH_LOGIN: async event => {
   },
