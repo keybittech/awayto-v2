@@ -23,6 +23,8 @@ const groupServiceAddons: ApiModule = [
           ON CONFLICT (parent_uuid, service_addon_id) DO NOTHING
           RETURNING id
         `, [groupId, serviceAddonId, props.event.userSub]);
+
+        props.redis.del(props.event.userSub + `group/${groupName}/service_addons`);
         
         return [];
 
@@ -80,6 +82,8 @@ const groupServiceAddons: ApiModule = [
           WHERE parent_uuid = $1 AND service_addon_id = $2
           RETURNING id
         `, [groupId, serviceAddonId]);
+
+        props.redis.del(props.event.userSub + `group/${groupName}/service_addons`);
         
         return [{ id: serviceAddonId }];
       } catch (error) {
@@ -97,17 +101,13 @@ const groupServiceAddons: ApiModule = [
 
         const { groupName, serviceAddonId } = props.event.pathParameters;
 
-        // const [{ id: groupId }] = (await props.db.query<IGroup>(`
-        //   SELECT id
-        //   FROM dbview_schema.enabled_groups
-        //   WHERE name = $1
-        // `, [groupName])).rows
-
         await props.db.query(`
           UPDATE service_addons
           SET enabled = false
           WHERE id = $1
         `, [serviceAddonId]);
+
+        props.redis.del(props.event.userSub + `group/${groupName}/service_addons`);
 
         return { id: serviceAddonId };
         

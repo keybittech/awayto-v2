@@ -24,6 +24,8 @@ const groupServices: ApiModule = [
           ON CONFLICT (parent_uuid, schedule_id) DO NOTHING
           RETURNING id
         `, [groupId, scheduleId, props.event.userSub]);
+
+        props.redis.del(props.event.userSub + `group/${groupName}/schedules`);
         
         return [];
 
@@ -83,6 +85,8 @@ const groupServices: ApiModule = [
           RETURNING id
         `, [groupId, scheduleId]);
 
+        props.redis.del(props.event.userSub + `group/${groupName}/schedules`);
+
         return [{ id: scheduleId }];
       } catch (error) {
         throw error;
@@ -96,13 +100,15 @@ const groupServices: ApiModule = [
     path : 'group/:groupName/schedules/:id/disable',
     cmnd : async (props) => {
       try {
-        const { id } = props.event.pathParameters;
+        const { groupName, id } = props.event.pathParameters;
 
         await props.db.query(`
           UPDATE schedules
           SET enabled = false
           WHERE id = $1
         `, [id]);
+
+        props.redis.del(props.event.userSub + `group/${groupName}/schedules`);
 
         return { id };
         
