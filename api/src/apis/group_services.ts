@@ -24,7 +24,9 @@ const groupServices: ApiModule = [
           RETURNING id
         `, [groupId, serviceId, props.event.userSub]);
 
-        props.redis.del(props.event.userSub + `group/${groupName}/services`);
+
+        console.log({ GRPSVCDELREDIS: props.event.userSub + `group/${groupName}/services` })
+        await props.redis.del(props.event.userSub + `group/${groupName}/services`);
         
         return [];
 
@@ -82,7 +84,7 @@ const groupServices: ApiModule = [
           RETURNING id
         `, [groupId, serviceId]);
 
-        props.redis.del(props.event.userSub + `group/${groupName}/services`);
+        await props.redis.del(props.event.userSub + `group/${groupName}/services`);
 
         return [{ id: serviceId }];
       } catch (error) {

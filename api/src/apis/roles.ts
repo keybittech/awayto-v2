@@ -37,7 +37,9 @@ const roles: ApiModule = [
           INSERT INTO uuid_roles (parent_uuid, role_id, created_sub)
           VALUES ($1, $2, $3)
           ON CONFLICT (parent_uuid, role_id) DO NOTHING
-        `, [userId, role.id, props.event.userSub])
+        `, [userId, role.id, props.event.userSub]);
+
+        await props.redis.del(props.event.userSub + 'profile/details');
 
         return [role];
 
@@ -61,6 +63,8 @@ const roles: ApiModule = [
           WHERE id = $1
           RETURNING id, name
         `, updateProps.array);
+
+        await props.redis.del(props.event.userSub + 'profile/details');
 
         return role;
         
@@ -129,7 +133,9 @@ const roles: ApiModule = [
             DELETE FROM uuid_roles
             WHERE role_id = $1 AND parent_uuid = $2
           `, [id, userId]);
-        })
+        });
+
+        await props.redis.del(props.event.userSub + 'profile/details');
 
         return ids.split(',').map<Partial<IRole>>(id => ({ id }));
         

@@ -341,7 +341,8 @@ async function go() {
         let response: ApiResponseBody = false;
 
         const user = req.user as StrategyUser;
-        const cacheKey = user.sub + path;
+
+        const cacheKey = user.sub + req.originalUrl.slice(5); // remove /api/
 
         if ('get' === method.toLowerCase()) {
           const value = await redis.get(cacheKey);
@@ -384,8 +385,10 @@ async function go() {
             logger.log('App API Request', event);
             response = await cmnd({ event, db, redis });
             if ('get' === method.toLowerCase()) {
-              redis.setEx(cacheKey, 10, JSON.stringify(response));
+              await redis.setEx(cacheKey, 180, JSON.stringify(response));
               res.header('x-in-cache', 'true');
+            } else {
+              await redis.del(cacheKey);
             }
           } catch (error) {
             const err = error as Error & { reason: string };

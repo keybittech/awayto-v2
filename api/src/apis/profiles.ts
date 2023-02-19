@@ -52,6 +52,8 @@ const profile: ApiModule = [
           })
         } catch (error) { }
 
+        await props.redis.del(props.event.userSub + 'profile/details');
+
         return user;
 
       } catch (error) {

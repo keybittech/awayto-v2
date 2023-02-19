@@ -84,6 +84,8 @@ const groups: ApiModule = [
 
         group.roles = roles;
 
+        await props.redis.del(props.event.userSub + 'profile/details');
+
         return [group];
 
       } catch (error) {
@@ -194,6 +196,8 @@ const groups: ApiModule = [
         }
 
         group.roles = roles;
+
+        await props.redis.del(props.event.userSub + 'profile/details');
 
         return [group];
 
@@ -386,6 +390,8 @@ const groups: ApiModule = [
             WHERE id = $1
           `, [id]);
         })
+
+        await props.redis.del(props.event.userSub + 'profile/details');
 
         return ids.split(',').map<Partial<IGroup>>(id => ({ id }));
 

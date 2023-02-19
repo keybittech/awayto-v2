@@ -23,7 +23,7 @@ const groupServiceAddons: ApiModule = [
           RETURNING id
         `, [groupId, serviceAddonId, props.event.userSub]);
 
-        props.redis.del(props.event.userSub + `group/${groupName}/service_addons`);
+        await props.redis.del(props.event.userSub + `group/${groupName}/service_addons`);
         
         return [];
 
@@ -80,7 +80,7 @@ const groupServiceAddons: ApiModule = [
           RETURNING id
         `, [groupId, serviceAddonId]);
 
-        props.redis.del(props.event.userSub + `group/${groupName}/service_addons`);
+        await props.redis.del(props.event.userSub + `group/${groupName}/service_addons`);
         
         return [{ id: serviceAddonId }];
       } catch (error) {

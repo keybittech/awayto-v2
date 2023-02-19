@@ -24,7 +24,7 @@ const groupServices: ApiModule = [
           RETURNING id
         `, [groupId, scheduleId, props.event.userSub]);
 
-        props.redis.del(props.event.userSub + `group/${groupName}/schedules`);
+        await props.redis.del(props.event.userSub + `group/${groupName}/schedules`);
         
         return [];
 
@@ -82,7 +82,7 @@ const groupServices: ApiModule = [
           RETURNING id
         `, [groupId, scheduleId]);
 
-        props.redis.del(props.event.userSub + `group/${groupName}/schedules`);
+        await props.redis.del(props.event.userSub + `group/${groupName}/schedules`);
 
         return [{ id: scheduleId }];
       } catch (error) {
