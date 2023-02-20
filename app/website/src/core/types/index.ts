@@ -33,7 +33,7 @@ export type ILoadedState = ISharedState[keyof ISharedState];
 
 export type ValueOf<T> = T[keyof T];
 
-export type StatePayloadValues = ValueOf<ISharedState> & Record<string, string>
+export type StatePayloadValues = Record<string, ValueOf<ISharedState>>
 
 /**
  * @category Action Types

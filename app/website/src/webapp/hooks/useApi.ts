@@ -87,10 +87,10 @@ const { SET_LOADING, API_SUCCESS, SET_SNACK } = IUtilActionTypes;
  * @category Hooks
  */
 
-export function useApi(): <T, R = ILoadedState>(actionType: IActionTypes, load?: boolean, body?: Partial<Record<string, T> | StatePayloadValues>, meta?: unknown) => [(reason?: string)=> void, Promise<void | R> | undefined] {
+export function useApi(): <T extends { [prop: string]: unknown}, R = ILoadedState>(actionType: IActionTypes, load?: boolean, body?: Partial<T | StatePayloadValues>, meta?: unknown) => [(reason?: string)=> void, Promise<void | R> | undefined] {
   const act = useAct();
 
-  const api = useCallback(<T, R = ILoadedState>(actionType: IActionTypes, load?: boolean, body?: Partial<Record<string, T> | StatePayloadValues>, meta?: unknown): [(reason?: string)=> void, Promise<void | R> | undefined] => {
+  const api = useCallback(<T extends { [prop: string]: unknown}, R = ILoadedState>(actionType: IActionTypes, load?: boolean, body?: Partial<T | StatePayloadValues>, meta?: unknown): [(reason?: string)=> void, Promise<void | R> | undefined] => {
 
     const abortController: AbortController = new AbortController();
     function abort(reason?: string) {
