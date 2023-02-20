@@ -1,10 +1,11 @@
-import React, { createRef, CSSProperties, useCallback, useMemo, useState } from 'react';
+import React, { CSSProperties, useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import moment from 'moment';
+import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Card from '@mui/material/Card';
 import CardActionArea from '@mui/material/CardActionArea';
-import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
 import { FixedSizeGrid } from 'react-window';
 
 import { ISchedule, IScheduleBracket, IScheduleBracketSlot, ITimeUnitNames, TimeUnit, timeUnitOrder } from 'awayto';
@@ -22,13 +23,15 @@ declare global {
   interface IProps extends ScheduleDisplayProps { }
 }
 
-const bracketColors = ['red', 'green', 'blue', 'pink'];
+const bracketColors = ['cadetblue', 'brown', 'chocolate', 'forestgreen', 'darkslateblue', 'goldenrod', 'indianred', 'teal'];
 
 export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Required<ScheduleDisplayProps>) {
 
   const [selected, setSelected] = useState({} as Record<string, IScheduleBracketSlot>);
   const [selectedBracket, setSelectedBracket] = useState<IScheduleBracket>(schedule.brackets[0]);
   const [buttonDown, setButtonDown] = useState(false);
+  const [width, setWidth] = useState(1);
+  const parentRef = useRef<HTMLDivElement>(null);
 
   const { scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName, slotDuration } = schedule;
 
@@ -49,21 +52,21 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
   const Cell = useCallback((props: GridCell) => {
     const target = `schedule_selection_${props.columnIndex}_${props.rowIndex}`;
     const exists = selected[target];
-    const startTime = moment().startOf(xAxisTypeName as moment.unitOfTime.Base).add(slotDuration * props.rowIndex, slotTimeUnitName);
+    const startTime = moment().startOf(xAxisTypeName as moment.unitOfTime.Base).add(slotDuration * props.rowIndex, slotTimeUnitName).add(props.columnIndex, xAxisTypeName).format('ddd hh:mm A');
 
-    const setValue = function() {
+    const setValue = useCallback(function () {
       const bracket = schedule.brackets.find(b => b.id === selectedBracket.id) as IScheduleBracket;
 
       const slot = {
         id: (new Date()).getTime().toString(),
-        startTime: startTime.utc().toString(),
+        startTime: startTime,
         bracketId: selectedBracket.id
       };
 
       if (exists) {
         bracket.slots = bracket.slots.filter(b => b.id !== exists.id);
         delete selected[target];
-      } else if (Object.values(selected).filter(s => s.bracketId === selectedBracket.id).length < selectedBracket.duration) {
+      } else if ((bracket.slots.length * schedule.slotDuration) < moment.duration({ [schedule.bracketTimeUnitName as moment.unitOfTime.Base]: selectedBracket.duration}).as(schedule.slotTimeUnitName as moment.unitOfTime.Base)) {
         bracket.slots.push(slot)
         selected[target] = slot;
       } else {
@@ -72,7 +75,24 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
 
       setSchedule({ ...schedule, brackets: [...schedule.brackets] });
       setSelected({ ...selected });
-    }
+    }, [schedule.brackets, selected]);
+
+    useEffect(() => {
+      const resizeObserver = new ResizeObserver(e => {
+        const [event] = e;
+        setWidth(event.contentBoxSize[0].inlineSize);
+      });
+
+      if (parentRef && parentRef.current) {
+        resizeObserver.observe(parentRef.current);
+      }
+    }, [parentRef]);
+
+    useEffect(() => {
+      if (Object.keys(selected).length && 0 === schedule.brackets[0].slots.length) {
+        setSelected({});
+      }
+    }, [schedule.brackets])
 
     return <CardActionArea
       style={props.style}
@@ -84,47 +104,60 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
         setValue();
       }}
     >
-      {moment.weekdaysShort()[props.columnIndex]}  {startTime.format("hh:mm A")}
+      {startTime}
     </CardActionArea>
   }, [selected, buttonDown, selectedBracket, slotTimeUnitName, slotDuration, xAxisTypeName]);
 
   return <>
     <Card sx={{
-      position: 'fixed',
-      right: '24px',
-      top: '20vh',
       backgroundColor: '#444',
-      borderRadius: '4px 0 0 4px',
       padding: '15px'
-    }}>
-      <FixedSizeGrid
-        rowCount={selections}
-        columnCount={divisions}
-        rowHeight={30}
-        columnWidth={columnWidth}
-        height={300}
-        width={Math.min(560, columnWidth * divisions)}
-      >
-        {Cell}
-      </FixedSizeGrid>
-      <Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-        {schedule.brackets.map((bracket, i) => {
-          return <Box key={`bracket-chip${i + 1}new`} m={1}>
-            <Chip
-              label={`#${i + 1} ${bracket.duration - Object.values(selected).filter(s => s.bracketId === bracket.id).length} ${schedule.bracketTimeUnitName as ITimeUnitNames} (${bracket.multiplier}x)`}
-              sx={{ '&:hover': { cursor: 'pointer' }, borderWidth: '1px', borderStyle: 'solid', borderColor: bracketColors[i], boxShadow: selectedBracket?.id === bracket.id ? 2 : undefined }}
-              onDelete={() => {
-                setSchedule({ ...schedule, brackets: schedule.brackets?.filter((_, z) => i !== z) });
-              }}
-              onClick={() => {
-                setSelectedBracket(bracket);
-              }}
-            />
+    }}
+    >
+      <Grid container>
+        <Grid item xs={12} sm={8} ref={parentRef}>
+          <Typography variant="h6">Schedule Display</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+            {schedule.brackets.map((bracket, i) => {
+              return <Box key={`bracket-chip${i + 1}new`} m={1}>
+                <Chip
+                  label={`#${i + 1} ${moment.duration({ [schedule.bracketTimeUnitName as moment.unitOfTime.Base]: bracket.duration }).as(schedule.slotTimeUnitName as moment.unitOfTime.Base) - (bracket.slots.length * schedule.slotDuration)} ${schedule.slotTimeUnitName as ITimeUnitNames}s (${bracket.multiplier}x)`}
+                  sx={{ '&:hover': { cursor: 'pointer' }, borderWidth: '1px', borderStyle: 'solid', borderColor: bracketColors[i], boxShadow: selectedBracket?.id === bracket.id ? 2 : undefined }}
+                  onDelete={() => {
+                    setSchedule({ ...schedule, brackets: schedule.brackets?.filter((_, z) => i !== z) });
+                  }}
+                  onClick={() => {
+                    setSelectedBracket(bracket);
+                  }}
+                />
+              </Box>
+            })}
           </Box>
-        })}
-      </Box>
-    </Card>
+          <Typography variant="body1">Click a bracket tag above to select it, then use up the alloted time by clicking on the time slots. Hold down the mouse button to select multiple slots.</Typography>
 
-    <pre>{JSON.stringify(schedule, null, 2)}</pre>
+          <Box onMouseLeave={() => setButtonDown(false)}>
+            <FixedSizeGrid
+              rowCount={selections}
+              columnCount={divisions}
+              rowHeight={30}
+              columnWidth={columnWidth}
+              height={300}
+              width={Math.min(width, columnWidth * divisions)}
+            >
+              {Cell}
+            </FixedSizeGrid>
+          </Box>
+        </Grid>
+        <Grid item xs={12} sm={4} sx={{ maxHeight: '450px', overflow: 'auto' }}>
+          <Typography variant="h6">Selected Slots</Typography>
+          {schedule.brackets.map((b, i) => <Box key={`selected_bracket_slot_display_${i}`}>
+            <Typography>Bracket #{i + 1} - {b.slots.length * schedule.slotDuration} {schedule.slotTimeUnitName}s</Typography>
+            {b.slots.sort((a, b) => (new Date(a.startTime)).getTime() - (new Date(b.startTime)).getTime()).map((s, z) => <Box key={`selected_slot_display_${z}`}>
+              {s.startTime}
+            </Box>)}
+          </Box>)}
+        </Grid>
+      </Grid>
+    </Card>
   </>;
 }

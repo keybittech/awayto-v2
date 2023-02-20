@@ -338,6 +338,7 @@ async function go() {
       // Here we make use of the extra /api from the reverse proxy
       app[method.toLowerCase() as keyof Express](`/api/${path}`, checkAuthenticated, async (req: Request & { headers: { authorization: string } }, res: Response) => {
 
+        const requestId = uuid();
         let response: ApiResponseBody = false;
 
         const user = req.user as StrategyUser;
@@ -353,7 +354,6 @@ async function go() {
         }
 
         if (!response) {
-          const requestId = uuid();
 
           const token = jwtDecode<DecodedJWTToken & IdTokenClaims>(req.headers.authorization);
 
@@ -408,6 +408,8 @@ async function go() {
         if (response) {
           // Respond
           res.status(200).json(response);
+        } else {
+          res.status(500).send({ reason: 'Cannot process request', requestId })
         }
       });
     });
