@@ -1,4 +1,4 @@
-import { PayloadAction, IRole, IUserProfile, IService, IServiceAddon, ISchedule, GroupRoleActions, IGroupRoleActions } from '.';
+import { PayloadAction, IRole, IUserProfile, IService, IServiceAddon, ISchedule } from '.';
 
 declare global {
   /**
@@ -9,6 +9,7 @@ declare global {
     groupService: IGroupServiceState;
     groupServiceAddon: IGroupServiceAddonState;
     groupSchedule: IGroupScheduleState;
+    assignments: IGroupRoleActions;
   }
 
   /**
@@ -26,6 +27,24 @@ declare global {
     groupSchedule: IGroupScheduleActionTypes;
   }
 }
+
+
+/**
+ * @category Authorization
+ */
+export type GroupRoleActions = {
+  id?: string;
+  fetch?: boolean;
+  actions: {
+    id?: string;
+    name: string;
+  }[];
+}
+
+/**
+ * @category Authorization
+ */
+export type IGroupRoleActions = Record<string, GroupRoleActions>;
 
 /**
  * @category Awayto

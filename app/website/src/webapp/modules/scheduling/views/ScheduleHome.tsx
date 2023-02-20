@@ -71,7 +71,7 @@ export function ScheduleHome(props: IProps): JSX.Element {
     const dayId = timeUnits.find(s => s.name === TimeUnit.DAY)?.id;
     const minuteId = timeUnits.find(s => s.name === TimeUnit.MINUTE)?.id;
     const monthId = timeUnits.find(s => s.name === TimeUnit.MONTH)?.id;
-    if ('40hoursweekly' === type) {
+    if ('40hoursweekly30minsessions' === type) {
       setNewSchedule({
         ...newSchedule,
         duration: 1,
@@ -79,26 +79,26 @@ export function ScheduleHome(props: IProps): JSX.Element {
         scheduleTimeUnitName: TimeUnit.WEEK,
         bracketTimeUnitId: hourId,
         bracketTimeUnitName: TimeUnit.HOUR,
-        slotTimeUnitId: minuteId,
-        slotTimeUnitName: TimeUnit.MINUTE,
-        slotDuration: 60
+        slotTimeUnitId: hourId,
+        slotTimeUnitName: TimeUnit.HOUR,
+        slotDuration: 1
       });
       setNewBracket({ ...newBracket, services: Object.values(groupServices), duration: 40, automatic: true });
-    } else if ('fulldayweekly') {
+    } else if ('dailybookingpermonth') {
       setNewSchedule({
         ...newSchedule,
         duration: 1,
-        scheduleTimeUnitId: weekId,
-        scheduleTimeUnitName: TimeUnit.WEEK,
-        bracketTimeUnitId: dayId,
-        bracketTimeUnitName: TimeUnit.DAY,
+        scheduleTimeUnitId: monthId,
+        scheduleTimeUnitName: TimeUnit.MONTH,
+        bracketTimeUnitId: weekId,
+        bracketTimeUnitName: TimeUnit.WEEK,
         slotTimeUnitId: dayId,
         slotTimeUnitName: TimeUnit.DAY,
         slotDuration: 1
       });
-      setNewBracket({ ...newBracket, services: Object.values(groupServices), duration: 1, automatic: true });
+      setNewBracket({ ...newBracket, services: Object.values(groupServices), duration: 4, automatic: true });
     }
-  }, [timeUnits, groupServices]);
+  }, [newSchedule, newBracket, timeUnits, groupServices]);
 
   const slotDurationMarks = useMemo(() => {
     const { duration, scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName } = newSchedule;
@@ -167,8 +167,8 @@ export function ScheduleHome(props: IProps): JSX.Element {
               <Box mb={4}>
                 <Typography variant="h6">Defaults</Typography>
                 <Typography variant="body2">Use sensible defaults for the Schedule and first Bracket configuration.</Typography>
-                <Button color="secondary" onClick={() => setDefault('40hoursweekly')}>40 hours weekly</Button>
-                <Button color="secondary" onClick={() => setDefault('fulldayweekly')}>full day weekly</Button>
+                <Button color="secondary" onClick={() => setDefault('40hoursweekly30minsessions')}>40 hours per week, 30 minute slot</Button>
+                <Button color="secondary" onClick={() => setDefault('dailybookingpermonth')}>daily booking per month</Button>
               </Box>
 
               <Box mb={4}>
@@ -237,7 +237,7 @@ export function ScheduleHome(props: IProps): JSX.Element {
               </ul>
 
               {newSchedule.bracketTimeUnitName && newSchedule.scheduleTimeUnitName && <Box mb={4}>
-                <Typography variant="body1">Number of {newSchedule.bracketTimeUnitName}s for this bracket. (Remaining: {moment.duration({ [newSchedule.scheduleTimeUnitName]: newSchedule.duration }).as(newSchedule.bracketTimeUnitName) - newSchedule.brackets.reduce((m, d) => m + d.duration, 0)})</Typography>
+                <Typography variant="body1">Number of {newSchedule.bracketTimeUnitName}s for this bracket. (Remaining: {Math.floor(moment.duration({ [newSchedule.scheduleTimeUnitName]: newSchedule.duration }).as(newSchedule.bracketTimeUnitName) - newSchedule.brackets.reduce((m, d) => m + d.duration, 0))})</Typography>
                 <TextField fullWidth label={`# of ${newSchedule.bracketTimeUnitName}s`} value={newBracket.duration || ''} onChange={e => setNewBracket({ ...newBracket, duration: Math.min(Math.max(0, parseInt(e.target.value || '', 10)), moment.duration({ [newSchedule.scheduleTimeUnitName as ITimeUnitNames]: newSchedule.duration }).as(newSchedule.bracketTimeUnitName as ITimeUnitNames) - newSchedule.brackets.reduce((m, d) => m + d.duration, 0)) })} type="number" />
               </Box>}
 

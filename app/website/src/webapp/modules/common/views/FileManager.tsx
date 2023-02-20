@@ -32,7 +32,7 @@ export function FileManager (): JSX.Element {
 
   function deleteFiles(){
     if (selected.length) {
-      void api(DELETE_FILES, true, selected);
+      // void api(DELETE_FILES, true, selected);
       setToggle(!toggle);
     }
   }

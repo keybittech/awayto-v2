@@ -176,7 +176,6 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
   CREATE TABLE schedule_brackets (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     schedule_id uuid NOT NULL REFERENCES schedules (id) ON DELETE CASCADE,
-    start_time TIMESTAMP NOT NULL,
     duration INTEGER NOT NULL,
     multiplier DECIMAL NOT NULL,
     automatic BOOLEAN NOT NULL DEFAULT false,
@@ -195,7 +194,8 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     created_sub VARCHAR (50),
     updated_on TIMESTAMP,
     updated_sub VARCHAR (50),
-    enabled BOOLEAN NOT NULL DEFAULT true
+    enabled BOOLEAN NOT NULL DEFAULT true,
+    UNIQUE (schedule_bracket_id, start_time)
   );
 
   CREATE TABLE schedule_bracket_services (

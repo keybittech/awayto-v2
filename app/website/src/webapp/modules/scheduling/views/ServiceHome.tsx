@@ -67,12 +67,24 @@ export function ServiceHome(props: IProps): JSX.Element {
 
     <Grid item xs={12}>
       <Card>
-        <CardHeader title="Service" />
+        <CardHeader
+          title="Service"
+          action={
+            group?.id && <TextField
+              select
+              value={group.id}
+              label="Group"
+              onChange={e => setGroup(Object.values(groups).filter(g => g.id === e.target.value)[0])}
+            >
+              {Object.values(groups).map(group => <MenuItem key={`group-select${group.id}`} value={group.id}>{group.name}</MenuItem>)}
+            </TextField>
+          }
+        />
         <CardContent sx={{ padding: '0 15px' }}>
           <Grid container>
             <Grid item>
               <Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                <Typography variant="body2">A service is the base level object that will be offered for sale to your users. Services can have tiers and features, which can increase the cost of the base service via a multiplier on the tier. Or create a base tier and add all</Typography>
+                <Typography variant="body2">Services are the functions of your organization. Each service has a set of tiers and features. As well, a cost may be associated with the service. If there is a cost, tiers can be used to provide a higher level of service at a higher cost, using the multiplier. Features can be added to each tier as necessary.</Typography>
                 <Typography variant="h6">Current Services: </Typography>
                 {Object.values(groupServices).map((service, i) => {
                   return <Box key={`service-chip${i + 1}new`} m={1}><Chip label={`${service.name}`} onDelete={() => {
@@ -88,30 +100,6 @@ export function ServiceHome(props: IProps): JSX.Element {
         </CardContent>
       </Card>
     </Grid>
-
-    {group?.id && <Grid item xs={12}>
-      <Card style={{ display: 'flex', flexDirection: 'column' }}>
-        <CardHeader title="Group" />
-        <CardContent sx={{ padding: '0 15px' }}>
-          <Grid container>
-            <Grid item xs={12} md={6}>
-
-              <TextField
-                select
-                fullWidth
-                label="Groups"
-                helperText="Select the group for this service."
-                value={group.id}
-                onChange={e => setGroup(Object.values(groups).filter(g => g.id === e.target.value)[0])}
-              >
-                {Object.values(groups).map(group => <MenuItem key={`group-select${group.id}`} value={group.id}>{group.name}</MenuItem>)}
-              </TextField>
-
-            </Grid>
-          </Grid>
-        </CardContent>
-      </Card>
-    </Grid>}
 
     <Grid item xs={12}>
       <Card style={{ display: 'flex', flexDirection: 'column' }}>
@@ -232,7 +220,7 @@ export function ServiceHome(props: IProps): JSX.Element {
               }
             });
           } else {
-            void act(SET_SNACK, { snackOn: 'Provide a group, service name, cost and at least 1 tier.', snackType: 'info' });
+            void act(SET_SNACK, { snackOn: 'Provide the service name, cost and at least 1 tier.', snackType: 'info' });
           }
         }}>
           <Box mx={2} sx={{ display: 'flex', alignItems: 'center' }}>

@@ -31,6 +31,9 @@ export type PayloadAction<Type, Payload, Meta = void> = MetaAction<Type, Meta> &
  */
 export type ILoadedState = ISharedState[keyof ISharedState];
 
+export type ValueOf<T> = T[keyof T];
+
+export type StatePayloadValues = ValueOf<ISharedState> & Record<string, string>
 
 /**
  * @category Action Types
@@ -134,23 +137,6 @@ export enum SiteRoles {
   APP_GROUP_FEATURES = 'APP_GROUP_FEATURES',
   APP_GROUP_SCHEDULES = 'APP_GROUP_SCHEDULES'
 }
-
-/**
- * @category Authorization
- */
-export type GroupRoleActions = {
-  id?: string;
-  fetch?: boolean;
-  actions: {
-    id?: string;
-    name: string;
-  }[];
-}
-
-/**
- * @category Authorization
- */
-export type IGroupRoleActions = Record<string, GroupRoleActions>;
 
 /**
  * @category Authorization

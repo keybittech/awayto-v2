@@ -2,6 +2,7 @@ import { ISchedule, IScheduleActionTypes, IScheduleBracket } from 'awayto';
 import { asyncForEach } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
+import moment from 'moment';
 
 const schedules: ApiModule = [
 
@@ -23,10 +24,10 @@ const schedules: ApiModule = [
 
         await asyncForEach(brackets, async b => {
           const { id: bracketId } = (await props.db.query<IScheduleBracket>(`
-            INSERT INTO schedule_brackets (schedule_id, start_time, duration, multiplier, automatic)
-            VALUES ($1, $2, $3)
+            INSERT INTO schedule_brackets (schedule_id, duration, multiplier, automatic)
+            VALUES ($1, $2, $3, $4)
             RETURNING id
-          `, [schedule.id, b.startTime || new Date(), b.duration, b.multiplier, b.automatic])).rows[0];
+          `, [schedule.id, b.duration, b.multiplier, b.automatic])).rows[0];
 
           b.id = bracketId;
 
@@ -36,6 +37,17 @@ const schedules: ApiModule = [
               VALUES ($1, $2)
               ON CONFLICT (schedule_bracket_id, service_id) DO NOTHING
             `, [bracketId, s.id])
+          });
+
+          await asyncForEach(b.slots, async s => {
+            const [{ id: slotId }] = (await props.db.query(`
+              INSERT INTO schedule_bracket_slots (schedule_bracket_id, start_time, created_sub)
+              VALUES ($1, $2, $3)
+              ON CONFLICT (schedule_bracket_id, start_time) DO NOTHING
+              RETURNING id
+            `, [bracketId, moment(s.startTime, "ddd HH:mm A").utc().toString(), props.event.userSub])).rows;
+
+            s.id = slotId;
           });
         });
 

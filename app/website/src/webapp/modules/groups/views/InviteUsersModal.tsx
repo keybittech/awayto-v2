@@ -24,12 +24,12 @@ export function InviteUsersModal({ closeModal, ...props }: IProps): JSX.Element 
   const act = useAct();
 
   const [email, setEmail] = useState('');
-  const [users, setUsers] = useState<Partial<IUserProfile>[]>([]);
+  const [users, setUsers] = useState<IUserProfile[]>([]);
 
   const handleAdd = useCallback(() => {
-    setUsers([...users, { email }]);
+    setUsers([...users, { email } as IUserProfile]);
     setEmail('');
-  }, [users, email])
+  }, [users, email]);
 
   const handleSubmit = useCallback(() => {
     if (!users.length) {

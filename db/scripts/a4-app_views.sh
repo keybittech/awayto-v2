@@ -142,7 +142,6 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
   SELECT
     sb.id,
     sb.schedule_id as "scheduleId",
-    sb.start_time as "startTime",
     sb.duration,
     sb.multiplier,
     sb.automatic,
@@ -152,6 +151,19 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     schedule_brackets sb
   WHERE
     sb.enabled = true;
+
+  CREATE
+  OR REPLACE VIEW dbview_schema.enabled_schedule_bracket_slots AS
+  SELECT
+    id,
+    schedule_bracket_id as "scheduleBracketId",
+    start_time as "startTime",
+    row_number() OVER () as row
+  FROM
+    schedule_bracket_slots
+  WHERE
+    enabled = true;
+
 
   CREATE
   OR REPLACE VIEW dbview_schema.enabled_quotes AS
@@ -312,7 +324,8 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
         (
           SELECT
             esb.*,
-            eess.*
+            eess.*,
+            eesl.*
           FROM
             dbview_schema.enabled_schedule_brackets esb
             LEFT JOIN LATERAL (
@@ -329,6 +342,20 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
                     sbs.schedule_bracket_id = esb.id
                 ) s3
             ) as eess ON true
+            LEFT JOIN LATERAL (
+              SELECT
+                JSON_AGG(s3.*) as slots
+              FROM
+                (
+                  SELECT
+                    esbs.*
+                  FROM
+                    schedule_bracket_slots sbs
+                    JOIN dbview_schema.enabled_schedule_bracket_slots esbs ON esbs.id = sbs.id
+                  WHERE
+                    sbs.schedule_bracket_id = esb.id
+                ) s3
+            ) as eesl ON true
           WHERE
             esb."scheduleId" = es.id
         ) s2

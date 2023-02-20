@@ -64,11 +64,11 @@ export function ManageUsers(props: IProps): JSX.Element {
     return [
       ...actions,
       <IconButton key={'lock_user'} onClick={() => {
-        api(LOCK_MANAGE_USERS, true, selected.map(u => ({ username: u.username })));
+        api(LOCK_MANAGE_USERS, true, { users: selected.map(u => ({ username: u.username })) });
         setToggle(!toggle);
       }}><LockIcon /></IconButton>,
       <IconButton key={'unlock_user'} onClick={() => {
-        api(UNLOCK_MANAGE_USERS, true, selected.map(u => ({ username: u.username })));
+        api(UNLOCK_MANAGE_USERS, true, { users: selected.map(u => ({ username: u.username })) });
         setToggle(!toggle);
       }}><LockOpenIcon /></IconButton>,
     ];

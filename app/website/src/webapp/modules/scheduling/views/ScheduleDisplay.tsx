@@ -52,16 +52,16 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
   const Cell = useCallback((props: GridCell) => {
     const target = `schedule_selection_${props.columnIndex}_${props.rowIndex}`;
     const exists = selected[target];
-    const startTime = moment().startOf(xAxisTypeName as moment.unitOfTime.Base).add(slotDuration * props.rowIndex, slotTimeUnitName).add(props.columnIndex, xAxisTypeName).format('ddd hh:mm A');
+    const startTime = moment().startOf(xAxisTypeName as moment.unitOfTime.Base).add(slotDuration * props.rowIndex, slotTimeUnitName).add(props.columnIndex, xAxisTypeName);
 
     const setValue = useCallback(function () {
       const bracket = schedule.brackets.find(b => b.id === selectedBracket.id) as IScheduleBracket;
 
       const slot = {
         id: (new Date()).getTime().toString(),
-        startTime: startTime,
-        bracketId: selectedBracket.id
-      };
+        startTime: startTime.format('ddd hh:mm A'),
+        scheduleBracketId: selectedBracket.id
+      } as IScheduleBracketSlot;
 
       if (exists) {
         bracket.slots = bracket.slots.filter(b => b.id !== exists.id);
@@ -70,7 +70,7 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
         bracket.slots.push(slot)
         selected[target] = slot;
       } else {
-        alert('you went over your allotment');
+        alert('you went over your allottment');
       }
 
       setSchedule({ ...schedule, brackets: [...schedule.brackets] });
@@ -96,7 +96,7 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
 
     return <CardActionArea
       style={props.style}
-      sx={{ position: 'relative', '&:hover': { opacity: '1', boxShadow: '2' }, border: exists ? `1px solid ${bracketColors[schedule.brackets.findIndex(b => b.id === exists.bracketId)]}` : undefined, backgroundColor: '#444', opacity: !exists ? '.33' : '1', textAlign: 'center', boxShadow: exists ? '2' : undefined }}
+      sx={{ position: 'relative', '&:hover': { opacity: '1', boxShadow: '2' }, border: exists ? `1px solid ${bracketColors[schedule.brackets.findIndex(b => b.id === exists.scheduleBracketId)]}` : undefined, backgroundColor: '#444', opacity: !exists ? '.33' : '1', textAlign: 'center', boxShadow: exists ? '2' : undefined }}
       onMouseLeave={() => buttonDown && setValue()}
       onMouseDown={() => setButtonDown(true)}
       onMouseUp={() => {
@@ -104,7 +104,7 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
         setValue();
       }}
     >
-      {startTime}
+      {startTime.format('ddd hh:mm A')}
     </CardActionArea>
   }, [selected, buttonDown, selectedBracket, slotTimeUnitName, slotDuration, xAxisTypeName]);
 
@@ -133,7 +133,7 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
               </Box>
             })}
           </Box>
-          <Typography variant="body1">Click a bracket tag above to select it, then use up the alloted time by clicking on the time slots. Hold down the mouse button to select multiple slots.</Typography>
+          <Typography variant="body1">Click a bracket tag above to select it, then use up the allotted time by clicking on the time slots. Hold down the mouse button to select multiple slots. There can be leftover slots if they're unneeded.</Typography>
 
           <Box onMouseLeave={() => setButtonDown(false)}>
             <FixedSizeGrid
@@ -152,7 +152,7 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
           <Typography variant="h6">Selected Slots</Typography>
           {schedule.brackets.map((b, i) => <Box key={`selected_bracket_slot_display_${i}`}>
             <Typography>Bracket #{i + 1} - {b.slots.length * schedule.slotDuration} {schedule.slotTimeUnitName}s</Typography>
-            {b.slots.sort((a, b) => (new Date(a.startTime)).getTime() - (new Date(b.startTime)).getTime()).map((s, z) => <Box key={`selected_slot_display_${z}`}>
+            {b.slots.sort((a, b) => moment(a.startTime).milliseconds() - moment(b.startTime).milliseconds()).map((s, z) => <Box key={`selected_slot_display_${z}`}>
               {s.startTime}
             </Box>)}
           </Box>)}

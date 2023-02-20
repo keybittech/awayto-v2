@@ -21,7 +21,8 @@ import {
   ApiErrorResponse,
   ILoadedState,
   IServiceAddonActionTypes,
-  IAssistActionTypes
+  IAssistActionTypes,
+  StatePayloadValues
 } from 'awayto';
 
 import { useAct } from './useAct';
@@ -86,11 +87,10 @@ const { SET_LOADING, API_SUCCESS, SET_SNACK } = IUtilActionTypes;
  * @category Hooks
  */
 
-
-export function useApi(): <T = unknown, R = ILoadedState>(actionType: IActionTypes, load?: boolean, body?: Partial<T>, meta?: unknown) => [(reason?: string)=> void, Promise<void | R> | undefined] {
+export function useApi(): <T, R = ILoadedState>(actionType: IActionTypes, load?: boolean, body?: Partial<Record<string, T> | StatePayloadValues>, meta?: unknown) => [(reason?: string)=> void, Promise<void | R> | undefined] {
   const act = useAct();
 
-  const api = useCallback(<T = unknown, R = ILoadedState>(actionType: IActionTypes, load?: boolean, body?: Partial<T>, meta?: unknown): [(reason?: string)=> void, Promise<void | R> | undefined] => {
+  const api = useCallback(<T, R = ILoadedState>(actionType: IActionTypes, load?: boolean, body?: Partial<Record<string, T> | StatePayloadValues>, meta?: unknown): [(reason?: string)=> void, Promise<void | R> | undefined] => {
 
     const abortController: AbortController = new AbortController();
     function abort(reason?: string) {
@@ -107,10 +107,16 @@ export function useApi(): <T = unknown, R = ILoadedState>(actionType: IActionTyp
 
       let jsonBody: string | undefined = JSON.stringify(body);
 
-      if (path.includes('/:')) {
+      if (path.includes('/:') && body) {
         // Get the key of the enum from ApiActions based on the path (actionType)
         const pathKey = Object.keys(ApiActions).filter((x) => ApiActions[x] == actionType)[0];
-        path = generator.generate(pathKey, body as Record<string, string>).split(/\/(.+)/)[1];
+
+        // Only access body keys that are part of the action param string (GET/path/:id/subpath/:subId will expect id and subId in the body and only try to get them)
+        const keys = [...actionType.matchAll(/(?<=\/:)(\w*)/g)];
+        const keyBody = Object.keys(body).reduce((m, d) => {
+          return keys.some(k => k[0] === d) ? { ...m, [d]: body[d] } : {}
+        }, {});
+        path = generator.generate(pathKey, keyBody).split(/\/(.+)/)[1];
       }
 
       if (['delete', 'get'].indexOf(method.toLowerCase()) > -1 && body) {
