@@ -19,7 +19,7 @@ const groups: ApiModule = [
 
         // Create a group in app db if user has no groups and name is unique
         const { rows: [group] } = await props.db.query<IGroup>(`
-          INSERT INTO groups (external_id, code, role_id, name, created_sub)
+          INSERT INTO dbtable_schema.groups (external_id, code, role_id, name, created_sub)
           VALUES ($1, $2, $3, $4, $5)
           ON CONFLICT (name) DO NOTHING
           RETURNING id, name, created_sub
@@ -29,7 +29,7 @@ const groups: ApiModule = [
         const { id: externalId } = await keycloak.groups.create({ name });
 
         // Update the group with keycloak reference id
-        await props.db.query(`UPDATE groups SET external_id = $1 WHERE id = $2`, [externalId, group.id]);
+        await props.db.query(`UPDATE dbtable_schema.groups SET external_id = $1 WHERE id = $2`, [externalId, group.id]);
 
         // For each group role, create a keycloak subgroup and attach to group uuid
         await asyncForEach(Object.values(roles), async ({ id: groupRoleId, name }) => {
@@ -48,7 +48,7 @@ const groups: ApiModule = [
           }
 
           await props.db.query(`
-            INSERT INTO uuid_roles (parent_uuid, role_id, external_id, created_on, created_sub)
+            INSERT INTO dbtable_schema.uuid_roles (parent_uuid, role_id, external_id, created_on, created_sub)
             VALUES ($1, $2, $3, $4, $5)
             ON CONFLICT (parent_uuid, role_id) DO NOTHING
           `, [group.id, groupRoleId, kcSubgroupId, new Date(), props.event.userSub])
@@ -61,7 +61,7 @@ const groups: ApiModule = [
 
         // Attach the user to the group in the app db
         await props.db.query(`
-          INSERT INTO uuid_groups (parent_uuid, group_id, created_sub)
+          INSERT INTO dbtable_schema.uuid_groups (parent_uuid, group_id, created_sub)
           VALUES ($1, $2, $3)
           ON CONFLICT (parent_uuid, group_id) DO NOTHING
           RETURNING id
@@ -110,7 +110,7 @@ const groups: ApiModule = [
 
         // Update the basic info about the group
         const { rows: [group] } = await props.db.query<IGroup>(`
-          UPDATE groups
+          UPDATE dbtable_schema.groups
           SET ${updateProps.string}
           WHERE id = $1
           RETURNING id, name, external_id as "externalId", role_id as "roleId"
@@ -129,7 +129,7 @@ const groups: ApiModule = [
           // Remove any old roles from app db
           await Promise.all(diffs.map(d => {
             if (d.id) {
-              return props.db.query('DELETE FROM uuid_roles WHERE id = $1', [d.id]);
+              return props.db.query('DELETE FROM dbtable_schema.uuid_roles WHERE id = $1', [d.id]);
             }
           }));
 
@@ -149,7 +149,7 @@ const groups: ApiModule = [
         await asyncForEach(Object.values(roles), async role => {
           await keycloak.groups.setOrCreateChild({ id: group.externalId }, { name: role.name });
           await props.db.query(`
-            INSERT INTO uuid_roles (parent_uuid, role_id, created_on, created_sub)
+            INSERT INTO dbtable_schema.uuid_roles (parent_uuid, role_id, created_on, created_sub)
             VALUES ($1, $2, $3, $4)
             ON CONFLICT (parent_uuid, role_id) DO NOTHING
           `, [group.id, role.id, new Date(), props.event.userSub])
@@ -158,7 +158,7 @@ const groups: ApiModule = [
 
         // If the admin role has changed
         if (group.roleId !== adminRoleId) {
-          
+
           // If the keycloak subgroup didn't get deleted earlier
           if (!diffs.filter(d => d.roleId === group.roleId).length) {
             const [{ externalId: oldAdminRoleExternalSubgroupId }] = (await props.db.query<IUuidRoles>(`
@@ -171,14 +171,14 @@ const groups: ApiModule = [
               roles: groupAdminRoles as { id: string, name: string }[]
             });
           }
-          
+
           // Get the new admin role's externalId for its keycloak subgroup
           const [{ externalId: newAdminRoleExternalSubgroupId }] = (await props.db.query<IUuidRoles>(`
             SELECT "externalId" FROM dbview_schema.enabled_uuid_roles WHERE "roleId" = $1
           `, [adminRoleId])).rows;
 
           // Set the new admin role for the group
-          await props.db.query(`UPDATE groups SET role_id = $1 WHERE id = $2`, [adminRoleId, group.id]);
+          await props.db.query(`UPDATE dbtable_schema.groups SET role_id = $1 WHERE id = $2`, [adminRoleId, group.id]);
           group.roleId = adminRoleId;
 
           // Attach keycloak roles to the new admin role subgroup
@@ -213,12 +213,12 @@ const groups: ApiModule = [
     cmnd: async (props) => {
 
       performance.mark("putGroupAssignmentsStart");
-      
+
       // const { groupName } = props.event.pathParameters;
       const { assignments } = props.event.body;
 
       // Get the group external ID for now by owner
-      const [{ externalId }] = (await props.db.query<IGroup>(`
+      const [{ externalId: groupExternalId }] = (await props.db.query<IGroup>(`
         SELECT "externalId" FROM dbview_schema.enabled_groups WHERE "createdSub" = $1
       `, [props.event.userSub])).rows;
 
@@ -226,7 +226,7 @@ const groups: ApiModule = [
 
         // If this is the first time roles are being added, they won't exist in the global groupRoleActions collection, so add a container for them
         if (!groupRoleActions[subgroupPath]) {
-          const subgroup = (await keycloak.groups.findOne({ id: externalId }))?.subGroups?.find(g => g.path === subgroupPath);
+          const subgroup = (await keycloak.groups.findOne({ id: groupExternalId }))?.subGroups?.find(g => g.path === subgroupPath);
           if (subgroup) {
             groupRoleActions[subgroupPath] = {
               id: subgroup.id,
@@ -234,13 +234,13 @@ const groups: ApiModule = [
               actions: []
             };
           }
-          
+
         }
 
         if (groupRoleActions[subgroupPath]) {
-          
+
           const deletions = groupRoleActions[subgroupPath].actions?.filter(a => !assignments[subgroupPath].actions.map(aa => aa.name)?.includes(a.name));
-          
+
           if (deletions.length) {
             await keycloak.groups.delClientRoleMappings({
               id: groupRoleActions[subgroupPath].id as string,
@@ -270,12 +270,9 @@ const groups: ApiModule = [
       });
 
       // Get client sessions to
-      const [sessions] = await Promise.all([
-        keycloak.clients.listSessions({
-          id: appClient.id as string
-        }),
-        regroup(externalId)
-      ]);
+      const sessions = await keycloak.clients.listSessions({
+        id: appClient.id as string
+      });
 
       // Assign APP_ROLE_CALL to group users
       const users = (await props.db.query<IUserProfile>(`
@@ -284,16 +281,23 @@ const groups: ApiModule = [
         LEFT JOIN dbview_schema.enabled_uuid_groups eug ON eug."groupId" = g.id
         LEFT JOIN dbview_schema.enabled_users eu ON eu.id = eug."parentUuid"
         WHERE g."externalId" = $1 AND eu.sub = ANY($2::varchar[])
-      `, [externalId, sessions.map(u => u.userId)])).rows;
+      `, [groupExternalId, sessions.map(u => u.userId)])).rows;
 
 
-      await Promise.all(users.map(user => {
-        return keycloak.users.addClientRoleMappings({
-          id: user.sub,
-          clientUniqueId: appClient.id!,
-          roles: roleCall
-        });
-      }));
+      const updates = users.flatMap(user => {
+        return [
+          keycloak.users.addClientRoleMappings({
+            id: user.sub,
+            clientUniqueId: appClient.id!,
+            roles: roleCall
+          }),
+          props.redis.del(user.sub + 'profile/details')
+        ];
+      });
+
+      await Promise.all(updates);
+
+      await regroup(groupExternalId);
 
       performance.mark("putGroupAssignmentsEnd");
       performance.measure("putGroupAssignmentsStart to putGroupAssignmentsEnd", "putGroupAssignmentsStart", "putGroupAssignmentsEnd");
@@ -372,7 +376,7 @@ const groups: ApiModule = [
 
           const { rows: [{ externalId }] } = await props.db.query<IGroup>(`
             SELECT external_id as "externalId"
-            FROM groups
+            FROM dbtable_schema.groups
             WHERE id = $1 
           `, [id]);
 
@@ -380,13 +384,13 @@ const groups: ApiModule = [
 
           // Delete roles assigned to the group
           await props.db.query(`
-            DELETE FROM uuid_roles
+            DELETE FROM dbtable_schema.uuid_roles
             WHERE parent_uuid = $1
           `, [id]);
 
           // Delete group
           await props.db.query(`
-            DELETE FROM groups
+            DELETE FROM dbtable_schema.groups
             WHERE id = $1
           `, [id]);
         })
@@ -410,7 +414,7 @@ const groups: ApiModule = [
 
         await asyncForEach(Object.values(groups), async group => {
           await props.db.query(`
-            UPDATE groups
+            UPDATE dbtable_schema.groups
             SET enabled = false
             WHERE id = $1
           `, [group.id]);
@@ -433,7 +437,7 @@ const groups: ApiModule = [
 
         const { rows: [{ count }] } = await props.db.query<{ count: number }>(`
           SELECT COUNT(*) as count
-          FROM groups
+          FROM dbtable_schema.groups
           WHERE name = $1
         `, [name]);
 
@@ -478,15 +482,15 @@ const groups: ApiModule = [
         const { code } = props.event.body;
 
         const [{ id: groupId }] = (await props.db.query<IGroup>(`
-          SELECT id FROM groups WHERE code = $1
+          SELECT id FROM dbtable_schema.groups WHERE code = $1
         `, [code])).rows;
 
         const [{ id: userId }] = (await props.db.query<IUserProfile>(`
-          SELECT id FROM users WHERE sub = $1
+          SELECT id FROM dbtable_schema.users WHERE sub = $1
         `, [props.event.userSub])).rows;
 
         await props.db.query(`
-          INSERT INTO uuid_groups (parent_uuid, group_id)
+          INSERT INTO dbtable_schema.uuid_groups (parent_uuid, group_id)
           VALUES ($1, $2);
         `, [userId, groupId]);
 
@@ -510,15 +514,15 @@ const groups: ApiModule = [
         const { code } = props.event.body;
 
         const [{ id: groupId }] = (await props.db.query<IGroup>(`
-          SELECT id FROM groups WHERE code = $1
+          SELECT id FROM dbtable_schema.groups WHERE code = $1
         `, [code])).rows;
 
         const [{ id: userId }] = (await props.db.query<IUserProfile>(`
-          SELECT id FROM users WHERE sub = $1
+          SELECT id FROM dbtable_schema.users WHERE sub = $1
         `, [props.event.userSub])).rows;
 
         await props.db.query(`
-          DELETE FROM uuid_groups
+          DELETE FROM dbtable_schema.uuid_groups
           WHERE parent_uuid = $1 AND group_id = $2;
         `, [userId, groupId]);
 

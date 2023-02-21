@@ -14,7 +14,7 @@ const services: ApiModule = [
 
         const service = (await props.db.query<IService>(`
           WITH input_rows(name, cost) as (VALUES ($1, $2::integer)), ins AS (
-            INSERT INTO services (name, cost)
+            INSERT INTO dbtable_schema.services (name, cost)
             SELECT * FROM input_rows
             ON CONFLICT (name) DO NOTHING
             RETURNING id, name, cost
@@ -24,13 +24,13 @@ const services: ApiModule = [
           UNION ALL
           SELECT s.id, s.name, s.cost
           FROM input_rows
-          JOIN services s USING (name);
+          JOIN dbtable_schema.services s USING (name);
         `, [name, cost])).rows[0];
 
-        await asyncForEach(Object.values(tiers), async t => {
+        await asyncForEach(Object.values(tiers).sort((a, b) => parseInt(a.id) - parseInt(b.id)), async t => {
           const serviceTier = (await props.db.query<IServiceTier>(`
             WITH input_rows(name, service_id, multiplier) as (VALUES ($1, $2::uuid, $3::decimal)), ins AS (
-              INSERT INTO service_tiers (name, service_id, multiplier)
+              INSERT INTO dbtable_schema.service_tiers (name, service_id, multiplier)
               SELECT * FROM input_rows
               ON CONFLICT (name, service_id) DO NOTHING
               RETURNING id
@@ -40,12 +40,12 @@ const services: ApiModule = [
             UNION ALL
             SELECT st.id
             FROM input_rows
-            JOIN service_tiers st USING (name, service_id);
+            JOIN dbtable_schema.service_tiers st USING (name, service_id);
           `, [t.name, service.id, t.multiplier])).rows[0];
 
-          await asyncForEach(Object.values(t.addons), async a => {
+          await asyncForEach(Object.values(t.addons).sort((a, b) => parseInt(a.id) - parseInt(b.id)), async a => {
             await props.db.query(`
-              INSERT INTO service_tier_addons (service_addon_id, service_tier_id)
+              INSERT INTO dbtable_schema.service_tier_addons (service_addon_id, service_tier_id)
               VALUES ($1, $2)
               ON CONFLICT (service_addon_id, service_tier_id) DO NOTHING
             `, [a.id, serviceTier.id]);
@@ -71,7 +71,7 @@ const services: ApiModule = [
         const updateProps = buildUpdate({ id, name });
 
         const response = await props.db.query<IService>(`
-          UPDATE services
+          UPDATE dbtable_schema.services
           SET ${updateProps.string}
           WHERE id = $1
           RETURNING id, name
@@ -131,7 +131,7 @@ const services: ApiModule = [
         const { id } = props.event.pathParameters;
 
         const response = await props.db.query<IService>(`
-          DELETE FROM services
+          DELETE FROM dbtable_schema.services
           WHERE id = $1
           RETURNING id
         `, [id]);

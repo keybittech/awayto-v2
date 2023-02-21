@@ -13,7 +13,7 @@ const manageGroups: ApiModule = [
         const { name, roles } = props.event.body;
 
         const { rows: [ group ] } = await props.db.query<IGroup>(`
-          INSERT INTO groups (name, created_on)
+          INSERT INTO dbtable_schema.groups (name, created_on)
           VALUES ($1, $2)
           ON CONFLICT (name) DO NOTHING
           RETURNING id, name
@@ -21,7 +21,7 @@ const manageGroups: ApiModule = [
 
         await asyncForEach(Object.values(roles), async role => {
           await props.db.query(`
-            INSERT INTO uuid_roles (parent_uuid, role_id, created_on, created_sub)
+            INSERT INTO dbtable_schema.uuid_roles (parent_uuid, role_id, created_on, created_sub)
             VALUES ($1, $2, $3, $4)
             ON CONFLICT (parent_uuid, role_id) DO NOTHING
           `, [group.id, role.id, new Date(), props.event.userSub])
@@ -52,7 +52,7 @@ const manageGroups: ApiModule = [
         const updateProps = buildUpdate({ id, name });
 
         const { rows: [ group ] } = await props.db.query<IGroup>(`
-          UPDATE groups
+          UPDATE dbtable_schema.groups
           SET ${updateProps.string}
           WHERE id = $1
           RETURNING id, name
@@ -71,7 +71,7 @@ const manageGroups: ApiModule = [
 
         await asyncForEach(rolesValues, async role => {
           await props.db.query(`
-            INSERT INTO uuid_roles (parent_uuid, role_id, created_on, created_sub)
+            INSERT INTO dbtable_schema.uuid_roles (parent_uuid, role_id, created_on, created_sub)
             VALUES ($1, $2, $3, $4)
             ON CONFLICT (parent_uuid, role_id) DO NOTHING
           `, [group.id, role.id, new Date(), props.event.userSub])
@@ -116,7 +116,7 @@ const manageGroups: ApiModule = [
 
         await asyncForEach(ids, async id => {
           await props.db.query(`
-            DELETE FROM groups
+            DELETE FROM dbtable_schema.groups
             WHERE id = $1
           `, [id]);
         })
@@ -161,7 +161,7 @@ const manageGroups: ApiModule = [
 
         const { rows: [{ count }] } = await props.db.query<{count: number}>(`
           SELECT COUNT(*) as count
-          FROM groups
+          FROM dbtable_schema.groups
           WHERE name = $1
         `, [name]);
 

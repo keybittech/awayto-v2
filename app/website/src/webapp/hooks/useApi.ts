@@ -112,9 +112,11 @@ export function useApi(): <T extends { [prop: string]: unknown}, R = IMergedStat
 
         // Only access body keys that are part of the action param string (GET/path/:id/subpath/:subId will expect id and subId in the body and only try to get them)
         const keys = [...actionType.matchAll(/(?<=\/:)(\w*)/g)];
-        const keyBody = Object.keys(body).reduce((m, d) => {
-          return keys.some(k => k[0] === d) ? { ...m, [d]: body[d] } : {}
-        }, {});
+        const keyBody = {} as Record<string, string>;
+        for (const k of keys) {
+          keyBody[k[0]] = body[k[0]] as string;
+        }
+
         path = generator.generate(pathKey, keyBody).split(/\/(.+)/)[1];
       }
 

@@ -12,7 +12,7 @@ const service_tiers: ApiModule = [
         const { name, serviceId, multiplier } = props.event.body;
 
         const response = await props.db.query<IServiceTier>(`
-          INSERT INTO service_tiers (name, serviceId, multiplier)
+          INSERT INTO dbtable_schema.service_tiers (name, serviceId, multiplier)
           VALUES ($1, $2, $3)
           RETURNING id, name, serviceId, multiplier
         `, [name, serviceId, multiplier]);
@@ -36,7 +36,7 @@ const service_tiers: ApiModule = [
         const updateProps = buildUpdate({ id, name, multiplier });
 
         const response = await props.db.query<IServiceTier>(`
-          UPDATE service_tiers
+          UPDATE dbtable_schema.service_tiers
           SET ${updateProps.string}
           WHERE id = $1
           RETURNING id, name, serviceId, multiplier
@@ -96,7 +96,7 @@ const service_tiers: ApiModule = [
         const { id } = props.event.pathParameters;
 
         const response = await props.db.query<IServiceTier>(`
-          DELETE FROM service_tiers
+          DELETE FROM dbtable_schema.service_tiers
           WHERE id = $1
         `, [id]);
         
@@ -116,7 +116,7 @@ const service_tiers: ApiModule = [
         const { id } = props.event.pathParameters;
 
         await props.db.query(`
-          UPDATE service_tiers
+          UPDATE dbtable_schema.service_tiers
           SET enabled = false
           WHERE id = $1
         `, [id]);

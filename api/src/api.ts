@@ -10,7 +10,6 @@ import cookieSession from 'cookie-session';
 import cookieParser from 'cookie-parser';
 import httpProxy from 'http-proxy';
 import jwtDecode from 'jwt-decode';
-import assert from 'assert';
 import { v4 as uuid } from 'uuid';
 
 import passport from 'passport';
@@ -275,68 +274,68 @@ async function go() {
     });
 
 
-    app.all(`/api/v1/:code`, checkAuthenticated, async (req: Request, res: Response) => {
+    // app.all(`/api/v1/:code`, checkAuthenticated, async (req: Request, res: Response) => {
 
-      assert(req.headers.authorization, 'No auth header.');
+    //   assert(req.headers.authorization, 'No auth header.');
 
-      const requestId = uuid();
+    //   const requestId = uuid();
 
-      const user = req.user as StrategyUser;
-      const token = jwtDecode<DecodedJWTToken & IdTokenClaims>(req.headers.authorization);
-      const method = req.method;
-      const path = Buffer.from(req.params.code, 'base64').toString();
+    //   const user = req.user as StrategyUser;
+    //   const token = jwtDecode<DecodedJWTToken & IdTokenClaims>(req.headers.authorization);
+    //   const method = req.method;
+    //   const path = Buffer.from(req.params.code, 'base64').toString();
 
-      const tokenGroupRoles = {} as UserGroupRoles;
-      token.groups.forEach(subgroupPath => {
-        const [groupName, subgroupName] = subgroupPath.slice(1).split('/');
-        tokenGroupRoles[groupName] = tokenGroupRoles[groupName] || {};
-        tokenGroupRoles[groupName][subgroupName] = groupRoleActions[subgroupPath].actions.map(a => a.name)
-      });
+    //   const tokenGroupRoles = {} as UserGroupRoles;
+    //   token.groups.forEach(subgroupPath => {
+    //     const [groupName, subgroupName] = subgroupPath.slice(1).split('/');
+    //     tokenGroupRoles[groupName] = tokenGroupRoles[groupName] || {};
+    //     tokenGroupRoles[groupName][subgroupName] = groupRoleActions[subgroupPath]?.actions.map(a => a.name) || []
+    //   });
 
-      // Create trace event
-      const event = {
-        requestId,
-        method,
-        path,
-        public: false,
-        groups: token.groups,
-        availableUserGroupRoles: tokenGroupRoles,
-        username: user.username,
-        userSub: user.sub,
-        sourceIp: req.headers['x-forwarded-for'] as string,
-        pathParameters: req.params,
-        queryParameters: req.query as Record<string, string>,
-        body: req.body
-      }
+    //   // Create trace event
+    //   const event = {
+    //     requestId,
+    //     method,
+    //     path,
+    //     public: false,
+    //     groups: token.groups,
+    //     availableUserGroupRoles: tokenGroupRoles,
+    //     username: user.username,
+    //     userSub: user.sub,
+    //     sourceIp: req.headers['x-forwarded-for'] as string,
+    //     pathParameters: req.params,
+    //     queryParameters: req.query as Record<string, string>,
+    //     body: req.body
+    //   }
 
-      try {
-        const pathMatch = pathMatcher.match(`${method}/${path}`);
-        event.pathParameters = pathMatch._params;
+    //   try {
+    //     const pathMatch = pathMatcher.match(`${method}/${path}`);
+    //     event.pathParameters = pathMatch._params;
 
-        const route = pathMatch._route.split(/\/(.*)/s)[1];
+    //     const route = pathMatch._route.split(/\/(.*)/s)[1];
 
-        const [{ cmnd }] = APIs.protected.filter(o => o.action === `${method}/${route}`);
+    //     const [{ cmnd }] = APIs.protected.filter(o => o.action === `${method}/${route}`);
 
-        // Handle request
-        logger.log('App API Request', event);
-        const result = await cmnd({ event, db, redis });
+    //     // Handle request
+    //     logger.log('App API Request', event);
+    //     const result = await cmnd({ event, db, redis });
 
-        // Respond
-        res.status(200).json(result);
+    //     // Respond
+    //     res.status(200).json(result);
 
-      } catch (error) {
-        const err = error as Error & { reason: string };
+    //   } catch (error) {
+    //     const err = error as Error & { reason: string };
 
-        console.log('protected error', err.message);
-        logger.log('error response', { requestId, error: err });
+    //     console.log('protected error', err.message);
+    //     logger.log('error response', { requestId, error: err });
 
-        // Handle failures
-        res.status(500).send({
-          requestId,
-          reason: err.reason || err.message
-        });
-      }
-    });
+    //     // Handle failures
+    //     res.status(500).send({
+    //       requestId,
+    //       reason: err.reason || err.message
+    //     });
+    //   }
+    // });
 
     // Define protected routes
     APIs.protected.forEach(({ action, cmnd }) => {
@@ -362,32 +361,31 @@ async function go() {
 
         if (!response) {
 
-          const token = jwtDecode<DecodedJWTToken & IdTokenClaims>(req.headers.authorization);
-
-          const tokenGroupRoles = {} as UserGroupRoles;
-          token.groups.forEach(subgroupPath => {
-            const [groupName, subgroupName] = subgroupPath.slice(1).split('/');
-            tokenGroupRoles[groupName] = tokenGroupRoles[groupName] || {};
-            tokenGroupRoles[groupName][subgroupName] = groupRoleActions[subgroupPath].actions.map(a => a.name)
-          });
-
-          // Create trace event
-          const event = {
-            requestId,
-            method,
-            path,
-            public: false,
-            groups: token.groups,
-            availableUserGroupRoles: tokenGroupRoles,
-            username: user.username,
-            userSub: user.sub,
-            sourceIp: req.headers['x-forwarded-for'] as string,
-            pathParameters: req.params,
-            queryParameters: req.query as Record<string, string>,
-            body: req.body
-          }
-
           try {
+
+            const token = jwtDecode<DecodedJWTToken & IdTokenClaims>(req.headers.authorization);
+            const tokenGroupRoles = {} as UserGroupRoles;
+            token.groups.forEach(subgroupPath => {
+              const [groupName, subgroupName] = subgroupPath.slice(1).split('/');
+              tokenGroupRoles[groupName] = tokenGroupRoles[groupName] || {};
+              tokenGroupRoles[groupName][subgroupName] = groupRoleActions[subgroupPath]?.actions.map(a => a.name) || []
+            });
+
+            // Create trace event
+            const event = {
+              requestId,
+              method,
+              path,
+              public: false,
+              groups: token.groups,
+              availableUserGroupRoles: tokenGroupRoles,
+              username: user.username,
+              userSub: user.sub,
+              sourceIp: req.headers['x-forwarded-for'] as string,
+              pathParameters: req.params,
+              queryParameters: req.query as Record<string, string>,
+              body: req.body
+            }
             // Handle request
             logger.log('App API Request', event);
             response = await cmnd({ event, db, redis });

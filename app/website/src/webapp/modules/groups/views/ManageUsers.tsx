@@ -46,7 +46,7 @@ export function ManageUsers(props: IProps): JSX.Element {
     { name: 'First Name', selector: row => row.firstName },
     { name: 'Last Name', selector: row => row.lastName },
     { name: 'Group', selector: (user: IUserProfile) => {
-      const userGroups = Object.values(user.groups);
+      const userGroups = Object.values(user.groups || {});
       return userGroups.length ? userGroups.map(r => r.name).join(', ') : ''
     }},
     { name: 'Created', selector: (user: IUserProfile) => localFromNow(user.createdOn) },

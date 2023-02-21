@@ -156,7 +156,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
                 <SelectLookup
                   multiple
                   lookupName="Group Role"
-                  lookups={roles}
+                  lookups={Object.values(roles || {})}
                   lookupChange={setRoleIds}
                   lookupValue={roleIds}
                   refetchAction={getRolesAction}

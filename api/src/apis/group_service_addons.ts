@@ -17,7 +17,7 @@ const groupServiceAddons: ApiModule = [
 
         // Attach service addon to group
         await props.db.query(`
-          INSERT INTO uuid_service_addons (parent_uuid, service_addon_id, created_sub)
+          INSERT INTO dbtable_schema.uuid_service_addons (parent_uuid, service_addon_id, created_sub)
           VALUES ($1, $2, $3)
           ON CONFLICT (parent_uuid, service_addon_id) DO NOTHING
           RETURNING id
@@ -75,7 +75,7 @@ const groupServiceAddons: ApiModule = [
         `, [groupName])).rows
 
         await props.db.query<IGroupServiceAddon>(`
-          DELETE FROM uuid_service_addons
+          DELETE FROM dbtable_schema.uuid_service_addons
           WHERE parent_uuid = $1 AND service_addon_id = $2
           RETURNING id
         `, [groupId, serviceAddonId]);

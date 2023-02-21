@@ -97,7 +97,7 @@ const users: ApiModule = [
 
         await asyncForEach(Object.values(users), async role => {
           await props.db.query(`
-            UPDATE users
+            UPDATE dbtable_schema.users
             SET enabled = false
             WHERE id = $1
           `, [role.id]);

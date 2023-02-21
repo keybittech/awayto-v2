@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import moment from 'moment';
 import DataTable, { TableColumn } from 'react-data-table-component';
+
 import Avatar from '@mui/material/Avatar';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
@@ -26,10 +28,10 @@ export function BookingHome(props: IProps): JSX.Element {
   const { schedules } = useRedux(state => state.schedule);
   const { budgets, timelines, timeUnits } = useRedux(state => state.forms);
 
-  const [schedule, setSchedule] = useState<ISchedule>();
+  const [schedule, setSchedule] = useState({ } as ISchedule);
   const [services, setServices] = useState<Record<string, IService>>({});
-  const [service, setService] = useState<IService>({} as IService);
-  const [tier, setTier] = useState<IServiceTier>();
+  const [service, setService] = useState({} as IService);
+  const [tier, setTier] = useState({} as IServiceTier);
   const [contact, setContact] = useState({} as IContact);
   const [quote, setQuote] = useState({} as IQuote);
   const [serviceTierAddons, setServiceTierAddons] = useState<string[]>([]);
@@ -49,7 +51,7 @@ export function BookingHome(props: IProps): JSX.Element {
     if (!service || !tier || !serviceTierAddons.length) return [];
     return [
       { name: '', selector: row => row.name } as TableColumn<Partial<IServiceAddon>>,
-      ...Object.values(service.tiers).reduce((memo, { id, name, addons }) => {
+      ...Object.values(service.tiers).sort((a, b) => moment(a.createdOn).milliseconds() - moment(b.createdOn).milliseconds()).reduce((memo, { id, name, addons }) => {
         memo.push({
           name: `${name}`,
           cell: row => {
@@ -72,19 +74,16 @@ export function BookingHome(props: IProps): JSX.Element {
           const [sched] = data;
           setSchedule(sched);
 
-          const brackets = Object.values(sched.brackets);
-
-          brackets.forEach((b, i) => {
-            const services = Object.values(b.services);
-            if (!i) {
-              const service = services[0];
-              setService(service);
-              setTier(Object.values(service.tiers)[0]);
+          for (const b in sched.brackets) {
+            const bracketServices = sched.brackets[b].services;
+            setServices(bracketServices);
+            for (const s in bracketServices) {
+              setService(bracketServices[s]);
+              setTier(Object.values(bracketServices[s].tiers).sort((a, b) => moment(a.createdOn).milliseconds() - moment(b.createdOn).milliseconds())[0]);
+              break;
             }
-            services.forEach(s => {
-              if (!b.services[s.id]) b.services[s.id] = s;
-            });
-          });
+            break;
+          }
         }
       });
       return () => abort();
@@ -93,7 +92,7 @@ export function BookingHome(props: IProps): JSX.Element {
 
   useEffect(() => {
     if (serviceTiers.length) {
-      const newAddons = serviceTiers.reduce<string[]>((memo, { addons }) => {
+      const newAddons = serviceTiers.sort((a, b) => moment(a.createdOn).milliseconds() - moment(b.createdOn).milliseconds()).reduce<string[]>((memo, { addons }) => {
         const serviceAddons = Object.values(addons);
         if (serviceAddons) {
           for (let i = 0, v = serviceAddons.length; i < v; i++) {
@@ -109,7 +108,7 @@ export function BookingHome(props: IProps): JSX.Element {
   }, [service]);
 
   return <>
-    {schedule && service && tier && <Grid container spacing={2}>
+    {schedule.brackets && <Grid container spacing={2}>
       <Grid item xs={12}>
         <Card>
           <CardHeader title="Request a Quote" />
@@ -163,9 +162,9 @@ export function BookingHome(props: IProps): JSX.Element {
                         </Grid>
                         <Grid item xs={4}>
                           <TextField style={{ flex: '1' }} select label="Tier" fullWidth value={tier.id} onChange={e => {
-                            setTier(serviceTiers.find(t => t.id === e.target.value));
+                            setTier(serviceTiers.find(t => t.id === e.target.value) as IServiceTier);
                           }}>
-                            {serviceTiers.map((tier, i) => {
+                            {serviceTiers.sort((a, b) => moment(b.createdOn).milliseconds() - moment(a.createdOn).milliseconds()).map((tier, i) => {
                               return <MenuItem key={i} value={tier.id}>{tier.name}</MenuItem>
                             })}
                           </TextField>
@@ -221,10 +220,10 @@ export function BookingHome(props: IProps): JSX.Element {
                           <TextField label="Desired Duration" value={quote.desiredDuration} onChange={e => setQuote({ ...quote, desiredDuration: parseInt(e.target.value) })} type="number" />
                           <Typography>{schedule.bracketTimeUnitName}</Typography>
                         </Box>
-                        <Box>
+                        {/* <Box>
                           Estimated Cost:
-                          <Typography variant="h6">{parseFloat(service.cost) * quote.desiredDuration * parseFloat(tier.multiplier) * parseFloat(schedule.brackets[0].multiplier)}</Typography>
-                        </Box>
+                          <Typography variant="h6">{parseFloat(service.cost) * quote.desiredDuration * parseFloat(tier.multiplier) * parseFloat(Object.values(schedule.brackets)[0].multiplier)}</Typography>
+                        </Box> */}
                       </Box>
                     </Grid>
                     {quote.desiredDuration > 0 && <Box mt={8} m={4}>

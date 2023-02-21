@@ -12,7 +12,7 @@ const quotes: ApiModule = [
         const { name, desiredDuration, budgetId, timelineId, serviceTierId, contactId, respondBy, description } = props.event.body;
 
         const response = await props.db.query<IQuote>(`
-          INSERT INTO quotes (name, desired_duration, budget_id, timeline_id, service_tier_id, contact_id, respond_by, description)
+          INSERT INTO dbtable_schema.quotes (name, desired_duration, budget_id, timeline_id, service_tier_id, contact_id, respond_by, description)
           VALUES ($1, $2, $3, $4, $5, $6)
           RETURNING id, name, desired_duration as "desiredDuration", budget_id as "budgetId", timeline_id as "timelineId", service__tier_id as "serviceTierId", contact_id as "contactId", respond_by as "respondBy", description
         `, [name, desiredDuration, budgetId, timelineId, serviceTierId, contactId, respondBy, description]);
@@ -39,7 +39,7 @@ const quotes: ApiModule = [
         const updateProps = buildUpdate({ id, budgetId, timelineId, serviceTierId, contactId, respondBy, description });
 
         const response = await props.db.query<IQuote>(`
-          UPDATE quotes
+          UPDATE dbtable_schema.quotes
           SET ${updateProps.string}
           WHERE id = $1
           RETURNING id, name, desired_duration as "desiredDuration", budget_id as "budgetId", timeline_id as "timelineId", service__tier_id as "serviceTierId", contact_id as "contactId", respond_by as "respondBy", description
@@ -99,7 +99,7 @@ const quotes: ApiModule = [
         const { id } = props.event.pathParameters;
 
         const response = await props.db.query<IQuote>(`
-          DELETE FROM quotes
+          DELETE FROM dbtable_schema.quotes
           WHERE id = $1
         `, [id]);
         
@@ -119,7 +119,7 @@ const quotes: ApiModule = [
         const { id } = props.event.pathParameters;
 
         await props.db.query(`
-          UPDATE quotes
+          UPDATE dbtable_schema.quotes
           SET enabled = false
           WHERE id = $1
         `, [id]);

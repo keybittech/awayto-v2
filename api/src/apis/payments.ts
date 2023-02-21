@@ -12,7 +12,7 @@ const payments: ApiModule = [
         const { contactId, details } = props.event.body;
 
         const response = await props.db.query<IPayment>(`
-          INSERT INTO payments (contact_id, details)
+          INSERT INTO dbtable_schema.payments (contact_id, details)
           VALUES ($1, $2)
           RETURNING id, contact_id as "contactId", details
         `, [contactId, details]);
@@ -34,7 +34,7 @@ const payments: ApiModule = [
         const updateProps = buildUpdate({ id, contactId, details: JSON.stringify(details) });
 
         const response = await props.db.query<IPayment>(`
-          UPDATE payments
+          UPDATE dbtable_schema.payments
           SET ${updateProps.string}
           WHERE id = $1
           RETURNING id, contact_id as "contactId", details
@@ -94,7 +94,7 @@ const payments: ApiModule = [
         const { id } = props.event.pathParameters;
 
         const response = await props.db.query<IPayment>(`
-          DELETE FROM payments
+          DELETE FROM dbtable_schema.payments
           WHERE id = $1
         `, [id]);
         
@@ -114,7 +114,7 @@ const payments: ApiModule = [
         const { id } = props.event.pathParameters;
 
         await props.db.query(`
-          UPDATE payments
+          UPDATE dbtable_schema.payments
           SET enabled = false
           WHERE id = $1
         `, [id]);

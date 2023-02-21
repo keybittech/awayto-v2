@@ -63,7 +63,8 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
   const Cell = useCallback((props: GridCell) => {
     const target = `schedule_selection_${props.columnIndex}_${props.rowIndex}`;
     const exists = selected[target];
-    const startTime = moment().startOf(xAxisTypeName).add(slotDuration * props.rowIndex, slotTimeUnitName).add(props.columnIndex, xAxisTypeName);
+    const startTime = moment().startOf(xAxisTypeName).startOf(scheduleTimeUnitName).add(slotDuration * props.rowIndex, slotTimeUnitName).add(props.columnIndex, xAxisTypeName);
+    const weekLabel = TimeUnit.WEEK === xAxisTypeName ? `W${Math.ceil(startTime.date() / 7)}` : '';
 
     const setValue = useCallback(function () {
       if (selectedBracket) {
@@ -116,7 +117,7 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
         setValue();
       }}
     >
-      {startTime.format('ddd hh:mm A')}
+      {weekLabel} {startTime.format('ddd hh:mm A')}
     </CardActionArea>
   }, [selected, buttonDown, selectedBracket, slotTimeUnitName, slotDuration, xAxisTypeName]);
 

@@ -1,8 +1,8 @@
 #!/bin/bash
 
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'EOSQL'
 
-  \ c sysmaindb 
+  \c sysmaindb 
 
   CREATE
   OR REPLACE VIEW dbview_schema.enabled_budgets AS
@@ -12,7 +12,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     created_on as "createdOn",
     row_number() OVER () as row
   FROM
-    budgets
+    dbtable_schema.budgets
   WHERE
     enabled = true;
 
@@ -24,7 +24,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     created_on as "createdOn",
     row_number() OVER () as row
   FROM
-    timelines
+    dbtable_schema.timelines
   WHERE
     enabled = true;
 
@@ -37,7 +37,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     created_on as "createdOn",
     row_number() OVER () as row
   FROM
-    services
+    dbtable_schema.services
   WHERE
     enabled = true;
 
@@ -50,7 +50,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     created_on as "createdOn",
     row_number() OVER () as row
   FROM
-    uuid_service_addons
+    dbtable_schema.uuid_service_addons
   WHERE
     enabled = true;
 
@@ -63,7 +63,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     created_on as "createdOn",
     row_number() OVER () as row
   FROM
-    uuid_services
+    dbtable_schema.uuid_services
   WHERE
     enabled = true;
 
@@ -75,7 +75,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     created_on as "createdOn",
     row_number() OVER () as row
   FROM
-    service_addons
+    dbtable_schema.service_addons
   WHERE
     enabled = true;
 
@@ -89,7 +89,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     created_on as "createdOn",
     row_number() OVER () as row
   FROM
-    service_tiers
+    dbtable_schema.service_tiers
   WHERE
     enabled = true;
 
@@ -103,7 +103,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     created_on as "createdOn",
     row_number() OVER () as row
   FROM
-    contacts
+    dbtable_schema.contacts
   WHERE
     enabled = true;
 
@@ -120,7 +120,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     created_on as "createdOn",
     row_number() OVER () as row
   FROM
-    schedules
+    dbtable_schema.schedules
   WHERE
     enabled = true;
 
@@ -133,7 +133,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     created_on as "createdOn",
     row_number() OVER () as row
   FROM
-    uuid_schedules
+    dbtable_schema.uuid_schedules
   WHERE
     enabled = true;
 
@@ -148,7 +148,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     sb.created_on as "createdOn",
     row_number() OVER () as row
   FROM
-    schedule_brackets sb
+    dbtable_schema.schedule_brackets sb
   WHERE
     sb.enabled = true;
 
@@ -160,7 +160,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     start_time as "startTime",
     row_number() OVER () as row
   FROM
-    schedule_bracket_slots
+    dbtable_schema.schedule_bracket_slots
   WHERE
     enabled = true;
 
@@ -180,7 +180,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     created_on as "createdOn",
     row_number() OVER () as row
   FROM
-    quotes
+    dbtable_schema.quotes
   WHERE
     enabled = true;
 
@@ -193,7 +193,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     created_on as "createdOn",
     row_number() OVER () as row
   FROM
-    uuid_quotes
+    dbtable_schema.uuid_quotes
   WHERE
     enabled = true;
 
@@ -206,7 +206,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     created_on as "createdOn",
     row_number() OVER () as row
   FROM
-    payments
+    dbtable_schema.payments
   WHERE
     enabled = true;
 
@@ -219,7 +219,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     created_on as "createdOn",
     row_number() OVER () as row
   FROM
-    uuid_payments
+    dbtable_schema.uuid_payments
   WHERE
     enabled = true;
 
@@ -235,7 +235,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     created_on as "createdOn",
     row_number() OVER () as row
   FROM
-    bookings
+    dbtable_schema.bookings
   WHERE
     enabled = true;
 
@@ -248,7 +248,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     created_on as "createdOn",
     row_number() OVER () as row
   FROM
-    uuid_bookings
+    dbtable_schema.uuid_bookings
   WHERE
     enabled = true;
 
@@ -262,7 +262,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     created_on as "createdOn",
     row_number() OVER () as row
   FROM
-    booking_schedule_brackets
+    dbtable_schema.booking_schedule_brackets
   WHERE
     enabled = true;
 
@@ -280,12 +280,14 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
         (
           SELECT
             esa.id,
-            esa.name
+            esa.name,
+            sta.created_on as "createdOn"
           FROM
-            service_tier_addons sta
+            dbtable_schema.service_tier_addons sta
             LEFT JOIN dbview_schema.enabled_service_addons esa ON esa.id = sta.service_addon_id
           WHERE
             sta.service_tier_id = est.id
+          ORDER BY sta.created_on ASC
         ) soa
     ) as essa ON true;
 
@@ -336,7 +338,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
                   SELECT
                     ese.*
                   FROM
-                    schedule_bracket_services sbs
+                    dbtable_schema.schedule_bracket_services sbs
                     LEFT JOIN dbview_schema.enabled_services_ext ese ON ese.id = sbs.service_id
                   WHERE
                     sbs.schedule_bracket_id = esb.id
@@ -350,7 +352,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
                   SELECT
                     esbs.*
                   FROM
-                    schedule_bracket_slots sbs
+                    dbtable_schema.schedule_bracket_slots sbs
                     JOIN dbview_schema.enabled_schedule_bracket_slots esbs ON esbs.id = sbs.id
                   WHERE
                     sbs.schedule_bracket_id = esb.id
@@ -402,7 +404,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
             esb.*,
             bsb.duration
           FROM
-            booking_schedule_brackets bsb
+            dbtable_schema.booking_schedule_brackets bsb
             LEFT JOIN dbview_schema.enabled_schedule_brackets esb ON bsb.schedule_bracket_id = esb.id
           WHERE
             bsb.booking_id = eb.id

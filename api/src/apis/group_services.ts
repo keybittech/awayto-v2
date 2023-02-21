@@ -18,7 +18,7 @@ const groupServices: ApiModule = [
 
         // Attach service to group
         await props.db.query(`
-          INSERT INTO uuid_services (parent_uuid, service_id, created_sub)
+          INSERT INTO dbtable_schema.uuid_services (parent_uuid, service_id, created_sub)
           VALUES ($1, $2, $3)
           ON CONFLICT (parent_uuid, service_id) DO NOTHING
           RETURNING id
@@ -79,7 +79,7 @@ const groupServices: ApiModule = [
 
         // Detach service from group
         await props.db.query<IGroupService>(`
-          DELETE FROM uuid_services
+          DELETE FROM dbtable_schema.uuid_services
           WHERE parent_uuid = $1 AND service_id = $2
           RETURNING id
         `, [groupId, serviceId]);

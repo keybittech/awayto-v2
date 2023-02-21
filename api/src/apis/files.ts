@@ -14,7 +14,7 @@ const files: ApiModule = [
         const { name, fileTypeId: file_type_id, location } = props.event.body;
 
         const response = await props.db.query<{ id: string }>(`
-          INSERT INTO files (uuid, name, file_type_id, location, created_on, created_sub)
+          INSERT INTO dbtable_schema.files (uuid, name, file_type_id, location, created_on, created_sub)
           VALUES ($1, $2, $3, $4, $5, $6)
           RETURNING id
         `, [uuid, name, file_type_id, location, new Date(), props.event.userSub]);
@@ -38,7 +38,7 @@ const files: ApiModule = [
         const updateProps = buildUpdate({ id, name, file_type_id, location, updated_on: (new Date()).toString(), updated_sub: props.event.userSub });
 
         await props.db.query(`
-          UPDATE files
+          UPDATE dbtable_schema.files
           SET ${updateProps.string}
           WHERE id = $1
         `, updateProps.array);
@@ -97,7 +97,7 @@ const files: ApiModule = [
         const { id } = props.event.pathParameters;
 
         const response = await props.db.query<IFile>(`
-          DELETE FROM files
+          DELETE FROM dbtable_schema.files
           WHERE id = $1
         `, [id]);
         
@@ -117,7 +117,7 @@ const files: ApiModule = [
         const { id } = props.event.pathParameters;
 
         await props.db.query(`
-          UPDATE files
+          UPDATE dbtable_schema.files
           SET enabled = false
           WHERE id = $1
         `, [id]);

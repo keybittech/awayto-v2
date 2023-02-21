@@ -27,7 +27,10 @@ function reduceDeleteRole(state: IRoleState, action: IDeleteRoleAction): IRoleSt
 }
 
 function reduceRoles(state: IRoleState, action: IGetRolesAction | IDisableRoleAction | IGetRoleByIdAction | IPostRoleAction | IPutRoleAction): IRoleState {
-  const roles = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id}`]: b } }), {});
+  const roles = {} as Record<string, IRole>;
+  action.payload.forEach(r => {
+    roles[r.id] = r;
+  })
   state.roles = { ...state.roles, ...roles };
   return { ...state };
 }

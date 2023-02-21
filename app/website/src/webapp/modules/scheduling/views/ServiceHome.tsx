@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import moment from 'moment';
 
 import TextField from '@mui/material/TextField';
 import Slider from '@mui/material/Slider';
@@ -12,14 +13,14 @@ import CardHeader from '@mui/material/CardHeader';
 import Grid from '@mui/material/Grid';
 import Chip from '@mui/material/Chip';
 
-import { IService, IServiceActionTypes, IServiceTier, IGroupServiceAddonActionTypes, IServiceAddonActionTypes, IGroupServiceActionTypes, IUtilActionTypes, IFormActionTypes, IServiceState, IGroup } from 'awayto';
+import { IService, IServiceActionTypes, IServiceTier, IGroupServiceAddonActionTypes, IServiceAddonActionTypes, IGroupServiceActionTypes, IUtilActionTypes, IFormActionTypes, IServiceState, IGroup, IServiceAddon } from 'awayto';
 import { useApi, useRedux, useComponents, useAct, useStyles } from 'awayto-hooks';
 
 const { DELETE_SERVICE, POST_SERVICE } = IServiceActionTypes;
 const { POST_SERVICE_ADDON } = IServiceAddonActionTypes;
 const { GET_GROUP_SERVICES, POST_GROUP_SERVICE, DELETE_GROUP_SERVICE } = IGroupServiceActionTypes;
 const { GET_GROUP_SERVICE_ADDONS, POST_GROUP_SERVICE_ADDON, DELETE_GROUP_SERVICE_ADDON } = IGroupServiceAddonActionTypes;
-const { SET_SNACK } = IUtilActionTypes;
+const { SET_SNACK, OPEN_CONFIRM } = IUtilActionTypes;
 
 const serviceSchema = {
   name: '',
@@ -96,10 +97,16 @@ export function ServiceHome(props: IProps): JSX.Element {
                 <Typography variant="h6">Current Services: </Typography>
                 {Object.values(groupServices).map((service, i) => {
                   return <Box key={`service-chip${i + 1}new`} m={1}><Chip label={`${service.name}`} onDelete={group && (() => {
-                    const [, res] = api(DELETE_GROUP_SERVICE, true, { groupName: group.name, serviceId: service.id });
-                    res?.then(() => {
-                      api(DELETE_SERVICE, true, { id: service.id });
-                    })
+                    act(OPEN_CONFIRM, {
+                      isConfirming: true,
+                      message: 'Are you sure you want to delete this service?',
+                      action: () => {
+                        const [, res] = api(DELETE_GROUP_SERVICE, true, { groupName: group.name, serviceId: service.id });
+                        res?.then(() => {
+                          api(DELETE_SERVICE, true, { id: service.id });
+                        });
+                      }
+                    });
                   })} /></Box>
                 })}
               </Box>
@@ -140,7 +147,7 @@ export function ServiceHome(props: IProps): JSX.Element {
 
               <Box mb={4}>
                 {/* <Typography variant="body2">Some services divide their offering up into tiers. For example, a "Basic" tier may some basic features, and the "Advanced" tier has more features. If your service has no tier, you can ignore this section and we'll create a standard tier for you.</Typography> */}
-                <TextField fullWidth label="Name" value={newServiceTier.name} onChange={e => setNewServiceTier({ ...newServiceTier, name: e.target.value })} helperText="Ex: Standard, Basic, Advanced" />
+                <TextField fullWidth label="Name" value={newServiceTier.name} onChange={e => setNewServiceTier({ ...newServiceTier, name: e.target.value })} helperText="Ex: Basic, Mid-Tier, Advanced" />
               </Box>
 
               <Box mb={4} sx={{ display: 'flex', alignItems: 'baseline' }}>
@@ -176,10 +183,20 @@ export function ServiceHome(props: IProps): JSX.Element {
         </CardContent>
         <CardActionArea onClick={() => {
           if (newServiceTier.name && serviceTierAddonIds.length) {
-            newServiceTier.id = (new Date()).getTime().toString();
-            serviceTierAddonIds.forEach(id => {
-              newServiceTier.addons[id] = { id, name: groupServiceAddons[id].name }
-            });
+            const created = (new Date()).getTime().toString();
+            newServiceTier.id = created;
+            newServiceTier.createdOn = created;
+            newServiceTier.order = Object.keys(newService.tiers).length + 1;
+            newServiceTier.addons = serviceTierAddonIds.reduce((m, id, i) => {
+              return {
+                ...m,
+                [id]: {
+                  id,
+                  name: groupServiceAddons[id].name,
+                  order: i + 1
+                }
+              }
+            }, {});
             newService.tiers[newServiceTier.id] = newServiceTier;
             setNewServiceTier({ ...serviceTierSchema, addons: {} } as IServiceTier);
             setServiceTierAddonIds([]);
@@ -201,7 +218,7 @@ export function ServiceHome(props: IProps): JSX.Element {
             <Typography variant="h6">Tiers</Typography>
             <Typography variant="body2">The order that tiers appear here is the order they will be listed during booking.</Typography>
             {Object.keys(newService.tiers).length > 0 && <Box mt={4} sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-              {Object.values(newService.tiers).map((tier, i) => {
+              {Object.values(newService.tiers).sort((a, b) => moment(a.createdOn).milliseconds() - moment(b.createdOn).milliseconds()).map((tier, i) => {
                 const addons = Object.values(tier.addons);
                 return <Box key={`service-tier-chip${i + 1}new`} m={1}><Chip classes={{ root: classes.chipRoot, label: classes.chipLabel }} label={<Typography>{`#${i + 1} ` + tier.name + ' (' + tier.multiplier + 'x): ' + (addons.length ? addons.map(a => a.name).join(', ') : 'No features.')}</Typography>} onDelete={() => {
                   delete newService.tiers[tier.id];

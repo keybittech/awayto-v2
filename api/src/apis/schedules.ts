@@ -16,7 +16,7 @@ const schedules: ApiModule = [
         const { name, brackets, duration, scheduleTimeUnitId, bracketTimeUnitId, slotTimeUnitId, slotDuration } = schedule;
 
         const { id } = (await props.db.query<ISchedule>(`
-          INSERT INTO schedules (name, duration, schedule_time_unit_id, bracket_time_unit_id, slot_time_unit_id, slot_duration)
+          INSERT INTO dbtable_schema.schedules (name, duration, schedule_time_unit_id, bracket_time_unit_id, slot_time_unit_id, slot_duration)
           VALUES ($1, $2, $3, $4, $5, $6)
           RETURNING id
         `, [name, duration, scheduleTimeUnitId, bracketTimeUnitId, slotTimeUnitId, slotDuration])).rows[0];
@@ -29,7 +29,7 @@ const schedules: ApiModule = [
 
         await asyncForEach(Object.values(brackets), async b => {
           const { id: bracketId } = (await props.db.query<IScheduleBracket>(`
-            INSERT INTO schedule_brackets (schedule_id, duration, multiplier, automatic)
+            INSERT INTO dbtable_schema.schedule_brackets (schedule_id, duration, multiplier, automatic)
             VALUES ($1, $2, $3, $4)
             RETURNING id
           `, [schedule.id, b.duration, b.multiplier, b.automatic])).rows[0];
@@ -38,7 +38,7 @@ const schedules: ApiModule = [
 
           await asyncForEach(Object.values(b.services), async s => {
             await props.db.query(`
-              INSERT INTO schedule_bracket_services (schedule_bracket_id, service_id)
+              INSERT INTO dbtable_schema.schedule_bracket_services (schedule_bracket_id, service_id)
               VALUES ($1, $2)
               ON CONFLICT (schedule_bracket_id, service_id) DO NOTHING
             `, [bracketId, s.id])
@@ -46,7 +46,7 @@ const schedules: ApiModule = [
 
           await asyncForEach(Object.values(b.slots), async s => {
             const [{ id: slotId }] = (await props.db.query(`
-              INSERT INTO schedule_bracket_slots (schedule_bracket_id, start_time, created_sub)
+              INSERT INTO dbtable_schema.schedule_bracket_slots (schedule_bracket_id, start_time, created_sub)
               VALUES ($1, $2, $3)
               ON CONFLICT (schedule_bracket_id, start_time) DO NOTHING
               RETURNING id
@@ -74,7 +74,7 @@ const schedules: ApiModule = [
         const updateProps = buildUpdate({ id, name });
 
         const response = await props.db.query<ISchedule>(`
-          UPDATE schedules
+          UPDATE dbtable_schema.schedules
           SET ${updateProps.string}
           WHERE id = $1
           RETURNING id, name
@@ -134,7 +134,7 @@ const schedules: ApiModule = [
         const { id } = props.event.pathParameters;
 
         const response = await props.db.query<ISchedule>(`
-          DELETE FROM schedules
+          DELETE FROM dbtable_schema.schedules
           WHERE id = $1
           RETURNING id
         `, [id]);
@@ -155,7 +155,7 @@ const schedules: ApiModule = [
         const { id } = props.event.pathParameters;
 
         await props.db.query(`
-          UPDATE schedules
+          UPDATE dbtable_schema.schedules
           SET enabled = false
           WHERE id = $1
         `, [id]);

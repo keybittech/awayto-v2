@@ -106,6 +106,8 @@ export type IServiceActions = IPostServiceAction
  export type IServiceAddon = {
   id: string;
   name: string;
+  order: number;
+  createdOn: string;
 };
 
 /**
@@ -178,6 +180,8 @@ export type IServiceActions = IPostServiceAction
   name: string;
   multiplier: string;
   addons: Record<string, IServiceAddon>;
+  order: number;
+  createdOn: string;
 };
 
 

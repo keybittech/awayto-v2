@@ -12,7 +12,7 @@ const contacts: ApiModule = [
         const { name, email, phone } = props.event.body;
 
         const response = await props.db.query<IContact>(`
-          INSERT INTO contacts (name, email, phone)
+          INSERT INTO dbtable_schema.contacts (name, email, phone)
           VALUES ($1, $2, $3)
           RETURNING id, name, email, phone
         `, [name, email, phone]);
@@ -36,7 +36,7 @@ const contacts: ApiModule = [
         const updateProps = buildUpdate({ id, name, email, phone });
 
         const response = await props.db.query<IContact>(`
-          UPDATE contacts
+          UPDATE dbtable_schema.contacts
           SET ${updateProps.string}
           WHERE id = $1
           RETURNING id, name, email, phone
@@ -96,7 +96,7 @@ const contacts: ApiModule = [
         const { id } = props.event.pathParameters;
 
         const response = await props.db.query<IContact>(`
-          DELETE FROM contacts
+          DELETE FROM dbtable_schema.contacts
           WHERE id = $1
         `, [id]);
         
@@ -116,7 +116,7 @@ const contacts: ApiModule = [
         const { id } = props.event.pathParameters;
 
         await props.db.query(`
-          UPDATE contacts
+          UPDATE dbtable_schema.contacts
           SET enabled = false
           WHERE id = $1
         `, [id]);

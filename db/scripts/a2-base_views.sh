@@ -1,8 +1,8 @@
 #!/bin/bash
 
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'EOSQL'
 
-  \ c sysmaindb
+  \c sysmaindb
   
   DROP SCHEMA IF EXISTS dbview_schema CASCADE;
   CREATE SCHEMA dbview_schema;
@@ -23,7 +23,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     u.enabled,
     row_number() OVER () as row
   FROM
-    users u
+    dbtable_schema.users u
   WHERE
     u.enabled = true;
 
@@ -39,7 +39,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     created_sub as "createdSub",
     row_number() OVER () as row
   FROM
-    groups
+    dbtable_schema.groups
   WHERE
     enabled = true;
 
@@ -52,7 +52,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     created_on as "createdOn",
     row_number() OVER () as row
   FROM
-    uuid_groups
+    dbtable_schema.uuid_groups
   WHERE
     enabled = true;
 
@@ -64,7 +64,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     created_on as "createdOn",
     row_number() OVER () as row
   FROM
-    roles
+    dbtable_schema.roles
   WHERE
     enabled = true;
 
@@ -78,7 +78,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     created_on as "createdOn",
     row_number() OVER () as row
   FROM
-    uuid_roles
+    dbtable_schema.uuid_roles
   WHERE
     enabled = true;
 
@@ -90,7 +90,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     created_on as "createdOn",
     row_number() OVER () as row
   FROM
-    file_types
+    dbtable_schema.file_types
   WHERE
     enabled = true;
 
@@ -106,8 +106,8 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     f.created_on as "createdOn",
     row_number() OVER () as row
   FROM
-    files f
-    JOIN file_types ft ON f.file_type_id = ft.id
+    dbtable_schema.files f
+    JOIN dbtable_schema.file_types ft ON f.file_type_id = ft.id
   WHERE
     f.enabled = true;
 
@@ -120,7 +120,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     uf.created_on as "createdOn",
     row_number() OVER () as row
   FROM
-    uuid_files uf
+    dbtable_schema.uuid_files uf
   WHERE
     uf.enabled = true;
 
@@ -134,7 +134,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     un.created_on as "createdOn",
     row_number() OVER () as row
   FROM
-    uuid_notes un
+    dbtable_schema.uuid_notes un
   WHERE
     un.enabled = true;
 
@@ -167,7 +167,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
         COUNT(eug."parentUuid") as "usersCount"
       FROM
         dbview_schema.enabled_uuid_groups eug
-        JOIN users u ON u.id = eug."parentUuid"
+        JOIN dbview_schema.enabled_users u ON u.id = eug."parentUuid"
       GROUP BY
         eug."groupId"
     ) ug ON ug."groupId" = eg.id;

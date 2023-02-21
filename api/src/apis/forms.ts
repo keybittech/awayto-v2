@@ -10,13 +10,13 @@ const forms: ApiModule = [
       try {
 
         const budgets = (await props.db.query<ILookup>(`
-          SELECT * FROM budgets
+          SELECT * FROM dbtable_schema.budgets
         `)).rows;
         const timelines = (await props.db.query<ILookup>(`
-          SELECT * FROM timelines
+          SELECT * FROM dbtable_schema.timelines
         `)).rows;
         const timeUnits = (await props.db.query<ITimeUnit>(`
-          SELECT * FROM time_units
+          SELECT * FROM dbtable_schema.time_units
         `)).rows;
         
         return {

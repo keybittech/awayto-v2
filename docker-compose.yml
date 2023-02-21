@@ -90,7 +90,7 @@ services:
       - KC_REALM=devel
       - KC_CLIENT=devel-client
       - KC_API_CLIENT_ID=api-client
-      - KC_API_CLIENT_SECRET=GjwwglNAgujrqoIJTt87Nw2ij2ieIDF8
+      - KC_API_CLIENT_SECRET=kymZrZ5lxC7HpP8pW37t8fsD2SAXH77i
       - PG_HOST=${CUST_HOST_IP} #NONSECRET
       - PG_PORT=8082 #NONSECRET
       - PG_USER=postgres #SECRET

@@ -12,7 +12,7 @@ const uuidNotes: ApiModule = [
         const { parentUuid: parent_uuid, note } = props.event.body;
 
         const response = await props.db.query<IUuidNotes>(`
-          INSERT INTO uuid_notes (parent_uuid, note, created_on, created_sub)
+          INSERT INTO dbtable_schema.uuid_notes (parent_uuid, note, created_on, created_sub)
           VALUES ($1, $2, $3, $4)
           ON CONFLICT (parent_uuid, note, created_sub) DO NOTHING
           RETURNING id
@@ -37,7 +37,7 @@ const uuidNotes: ApiModule = [
         const updateProps = buildUpdate({ id, parent_uuid, note, updated_on: (new Date()).toString(), updated_sub: props.event.userSub });
 
         await props.db.query(`
-          UPDATE uuid_notes
+          UPDATE dbtable_schema.uuid_notes
           SET ${updateProps.string}
           WHERE id = $1
         `, updateProps.array);
@@ -96,7 +96,7 @@ const uuidNotes: ApiModule = [
         const { id } = props.event.pathParameters;
 
         const response = await props.db.query<IUuidNotes>(`
-          DELETE FROM uuid_notes
+          DELETE FROM dbtable_schema.uuid_notes
           WHERE id = $1
         `, [id]);
         
@@ -117,7 +117,7 @@ const uuidNotes: ApiModule = [
 
         await asyncForEach(Object.values(notes), async note => {
           await props.db.query(`
-            UPDATE uuid_notes
+            UPDATE dbtable_schema.uuid_notes
             SET enabled = false
             WHERE id = $1
           `, [note.id]);

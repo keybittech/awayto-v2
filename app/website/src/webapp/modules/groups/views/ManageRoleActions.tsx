@@ -63,13 +63,13 @@ export function ManageRoleActions(): JSX.Element {
   const columns = useMemo(() => {
     if (!groups) return [];
     const group = Object.values(groups).find(g => g.name === groupName);
-    if (!group?.roles?.length || !Object.keys(assignments) || !groupName) return [];
+    const groupRoles = Object.values(group?.roles || {});
+    if (!groupRoles.length || !Object.keys(assignments) || !groupName) return [];
     return [
       { selector: (row: { name: string }) => row.name },
-      ...Object.values(group?.roles).reduce((memo, { name }) => {
+      ...groupRoles.reduce((memo, { name }) => {
         const subgroup =`/${groupName}/${name}`;
           memo.push({ name, cell: row => <Checkbox checked={assignments[subgroup] ? assignments[subgroup].actions.some(a => a.name === row.name) : false} onChange={e => handleCheck(subgroup, row.name, e.target.checked)} />});
-
         return memo;
       }, [] as TableColumn<{ name: string }>[])
     ]

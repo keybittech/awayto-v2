@@ -15,7 +15,7 @@ const bookings: ApiModule = [
         const { serviceTierId, contactId, paymentId, agreement, description, bookingScheduleBrackets } = props.event.body;
 
         const booking = (await props.db.query<IBooking>(`
-          INSERT INTO bookings (service_tier_id, contact_id, payment_id, agreement, description)
+          INSERT INTO dbtable_schema.bookings (service_tier_id, contact_id, payment_id, agreement, description)
           VALUES ($1, $2, $3, $4, $5)
           RETURNING id, service_tier_id as "serviceTierId", contact_id as "contactId", payment_id as "paymentId", agreement, description
         `, [serviceTierId, contactId, paymentId, agreement, description])).rows[0];
@@ -24,14 +24,14 @@ const bookings: ApiModule = [
 
         await asyncForEach(Object.values(bookingScheduleBrackets), async b => {
           const dbBookingScheduleBracket = (await props.db.query<IBookingScheduleBracket>(`
-            INSERT INTO booking_schedule_brackets (booking_id, schedule_bracket_id, hours)
+            INSERT INTO dbtable_schema.booking_schedule_brackets (booking_id, schedule_bracket_id, hours)
             VALUES ($1, $2, $3)
             ON CONFLICT (booking_id, schedule_bracket_id) DO NOTHING
             RETURNING id, booking_id as "bookingId", schedule_bracket_id as "scheduleBracketId", hours
           `, [booking.id, b.id, b.hours])).rows[0];
 
           const scheduleBracket = (await props.db.query<IScheduleBracket>(`
-            SELECT * FROM schedule_brackets
+            SELECT * FROM dbtable_schema.schedule_brackets
             WHERE id = $1;
           `, [dbBookingScheduleBracket.scheduleBracketId])).rows[0];
 
@@ -61,7 +61,7 @@ const bookings: ApiModule = [
         const updateProps = buildUpdate({ id, serviceTierId, contactId, paymentId, agreement, description });
 
         const response = await props.db.query<IBooking>(`
-          UPDATE bookings
+          UPDATE dbtable_schema.bookings
           SET ${updateProps.string}
           WHERE id = $1
           RETURNING id, serviceTierId, contactId, paymentId, agreement, description
@@ -121,7 +121,7 @@ const bookings: ApiModule = [
         const { id } = props.event.pathParameters;
 
         const response = await props.db.query<IBooking>(`
-          DELETE FROM bookings
+          DELETE FROM dbtable_schema.bookings
           WHERE id = $1
         `, [id]);
         
@@ -141,7 +141,7 @@ const bookings: ApiModule = [
         const { id } = props.event.pathParameters;
 
         await props.db.query(`
-          UPDATE bookings
+          UPDATE dbtable_schema.bookings
           SET enabled = false
           WHERE id = $1
         `, [id]);

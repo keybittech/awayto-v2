@@ -12,7 +12,7 @@ const manageRoles: ApiModule = [
         const { name } = props.event.body;
 
         const response = await props.db.query<IRole>(`
-          INSERT INTO roles (name)
+          INSERT INTO dbtable_schema.roles (name)
           VALUES ($1)
           RETURNING id, name
         `, [name]);
@@ -34,7 +34,7 @@ const manageRoles: ApiModule = [
         const updateProps = buildUpdate({ id, name });
 
         const response = await props.db.query<IRole>(`
-          UPDATE roles
+          UPDATE dbtable_schema.roles
           SET ${updateProps.string}
           WHERE id = $1
           RETURNING id, name
@@ -74,7 +74,7 @@ const manageRoles: ApiModule = [
         const { id } = props.event.pathParameters;
 
         const response = await props.db.query<IRole>(`
-          DELETE FROM roles
+          DELETE FROM dbtable_schema.roles
           WHERE id = $1
         `, [id]);
         

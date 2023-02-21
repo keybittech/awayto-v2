@@ -1,10 +1,10 @@
 #!/bin/bash
 
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'EOSQL'
 
-  \ c sysmaindb
+  \c sysmaindb
 
-  CREATE TABLE budgets (
+  CREATE TABLE dbtable_schema.budgets (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR (50) NOT NULL UNIQUE,
     created_on TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -15,13 +15,13 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
   );
 
   INSERT INTO
-    budgets (name)
+    dbtable_schema.budgets (name)
   VALUES
     ('\$500 - \$1,000'),
     ('\$1,000 - \$10,000'),
     ('\$10,000 - \$100,000');
 
-  CREATE TABLE timelines (
+  CREATE TABLE dbtable_schema.timelines (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR (50) NOT NULL UNIQUE,
     created_on TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -32,13 +32,13 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
   );
 
   INSERT INTO
-    timelines (name)
+    dbtable_schema.timelines (name)
   VALUES
     ('1 month'),
     ('6 months'),
     ('1 year');
 
-  CREATE TABLE services (
+  CREATE TABLE dbtable_schema.services (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR (50) NOT NULL UNIQUE,
     cost VARCHAR(50) NOT NULL,
@@ -49,10 +49,10 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     enabled BOOLEAN NOT NULL DEFAULT true
   );
 
-  CREATE TABLE uuid_services (
+  CREATE TABLE dbtable_schema.uuid_services (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     parent_uuid uuid NOT NULL,
-    service_id uuid NOT NULL REFERENCES services (id) ON DELETE CASCADE,
+    service_id uuid NOT NULL REFERENCES dbtable_schema.services (id) ON DELETE CASCADE,
     created_on TIMESTAMP NOT NULL DEFAULT NOW(),
     created_sub VARCHAR (50),
     updated_on TIMESTAMP,
@@ -61,14 +61,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     UNIQUE (parent_uuid, service_id)
   );
 
-  INSERT INTO
-    services (name, cost)
-  VALUES
-    ('Architecture', 200),
-    ('Development', 200),
-    ('Consulting/Tutoring', 100);
-
-  CREATE TABLE service_addons (
+  CREATE TABLE dbtable_schema.service_addons (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR (50) NOT NULL UNIQUE,
     created_on TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -78,10 +71,10 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     enabled BOOLEAN NOT NULL DEFAULT true
   );
 
-  CREATE TABLE uuid_service_addons (
+  CREATE TABLE dbtable_schema.uuid_service_addons (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     parent_uuid uuid NOT NULL,
-    service_addon_id uuid NOT NULL REFERENCES service_addons (id) ON DELETE CASCADE,
+    service_addon_id uuid NOT NULL REFERENCES dbtable_schema.service_addons (id) ON DELETE CASCADE,
     created_on TIMESTAMP NOT NULL DEFAULT NOW(),
     created_sub VARCHAR (50),
     updated_on TIMESTAMP,
@@ -90,10 +83,10 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     UNIQUE (parent_uuid, service_addon_id)
   );
 
-  CREATE TABLE service_tiers (
+  CREATE TABLE dbtable_schema.service_tiers (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR (500) NOT NULL,
-    service_id uuid NOT NULL REFERENCES services (id) ON DELETE CASCADE,
+    service_id uuid NOT NULL REFERENCES dbtable_schema.services (id) ON DELETE CASCADE,
     multiplier DECIMAL NOT NULL,
     created_on TIMESTAMP NOT NULL DEFAULT NOW(),
     created_sub VARCHAR (50),
@@ -103,9 +96,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     UNIQUE (name, service_id)
   );
 
-  CREATE TABLE service_tier_addons (
-    service_tier_id uuid NOT NULL REFERENCES service_tiers (id) ON DELETE CASCADE,
-    service_addon_id uuid NOT NULL REFERENCES service_addons (id) ON DELETE CASCADE,
+  CREATE TABLE dbtable_schema.service_tier_addons (
+    service_tier_id uuid NOT NULL REFERENCES dbtable_schema.service_tiers (id) ON DELETE CASCADE,
+    service_addon_id uuid NOT NULL REFERENCES dbtable_schema.service_addons (id) ON DELETE CASCADE,
     created_on TIMESTAMP NOT NULL DEFAULT NOW(),
     created_sub VARCHAR (50),
     updated_on TIMESTAMP,
@@ -114,7 +107,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     UNIQUE (service_tier_id, service_addon_id)
   );
 
-  CREATE TABLE contacts (
+  CREATE TABLE dbtable_schema.contacts (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR (250),
     email VARCHAR (250),
@@ -126,7 +119,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     enabled BOOLEAN NOT NULL DEFAULT true
   );
 
-  CREATE TABLE time_units (
+  CREATE TABLE dbtable_schema.time_units (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR (50) NOT NULL UNIQUE,
     created_on TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -137,7 +130,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
   );
 
   INSERT INTO
-    time_units (name)
+    dbtable_schema.time_units (name)
   VALUES
     ('minute'),
     ('hour'),
@@ -146,13 +139,13 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     ('month'),
     ('year');
 
-  CREATE TABLE schedules (
+  CREATE TABLE dbtable_schema.schedules (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR (50),
     duration INTEGER NOT NULL,
-    schedule_time_unit_id uuid NOT NULL REFERENCES time_units (id) ON DELETE CASCADE,
-    bracket_time_unit_id uuid NOT NULL REFERENCES time_units (id) ON DELETE CASCADE,
-    slot_time_unit_id uuid NOT NULL REFERENCES time_units (id) ON DELETE CASCADE,
+    schedule_time_unit_id uuid NOT NULL REFERENCES dbtable_schema.time_units (id) ON DELETE CASCADE,
+    bracket_time_unit_id uuid NOT NULL REFERENCES dbtable_schema.time_units (id) ON DELETE CASCADE,
+    slot_time_unit_id uuid NOT NULL REFERENCES dbtable_schema.time_units (id) ON DELETE CASCADE,
     slot_duration INTEGER NOT NULL,
     created_on TIMESTAMP NOT NULL DEFAULT NOW(),
     created_sub VARCHAR (50),
@@ -161,10 +154,10 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     enabled BOOLEAN NOT NULL DEFAULT true
   );
 
-  CREATE TABLE uuid_schedules (
+  CREATE TABLE dbtable_schema.uuid_schedules (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     parent_uuid uuid NOT NULL,
-    schedule_id uuid NOT NULL REFERENCES schedules (id) ON DELETE CASCADE,
+    schedule_id uuid NOT NULL REFERENCES dbtable_schema.schedules (id) ON DELETE CASCADE,
     created_on TIMESTAMP NOT NULL DEFAULT NOW(),
     created_sub VARCHAR (50),
     updated_on TIMESTAMP,
@@ -173,9 +166,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     UNIQUE (parent_uuid, schedule_id)
   );
 
-  CREATE TABLE schedule_brackets (
+  CREATE TABLE dbtable_schema.schedule_brackets (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    schedule_id uuid NOT NULL REFERENCES schedules (id) ON DELETE CASCADE,
+    schedule_id uuid NOT NULL REFERENCES dbtable_schema.schedules (id) ON DELETE CASCADE,
     duration INTEGER NOT NULL,
     multiplier DECIMAL NOT NULL,
     automatic BOOLEAN NOT NULL DEFAULT false,
@@ -186,9 +179,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     enabled BOOLEAN NOT NULL DEFAULT true
   );
 
-  CREATE TABLE schedule_bracket_slots (
+  CREATE TABLE dbtable_schema.schedule_bracket_slots (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    schedule_bracket_id uuid NOT NULL REFERENCES schedule_brackets (id) ON DELETE CASCADE,
+    schedule_bracket_id uuid NOT NULL REFERENCES dbtable_schema.schedule_brackets (id) ON DELETE CASCADE,
     start_time TIMESTAMP NOT NULL,
     created_on TIMESTAMP NOT NULL DEFAULT NOW(),
     created_sub VARCHAR (50),
@@ -198,9 +191,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     UNIQUE (schedule_bracket_id, start_time)
   );
 
-  CREATE TABLE schedule_bracket_services (
-    schedule_bracket_id uuid NOT NULL REFERENCES schedule_brackets (id) ON DELETE CASCADE,
-    service_id uuid NOT NULL REFERENCES services (id) ON DELETE CASCADE,
+  CREATE TABLE dbtable_schema.schedule_bracket_services (
+    schedule_bracket_id uuid NOT NULL REFERENCES dbtable_schema.schedule_brackets (id) ON DELETE CASCADE,
+    service_id uuid NOT NULL REFERENCES dbtable_schema.services (id) ON DELETE CASCADE,
     created_on TIMESTAMP NOT NULL DEFAULT NOW(),
     created_sub VARCHAR (50),
     updated_on TIMESTAMP,
@@ -209,15 +202,15 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     UNIQUE (schedule_bracket_id, service_id)
   );
 
-  CREATE TABLE quotes (
+  CREATE TABLE dbtable_schema.quotes (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR (250) NOT NULL,
     description VARCHAR (5000) NOT NULL,
-    budget_id uuid NOT NULL REFERENCES budgets (id) ON DELETE CASCADE,
-    timeline_id uuid NOT NULL REFERENCES timelines (id) ON DELETE CASCADE,
-    service_tier_id uuid NOT NULL REFERENCES service_tiers (id) ON DELETE CASCADE,
+    budget_id uuid NOT NULL REFERENCES dbtable_schema.budgets (id) ON DELETE CASCADE,
+    timeline_id uuid NOT NULL REFERENCES dbtable_schema.timelines (id) ON DELETE CASCADE,
+    service_tier_id uuid NOT NULL REFERENCES dbtable_schema.service_tiers (id) ON DELETE CASCADE,
     desired_duration INTEGER NOT NULL,
-    contact_id uuid NOT NULL REFERENCES contacts (id) ON DELETE CASCADE,
+    contact_id uuid NOT NULL REFERENCES dbtable_schema.contacts (id) ON DELETE CASCADE,
     respond_by TIMESTAMP NOT NULL,
     created_on TIMESTAMP NOT NULL DEFAULT NOW(),
     created_sub VARCHAR (50),
@@ -226,10 +219,10 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     enabled BOOLEAN NOT NULL DEFAULT true
   );
 
-  CREATE TABLE uuid_quotes (
+  CREATE TABLE dbtable_schema.uuid_quotes (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     parent_uuid uuid NOT NULL,
-    quote_id uuid NOT NULL REFERENCES quotes (id) ON DELETE CASCADE,
+    quote_id uuid NOT NULL REFERENCES dbtable_schema.quotes (id) ON DELETE CASCADE,
     created_on TIMESTAMP NOT NULL DEFAULT NOW(),
     created_sub VARCHAR (50),
     updated_on TIMESTAMP,
@@ -238,9 +231,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     UNIQUE (parent_uuid, quote_id)
   );
 
-  CREATE TABLE payments (
+  CREATE TABLE dbtable_schema.payments (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    contact_id uuid NOT NULL REFERENCES contacts (id) ON DELETE CASCADE,
+    contact_id uuid NOT NULL REFERENCES dbtable_schema.contacts (id) ON DELETE CASCADE,
     details jsonb NOT NULL,
     created_on TIMESTAMP NOT NULL DEFAULT NOW(),
     created_sub VARCHAR (50),
@@ -249,10 +242,10 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     enabled BOOLEAN NOT NULL DEFAULT true
   );
 
-  CREATE TABLE uuid_payments (
+  CREATE TABLE dbtable_schema.uuid_payments (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     parent_uuid uuid NOT NULL,
-    payment_id uuid NOT NULL REFERENCES payments (id) ON DELETE CASCADE,
+    payment_id uuid NOT NULL REFERENCES dbtable_schema.payments (id) ON DELETE CASCADE,
     created_on TIMESTAMP NOT NULL DEFAULT NOW(),
     created_sub VARCHAR (50),
     updated_on TIMESTAMP,
@@ -261,11 +254,11 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     UNIQUE (parent_uuid, payment_id)
   );
 
-  CREATE TABLE bookings (
+  CREATE TABLE dbtable_schema.bookings (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    service_tier_id uuid NOT NULL REFERENCES service_tiers (id) ON DELETE CASCADE,
-    contact_id uuid NOT NULL REFERENCES contacts (id) ON DELETE CASCADE,
-    payment_id uuid NOT NULL REFERENCES payments (id) ON DELETE CASCADE,
+    service_tier_id uuid NOT NULL REFERENCES dbtable_schema.service_tiers (id) ON DELETE CASCADE,
+    contact_id uuid NOT NULL REFERENCES dbtable_schema.contacts (id) ON DELETE CASCADE,
+    payment_id uuid NOT NULL REFERENCES dbtable_schema.payments (id) ON DELETE CASCADE,
     agreement BOOLEAN NOT NULL,
     description VARCHAR (5000) NOT NULL,
     created_on TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -275,10 +268,10 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     enabled BOOLEAN NOT NULL DEFAULT true
   );
 
-  CREATE TABLE uuid_bookings (
+  CREATE TABLE dbtable_schema.uuid_bookings (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     parent_uuid uuid NOT NULL,
-    booking_id uuid NOT NULL REFERENCES bookings (id) ON DELETE CASCADE,
+    booking_id uuid NOT NULL REFERENCES dbtable_schema.bookings (id) ON DELETE CASCADE,
     created_on TIMESTAMP NOT NULL DEFAULT NOW(),
     created_sub VARCHAR (50),
     updated_on TIMESTAMP,
@@ -287,10 +280,10 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     UNIQUE (parent_uuid, booking_id)
   );
 
-  CREATE TABLE booking_schedule_brackets (
+  CREATE TABLE dbtable_schema.booking_schedule_brackets (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    booking_id uuid NOT NULL REFERENCES bookings (id) ON DELETE CASCADE,
-    schedule_bracket_id uuid NOT NULL REFERENCES schedule_brackets (id) ON DELETE CASCADE,
+    booking_id uuid NOT NULL REFERENCES dbtable_schema.bookings (id) ON DELETE CASCADE,
+    schedule_bracket_id uuid NOT NULL REFERENCES dbtable_schema.schedule_brackets (id) ON DELETE CASCADE,
     duration INTEGER NOT NULL,
     created_on TIMESTAMP NOT NULL DEFAULT NOW(),
     created_sub VARCHAR (50),

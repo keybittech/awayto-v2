@@ -3,8 +3,6 @@ import { asyncForEach } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
 
-import { keycloak } from '../util/keycloak';
-
 const roles: ApiModule = [
 
   {
@@ -16,7 +14,7 @@ const roles: ApiModule = [
 
         const { rows: [ role ] } = await props.db.query<IRole>(`
           WITH input_rows(name, created_sub) as (VALUES ($1, $2)), ins AS (
-            INSERT INTO roles (name, created_sub)
+            INSERT INTO dbtable_schema.roles (name, created_sub)
             SELECT * FROM input_rows
             ON CONFLICT (name) DO NOTHING
             RETURNING id, name
@@ -26,15 +24,15 @@ const roles: ApiModule = [
           UNION ALL
           SELECT s.id, s.name
           FROM input_rows
-          JOIN roles s USING (name);
+          JOIN dbtable_schema.roles s USING (name);
         `, [name, props.event.userSub]);
 
         const { rows: [{ id: userId }] } = await props.db.query<IUserProfile>(`
-          SELECT id FROM users WHERE sub = $1
+          SELECT id FROM dbtable_schema.users WHERE sub = $1
         `, [props.event.userSub]);
 
         await props.db.query(`
-          INSERT INTO uuid_roles (parent_uuid, role_id, created_sub)
+          INSERT INTO dbtable_schema.uuid_roles (parent_uuid, role_id, created_sub)
           VALUES ($1, $2, $3)
           ON CONFLICT (parent_uuid, role_id) DO NOTHING
         `, [userId, role.id, props.event.userSub]);
@@ -58,7 +56,7 @@ const roles: ApiModule = [
         const updateProps = buildUpdate({ id, name });
 
         const { rows: [ role ] } = await props.db.query<IRole>(`
-          UPDATE roles
+          UPDATE dbtable_schema.roles
           SET ${updateProps.string}
           WHERE id = $1
           RETURNING id, name
@@ -66,7 +64,7 @@ const roles: ApiModule = [
 
         await props.redis.del(props.event.userSub + 'profile/details');
 
-        return role;
+        return [role];
         
       } catch (error) {
         throw error;
@@ -125,12 +123,12 @@ const roles: ApiModule = [
         const { ids } = props.event.pathParameters;
         
         const { rows: [{ id: userId }] } = await props.db.query<IUserProfile>(`
-          SELECT id FROM users WHERE sub = $1
+          SELECT id FROM dbtable_schema.users WHERE sub = $1
         `, [props.event.userSub]);
 
         await asyncForEach(ids.split(','), async id => {
           await props.db.query(`
-            DELETE FROM uuid_roles
+            DELETE FROM dbtable_schema.uuid_roles
             WHERE role_id = $1 AND parent_uuid = $2
           `, [id, userId]);
         });
@@ -154,7 +152,7 @@ const roles: ApiModule = [
 
         await asyncForEach(Object.values(roles), async role => {
           await props.db.query(`
-            UPDATE roles
+            UPDATE dbtable_schema.roles
             SET enabled = false
             WHERE id = $1
           `, [role.id]);

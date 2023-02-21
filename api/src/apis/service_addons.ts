@@ -13,7 +13,7 @@ const serviceAddons: ApiModule = [
 
         const response = await props.db.query<IServiceAddon>(`
           WITH input_rows(name) as (VALUES ($1)), ins AS (
-            INSERT INTO service_addons (name)
+            INSERT INTO dbtable_schema.service_addons (name)
             SELECT * FROM input_rows
             ON CONFLICT (name) DO NOTHING
             RETURNING id, name
@@ -23,7 +23,7 @@ const serviceAddons: ApiModule = [
           UNION ALL
           SELECT sa.id, sa.name
           FROM input_rows
-          JOIN service_addons sa USING (name);
+          JOIN dbtable_schema.service_addons sa USING (name);
         `, [name]);
         
         return response.rows;
@@ -45,7 +45,7 @@ const serviceAddons: ApiModule = [
         const updateProps = buildUpdate({ id, name });
 
         const response = await props.db.query<IServiceAddon>(`
-          UPDATE service_addons
+          UPDATE dbtable_schema.service_addons
           SET ${updateProps.string}
           WHERE id = $1
           RETURNING id, name
@@ -105,7 +105,7 @@ const serviceAddons: ApiModule = [
         const { id } = props.event.pathParameters;
 
         const response = await props.db.query<IServiceAddon>(`
-          DELETE FROM service_addons
+          DELETE FROM dbtable_schema.service_addons
           WHERE id = $1
           RETURNING id
         `, [id]);
@@ -126,7 +126,7 @@ const serviceAddons: ApiModule = [
         const { id } = props.event.pathParameters;
 
         await props.db.query(`
-          UPDATE service_addons
+          UPDATE dbtable_schema.service_addons
           SET enabled = false
           WHERE id = $1
         `, [id]);
