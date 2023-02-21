@@ -1,11 +1,11 @@
-import { IGroup, IGroupService, IGroupServiceActionTypes, IGroupServiceAddon } from 'awayto';
+import { asyncForEach, IGroup, IGroupService, IGroupServiceActionTypes, IGroupServiceAddon } from 'awayto';
 import { ApiModule } from '../api';
 
 const groupServices: ApiModule = [
 
   {
     action: IGroupServiceActionTypes.POST_GROUP_SERVICE,
-    cmnd : async (props) => {
+    cmnd: async (props) => {
       try {
 
         const { groupName, serviceId } = props.event.pathParameters;
@@ -27,7 +27,7 @@ const groupServices: ApiModule = [
 
         console.log({ GRPSVCDELREDIS: props.event.userSub + `group/${groupName}/services` })
         await props.redis.del(props.event.userSub + `group/${groupName}/services`);
-        
+
         return [];
 
       } catch (error) {
@@ -38,7 +38,7 @@ const groupServices: ApiModule = [
 
   {
     action: IGroupServiceActionTypes.GET_GROUP_SERVICES,
-    cmnd : async (props) => {
+    cmnd: async (props) => {
       try {
         const { groupName } = props.event.pathParameters;
 
@@ -54,9 +54,9 @@ const groupServices: ApiModule = [
           LEFT JOIN dbview_schema.enabled_services es ON es.id = eus."serviceId"
           WHERE eus."parentUuid" = $1
         `, [groupId]);
-        
+
         return response.rows;
-        
+
       } catch (error) {
         throw error;
       }
@@ -66,10 +66,11 @@ const groupServices: ApiModule = [
 
   {
     action: IGroupServiceActionTypes.DELETE_GROUP_SERVICE,
-    cmnd : async (props) => {
+    cmnd: async (props) => {
       try {
 
-        const { groupName, serviceId } = props.event.pathParameters;
+        const { groupName, ids } = props.event.pathParameters;
+        const idsSplit = ids.split(',');
 
         const [{ id: groupId }] = (await props.db.query<IGroup>(`
           SELECT id
@@ -77,16 +78,18 @@ const groupServices: ApiModule = [
           WHERE name = $1
         `, [groupName])).rows
 
-        // Detach service from group
-        await props.db.query<IGroupService>(`
-          DELETE FROM dbtable_schema.uuid_services
-          WHERE parent_uuid = $1 AND service_id = $2
-          RETURNING id
-        `, [groupId, serviceId]);
+        await asyncForEach(idsSplit, async serviceId => {
+          // Detach service from group
+          await props.db.query<IGroupService>(`
+            DELETE FROM dbtable_schema.uuid_services
+            WHERE parent_uuid = $1 AND service_id = $2
+            RETURNING id
+          `, [groupId, serviceId]);
+        })
 
         await props.redis.del(props.event.userSub + `group/${groupName}/services`);
 
-        return [{ id: serviceId }];
+        return idsSplit.map(id => ({ id }));
       } catch (error) {
         throw error;
       }

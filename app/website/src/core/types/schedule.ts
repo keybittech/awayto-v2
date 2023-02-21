@@ -68,6 +68,7 @@ export type ISchedule = {
   slotTimeUnitName: ITimeUnitNames;
   slotDuration: number;
   brackets: Record<string, IScheduleBracket>;
+  createdOn: string;
 };
 
 

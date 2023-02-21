@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import DataTable, { TableColumn } from 'react-data-table-component';
-import { useParams } from 'react-router';
 
 import IconButton from '@mui/material/IconButton';
 import Dialog from '@mui/material/Dialog';
@@ -10,55 +9,56 @@ import Tooltip from '@mui/material/Tooltip';
 import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-import { IService, IActionTypes, localFromNow, IGroupService, IUtilActionTypes } from 'awayto';
+import { ISchedule, IActionTypes, localFromNow, IGroupSchedule, IUtilActionTypes } from 'awayto';
 import { useRedux, useApi, useAct } from 'awayto-hooks';
 
-import ManageServiceModal from './ ManageServiceModal';
+import ManageScheduleModal from './ ManageScheduleModal';
+import { useParams } from 'react-router';
 
 const { OPEN_CONFIRM } = IUtilActionTypes;
 
-export type ManageServicesActions = {
-  services?: Record<string, IGroupService>;
-  getServicesAction?: IActionTypes;
-  postServicesAction?: IActionTypes;
-  postGroupServicesAction?: IActionTypes;
-  putServicesAction?: IActionTypes;
-  disableServicesAction?: IActionTypes;
-  deleteServicesAction?: IActionTypes;
-  deleteGroupServicesAction?: IActionTypes;
+export type ManageSchedulesActions = {
+  schedules?: Record<string, IGroupSchedule>;
+  getSchedulesAction?: IActionTypes;
+  postSchedulesAction?: IActionTypes;
+  postGroupSchedulesAction?: IActionTypes;
+  putSchedulesAction?: IActionTypes;
+  disableSchedulesAction?: IActionTypes;
+  deleteSchedulesAction?: IActionTypes;
+  deleteGroupSchedulesAction?: IActionTypes;
 };
 
 declare global {
-  interface IProps extends ManageServicesActions { }
+  interface IProps extends ManageSchedulesActions { }
 }
 
-export function ManageServices (props: IProps): JSX.Element {
-  const { services, getServicesAction, deleteGroupServicesAction } = props as IProps & Required<ManageServicesActions>;
+export function ManageSchedules(props: IProps): JSX.Element {
+  const { schedules, getSchedulesAction, deleteGroupSchedulesAction } = props as IProps & Required<ManageSchedulesActions>;
 
   const { groupName } = useParams();
 
   const act = useAct();
   const api = useApi();
   const util = useRedux(state => state.util);
-  const [service, setService] = useState<IService>();
-  const [selected, setSelected] = useState<IService[]>([]);
+  const [Schedule, setSchedule] = useState<ISchedule>();
+  const [selected, setSelected] = useState<ISchedule[]>([]);
   const [toggle, setToggle] = useState(false);
   const [dialog, setDialog] = useState('');
 
-  const updateState = useCallback((state: { selectedRows: IService[] }) => setSelected(state.selectedRows), [setSelected]);
+  const updateState = useCallback((state: { selectedRows: ISchedule[] }) => setSelected(state.selectedRows), [setSelected]);
 
   const columns = useMemo(() => [
     { id: 'createdOn', selector: row => row.createdOn, omit: true },
     { name: 'Name', selector: row => row.name },
     { name: 'Created', selector: row => localFromNow(row.createdOn) }
-  ] as TableColumn<IService>[], [services])
+  ] as TableColumn<ISchedule>[], [schedules])
 
   const actions = useMemo(() => {
     const { length } = selected;
     const acts = length == 1 ? [
-      <IconButton key={'manage_service'} onClick={() => {
-        setService(selected.pop());
-        setDialog('manage_service');
+      <IconButton key={'manage_Schedule'} onClick={() => {
+        setSchedule(selected.pop());
+        setDialog('manage_Schedule');
         setToggle(!toggle);
       }}>
         <CreateIcon />
@@ -67,16 +67,18 @@ export function ManageServices (props: IProps): JSX.Element {
 
     return [
       ...acts,
-      <Tooltip key={'delete_service'} title="Delete"><IconButton onClick={() => {
+      <Tooltip key={'delete_Schedule'} title="Delete"><IconButton onClick={() => {
         if (groupName) {
+
           void act(OPEN_CONFIRM, {
             isConfirming: true,
-            message: 'Are you sure you want to delete these services? This cannot be undone.',
+            message: 'Are you sure you want to delete these schedules? This cannot be undone.',
             action: () => {
-              const [, res] = api(deleteGroupServicesAction, true, { groupName, ids: selected.map(s => s.id).join(',') })
+
+              const [, res] = api(deleteGroupSchedulesAction, true, { groupName, ids: selected.map(s => s.id).join(',') })
               res?.then(() => {
                 setToggle(!toggle);
-                api(getServicesAction, true, { groupName });
+                api(getSchedulesAction, true, { groupName });
               });
             }
           });
@@ -85,28 +87,28 @@ export function ManageServices (props: IProps): JSX.Element {
         <DeleteIcon />
       </IconButton></Tooltip>
     ]
-  }, [selected])
+  }, [selected, groupName])
 
   useEffect(() => {
     if (groupName) {
-      const [abort] = api(getServicesAction, true, { groupName });
+      const [abort] = api(getSchedulesAction, true, { groupName });
       return () => abort();
     }
   }, [groupName]);
 
   return <>
-    <Dialog open={dialog === 'manage_service'} fullWidth maxWidth="sm">
-      <ManageServiceModal {...props} editService={service} closeModal={() => {
+    <Dialog open={dialog === 'manage_Schedule'} fullWidth maxWidth="sm">
+      <ManageScheduleModal {...props} editSchedule={Schedule} closeModal={() => {
         setDialog('')
-        api(getServicesAction, true, { groupName });
+        api(getSchedulesAction, true, { groupName });
       }} />
     </Dialog>
 
     <DataTable
-      title="Services"
-      actions={<Button onClick={() => { setService(undefined); setDialog('manage_service') }}>New</Button>}
+      title="Schedules"
+      actions={<Button onClick={() => { setSchedule(undefined); setDialog('manage_Schedule') }}>New</Button>}
       contextActions={actions}
-      data={Object.values(services)}
+      data={Object.values(schedules)}
       defaultSortFieldId="createdOn"
       defaultSortAsc={false}
       theme={util.theme}
@@ -123,4 +125,4 @@ export function ManageServices (props: IProps): JSX.Element {
   </>
 }
 
-export default ManageServices;
+export default ManageSchedules;

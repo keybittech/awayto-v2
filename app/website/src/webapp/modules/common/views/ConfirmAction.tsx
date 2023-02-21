@@ -33,7 +33,7 @@ export function ConfirmAction (): JSX.Element {
           }}>
             <CardContent>
               <Grid container direction="column" alignItems="center" justifyContent="space-evenly">
-                <Typography variant="h6" style={{ wordBreak: 'break-all' }}>{util.message}</Typography>
+                <Typography variant="h6" style={{ wordBreak: 'break-word', textAlign: 'center' }}>{util.message}</Typography>
                 <Typography variant="subtitle1">Click to confirm.</Typography>
               </Grid>
             </CardContent>

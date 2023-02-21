@@ -1,4 +1,4 @@
-import { IGroup, IGroupScheduleActionTypes, IGroupService, IGroupServiceAddon } from 'awayto';
+import { asyncForEach, IGroup, IGroupScheduleActionTypes, IGroupService, IGroupServiceAddon } from 'awayto';
 import { ApiModule } from '../api';
 
 const groupServices: ApiModule = [
@@ -67,7 +67,8 @@ const groupServices: ApiModule = [
     cmnd : async (props) => {
       try {
 
-        const { groupName, scheduleId } = props.event.pathParameters;
+        const { groupName, ids } = props.event.pathParameters;
+        const idsSplit = ids.split(',');
 
         const [{ id: groupId }] = (await props.db.query<IGroup>(`
           SELECT id
@@ -75,16 +76,18 @@ const groupServices: ApiModule = [
           WHERE name = $1
         `, [groupName])).rows
 
-        // Detach schedule from group
-        await props.db.query<IGroupService>(`
-          DELETE FROM dbtable_schema.uuid_schedules
-          WHERE parent_uuid = $1 AND schedule_id = $2
-          RETURNING id
-        `, [groupId, scheduleId]);
+        await asyncForEach(idsSplit, async scheduleId => {
+          // Detach schedule from group
+          await props.db.query<IGroupService>(`
+            DELETE FROM dbtable_schema.uuid_schedules
+            WHERE parent_uuid = $1 AND schedule_id = $2
+            RETURNING id
+          `, [groupId, scheduleId]);
+        })
 
         await props.redis.del(props.event.userSub + `group/${groupName}/schedules`);
 
-        return [{ id: scheduleId }];
+        return idsSplit.map(id => ({ id }));
       } catch (error) {
         throw error;
       }

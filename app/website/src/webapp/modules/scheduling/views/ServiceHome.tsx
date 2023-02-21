@@ -101,7 +101,7 @@ export function ServiceHome(props: IProps): JSX.Element {
                       isConfirming: true,
                       message: 'Are you sure you want to delete this service?',
                       action: () => {
-                        const [, res] = api(DELETE_GROUP_SERVICE, true, { groupName: group.name, serviceId: service.id });
+                        const [, res] = api(DELETE_GROUP_SERVICE, true, { groupName: group.name, ids: service.id });
                         res?.then(() => {
                           api(DELETE_SERVICE, true, { id: service.id });
                         });

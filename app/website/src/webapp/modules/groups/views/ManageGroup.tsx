@@ -14,7 +14,7 @@ const { PUT_ROLES, POST_ROLES, DELETE_ROLES } = IRoleActionTypes;
 const { POST_SERVICE, PUT_SERVICE, DELETE_SERVICE, DISABLE_SERVICE } = IServiceActionTypes;
 const { POST_SCHEDULE, PUT_SCHEDULE, DELETE_SCHEDULE, DISABLE_SCHEDULE } = IScheduleActionTypes;
 const { GET_GROUP_SERVICES, POST_GROUP_SERVICE, DELETE_GROUP_SERVICE } = IGroupServiceActionTypes;
-const { GET_GROUP_SCHEDULES, POST_GROUP_SCHEDULE } = IGroupScheduleActionTypes;
+const { GET_GROUP_SCHEDULES, POST_GROUP_SCHEDULE, DELETE_GROUP_SCHEDULE } = IGroupScheduleActionTypes;
 
 
 declare global {
@@ -31,6 +31,7 @@ export function ManageGroup(props: IProps): JSX.Element {
   const user = useRedux(state => state.profile);
   const { users } = useRedux(state => state.user);
   const { groupServices } = useRedux(state => state.groupService);
+  const { groupSchedules } = useRedux(state => state.groupSchedule);
 
   const { ManageUsers, ManageRoles, ManageRoleActions, ManageServices, ManageSchedules, GroupSecure } = useComponents();
 
@@ -80,12 +81,19 @@ export function ManageGroup(props: IProps): JSX.Element {
         />
       case 'schedules':
         return <ManageSchedules
-
+          schedules={groupSchedules}
+          getSchedulesAction={GET_GROUP_SCHEDULES}
+          postSchedulesAction={POST_SCHEDULE}
+          postGroupSchedulesAction={POST_GROUP_SCHEDULE}
+          putSchedulesAction={PUT_SCHEDULE}
+          disableSchedulesAction={DISABLE_SCHEDULE}
+          deleteSchedulesAction={DELETE_SCHEDULE}
+          deleteGroupSchedulesAction={DELETE_GROUP_SCHEDULE}
         />
       default:
         return;
     }
-  }, [users, groupServices, user.groups, user.roles, component])
+  }, [users, groupServices, groupSchedules, user.groups, user.roles, component])
 
   return <>
 

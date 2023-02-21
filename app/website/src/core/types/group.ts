@@ -242,7 +242,7 @@ export type IGroupServiceState = IGroupService & {
 export enum IGroupServiceActionTypes {
   POST_GROUP_SERVICE = "GET/group/:groupName/services/:serviceId",
   GET_GROUP_SERVICES = "GET/group/:groupName/services",
-  DELETE_GROUP_SERVICE = "DELETE/group/:groupName/services/:serviceId"
+  DELETE_GROUP_SERVICE = "DELETE/group/:groupName/services/:ids"
 }
 
 /**
@@ -295,7 +295,7 @@ export type IGroupServiceActions = IPostGroupServiceAction
   export enum IGroupScheduleActionTypes {
     POST_GROUP_SCHEDULE = "GET/group/:groupName/schedules/:scheduleId",
     GET_GROUP_SCHEDULES = "GET/group/:groupName/schedules",
-    DELETE_GROUP_SCHEDULE = "DELETE/group/:groupName/schedules/:scheduleId"
+    DELETE_GROUP_SCHEDULE = "DELETE/group/:groupName/schedules/:ids"
   }
   
   /**
