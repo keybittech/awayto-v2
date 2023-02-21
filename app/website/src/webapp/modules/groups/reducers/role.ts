@@ -9,12 +9,11 @@ import {
   IDeleteRoleAction,
   IDisableRoleAction,
   IPostRoleAction,
-  IPutRoleAction,
-  IRoles
+  IPutRoleAction
 } from 'awayto';
 
 const initialRoleState: IRoleState = {
-  roles: {} as IRoles
+  roles: {}
 };
 
 function reduceDeleteRole(state: IRoleState, action: IDeleteRoleAction): IRoleState {

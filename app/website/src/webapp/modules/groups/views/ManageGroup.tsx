@@ -5,12 +5,17 @@ import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 
-import { IRoleActionTypes, IUserActionTypes, IUserProfileActionTypes, SiteRoles } from 'awayto';
+import { IRoleActionTypes, IUserActionTypes, IUserProfileActionTypes, IGroupServiceActionTypes, IGroupScheduleActionTypes, IServiceActionTypes, IScheduleActionTypes, SiteRoles } from 'awayto';
 import { useComponents, useRedux } from 'awayto-hooks';
 
 const { GET_USER_PROFILE_DETAILS } = IUserProfileActionTypes;
 const { GET_USERS } = IUserActionTypes;
 const { PUT_ROLES, POST_ROLES, DELETE_ROLES } = IRoleActionTypes;
+const { POST_SERVICE, PUT_SERVICE, DELETE_SERVICE, DISABLE_SERVICE } = IServiceActionTypes;
+const { POST_SCHEDULE, PUT_SCHEDULE, DELETE_SCHEDULE, DISABLE_SCHEDULE } = IScheduleActionTypes;
+const { GET_GROUP_SERVICES, POST_GROUP_SERVICE, DELETE_GROUP_SERVICE } = IGroupServiceActionTypes;
+const { GET_GROUP_SCHEDULES, POST_GROUP_SCHEDULE } = IGroupScheduleActionTypes;
+
 
 declare global {
   interface IProps {
@@ -24,18 +29,20 @@ export function ManageGroup(props: IProps): JSX.Element {
   const navigate = useNavigate();
 
   const user = useRedux(state => state.profile);
-  const { roles } = useRedux(state => state.role);
   const { users } = useRedux(state => state.user);
+  const { groupServices } = useRedux(state => state.groupService);
 
-  const { ManageUsers, ManageRoles, ManageRoleActions, GroupSecure } = useComponents();
+  const { ManageUsers, ManageRoles, ManageRoleActions, ManageServices, ManageSchedules, GroupSecure } = useComponents();
 
   const menuRoles: Record<string, SiteRoles[]> = {
     users: [SiteRoles.APP_GROUP_USERS],
     roles: [SiteRoles.APP_GROUP_ROLES],
-    matrix: [SiteRoles.APP_GROUP_ADMIN]
+    matrix: [SiteRoles.APP_GROUP_ADMIN],
+    services: [SiteRoles.APP_GROUP_SERVICES],
+    schedules: [SiteRoles.APP_GROUP_SCHEDULES],
   }
 
-  const menu = ['users', 'roles', 'matrix'].map(comp =>
+  const menu =  Object.keys(menuRoles).map(comp =>
     groupName && component && <GroupSecure key={`menu_${comp}`} contentGroupRoles={menuRoles[comp]}>
       <Button style={comp == component ? { textDecoration: 'underline' } : undefined} onClick={() => navigate(`/group/${groupName}/manage/${comp}`)}>
         {comp}
@@ -60,15 +67,30 @@ export function ManageGroup(props: IProps): JSX.Element {
         />
       case 'matrix':
         return <ManageRoleActions {...props} />
+      case 'services':
+        return <ManageServices
+          services={groupServices}
+          getServicesAction={GET_GROUP_SERVICES}
+          postServicesAction={POST_SERVICE}
+          postGroupServicesAction={POST_GROUP_SERVICE}
+          putServicesAction={PUT_SERVICE}
+          disableServicesAction={DISABLE_SERVICE}
+          deleteServicesAction={DELETE_SERVICE}
+          deleteGroupServicesAction={DELETE_GROUP_SERVICE}
+        />
+      case 'schedules':
+        return <ManageSchedules
+
+        />
       default:
         return;
     }
-  }, [roles, users, user.groups, user.roles, component])
+  }, [users, groupServices, user.groups, user.roles, component])
 
   return <>
 
     <Grid container justifyContent="flex-start" alignItems="center">
-      <Typography variant="button">Identity:</Typography> {menu}
+      <Typography variant="button">Controls:</Typography> {menu}
     </Grid>
 
     {viewPage}

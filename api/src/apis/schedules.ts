@@ -50,7 +50,7 @@ const schedules: ApiModule = [
               VALUES ($1, $2, $3)
               ON CONFLICT (schedule_bracket_id, start_time) DO NOTHING
               RETURNING id
-            `, [bracketId, moment(s.startTime, "ddd HH:mm A").utc().toString(), props.event.userSub])).rows;
+            `, [bracketId, moment(s.startTime).utc().toString(), props.event.userSub])).rows;
 
             s.id = slotId;
           });

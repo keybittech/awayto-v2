@@ -9,7 +9,7 @@ import Tooltip from '@mui/material/Tooltip';
 import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-import { IRole, IActionTypes, IRoles, localFromNow, SiteRoles } from 'awayto';
+import { IRole, IActionTypes, localFromNow } from 'awayto';
 import { useRedux, useApi, useGroupSecure } from 'awayto-hooks';
 
 import ManageRoleModal from './ManageRoleModal';
@@ -19,7 +19,7 @@ export type ManageRolesActions = {
   putRolesAction?: IActionTypes;
   postRolesAction?: IActionTypes;
   deleteRolesAction?: IActionTypes;
-  roles?: IRoles;
+  roles?: Record<string, IRole>;
 };
 
 declare global {
@@ -59,11 +59,12 @@ export function ManageRoles (props: IProps): JSX.Element {
 
     return [
       ...acts,
-      <Tooltip key={'delete_group'} title="Delete"><IconButton onClick={async () => {
+      <Tooltip key={'delete_group'} title="Delete"><IconButton onClick={() => {
         const [, res] = api(deleteRolesAction, true, { ids: selected.map(s => s.id).join(',') })
-        await res;
-        setToggle(!toggle);
-        api(getRolesAction, true);
+        res?.then(() => {
+          setToggle(!toggle);
+          api(getRolesAction, true);
+        });
       }}>
         <DeleteIcon />
       </IconButton></Tooltip>

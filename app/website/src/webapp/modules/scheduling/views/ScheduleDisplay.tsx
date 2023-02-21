@@ -69,13 +69,13 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
     const setValue = useCallback(function () {
       if (selectedBracket) {
         const bracket = schedule.brackets[selectedBracket.id];
-  
+
         const slot = {
           id: (new Date()).getTime().toString(),
-          startTime: startTime.format('ddd hh:mm A'),
+          startTime: startTime.toISOString(),
           scheduleBracketId: selectedBracket.id
         } as IScheduleBracketSlot;
-  
+
         if (exists) {
           delete bracket.slots[exists.id];
           delete selected[target];
@@ -85,7 +85,7 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
         } else {
           alert('you went over your allottment');
         }
-  
+
         setSchedule({ ...schedule, brackets: { ...schedule.brackets } });
         setSelected({ ...selected });
       }
@@ -168,9 +168,12 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
             const slots = Object.values(b.slots);
             return <Box key={`selected_bracket_slot_display_${i}`}>
               <Typography>Bracket #{i + 1} - {slots.length * schedule.slotDuration} {schedule.slotTimeUnitName}s</Typography>
-              {slots.sort((a, b) => moment(a.startTime).milliseconds() - moment(b.startTime).milliseconds()).map((s, z) => <Box key={`selected_slot_display_${z}`}>
-                {s.startTime}
-              </Box>)}
+              {slots.sort((a, b) => moment(a.startTime).milliseconds() - moment(b.startTime).milliseconds()).map((s, z) => {
+                const weekLabel = TimeUnit.WEEK === xAxisTypeName ? `W${Math.ceil(moment(s.startTime).date() / 7)}` : '';
+                return <Box key={`selected_slot_display_${z}`}>
+                  {weekLabel} {moment(s.startTime).format('ddd hh:mm A')}
+                </Box>
+              })}
             </Box>
           })}
         </Grid>

@@ -6,6 +6,9 @@ interface BuildUpdateParams {
   [key: string]: BuildParamTypes;
 }
 
+// When postgres retrieves a timestamp, it wants to auto convert it to a new Date(). When this happens, it gets double converted to utc because we should be storing dates as utc when they go in usually from the DEFAULT on the table.
+postgres.types.setTypeParser(1114, stringValue => stringValue);
+
 const {
   PG_HOST,
   PG_PORT,

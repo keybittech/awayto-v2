@@ -79,11 +79,12 @@ export function ManageGroups(props: IProps): JSX.Element {
         void act(OPEN_CONFIRM, {
           isConfirming: true,
           message: 'Are you sure you want to leave this group?',
-          action: async () => {
+          action: () => {
             const [, res] = api(GROUPS_LEAVE, true, { code: selected.pop()?.code });
-            await res;
-            api(getGroupsAction);
-            setToggle(!toggle);
+            res?.then(() => {
+              api(getGroupsAction);
+              setToggle(!toggle);
+            });
           }
         });
       }}>
@@ -100,10 +101,11 @@ export function ManageGroups(props: IProps): JSX.Element {
 
     return [
       ...acts,
-      isOwner && <Tooltip key={'delete_group'} title="Delete"><IconButton onClick={async () => {
+      isOwner && <Tooltip key={'delete_group'} title="Delete"><IconButton onClick={() => {
         const [, res] = api(deleteGroupsAction, true, { ids: selected.map(s => s.id).join(',') });
-        await res;
-        keycloak.clearToken();
+        res?.then(() => {
+          keycloak.clearToken();
+        });
       }}><DeleteIcon /></IconButton></Tooltip>
     ];
   }, [selected]);

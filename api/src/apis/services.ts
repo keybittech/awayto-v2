@@ -12,22 +12,22 @@ const services: ApiModule = [
 
         const { name, cost, tiers } = props.event.body;
 
-        const service = (await props.db.query<IService>(`
+        const { rows: [service] } = await props.db.query<IService>(`
           WITH input_rows(name, cost) as (VALUES ($1, $2::integer)), ins AS (
             INSERT INTO dbtable_schema.services (name, cost)
             SELECT * FROM input_rows
             ON CONFLICT (name) DO NOTHING
-            RETURNING id, name, cost
+            RETURNING id, name, cost, created_on
           )
-          SELECT id, name, cost
+          SELECT id, name, cost, created_on
           FROM ins
           UNION ALL
-          SELECT s.id, s.name, s.cost
+          SELECT s.id, s.name, s.cost, s.created_on
           FROM input_rows
           JOIN dbtable_schema.services s USING (name);
-        `, [name, cost])).rows[0];
+        `, [name, cost]);
 
-        await asyncForEach(Object.values(tiers).sort((a, b) => parseInt(a.id) - parseInt(b.id)), async t => {
+        await asyncForEach(Object.values(tiers).sort((a, b) => a.order - b.order), async t => {
           const serviceTier = (await props.db.query<IServiceTier>(`
             WITH input_rows(name, service_id, multiplier) as (VALUES ($1, $2::uuid, $3::decimal)), ins AS (
               INSERT INTO dbtable_schema.service_tiers (name, service_id, multiplier)
@@ -43,7 +43,7 @@ const services: ApiModule = [
             JOIN dbtable_schema.service_tiers st USING (name, service_id);
           `, [t.name, service.id, t.multiplier])).rows[0];
 
-          await asyncForEach(Object.values(t.addons).sort((a, b) => parseInt(a.id) - parseInt(b.id)), async a => {
+          await asyncForEach(Object.values(t.addons).sort((a, b) => a.order - b.order), async a => {
             await props.db.query(`
               INSERT INTO dbtable_schema.service_tier_addons (service_addon_id, service_tier_id)
               VALUES ($1, $2)
@@ -128,16 +128,22 @@ const services: ApiModule = [
     action: IServiceActionTypes.DELETE_SERVICE,
     cmnd : async (props) => {
       try {
-        const { id } = props.event.pathParameters;
+        const { ids } = props.event.pathParameters;
+        const idSplit = ids.split(',');
 
-        const response = await props.db.query<IService>(`
-          DELETE FROM dbtable_schema.services
-          WHERE id = $1
-          RETURNING id
-        `, [id]);
-        
-        return response.rows;
-        
+        await asyncForEach(idSplit, async id => {
+          await props.db.query(`
+            DELETE FROM dbtable_schema.services
+            WHERE id = $1
+            RETURNING id
+          `, [id]);
+
+          await props.redis.del(props.event.userSub + 'services/' + id);
+        });
+
+        await props.redis.del(props.event.userSub + 'services');
+
+        return idSplit.map(id => ({id}));
       } catch (error) {
         throw error;
       }
@@ -149,16 +155,22 @@ const services: ApiModule = [
     action: IServiceActionTypes.DISABLE_SERVICE,
     cmnd : async (props) => {
       try {
-        const { id } = props.event.pathParameters;
+        const { ids } = props.event.pathParameters;
+        const idSplit = ids.split(',');
 
-        await props.db.query(`
-          UPDATE services
-          SET enabled = false
-          WHERE id = $1
-        `, [id]);
+        await asyncForEach(idSplit, async id => {
+          await props.db.query(`
+            UPDATE services
+            SET enabled = false
+            WHERE id = $1
+          `, [id]);
 
-        return { id };
-        
+          await props.redis.del(props.event.userSub + 'services/' + id);
+        });
+
+        await props.redis.del(props.event.userSub + 'services');
+
+        return idSplit.map(id => ({id}));        
       } catch (error) {
         throw error;
       }

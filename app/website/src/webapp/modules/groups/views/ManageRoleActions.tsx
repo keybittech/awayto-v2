@@ -48,13 +48,14 @@ export function ManageRoleActions(): JSX.Element {
     setAssignments(newAssignments);
   }, [assignments]);
 
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = useCallback(() => {
     try {
       act(SET_UPDATE_ASSIGNMENTS, { canSubmitAssignments: false });
       const [, res] = api(PUT_GROUPS_ASSIGNMENTS, false, { groupName, assignments });
-      await res;
-      act(SET_SNACK, { snackType: 'success', snackOn: 'Assignments can be updated again in 1 minute.' });
-      setTimeout(() => act(SET_UPDATE_ASSIGNMENTS, { canSubmitAssignments: true }), 60 * 1000);
+      res?.then(() => {
+        act(SET_SNACK, { snackType: 'success', snackOn: 'Assignments can be updated again in 1 minute.' });
+        setTimeout(() => act(SET_UPDATE_ASSIGNMENTS, { canSubmitAssignments: true }), 58 * 1000);
+      });
     } catch (error) {
       act(SET_UPDATE_ASSIGNMENTS, { canSubmitAssignments: true });
     }

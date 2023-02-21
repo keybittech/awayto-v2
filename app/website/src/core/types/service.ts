@@ -37,6 +37,7 @@ export type IService = {
   name: string;
   cost: string;
   tiers: Record<string, IServiceTier>;
+  createdOn: string;
 };
 
 /**
@@ -54,8 +55,8 @@ export enum IServiceActionTypes {
   PUT_SERVICE = "PUT/services",
   GET_SERVICES = "GET/services",
   GET_SERVICE_BY_ID = "GET/services/:id",
-  DELETE_SERVICE = "DELETE/services/:id",
-  DISABLE_SERVICE = "PUT/services/:id/disable"
+  DELETE_SERVICE = "DELETE/services/:ids",
+  DISABLE_SERVICE = "PUT/services/:ids/disable"
 }
 
 /**
