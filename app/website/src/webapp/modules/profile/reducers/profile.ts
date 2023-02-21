@@ -6,8 +6,8 @@ import {
 } from 'awayto';
 
 const initialUserProfileState: Partial<IUserProfileState> = {
-  groups: [],
-  roles: []
+  groups: {},
+  roles: {}
 };
 
 const profileReducer: Reducer<Partial<IUserProfileState>, IUserProfileActions> = (state = initialUserProfileState, action) => {

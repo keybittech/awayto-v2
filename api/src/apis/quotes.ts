@@ -9,7 +9,7 @@ const quotes: ApiModule = [
     cmnd : async (props) => {
       try {
 
-        const { name, desiredDuration, budgetId, timelineId, serviceTierId, contactId, respondBy, description } = props.event.body as IQuote;
+        const { name, desiredDuration, budgetId, timelineId, serviceTierId, contactId, respondBy, description } = props.event.body;
 
         const response = await props.db.query<IQuote>(`
           INSERT INTO quotes (name, desired_duration, budget_id, timeline_id, service_tier_id, contact_id, respond_by, description)
@@ -29,7 +29,10 @@ const quotes: ApiModule = [
     action: IQuoteActionTypes.PUT_QUOTE,
     cmnd : async (props) => {
       try {
-        const { id, budgetId, timelineId, serviceTierId, contactId, respondBy, description } = props.event.body as IQuote;
+
+        const {  } = props.event.body;
+
+        const { id, budgetId, timelineId, serviceTierId, contactId, respondBy, description } = props.event.body;
         
         if (!id || !budgetId || !timelineId || !serviceTierId || !contactId) throw new Error('Must provide ids for budget, timeline, and service tier');
 

@@ -93,9 +93,9 @@ const users: ApiModule = [
     action: IUserActionTypes.DISABLE_USERS,
     cmnd : async (props) => {
       try {
-        const users = props.event.body as IUser[];
+        const { users } = props.event.body;
 
-        await asyncForEach(users, async role => {
+        await asyncForEach(Object.values(users), async role => {
           await props.db.query(`
             UPDATE users
             SET enabled = false

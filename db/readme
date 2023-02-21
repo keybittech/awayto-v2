@@ -1,1 +1,15 @@
 docker exec -u postgres <containerId> psql sysmaindb postgres -f /docker-entrypoint-initdb.d/2-base_views.sql
+
+
+DROP uuids
+
+TRUNCATE TABLE uuid_services CASCADE;
+TRUNCATE TABLE uuid_service_addons CASCADE;
+TRUNCATE TABLE uuid_schedules CASCADE;
+TRUNCATE TABLE uuid_quotes CASCADE;
+TRUNCATE TABLE uuid_payments CASCADE;
+TRUNCATE TABLE uuid_bookings CASCADE;
+TRUNCATE TABLE uuid_groups CASCADE;
+TRUNCATE TABLE uuid_roles CASCADE;
+TRUNCATE TABLE uuid_files CASCADE;
+TRUNCATE TABLE uuid_notes CASCADE;

@@ -1,4 +1,5 @@
 import { PayloadAction } from '.';
+import { Merge } from '../util';
 
 declare global {
   /**
@@ -6,23 +7,22 @@ declare global {
    */
   interface ISharedState {
     util: IUtilState,
-    login: ILoginState
     uuidFiles: IUuidFilesState;
     files: IFilesState;
   }
 
+  interface IMergedState extends Merge<Merge<Merge<Merge<unknown, IFilesState>, IUuidFilesState>, IUtilState>, IUuidNotesState> {}
+
   /**
    * @category Awayto Redux
    */
-  type ICommonModuleActions = IUtilActions | ILoginActions | ILogoutActions | IUuidNotesActions | IUuidFilesActions | IFilesActions;
+  type ICommonModuleActions = IUtilActions | IUuidNotesActions | IUuidFilesActions | IFilesActions;
 
   /**
    * @category Awayto Redux
    */
   interface ISharedActionTypes {
     util: IUtilActionTypes;
-    login: ILoginActionTypes;
-    logout: ILogoutActionTypes;
     uuidNotes: IUuidNotesActionTypes;
     uuidFiles: IUuidFilesActionTypes;
     file: IFilesActionTypes;
@@ -53,7 +53,7 @@ export type IUtil = {
 /**
  * @category Util
  */
-export type IUtilState = Partial<IUtil>;
+export type IUtilState = IUtil;
 
 
 /**
@@ -152,101 +152,6 @@ export type IUtilActions = IClearReduxAction
   | ISetUpdateAssignmentsAction;
 
 
-/**
- * @category Awayto
- */
-export type ILogin = {
-  error: Error | string;
-  challengeName: string;
-  session: string;
-  isLoggedIn: boolean;
-  username: string;
-}
-
-/**
- * @category Login
- */
-
-export type ILoginState = Partial<ILogin>;
-
-/**
- * @category Action Types
- */
-export enum ILoginActionTypes {
-  LOGIN_USER = "login/LOGIN_USER",
-  LOGOUT_USER = "login/LOGOUT_USER",
-  AUTH_USER = "login/AUTH_USER",
-  AUTH_SUCCESS = "login/AUTH_SUCCESS",
-  AUTH_DENIAL = "login/AUTH_DENIAL",
-  RESET_PASSWORD = "login/RESET_PASSWORD",
-  FORCE_PASS_CHANGE_SUCCESS = "login/FORCE_PASS_CHANGE_SUCCESS"
-}
-
-/**
- * @category Login
- */
-export type ILoginUserAction = PayloadAction<ILoginActionTypes.LOGIN_USER, ILoginState>;
-
-/**
- * @category Login
- */
-export type ILogoutUserAction = PayloadAction<ILoginActionTypes.LOGOUT_USER, ILoginState>;
-
-/**
- * @category Login
- */
-export type IAuthUserAction = PayloadAction<ILoginActionTypes.AUTH_USER, ILoginState>;
-
-/**
- * @category Login
- */
-export type IAuthUserSuccessAction = PayloadAction<ILoginActionTypes.AUTH_SUCCESS, ILoginState>;
-
-/**
- * @category Login
- */
-export type IAuthDenialAction = PayloadAction<ILoginActionTypes.AUTH_DENIAL, ILoginState>;
-
-/**
- * @category Login
- */
-export type IResetPasswordAction = PayloadAction<ILoginActionTypes.RESET_PASSWORD, ILoginState>;
-
-/**
- * @category Login
- */
-export type IForcePassChangeAction = PayloadAction<ILoginActionTypes.FORCE_PASS_CHANGE_SUCCESS, ILoginState>;
-
-/**
- * @category Login
- */
-export type ILoginActions = ILoginUserAction
-  | ILogoutUserAction
-  | IAuthUserAction
-  | IAuthUserSuccessAction
-  | IAuthDenialAction
-  | IResetPasswordAction
-  | IForcePassChangeAction;
-
-
-/**
-* @category Logout
-*/
-export type ILogout = Record<string, unknown>
-
-/**
- * @category Action Types
- */
-export enum ILogoutActionTypes {
-  LOGOUT = "LOGOUT"
-}
-
-/**
-* @category Logout
-*/
-export type LogoutAction = PayloadAction<"LOGOUT", ILogout>;
-
-export type ILogoutActions = LogoutAction;
 
 /**
  * @category Awayto
@@ -260,7 +165,9 @@ export type IUuidNotes = {
 /**
  * @category Uuid Notes
  */
-export type IUuidNotesState = Partial<IUuidNotes>;
+export type IUuidNotesState = IUuidNotes & {
+  notes: Record<string, IUuidNotes>;
+};
 
 /**
  * @category Action Types
@@ -277,32 +184,32 @@ export enum IUuidNotesActionTypes {
 /**
  * @category Uuid Notes
  */
-export type IPostUuidNotesAction = PayloadAction<IUuidNotesActionTypes.POST_UUID_NOTES, IUuidNotesState>;
+export type IPostUuidNotesAction = PayloadAction<IUuidNotesActionTypes.POST_UUID_NOTES, IUuidNotes[]>;
 
 /**
  * @category Uuid Notes
  */
-export type IPutUuidNotesAction = PayloadAction<IUuidNotesActionTypes.PUT_UUID_NOTES, IUuidNotesState>;
+export type IPutUuidNotesAction = PayloadAction<IUuidNotesActionTypes.PUT_UUID_NOTES, IUuidNotes[]>;
 
 /**
  * @category Uuid Notes
  */
-export type IGetUuidNotesAction = PayloadAction<IUuidNotesActionTypes.GET_UUID_NOTES, IUuidNotesState>;
+export type IGetUuidNotesAction = PayloadAction<IUuidNotesActionTypes.GET_UUID_NOTES, IUuidNotes[]>;
 
 /**
  * @category Uuid Notes
  */
-export type IGetUuidNotesByIdAction = PayloadAction<IUuidNotesActionTypes.GET_UUID_NOTES_BY_ID, IUuidNotesState>;
+export type IGetUuidNotesByIdAction = PayloadAction<IUuidNotesActionTypes.GET_UUID_NOTES_BY_ID, IUuidNotes[]>;
 
 /**
  * @category Uuid Notes
  */
-export type IDeleteUuidNotesAction = PayloadAction<IUuidNotesActionTypes.DELETE_UUID_NOTES, IUuidNotesState>;
+export type IDeleteUuidNotesAction = PayloadAction<IUuidNotesActionTypes.DELETE_UUID_NOTES, IUuidNotes[]>;
 
 /**
  * @category Uuid Notes
  */
-export type IDisableUuidNotesAction = PayloadAction<IUuidNotesActionTypes.DISABLE_UUID_NOTES, IUuidNotesState[]>;
+export type IDisableUuidNotesAction = PayloadAction<IUuidNotesActionTypes.DISABLE_UUID_NOTES, IUuidNotes[]>;
 
 /**
  * @category Uuid Notes
@@ -327,7 +234,9 @@ export type IUuidFiles = {
 /**
  * @category Uuid Files
  */
-export type IUuidFilesState = Partial<IUuidFiles>;
+export type IUuidFilesState = IUuidFiles & {
+  uuidFiles: Record<string, IUuidFiles>;
+};
 
 /**
  * @category Action Types
@@ -395,8 +304,8 @@ export type IFileType = {
  * @category File
  */
 export type IFile = {
-  id?: string;
-  fileTypeId?: string;
+  id: string;
+  fileTypeId: string;
   fileTypeName: string;
   name: string;
   location: string;
@@ -405,7 +314,9 @@ export type IFile = {
 /**
  * @category File
  */
-export type IFilesState = Record<string, IFile>;
+export type IFilesState = IFile & {
+  files: Record<string, IFile>
+};
 
 /**
  * @category Action Types
@@ -423,9 +334,9 @@ export enum IFilesActionTypes {
  * @category File
  */
 export type IPostFilesAction = PayloadAction<IFilesActionTypes.POST_FILES, IFile[]>;
-export type IPutFilesAction = PayloadAction<IFilesActionTypes.PUT_FILES, IFile>;
+export type IPutFilesAction = PayloadAction<IFilesActionTypes.PUT_FILES, IFile[]>;
 export type IGetFilesAction = PayloadAction<IFilesActionTypes.GET_FILES, IFile[]>;
-export type IGetFilesByIdAction = PayloadAction<IFilesActionTypes.GET_FILES_BY_ID, IFile>;
+export type IGetFilesByIdAction = PayloadAction<IFilesActionTypes.GET_FILES_BY_ID, IFile[]>;
 export type IDeleteFilesAction = PayloadAction<IFilesActionTypes.DELETE_FILES, IFile[]>;
 export type IDisableFilesAction = PayloadAction<IFilesActionTypes.DISABLE_FILES, IFile[]>;
 

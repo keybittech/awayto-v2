@@ -1,4 +1,5 @@
 import { IUserProfile, PayloadAction } from '.';
+import { Merge } from '../util';
 
 declare global {
   /**
@@ -7,6 +8,8 @@ declare global {
   interface ISharedState { 
     user: IUserState
   }
+
+  interface IMergedState extends Merge<unknown, IUserState> {}
 
   /**
    * @category Awayto Redux
@@ -35,7 +38,7 @@ export type IUsers = Record<string, IUser>;
  * @category Manage Users
  */
 export type IUserState = {
-  users: IUsers
+  users: Record<string, IUserProfile>;
 }
 
 /**

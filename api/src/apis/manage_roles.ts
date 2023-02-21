@@ -9,7 +9,7 @@ const manageRoles: ApiModule = [
     cmnd : async (props) => {
       try {
 
-        const { name } = props.event.body as IRole;
+        const { name } = props.event.body;
 
         const response = await props.db.query<IRole>(`
           INSERT INTO roles (name)
@@ -29,7 +29,7 @@ const manageRoles: ApiModule = [
     action: IManageRolesActionTypes.PUT_MANAGE_ROLES,
     cmnd : async (props) => {
       try {
-        const { id, name } = props.event.body as IRole;
+        const { id, name } = props.event.body;
 
         const updateProps = buildUpdate({ id, name });
 

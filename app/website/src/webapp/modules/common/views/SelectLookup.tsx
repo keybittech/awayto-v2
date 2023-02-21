@@ -42,14 +42,14 @@ export function SelectLookup({ lookupChange, defaultValue, attachAction, attachN
   const api = useApi();
   const act = useAct();
   const [addingNew, setAddingNew] = useState<boolean | undefined>();
-  const [newLookup, setNewLookup] = useState<ILookup>({ name: '' });
+  const [newLookup, setNewLookup] = useState({ name: '' } as ILookup);
   const [lookupUpdater, setLookupUpdater] = useState(null as unknown as string);
 
   if (!lookupName || !lookupChange) return <Grid container justifyContent="center"><CircularProgress /></Grid>;
 
   const refresh = () => {
     setAddingNew(false);
-    setNewLookup({ name: '' })
+    setNewLookup({ name: '' } as ILookup)
 
     if (refetchAction) {
       api(refetchAction, true, parentUuidName && parentUuid ? { [parentUuidName]: parentUuid } : {});
@@ -103,7 +103,7 @@ export function SelectLookup({ lookupChange, defaultValue, attachAction, attachN
       label={`New ${lookupName}`}
       value={newLookup.name}
       onChange={e => {
-        setNewLookup({ name: e.target.value })
+        setNewLookup({ name: e.target.value } as ILookup)
       }}
       onKeyDown={(e) => {
         ('Enter' === e.key && newLookup.name) && handleSubmit();

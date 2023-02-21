@@ -275,7 +275,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     dbview_schema.enabled_service_tiers est
     LEFT JOIN LATERAL (
       SELECT
-        JSON_AGG(s1.*) as addons
+        JSONB_OBJECT_AGG(soa.id, TO_JSONB(soa)) as addons
       FROM
         (
           SELECT
@@ -286,7 +286,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
             LEFT JOIN dbview_schema.enabled_service_addons esa ON esa.id = sta.service_addon_id
           WHERE
             sta.service_tier_id = est.id
-        ) s1
+        ) soa
     ) as essa ON true;
 
   CREATE
@@ -298,7 +298,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     dbview_schema.enabled_services es
     LEFT JOIN LATERAL (
       SELECT
-        JSON_AGG(s1.*) as tiers
+        JSONB_OBJECT_AGG(soa.id, TO_JSONB(soa)) as tiers
       FROM
         (
           SELECT
@@ -307,30 +307,30 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
             dbview_schema.enabled_service_tiers_ext este
           WHERE
             este."serviceId" = es.id
-        ) s1
+        ) soa
     ) as eest ON true;
 
   CREATE
   OR REPLACE VIEW dbview_schema.enabled_schedules_ext AS
   SELECT
     es.*,
-    eesb.*
+    eesb.* as brackets
   FROM
     dbview_schema.enabled_schedules es
     LEFT JOIN LATERAL (
       SELECT
-        JSON_AGG(s2.*) as brackets
+        JSONB_OBJECT_AGG(sbss.id, TO_JSONB(sbss)) as brackets
       FROM
         (
           SELECT
             esb.*,
-            eess.*,
-            eesl.*
+            eess.* as services,
+            eesl.* as slots
           FROM
             dbview_schema.enabled_schedule_brackets esb
             LEFT JOIN LATERAL (
               SELECT
-                JSON_AGG(s3.*) as services
+                JSONB_OBJECT_AGG(servs.id, TO_JSONB(servs)) as services
               FROM
                 (
                   SELECT
@@ -340,11 +340,11 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
                     LEFT JOIN dbview_schema.enabled_services_ext ese ON ese.id = sbs.service_id
                   WHERE
                     sbs.schedule_bracket_id = esb.id
-                ) s3
+                ) servs
             ) as eess ON true
             LEFT JOIN LATERAL (
               SELECT
-                JSON_AGG(s3.*) as slots
+                JSONB_OBJECT_AGG(slts.id, TO_JSONB(slts)) as slots
               FROM
                 (
                   SELECT
@@ -354,11 +354,11 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
                     JOIN dbview_schema.enabled_schedule_bracket_slots esbs ON esbs.id = sbs.id
                   WHERE
                     sbs.schedule_bracket_id = esb.id
-                ) s3
+                ) slts
             ) as eesl ON true
           WHERE
             esb."scheduleId" = es.id
-        ) s2
+        ) sbss
     ) as eesb ON true;
 
   CREATE
@@ -395,7 +395,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     LEFT JOIN dbview_schema.enabled_contacts ec ON ec.id = eb."contactId"
     LEFT JOIN LATERAL (
       SELECT
-        JSON_AGG(s1.*) as brackets
+        JSONB_OBJECT_AGG(bbs.id, TO_JSONB(bbs)) as brackets
       FROM
         (
           SELECT
@@ -406,7 +406,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
             LEFT JOIN dbview_schema.enabled_schedule_brackets esb ON bsb.schedule_bracket_id = esb.id
           WHERE
             bsb.booking_id = eb.id
-        ) s1
+        ) bbs
     ) as eess ON true;
 
 EOSQL

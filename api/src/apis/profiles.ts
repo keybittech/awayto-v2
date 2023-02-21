@@ -10,7 +10,7 @@ const profile: ApiModule = [
     cmnd: async (props) => {
       try {
 
-        const { firstName, lastName, username, email, image, sub } = props.event.body as IUserProfile;
+        const { firstName, lastName, username, email, image, sub } = props.event.body;
             
         const { rows: [ user ] } = await props.db.query<IUserProfile>(`
           INSERT INTO users(sub, username, first_name, last_name, email, image, created_on, created_sub, ip_address)
@@ -30,7 +30,7 @@ const profile: ApiModule = [
     action: IUserProfileActionTypes.PUT_USER_PROFILE,
     cmnd: async (props) => {
       try {
-        const { id, firstName: first_name, lastName: last_name, email, image } = props.event.body as IUserProfile;
+        const { id, firstName: first_name, lastName: last_name, email, image } = props.event.body;
 
         if (!id || !props.event.userSub) return false;
 

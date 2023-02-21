@@ -1,4 +1,5 @@
 import { PayloadAction, IGroup, IRole } from '.';
+import { Merge } from '../util';
 
 declare global {
   /**
@@ -7,6 +8,8 @@ declare global {
   interface ISharedState { 
     profile: IUserProfileState
   }
+
+  interface IMergedState extends Merge<unknown, IUserProfileState> {}
 
   /**
    * @category Awayto Redux
@@ -34,8 +37,8 @@ export type IUserProfile = {
   image: string;
   sub: string;
   username: string;
-  groups: IGroup[];
-  roles: IRole[];
+  groups: Record<string, IGroup>;
+  roles: Record<string, IRole>;
   availableUserGroupRoles: UserGroupRoles;
   createdOn: string;
   updatedOn: string;
@@ -50,7 +53,7 @@ export type IUserProfile = {
 /**
  * @category User Profile
  */
-export type IUserProfileState = IUserProfile;
+export type IUserProfileState = Partial<IUserProfile>;
 
 /**
  * @category Action Types
@@ -130,7 +133,7 @@ export type IUserProfileActions = IKCLoginAction
  * @category Awayto
  */
 export type IUuidGroups = {
-  id?: string;
+  id: string;
   parentUuid: string;
   groupId: string;
 };
@@ -139,7 +142,7 @@ export type IUuidGroups = {
  * @category Awayto
  */
 export type IUuidRoles = {
-  id?: string;
+  id: string;
   parentUuid: string;
   roleId: string;
   externalId: string;

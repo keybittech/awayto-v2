@@ -9,7 +9,7 @@ const payments: ApiModule = [
     cmnd : async (props) => {
       try {
 
-        const { contactId, details } = props.event.body as IPayment;
+        const { contactId, details } = props.event.body;
 
         const response = await props.db.query<IPayment>(`
           INSERT INTO payments (contact_id, details)
@@ -29,7 +29,7 @@ const payments: ApiModule = [
     action: IPaymentActionTypes.PUT_PAYMENT,
     cmnd : async (props) => {
       try {
-        const { id, contactId, details } = props.event.body as IPayment;
+        const { id, contactId, details } = props.event.body;
 
         const updateProps = buildUpdate({ id, contactId, details: JSON.stringify(details) });
 

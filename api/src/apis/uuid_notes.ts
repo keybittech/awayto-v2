@@ -9,7 +9,7 @@ const uuidNotes: ApiModule = [
     action: IUuidNotesActionTypes.POST_UUID_NOTES,
     cmnd : async (props) => {
       try {
-        const { parentUuid: parent_uuid, note } = props.event.body as IUuidNotes;
+        const { parentUuid: parent_uuid, note } = props.event.body;
 
         const response = await props.db.query<IUuidNotes>(`
           INSERT INTO uuid_notes (parent_uuid, note, created_on, created_sub)
@@ -30,7 +30,7 @@ const uuidNotes: ApiModule = [
     action: IUuidNotesActionTypes.PUT_UUID_NOTES,
     cmnd : async (props) => {
       try {
-        const { id, parentUuid: parent_uuid, note } = props.event.body as IUuidNotes;
+        const { id, parentUuid: parent_uuid, note } = props.event.body;
 
         if (!id || !props.event.userSub) return false;
 
@@ -113,9 +113,9 @@ const uuidNotes: ApiModule = [
     action: IUuidNotesActionTypes.DISABLE_UUID_NOTES,
     cmnd : async (props) => {
       try {
-        const notes = props.event.body as IUuidNotes[];
+        const { notes } = props.event.body;
 
-        await asyncForEach(notes, async note => {
+        await asyncForEach(Object.values(notes), async note => {
           await props.db.query(`
             UPDATE uuid_notes
             SET enabled = false

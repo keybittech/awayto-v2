@@ -1,11 +1,11 @@
 import { IUserProfile, IUserProfileActionTypes } from 'awayto';
-import { ApiProps, AuthEvent, IWebhooks } from '../api';
+import { ApiEvent, AuthBody, IWebhooks } from '../api';
 import profiles from '../apis/profiles';
 
-export const AuthWebhooks: IWebhooks = { 
+export const AuthWebhooks: IWebhooks = {
   AUTH_REGISTER: async (props) => {
     if (!props.event) return;
-    const { userId, details, ipAddress } = props.event.body as AuthEvent;
+    const { userId, details, ipAddress } = props.event.body as AuthBody;
 
     const user: Partial<IUserProfile> = {
       firstName: details.first_name,
@@ -14,13 +14,18 @@ export const AuthWebhooks: IWebhooks = {
       username: details.username
     };
 
-    props.event.userSub = userId
-    props.event.sourceIp = ipAddress;
-    props.event.body = user;
-
     const postUserProfile = profiles.find(api => api.action === IUserProfileActionTypes.POST_USER_PROFILE);
 
-    await postUserProfile?.cmnd(props as ApiProps) as IUserProfile;
+    await postUserProfile?.cmnd({
+      event: {
+        ...props.event,
+        userSub: userId,
+        sourceIp: ipAddress,
+        body: user
+      } as ApiEvent,
+      db: props.db,
+      redis: props.redis
+    }) as IUserProfile;
   },
   AUTH_LOGIN: async event => {
   },

@@ -1,4 +1,4 @@
-import { LogoutAction } from 'awayto';
+import { Merge } from 'awayto';
 import { PayloadAction } from '.';
 
 declare global {
@@ -10,6 +10,8 @@ declare global {
     serviceAddon: IServiceAddonState;
     serviceTier: IServiceTierState;
   }
+
+  interface IMergedState extends Merge<Merge<Merge<unknown, IServiceState>, IServiceAddonState>, IServiceTierState> {}
 
   /**
    * @category Awayto Redux
@@ -31,19 +33,17 @@ declare global {
  * @category Awayto
  */
 export type IService = {
-  id?: string;
+  id: string;
   name: string;
   cost: string;
-  tiers: IServiceTier[];
+  tiers: Record<string, IServiceTier>;
 };
-
-export type IServices = Record<string, IService>;
 
 /**
  * @category Service
  */
-export type IServiceState = {
-  services: IServices | IService[];
+export type IServiceState = Partial<IService> & {
+  services: Record<string, IService>;
 };
 
 /**
@@ -104,7 +104,7 @@ export type IServiceActions = IPostServiceAction
  * @category Service
  */
  export type IServiceAddon = {
-  id?: string;
+  id: string;
   name: string;
 };
 
@@ -160,8 +160,7 @@ export type IServiceActions = IPostServiceAction
  /**
   * @category Service
   */
- export type IServiceAddonActions = LogoutAction
-   | IPostServiceAddonAction 
+ export type IServiceAddonActions = IPostServiceAddonAction 
    | IPutServiceAddonAction 
    | IGetServiceAddonsAction 
    | IGetServiceAddonByIdAction
@@ -174,18 +173,20 @@ export type IServiceActions = IPostServiceAction
  * @category Service
  */
  export type IServiceTier = {
-  id?: string;
-  serviceId?: string;
+  id: string;
+  serviceId: string;
   name: string;
   multiplier: string;
-  addons: IServiceAddon[];
+  addons: Record<string, IServiceAddon>;
 };
 
 
 /**
  * @category Service
  */
- export type IServiceTierState = Partial<IServiceTier>;
+ export type IServiceTierState = IServiceTier & {
+  serviceTiers: Record<string, IServiceTier>
+ };
 
  /**
   * @category Action Types
@@ -232,8 +233,7 @@ export type IServiceActions = IPostServiceAction
  /**
   * @category Service
   */
- export type IServiceTierActions = LogoutAction
-   | IPostServiceTierAction 
+ export type IServiceTierActions = IPostServiceTierAction 
    | IPutServiceTierAction 
    | IGetServiceTiersAction 
    | IGetServiceTierByIdAction

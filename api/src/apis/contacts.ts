@@ -9,7 +9,7 @@ const contacts: ApiModule = [
     cmnd : async (props) => {
       try {
 
-        const { name, email, phone } = props.event.body as IContact;
+        const { name, email, phone } = props.event.body;
 
         const response = await props.db.query<IContact>(`
           INSERT INTO contacts (name, email, phone)
@@ -29,7 +29,7 @@ const contacts: ApiModule = [
     action: IContactActionTypes.PUT_CONTACT,
     cmnd : async (props) => {
       try {
-        const { id, name, email, phone } = props.event.body as IContact;
+        const { id, name, email, phone } = props.event.body;
 
         if (!id) throw new Error('Must provide contact ID');
 

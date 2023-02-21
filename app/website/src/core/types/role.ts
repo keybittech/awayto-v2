@@ -1,4 +1,5 @@
 import { PayloadAction } from '.';
+import { Merge } from '../util';
 
 declare global {
   /**
@@ -7,6 +8,8 @@ declare global {
   interface ISharedState { 
     role: IRoleState
   }
+
+  interface IMergedState extends Merge<unknown, IRoleState> {}
 
   /**
    * @category Awayto Redux
@@ -38,8 +41,8 @@ export type IRoles = Record<string, IRole>;
 /**
  * @category Manage Roles
  */
-export type IRoleState = {
-  roles: IRoles
+export type IRoleState = Partial<IRole> & {
+  roles: Record<string, IRole>
 }
 
 /**

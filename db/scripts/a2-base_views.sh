@@ -142,13 +142,13 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
   OR REPLACE VIEW dbview_schema.enabled_groups_ext AS
   SELECT
     eg.*,
-    ug.users,
+    ug."usersCount",
     rls.* as roles
   FROM
     dbview_schema.enabled_groups eg
     LEFT JOIN LATERAL (
       SELECT
-        JSON_AGG(r.*) as roles
+        JSONB_OBJECT_AGG(r.id, TO_JSONB(r)) as roles
       FROM
         (
           SELECT
@@ -164,7 +164,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     LEFT JOIN (
       SELECT
         eug."groupId",
-        COUNT(eug."parentUuid") users
+        COUNT(eug."parentUuid") as "usersCount"
       FROM
         dbview_schema.enabled_uuid_groups eug
         JOIN users u ON u.id = eug."parentUuid"
@@ -176,13 +176,13 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
   OR REPLACE VIEW dbview_schema.enabled_users_ext AS
   SELECT
     u.*,
-    grps.*,
-    rols.*
+    grps.* as groups,
+    rols.* as roles
   FROM
     dbview_schema.enabled_users u
     LEFT JOIN LATERAL (
       SELECT
-        JSON_AGG(r.*) as roles
+        JSONB_OBJECT_AGG(r.id, TO_JSONB(r)) as roles
       FROM
         (
           SELECT
@@ -196,7 +196,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     ) as rols ON true
     LEFT JOIN LATERAL (
       SELECT
-        JSON_AGG(g.*) as groups
+        JSONB_OBJECT_AGG(g.id, TO_JSONB(g)) as groups
       FROM
         (
           SELECT

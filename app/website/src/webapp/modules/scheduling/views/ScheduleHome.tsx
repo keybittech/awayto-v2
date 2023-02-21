@@ -32,7 +32,6 @@ const scheduleSchema = {
 
 const bracketSchema = {
   duration: 1,
-  startTime: '',
   automatic: false,
   multiplier: '1.00'
 };
@@ -43,19 +42,28 @@ export function ScheduleHome(props: IProps): JSX.Element {
   const scheduleParent = useRef<HTMLDivElement>(null);
   const { SelectLookup, ScheduleDisplay } = useComponents();
 
-  const [newSchedule, setNewSchedule] = useState<ISchedule>({ ...scheduleSchema, brackets: [] });
-  const [newBracket, setNewBracket] = useState<IScheduleBracket>({ ...bracketSchema, services: [], slots: [] });
+  const [newSchedule, setNewSchedule] = useState({ ...scheduleSchema, brackets: {} } as ISchedule);
+  const [newBracket, setNewBracket] = useState({ ...bracketSchema, services: {}, slots: {} } as IScheduleBracket);
 
   const { groups } = useRedux(state => state.profile);
   const { groupServices } = useRedux(state => state.groupService);
   const { groupSchedules } = useRedux(state => state.groupSchedule);
   const { timeUnits } = useRedux(state => state.forms);
-  const [group, setGroup] = useState(groups.at(0) as unknown as IGroup);
+  const [group, setGroup] = useState<IGroup>();
   const [bookingMode, setBookingMode] = useState(BookingModes.FIRST_COME);
   const [needsSlots, setNeedsSlots] = useState(true);
 
   useEffect(() => {
-    if (!group.name) return;
+    if (groups) {
+      for (const g in groups) {
+        setGroup(groups[g]);
+        break;
+      }
+    }
+  }, [groups]);
+
+  useEffect(() => {
+    if (!group?.name) return;
     const [abort1, res] = api(GET_GROUP_SERVICES, true, { groupName: group.name });
     const [abort2] = api(GET_GROUP_SCHEDULES, true, { groupName: group.name });
     res?.then(() => setNewSchedule({ ...newSchedule }));
@@ -82,8 +90,8 @@ export function ScheduleHome(props: IProps): JSX.Element {
         slotTimeUnitId: hourId,
         slotTimeUnitName: TimeUnit.HOUR,
         slotDuration: 1
-      });
-      setNewBracket({ ...newBracket, services: Object.values(groupServices), duration: 40, automatic: true });
+      } as ISchedule);
+      setNewBracket({ ...newBracket, services: groupServices, duration: 40, automatic: true } as IScheduleBracket);
     } else if ('dailybookingpermonth') {
       setNewSchedule({
         ...newSchedule,
@@ -95,10 +103,13 @@ export function ScheduleHome(props: IProps): JSX.Element {
         slotTimeUnitId: dayId,
         slotTimeUnitName: TimeUnit.DAY,
         slotDuration: 1
-      });
-      setNewBracket({ ...newBracket, services: Object.values(groupServices), duration: 4, automatic: true });
+      } as ISchedule);
+      setNewBracket({ ...newBracket, services: groupServices, duration: 4, automatic: true } as IScheduleBracket);
     }
   }, [newSchedule, newBracket, timeUnits, groupServices]);
+
+  const scheduleBracketsValues = useMemo(() => Object.values(newSchedule.brackets), [newSchedule.brackets]);
+  const bracketServicesValues = useMemo(() => Object.values(newBracket.services), [newBracket.services]);
 
   const slotDurationMarks = useMemo(() => {
     const { duration, scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName } = newSchedule;
@@ -123,13 +134,13 @@ export function ScheduleHome(props: IProps): JSX.Element {
         <CardHeader
           title="Schedule"
           action={
-            group?.id && <TextField
+            groups && group?.id && <TextField
               select
               value={group.id}
               label="Group"
-              onChange={e => setGroup(Object.values(groups).filter(g => g.id === e.target.value)[0])}
+              onChange={e => setGroup(groups[e.target.value])}
             >
-              {Object.values(groups).map(group => <MenuItem key={`group-select${group.id}`} value={group.id}>{group.name}</MenuItem>)}
+              {Object.values(groups || {}).map(group => <MenuItem key={`group-select${group.id}`} value={group.id}>{group.name}</MenuItem>)}
             </TextField>
           }
         />
@@ -140,12 +151,12 @@ export function ScheduleHome(props: IProps): JSX.Element {
                 <Typography variant="body2">A schedule allows your services to be billed at different intervals. You can have multiple available schedules, each with multiple cost brackets. Brackets allow you to define a sliding scale for the cost of your services.</Typography>
                 <Typography variant="h6">Current Schedules: </Typography>
                 {Object.values(groupSchedules).map((schedule, i) => {
-                  return <Box key={`schedule-chip${i + 1}new`} m={1}><Chip label={`${schedule.name}`} onDelete={() => {
+                  return <Box key={`schedule-chip${i + 1}new`} m={1}><Chip label={`${schedule.name}`} onDelete={group && (() => {
                     const [, res] = api(DELETE_GROUP_SCHEDULE, true, { groupName: group.name, scheduleId: schedule.id });
                     res?.then(() => {
                       api(DELETE_SCHEDULE, true, { id: schedule.id });
                     });
-                  }} /></Box>
+                  })} /></Box>
                 })}
               </Box>
             </Grid>
@@ -177,7 +188,7 @@ export function ScheduleHome(props: IProps): JSX.Element {
                 <SelectLookup lookupName="Schedule Duration" lookups={timeUnits.filter(sc => ![TimeUnit.MINUTE, TimeUnit.HOUR].includes(sc.name as TimeUnit))} lookupChange={(val: string) => {
                   const { id, name } = timeUnits?.find(c => c.id === val) || {};
                   if (!id || !name) return;
-                  setNewSchedule({ ...newSchedule, scheduleTimeUnitName: name, scheduleTimeUnitId: id, bracketTimeUnitId: timeUnits.find(s => s.name === timeUnitOrder[timeUnitOrder.indexOf(name) - 1])?.id })
+                  setNewSchedule({ ...newSchedule, scheduleTimeUnitName: name, scheduleTimeUnitId: id, bracketTimeUnitId: timeUnits.find(s => s.name === timeUnitOrder[timeUnitOrder.indexOf(name) - 1])?.id as string })
                 }} lookupValue={newSchedule.scheduleTimeUnitId || ''} {...props} />
               </Box>
 
@@ -189,9 +200,9 @@ export function ScheduleHome(props: IProps): JSX.Element {
               {newSchedule.scheduleTimeUnitName && <Box mb={4}>
                 <Typography variant="h6">Bracket Duration Type</Typography>
                 <Typography variant="body2">How to measure blocks of time within the Schedule Duration. For example, in a 40 hour per week situation, blocks of time are divided in <strong>hours</strong>. Multiple brackets can be used on a single schedule, and all of them share the same Bracket Duration Type. <strong>Note:</strong> Changing this will reset and remove any existing brackets.</Typography>
-                <SelectLookup noEmptyValue lookupName="Type" lookups={timeUnits.filter(sc => sc.name !== newSchedule.scheduleTimeUnitName && timeUnitOrder.indexOf(sc.name) <= timeUnitOrder.indexOf(newSchedule.scheduleTimeUnitName as ITimeUnitNames))} lookupChange={(val: string) => {
+                <SelectLookup noEmptyValue lookupName="Type" lookups={timeUnits.filter(sc => sc.name !== newSchedule.scheduleTimeUnitName && timeUnitOrder.indexOf(sc.name) <= timeUnitOrder.indexOf(newSchedule.scheduleTimeUnitName))} lookupChange={(val: string) => {
                   const { name, id } = timeUnits?.find(c => c.id === val) as ITimeUnit;
-                  setNewSchedule({ ...newSchedule, bracketTimeUnitName: name, bracketTimeUnitId: id, slotTimeUnitName: name, slotTimeUnitId: id, slotDuration: 1, brackets: [] })
+                  setNewSchedule({ ...newSchedule, bracketTimeUnitName: name, bracketTimeUnitId: id, slotTimeUnitName: name, slotTimeUnitId: id, slotDuration: 1, brackets: {} })
                 }} lookupValue={newSchedule.bracketTimeUnitId || ''} {...props} />
               </Box>}
 
@@ -200,17 +211,17 @@ export function ScheduleHome(props: IProps): JSX.Element {
               {newSchedule.bracketTimeUnitId && newSchedule.scheduleTimeUnitName && <Box mb={4}>
                 <Typography variant="h6">Booking Slot</Typography>
                 <Typography variant="body2">The # of {newSchedule.slotTimeUnitName}s to deduct from the bracket upon accepting a booking. Alternatively, if you meet with clients, this is the length of time per session. <strong>Note:</strong> Changing this will reset and remove any existing slots.</Typography>
-                <SelectLookup noEmptyValue lookupName="Slot Division" lookups={timeUnits.filter(sc => [timeUnitOrder.indexOf(newSchedule.bracketTimeUnitName as ITimeUnitNames), Math.max(timeUnitOrder.indexOf(newSchedule.bracketTimeUnitName as ITimeUnitNames) - 1, 0)].includes(timeUnitOrder.indexOf(sc.name)))} lookupChange={(val: string) => {
+                <SelectLookup noEmptyValue lookupName="Slot Division" lookups={timeUnits.filter(sc => [timeUnitOrder.indexOf(newSchedule.bracketTimeUnitName), Math.max(timeUnitOrder.indexOf(newSchedule.bracketTimeUnitName) - 1, 0)].includes(timeUnitOrder.indexOf(sc.name)))} lookupChange={(val: string) => {
                   const { name, id } = timeUnits?.find(c => c.id === val) || {};
                   if (!name || !id) return;
-                  newSchedule.brackets.forEach(b => b.slots = []);
+                  scheduleBracketsValues.forEach(b => b.slots = {});
                   setNewSchedule({ ...newSchedule, slotTimeUnitName: name, slotTimeUnitId: id, slotDuration: 1 })
                 }} lookupValue={newSchedule.slotTimeUnitId || ''} {...props} />
 
                 <Box mt={2} sx={{ display: 'flex', alignItems: 'baseline' }}>
                   <Box>{newSchedule.slotDuration} <span>&nbsp;</span> &nbsp;</Box>
                   <Slider value={newSchedule.slotDuration} onChange={(_, val) => {
-                    newSchedule.brackets.forEach(b => b.slots = []);
+                    scheduleBracketsValues.forEach(b => b.slots = {});
                     setNewSchedule({ ...newSchedule, slotDuration: parseFloat(val.toString()) });
                   }} step={null} marks={slotDurationMarks} max={Math.max(...slotDurationMarks.map(m => m.value))} />
                 </Box>
@@ -237,8 +248,8 @@ export function ScheduleHome(props: IProps): JSX.Element {
               </ul>
 
               {newSchedule.bracketTimeUnitName && newSchedule.scheduleTimeUnitName && <Box mb={4}>
-                <Typography variant="body1">Number of {newSchedule.bracketTimeUnitName}s for this bracket. (Remaining: {Math.floor(moment.duration({ [newSchedule.scheduleTimeUnitName]: newSchedule.duration }).as(newSchedule.bracketTimeUnitName) - newSchedule.brackets.reduce((m, d) => m + d.duration, 0))})</Typography>
-                <TextField fullWidth label={`# of ${newSchedule.bracketTimeUnitName}s`} value={newBracket.duration || ''} onChange={e => setNewBracket({ ...newBracket, duration: Math.min(Math.max(0, parseInt(e.target.value || '', 10)), moment.duration({ [newSchedule.scheduleTimeUnitName as ITimeUnitNames]: newSchedule.duration }).as(newSchedule.bracketTimeUnitName as ITimeUnitNames) - newSchedule.brackets.reduce((m, d) => m + d.duration, 0)) })} type="number" />
+                <Typography variant="body1">Number of {newSchedule.bracketTimeUnitName}s for this bracket. (Remaining: {Math.floor(moment.duration({ [newSchedule.scheduleTimeUnitName]: newSchedule.duration }).as(newSchedule.bracketTimeUnitName) - scheduleBracketsValues.reduce((m, d) => m + d.duration, 0))})</Typography>
+                <TextField fullWidth label={`# of ${newSchedule.bracketTimeUnitName}s`} value={newBracket.duration || ''} onChange={e => setNewBracket({ ...newBracket, duration: Math.min(Math.max(0, parseInt(e.target.value || '', 10)), moment.duration({ [newSchedule.scheduleTimeUnitName]: newSchedule.duration }).as(newSchedule.bracketTimeUnitName) - scheduleBracketsValues.reduce((m, d) => m + d.duration, 0)) })} type="number" />
               </Box>}
 
               <Box mb={2}>
@@ -252,17 +263,18 @@ export function ScheduleHome(props: IProps): JSX.Element {
                   helperText="Select to add to schedule."
                   value={''}
                   onChange={e => {
-                    newBracket.services.push(Object.values(groupServices).filter(s => s.id === e.target.value)[0]);
+                    newBracket.services[e.target.value] = groupServices[e.target.value];
                     setNewBracket({ ...newBracket, services: newBracket.services })
                   }}
                 >
-                  {Object.values(groupServices).filter(s => newBracket.services.indexOf(s) < 0).map(service => <MenuItem key={`service-select${service.id as string}`} value={service.id}>{service.name}</MenuItem>)}
+                  {Object.values(groupServices).filter(s => !newBracket.services[s.id]).map(service => <MenuItem key={`service-select${service.id}`} value={service.id}>{service.name}</MenuItem>)}
                 </TextField>
 
                 <Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                  {newBracket.services.map((service, i) => {
+                  {bracketServicesValues.map((service, i) => {
                     return <Box key={`service-chip${i + 1}new`} m={1}><Chip label={`${service.name} Cost: ${service.cost || ''}`} onDelete={() => {
-                      setNewBracket({ ...newBracket, services: newBracket.services.filter((b, z) => i !== z) });
+                      delete newBracket.services[service.id];
+                      setNewBracket({ ...newBracket, services: newBracket.services });
                     }} /></Box>
                   })}
                 </Box>
@@ -288,10 +300,11 @@ export function ScheduleHome(props: IProps): JSX.Element {
 
         </CardContent>
         <CardActionArea onClick={() => {
-          if (newBracket.duration && newBracket.services.length) {
+          if (newBracket.duration && Object.keys(newBracket.services).length) {
             newBracket.id = (new Date()).getTime().toString();
-            setNewSchedule({ ...newSchedule, brackets: [...newSchedule.brackets, newBracket] })
-            setNewBracket({ ...bracketSchema, services: [], slots: [] });
+            newSchedule.brackets[newBracket.id] = newBracket;
+            setNewSchedule({ ...newSchedule, brackets: { ...newSchedule.brackets } })
+            setNewBracket({ ...bracketSchema, services: {}, slots: {} } as IScheduleBracket);
           } else {
             void act(SET_SNACK, { snackOn: 'Provide a duration, and at least 1 service.', snackType: 'info' });
           }
@@ -303,7 +316,7 @@ export function ScheduleHome(props: IProps): JSX.Element {
       </Card>
     </Grid>}
 
-    {!!newSchedule.brackets.length && <>
+    {!!scheduleBracketsValues.length && <>
 
       <Grid item xs={12}>
         <Suspense>
@@ -313,9 +326,9 @@ export function ScheduleHome(props: IProps): JSX.Element {
 
       <Grid item xs={12}>
         <Card>
-          <CardActionArea onClick={() => {
-            const { name, duration, scheduleTimeUnitName, brackets } = newSchedule;
-            if (name && duration && scheduleTimeUnitName && brackets.length) {
+          <CardActionArea onClick={group && (() => {
+            const { name, duration, scheduleTimeUnitName } = newSchedule;
+            if (name && duration && scheduleTimeUnitName && scheduleBracketsValues.length) {
               const [, res] = api(POST_SCHEDULE, true, { ...newSchedule, groupName: group.name })
               res?.then(schedules => {
                 if (schedules) {
@@ -324,8 +337,8 @@ export function ScheduleHome(props: IProps): JSX.Element {
                   rez?.then(() => {
                     api(GET_GROUP_SCHEDULES, true, { groupName: group.name });
                     act(SET_SNACK, { snackOn: 'Successfully added ' + name, snackType: 'info' });
-                    setNewSchedule({ ...scheduleSchema, brackets: [] });
-                    setNewBracket({ ...bracketSchema, services: [], slots: [] });
+                    setNewSchedule({ ...scheduleSchema, brackets: {} } as ISchedule);
+                    setNewBracket({ ...bracketSchema, services: {}, slots: {} } as IScheduleBracket);
                   });
                 }
               });
@@ -333,7 +346,7 @@ export function ScheduleHome(props: IProps): JSX.Element {
             } else {
               act(SET_SNACK, { snackOn: 'A schedule should have a name, a duration, and at least 1 bracket.', snackType: 'info' });
             }
-          }}>
+          })}>
             <Box mx={2} sx={{ display: 'flex', alignItems: 'center' }}>
               <Typography color="secondary" variant="button">Create Schedule</Typography>
             </Box>

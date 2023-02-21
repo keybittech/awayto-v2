@@ -1,7 +1,5 @@
 import { Reducer } from 'redux';
 import {
-  IService,
-  IServices,
   IServiceState,
   IServiceActions,
   IServiceActionTypes,
@@ -14,11 +12,11 @@ import {
 } from 'awayto';
 
 const initialServiceState: IServiceState = {
-  services: {} as Record<string, IService>
+  services: {}
 };
 
 function reduceDeleteService(state: IServiceState, action: IDeleteServiceAction): IServiceState {
-  const services = { ...state.services } as IServices;
+  const services = { ...state.services };
   action.payload.forEach(service => {
     delete services[service.id as string];
   });

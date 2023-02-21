@@ -24,7 +24,7 @@ export function ManageRoleActions(): JSX.Element {
   const util = useRedux(state => state.util);
   const { availableGroupAssignments } = useRedux(state => state.group);
   const { groups } = useRedux(state => state.profile);
-  const [assignments, setAssignments] = useState<IGroupRoleActions>({});
+  const [assignments, setAssignments] = useState<Record<string, IGroupRoleActions>>({});
 
   useEffect(() => {
     if (Object.keys(availableGroupAssignments).length) {
@@ -61,7 +61,8 @@ export function ManageRoleActions(): JSX.Element {
   }, [groupName, assignments]);
 
   const columns = useMemo(() => {
-    const group = groups.find(g => g.name === groupName);
+    if (!groups) return [];
+    const group = Object.values(groups).find(g => g.name === groupName);
     if (!group?.roles?.length || !Object.keys(assignments) || !groupName) return [];
     return [
       { selector: (row: { name: string }) => row.name },

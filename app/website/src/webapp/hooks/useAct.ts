@@ -7,7 +7,7 @@ import { ILoadedState, IActionTypes } from 'awayto';
  * 
  * @category Hooks
  */
-export function useAct(): (actionType: IActionTypes, state: ILoadedState, meta?: unknown) => void {
+export function useAct(): (actionType: IActionTypes, state: IMergedState, meta?: unknown) => void {
   const dispatch = useDispatch();
   return (actionType, state, meta) => {
     dispatch(act(actionType, state, meta));

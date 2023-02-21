@@ -12,21 +12,21 @@ import {
   IPutScheduleAction
 } from 'awayto';
 
-const initialScheduleState: IScheduleState = {
-  schedules: {} as Record<string, ISchedule>
-};
+const initialScheduleState = {
+  schedules: {}
+} as IScheduleState;
 
 function reduceDeleteSchedule(state: IScheduleState, action: IDeleteScheduleAction): IScheduleState {
   const schedules = { ...state.schedules };
   action.payload.forEach(serviceAddon => {
-    delete schedules[serviceAddon.id as string];
+    delete schedules[serviceAddon.id];
   });
   state.schedules = schedules;
   return { ...state };
 }
 
 function reduceSchedules(state: IScheduleState, action: IGetSchedulesAction | IDisableScheduleAction | IGetScheduleByIdAction | IPostScheduleAction | IPutScheduleAction): IScheduleState {
-  const schedules = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id as string}`]: b } }), {});
+  const schedules = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id}`]: b } }), {});
   state.schedules = { ...state.schedules, ...schedules };
   return { ...state };
 }

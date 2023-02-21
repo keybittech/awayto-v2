@@ -19,7 +19,6 @@ import {
   IRoleActionTypes,
   IUserActionTypes,
   ApiErrorResponse,
-  ILoadedState,
   IServiceAddonActionTypes,
   IAssistActionTypes,
   StatePayloadValues
@@ -87,10 +86,10 @@ const { SET_LOADING, API_SUCCESS, SET_SNACK } = IUtilActionTypes;
  * @category Hooks
  */
 
-export function useApi(): <T extends { [prop: string]: unknown}, R = ILoadedState>(actionType: IActionTypes, load?: boolean, body?: Partial<T | StatePayloadValues>, meta?: unknown) => [(reason?: string)=> void, Promise<void | R> | undefined] {
+export function useApi(): <T extends { [prop: string]: unknown}, R = IMergedState>(actionType: IActionTypes, load?: boolean, body?: Partial<T | StatePayloadValues>, meta?: unknown) => [(reason?: string)=> void, Promise<void | R> | undefined] {
   const act = useAct();
 
-  const api = useCallback(<T extends { [prop: string]: unknown}, R = ILoadedState>(actionType: IActionTypes, load?: boolean, body?: Partial<T | StatePayloadValues>, meta?: unknown): [(reason?: string)=> void, Promise<void | R> | undefined] => {
+  const api = useCallback(<T extends { [prop: string]: unknown}, R = IMergedState>(actionType: IActionTypes, load?: boolean, body?: Partial<T | StatePayloadValues>, meta?: unknown): [(reason?: string)=> void, Promise<void | R> | undefined] => {
 
     const abortController: AbortController = new AbortController();
     function abort(reason?: string) {
@@ -137,7 +136,7 @@ export function useApi(): <T extends { [prop: string]: unknown}, R = ILoadedStat
         return res.json()
       })
       .then((data: R) => {
-        act(actionType || API_SUCCESS, data as ILoadedState, meta);
+        act(actionType || API_SUCCESS, data as IMergedState, meta);
         if (load) act(SET_LOADING, { isLoading: false });
         return data;
       })

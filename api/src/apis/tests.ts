@@ -33,7 +33,7 @@ const tests: ApiModule = [
   //   cmnd: async (props) => {
   //     try {
 
-  //       const { file } = props.event.body as { file: File };
+  //       const { file } = props.event.body;
 
   //       return true;
 

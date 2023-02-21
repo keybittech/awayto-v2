@@ -16,7 +16,7 @@ declare global {
 export function FileManager (): JSX.Element {
   const api = useApi();
   const fileSelectRef = useRef<HTMLInputElement>(null);
-  const files = useRedux(state => state.files);
+  const { files } = useRedux(state => state.files);
   const util = useRedux(state => state.util);
   const fileStore = useFileStore();
   const [toggle, setToggle] = useState(false);

@@ -9,7 +9,7 @@ const serviceAddons: ApiModule = [
     cmnd : async (props) => {
       try {
 
-        const { name } = props.event.body as IServiceAddon;
+        const { name } = props.event.body;
 
         const response = await props.db.query<IServiceAddon>(`
           WITH input_rows(name) as (VALUES ($1)), ins AS (
@@ -38,7 +38,7 @@ const serviceAddons: ApiModule = [
     action: IServiceAddonActionTypes.PUT_SERVICE_ADDON,
     cmnd : async (props) => {
       try {
-        const { id, name } = props.event.body as IServiceAddon;
+        const { id, name } = props.event.body;
 
         if (!id) throw new Error('Service Addon ID Missing');
 

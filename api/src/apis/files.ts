@@ -11,7 +11,7 @@ const files: ApiModule = [
     cmnd : async (props) => {
       try {
         const uuid = uuidV4();
-        const { name, fileTypeId: file_type_id, location } = props.event.body as IFile;
+        const { name, fileTypeId: file_type_id, location } = props.event.body;
 
         const response = await props.db.query<{ id: string }>(`
           INSERT INTO files (uuid, name, file_type_id, location, created_on, created_sub)
@@ -31,7 +31,7 @@ const files: ApiModule = [
     action: IFilesActionTypes.PUT_FILES,
     cmnd : async (props) => {
       try {
-        const { id, name, fileTypeId: file_type_id, location } = props.event.body as Required<IFile>;
+        const { id, name, fileTypeId: file_type_id, location } = props.event.body;
 
         if (!id || !props.event.userSub) return false;
 

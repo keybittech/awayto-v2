@@ -11,31 +11,22 @@ import {
   IPutFilesAction
 } from 'awayto';
 
-const initialFilesState: IFilesState = {};
+const initialFilesState = {
+  files: {}
+} as IFilesState;
 
 function reduceDeleteFiles(state: IFilesState, action: IDeleteFilesAction): IFilesState {
+  const files = { ...state.files };
   action.payload.forEach(file => {
-    delete state[file.id as string];
+    delete files[file.id];
   });
+  state.files = files;
   return { ...state };
 }
 
-function reduceFile(state: IFilesState, action: IGetFilesByIdAction | IPutFilesAction): IFilesState {
-  const { id } = action.payload;
-  if (id) {
-    state[id] = action.payload;
-  }
-  return { ...state };
-}
-
-function reduceFiles(state: IFilesState, action: IGetFilesAction | IPostFilesAction | IDisableFilesAction): IFilesState {
-  for (let i = 0, v = action.payload.length; i < v; i++) {
-    const file = action.payload[i];
-    const { id } = file;
-    if (id) {
-      state[id] = file;
-    }
-  }
+function reduceFiles(state: IFilesState, action: IGetFilesAction | IDisableFilesAction | IGetFilesByIdAction | IPostFilesAction | IPutFilesAction): IFilesState {
+  const files = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id}`]: b } }), {});
+  state.files = { ...state.files, ...files };
   return { ...state };
 }
 
@@ -45,7 +36,6 @@ const fileReducer: Reducer<IFilesState, IFilesActions> = (state = initialFilesSt
       return reduceDeleteFiles(state, action);
     case IFilesActionTypes.PUT_FILES:
     case IFilesActionTypes.GET_FILES_BY_ID:
-      return reduceFile(state, action);
     case IFilesActionTypes.POST_FILES:
     case IFilesActionTypes.DISABLE_FILES:
     case IFilesActionTypes.GET_FILES:

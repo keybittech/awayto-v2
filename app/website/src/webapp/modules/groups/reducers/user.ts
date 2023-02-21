@@ -9,12 +9,11 @@ import {
   IDeleteUserAction,
   IDisableUserAction,
   IPostUserAction,
-  IPutUserAction,
-  IUsers
+  IPutUserAction
 } from 'awayto';
 
 const initialUserState: IUserState = {
-  users: {} as IUsers
+  users: {}
 };
 
 function reduceDeleteUser(state: IUserState, action: IDeleteUserAction): IUserState {

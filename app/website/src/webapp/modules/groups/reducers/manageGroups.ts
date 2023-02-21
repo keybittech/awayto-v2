@@ -12,57 +12,37 @@ import {
 } from 'awayto';
 
 const initialManageGroupsState: IManageGroupsState = {
-  isValid: true
+  groups: {},
+  isValid: true,
+  needCheckName: false,
+  checkingName: false,
+  checkedName: ''
 };
 
-function reduceGetManageGroups(state: IManageGroupsState, action: IGetManageGroupsAction): IManageGroupsState {
-  return { ...state, groups: [...action.payload as IGroup[]] };
-}
-
-function reducePostManageGroups(state: IManageGroupsState, action: IPostManageGroupsAction): IManageGroupsState {
-  state.groups = Array.prototype.concat(state.groups, action.payload);
-  return { ...state };
-}
-
-function reducePutManageGroups(state: IManageGroupsState, action: IPutManageGroupsAction): IManageGroupsState {
-  const payload = action.payload as IGroup;
-  state.groups = state.groups?.map((user: IGroup) => {
-    if (user.id === payload.id) {
-      return { ...user, ...payload }
-    }
-    return user;
+function reduceDeleteManageGroups(state: IManageGroupsState, action: IDeleteManageGroupsAction): IManageGroupsState {
+  const groups = { ...state.groups };
+  action.payload.forEach(group => {
+    delete groups[group.id];
   });
+  state.groups = groups;
   return { ...state };
 }
 
-function reduceDeleteState(state: IManageGroupsState, action: IDeleteManageGroupsAction): IManageGroupsState {
-  const { groups } = state;
-  if (groups) {
-    state.groups = groups.filter(group => !action.payload.groups?.map(g => g.id).includes(group.id));
-  }
-  return state;
-}
-
-function reduceDisableState(state: IManageGroupsState, action: IDisableManageGroupsAction): IManageGroupsState {
-  const { groups } = state;
-  if (groups) {
-    state.groups = groups.filter(g => !action.payload.groups?.some(gr => gr.id == g.id))
-  }
-  return state;
+function reduceManageGroups(state: IManageGroupsState, action: IGetManageGroupsAction | IPostManageGroupsAction | IPutManageGroupsAction | IDisableManageGroupsAction): IManageGroupsState {
+  const groups = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id}`]: b } }), {});
+  state.groups = { ...state.groups, ...groups };
+  return { ...state };
 }
 
 const manageGroupsReducer: Reducer<IManageGroupsState, IManageGroupsActions> = (state = initialManageGroupsState, action) => {
   switch (action.type) {
-    case IManageGroupsActionTypes.GET_MANAGE_GROUPS:
-      return reduceGetManageGroups(state, action);
-    case IManageGroupsActionTypes.POST_MANAGE_GROUPS:
-      return reducePostManageGroups(state, action);
-    case IManageGroupsActionTypes.PUT_MANAGE_GROUPS:
-      return reducePutManageGroups(state, action);
     case IManageGroupsActionTypes.DELETE_MANAGE_GROUPS:
-      return reduceDeleteState(state, action);
+      return reduceDeleteManageGroups(state, action);
+    case IManageGroupsActionTypes.GET_MANAGE_GROUPS:
+    case IManageGroupsActionTypes.POST_MANAGE_GROUPS:
+    case IManageGroupsActionTypes.PUT_MANAGE_GROUPS:
     case IManageGroupsActionTypes.DISABLE_MANAGE_GROUPS:
-      return reduceDisableState(state, action);
+      return reduceManageGroups(state, action);
     case IManageGroupsActionTypes.CHECK_GROUP_NAME:
       return { ...state, ...action.payload }
     default:

@@ -12,7 +12,7 @@ const roles: ApiModule = [
     cmnd : async (props) => {
       try {
 
-        const { name } = props.event.body as IRole;
+        const { name } = props.event.body;
 
         const { rows: [ role ] } = await props.db.query<IRole>(`
           WITH input_rows(name, created_sub) as (VALUES ($1, $2)), ins AS (
@@ -53,7 +53,7 @@ const roles: ApiModule = [
     action: IRoleActionTypes.PUT_ROLES,
     cmnd : async (props) => {
       try {
-        const { id, name } = props.event.body as IRole;
+        const { id, name } = props.event.body;
 
         const updateProps = buildUpdate({ id, name });
 
@@ -150,9 +150,9 @@ const roles: ApiModule = [
     action: IRoleActionTypes.DISABLE_ROLES,
     cmnd : async (props) => {
       try {
-        const roles = props.event.body as IRole[];
+        const { roles } = props.event.body;
 
-        await asyncForEach(roles, async role => {
+        await asyncForEach(Object.values(roles), async role => {
           await props.db.query(`
             UPDATE roles
             SET enabled = false

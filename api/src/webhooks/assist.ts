@@ -13,13 +13,13 @@ function generatePrompt(input: string) {
 
 export const AssistWebhooks: IWebhooks = { 
   CHANNEL_POINT_REDEMPTION: async (props) => {
-    const { message } = props.event!.body as { message: string };
+    const {  } = props.event.body;
 
     console.log('assist event', props.event)
     
     const completion = await openai.createCompletion({
       model: 'text-davinci-003',
-      prompt: generatePrompt(message),
+      prompt: generatePrompt(''),
       temperature: 0.6,
       max_tokens: 20
     },{

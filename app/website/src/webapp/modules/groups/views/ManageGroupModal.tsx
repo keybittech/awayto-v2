@@ -17,7 +17,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import ArrowRightAlt from '@mui/icons-material/ArrowRightAlt';
 import NotInterestedIcon from '@mui/icons-material/NotInterested';
 
-import { IGroup, IUtilActionTypes, IGroupActionTypes } from 'awayto';
+import { IGroup, IUtilActionTypes, IGroupActionTypes, IRole } from 'awayto';
 import { useAct, useApi, useRedux, useComponents } from 'awayto-hooks';
 import { ManageGroupsActions } from './ManageGroups';
 import keycloak from '../../../keycloak';
@@ -58,7 +58,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
     }
     
     group.name = formatName(name);
-    group.roles = Object.values(roles).filter(r => roleIds.includes(r.id));
+    group.roles = roleIds.reduce((m, d) => ({ ...m, [d]: roles[d] }), {}) as Record<string, IRole>;
     group.roleId = primaryRole;
     const [, res] = api(id ? putGroupsAction : postGroupsAction, false, group);
     res?.then(() => {
@@ -83,7 +83,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
 
   useEffect(() => {
     if (!roleIds.length && group.roles?.length && !primaryRole)
-      setRoleIds(group.roles.map(r => r.id))
+      setRoleIds(Object.keys(group.roles))
   }, [roleIds, group.roles, primaryRole]);
 
   useEffect(() => {

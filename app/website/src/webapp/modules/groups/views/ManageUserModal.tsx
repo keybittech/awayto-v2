@@ -42,7 +42,7 @@ export function ManageUserModal({ editUser, closeModal }: IProps): JSX.Element {
     lastName: '',
     email: '',
     username: '',
-    groups: [],
+    groups: {},
     ...editUser
   });
 
@@ -60,9 +60,12 @@ export function ManageUserModal({ editUser, closeModal }: IProps): JSX.Element {
 
   useEffect(() => {
     const { groups: userGroups } = editUser || {};
-    if (userGroups?.length && groups?.length) {
-      setUserGroups(groups.filter(g => userGroups.map(ug => ug.name).includes(g.name)));
-      setUserGroupRoles({ ...userGroupRoles, ...userGroups.map(g => ({ [g.name]: g.roles.map(r => r.name) })).reduce((a, b) => ({ ...a, ...b }), {}) });
+    if (userGroups) {
+      const userGroupValues = Object.values(userGroups);
+      if (userGroupValues?.length && groups?.length) {
+        setUserGroups(Object.values(groups).filter(g => userGroupValues.map(ug => ug.name).includes(g.name)));
+        setUserGroupRoles({ ...userGroupRoles, ...userGroupValues.map(g => ({ [g.name]: Object.values(g.roles).map(r => r.name) })).reduce((a, b) => ({ ...a, ...b }), {}) });
+      }
     }
   }, [editUser, groups]);
 
@@ -131,11 +134,11 @@ export function ManageUserModal({ editUser, closeModal }: IProps): JSX.Element {
             label="Groups"
             multiple
           >
-            {groups?.filter(g => g.roles && !userGroups.map(ug => ug.id).includes(g.id)).map((g, i) => <MenuItem key={i} value={g.id}>{g.name}</MenuItem>) ?? <MenuItem />}
+            {Object.values(groups)?.filter(g => g.roles && !userGroups.map(ug => ug.id).includes(g.id)).map((g, i) => <MenuItem key={i} value={g.id}>{g.name}</MenuItem>) ?? <MenuItem />}
           </Select>
         </FormControl>
         <Button variant="text" onClick={() => {
-          const group = groups?.filter(g => groupIds.includes(g.id));
+          const group = Object.values(groups)?.filter(g => groupIds.includes(g.id));
           if (group) {
             setUserGroups([...userGroups, ...group]);
             setGroupIds([]);
@@ -150,33 +153,33 @@ export function ManageUserModal({ editUser, closeModal }: IProps): JSX.Element {
       <></> :
       <Grid item xs={12}>
         <Grid container spacing={1}>
-          {userGroups.map((g, i) =>
-            <Grid key={i} item xs={12}>
-              <FormControl fullWidth variant="outlined">
-                <InputLabel id="role-selection-label">{g.name} roles</InputLabel>
-                <Select
-                  labelId={`${g.id}-role-selection-label`}
-                  id={`${g.id}-role-selection`}
-                  name={`${g.id}-roleIds`}
-                  value={userGroupRoles[g.name] || []}
-                  onChange={e => {
-                    const roles = e.target.value as string[];
-                    if (roles.length) {
-                      setUserGroupRoles({ ...userGroupRoles, [g.name]: roles })
-                    } else {
-                      // eslint-disable-next-line
-                      const { [g.name]: remove, ...ugr } = userGroupRoles;
-                      setUserGroupRoles(ugr || {});
-                    }
-                  }}
-                  label="Roles"
-                  multiple
-                >
-                  {g.roles ? g.roles.map((r, i) => <MenuItem key={i} value={r.name}>{r.name}</MenuItem>) : <MenuItem />}
-                </Select>
-              </FormControl>
-            </Grid>
-          )}
+          {userGroups.map((g, i) => {
+            const roleValues = Object.values(g.roles);
+            return <Grid key={i} item xs={12}>
+            <FormControl fullWidth variant="outlined">
+              <InputLabel id="role-selection-label">{g.name} roles</InputLabel>
+              <Select
+                labelId={`${g.id}-role-selection-label`}
+                id={`${g.id}-role-selection`}
+                name={`${g.id}-roleIds`}
+                value={userGroupRoles[g.name] || []}
+                onChange={e => {
+                  const rolesChangeValue = e.target.value as string[];
+                  if (rolesChangeValue.length) {
+                    setUserGroupRoles({ ...userGroupRoles, [g.name]: rolesChangeValue })
+                  } else {
+                    const { [g.name]: _, ...ugr } = userGroupRoles;
+                    setUserGroupRoles(ugr || {});
+                  }
+                }}
+                label="Roles"
+                multiple
+              >
+                {roleValues.length ? roleValues.map((r, i) => <MenuItem key={i} value={r.name}>{r.name}</MenuItem>) : <MenuItem />}
+              </Select>
+            </FormControl>
+          </Grid>
+          })}
         </Grid>
       </Grid>
   }, [userGroups, userGroupRoles, setUserGroupRoles])

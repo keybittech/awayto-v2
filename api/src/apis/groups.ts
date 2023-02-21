@@ -1,4 +1,4 @@
-import { IGroup, IUuidRoles, DbError, IUserProfile, IGroupState, IRole, IGroupRoleActions, IGroupActionTypes } from 'awayto';
+import { IGroup, IUuidRoles, DbError, IUserProfile, IGroupState, IRole, IGroupActionTypes } from 'awayto';
 import { asyncForEach } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
@@ -14,7 +14,7 @@ const groups: ApiModule = [
 
       try {
 
-        const { name, roles, roleId: adminRoleId } = props.event.body as IGroup;
+        const { name, roles, roleId: adminRoleId } = props.event.body;
         let primaryRoleSubgroupId = '';
 
         // Create a group in app db if user has no groups and name is unique
@@ -32,7 +32,7 @@ const groups: ApiModule = [
         await props.db.query(`UPDATE groups SET external_id = $1 WHERE id = $2`, [externalId, group.id]);
 
         // For each group role, create a keycloak subgroup and attach to group uuid
-        await asyncForEach(roles, async ({ id: groupRoleId, name }) => {
+        await asyncForEach(Object.values(roles), async ({ id: groupRoleId, name }) => {
 
           const { id: kcSubgroupId } = await keycloak.groups.setOrCreateChild({ id: externalId }, { name });
 
@@ -104,7 +104,7 @@ const groups: ApiModule = [
     action: IGroupActionTypes.PUT_GROUPS,
     cmnd: async (props) => {
       try {
-        const { id, name, roles, roleId: adminRoleId } = props.event.body as IGroup;
+        const { id, name, roles, roleId: adminRoleId } = props.event.body;
 
         const updateProps = buildUpdate({ id, name });
 
@@ -117,7 +117,7 @@ const groups: ApiModule = [
         `, updateProps.array);
 
         // See if any roles have changed
-        const roleIds = roles.map(r => r.id);
+        const roleIds = Object.values(roles).map(r => r.id);
         const diffs = (await props.db.query<IUuidRoles>(`
           SELECT id, "roleId" 
           FROM dbview_schema.enabled_uuid_roles 
@@ -146,7 +146,7 @@ const groups: ApiModule = [
         }
 
 
-        await asyncForEach(roles, async role => {
+        await asyncForEach(Object.values(roles), async role => {
           await keycloak.groups.setOrCreateChild({ id: group.externalId }, { name: role.name });
           await props.db.query(`
             INSERT INTO uuid_roles (parent_uuid, role_id, created_on, created_sub)
@@ -215,7 +215,7 @@ const groups: ApiModule = [
       performance.mark("putGroupAssignmentsStart");
       
       // const { groupName } = props.event.pathParameters;
-      const { assignments } = props.event.body as { assignments: IGroupRoleActions };
+      const { assignments } = props.event.body;
 
       // Get the group external ID for now by owner
       const [{ externalId }] = (await props.db.query<IGroup>(`
@@ -406,9 +406,9 @@ const groups: ApiModule = [
     action: IGroupActionTypes.DISABLE_GROUPS,
     cmnd: async (props) => {
       try {
-        const groups = props.event.body as IGroup[];
+        const { groups } = props.event.body;
 
-        await asyncForEach(groups, async group => {
+        await asyncForEach(Object.values(groups), async group => {
           await props.db.query(`
             UPDATE groups
             SET enabled = false
@@ -437,7 +437,7 @@ const groups: ApiModule = [
           WHERE name = $1
         `, [name]);
 
-        return { checkingName: false, isValid: count == 0 };
+        return { checkingName: false, isValid: count == 0 } as IGroupState;
 
       } catch (error) {
         throw error;
@@ -449,9 +449,9 @@ const groups: ApiModule = [
   {
     action: IGroupActionTypes.POST_GROUPS_USERS_INVITE,
     cmnd: async (props) => {
-      const { users } = props.event.body as IGroupState;
+      const { users } = props.event.body;
 
-      await asyncForEach(users, async ({ email }) => {
+      await asyncForEach(Object.values(users), async ({ email }) => {
         try {
 
           const { id: userId } = await keycloak.users.create({
@@ -475,7 +475,7 @@ const groups: ApiModule = [
     action: IGroupActionTypes.GROUPS_JOIN,
     cmnd: async (props) => {
       try {
-        const { code } = props.event.body as IGroup;
+        const { code } = props.event.body;
 
         const [{ id: groupId }] = (await props.db.query<IGroup>(`
           SELECT id FROM groups WHERE code = $1
@@ -507,7 +507,7 @@ const groups: ApiModule = [
     action: IGroupActionTypes.GROUPS_LEAVE,
     cmnd: async (props) => {
       try {
-        const { code } = props.event.body as IGroup;
+        const { code } = props.event.body;
 
         const [{ id: groupId }] = (await props.db.query<IGroup>(`
           SELECT id FROM groups WHERE code = $1

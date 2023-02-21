@@ -9,7 +9,7 @@ const service_tiers: ApiModule = [
     cmnd : async (props) => {
       try {
 
-        const { name, serviceId, multiplier } = props.event.body as IServiceTier;
+        const { name, serviceId, multiplier } = props.event.body;
 
         const response = await props.db.query<IServiceTier>(`
           INSERT INTO service_tiers (name, serviceId, multiplier)
@@ -29,7 +29,7 @@ const service_tiers: ApiModule = [
     action: IServiceTierActionTypes.PUT_SERVICE_TIER,
     cmnd : async (props) => {
       try {
-        const { id, name, multiplier } = props.event.body as IServiceTier;
+        const { id, name, multiplier } = props.event.body;
 
         if (!id) throw new Error('Service ID or Service Tier ID Missing');
 

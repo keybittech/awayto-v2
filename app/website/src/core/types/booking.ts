@@ -1,5 +1,6 @@
 import { IScheduleBracket } from 'awayto';
 import { PayloadAction } from '.';
+import { Merge } from '../util';
 
 declare global {
   /**
@@ -8,6 +9,8 @@ declare global {
   interface ISharedState { 
     booking: IBookingState
   }
+
+  interface IMergedState extends Merge<unknown, IBookingState> {}
 
   /**
    * @category Awayto Redux
@@ -34,9 +37,9 @@ export type IBookingScheduleBracket = {
  * @category Awayto
  */
 export type IBooking = {
-  id?: string;
+  id: string;
   serviceTierId: string;
-  brackets: IBookingScheduleBracket[];
+  bookingScheduleBrackets: Record<string, IBookingScheduleBracket>;
   contactId: string;
   description: string;
   paymentId: string;
@@ -46,7 +49,7 @@ export type IBooking = {
 /**
  * @category Booking
  */
-export type IBookingState = {
+export type IBookingState = IBooking & {
   bookings: Record<string, IBooking>;
 };
 

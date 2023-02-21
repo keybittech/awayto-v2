@@ -1,4 +1,5 @@
 import { ITimeUnit, PayloadAction } from '.';
+import { Merge } from '../util';
 
 declare global {
   /**
@@ -7,6 +8,8 @@ declare global {
   interface ISharedState { 
     assist: IAssistState
   }
+
+  interface IMergedState extends Merge<unknown, IAssistState> {}
 
   /**
    * @category Awayto Redux
@@ -31,7 +34,9 @@ export type IAssist = {
 /**
  * @category Assist
  */
-export type IAssistState = IAssist;
+export type IAssistState = IAssist & {
+  assists: Record<string, IAssist>
+};
 
 /**
  * @category Action Types

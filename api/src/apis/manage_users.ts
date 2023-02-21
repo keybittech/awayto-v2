@@ -64,7 +64,7 @@ const manageUsers: ApiModule = [
     action: IManageUsersActionTypes.PUT_MANAGE_USERS,
     cmnd: async (props) => {
       try {
-        const { username, groups } = props.event.body as IUserProfile;
+        // const { username, groups } = props.event.body as IUserProfile;
 
         // if (groupRoles.length) {
 
@@ -198,15 +198,16 @@ const manageUsers: ApiModule = [
     action: IManageUsersActionTypes.GET_MANAGE_USERS_INFO,
     cmnd: async (props) => {
       try {
-        const { users } = props.event.body as { users: IUserProfile[] };
+        // const { users } = props.event.body as { users: IUserProfile[] };
 
         // await asyncForEach(users, async (user: IUserProfile) => {
         //   const info = await getUserInfo(user.username);
         //   user = { ...user, info };
         // });
 
-        return users;
+        // return users;
 
+        return false;
       } catch (error) {
         throw error;
       }
@@ -217,7 +218,7 @@ const manageUsers: ApiModule = [
   {
     action: IManageUsersActionTypes.LOCK_MANAGE_USERS,
     cmnd: async (props) => {
-      const profiles = props.event.body as IUserProfile[];
+      // const profiles = props.event.body as IUserProfile[];
       try {
         // await asyncForEach<IUserProfile>(profiles, async (profile) => {
 
@@ -230,7 +231,9 @@ const manageUsers: ApiModule = [
         //   await adminDisableUser(profile.username);
         // });
 
-        return profiles;
+        // return profiles;
+
+        return false;
       } catch (error) {
         throw error;
       }
@@ -241,7 +244,7 @@ const manageUsers: ApiModule = [
     action: IManageUsersActionTypes.UNLOCK_MANAGE_USERS,
     cmnd: async (props) => {
       try {
-        const profiles = props.event.body as IUserProfile[];
+        // const profiles = props.event.body as IUserProfile[];
 
         // await asyncForEach(profiles, async (profile) => {
         //   await props.db.query<IUserProfile>(`
@@ -252,7 +255,8 @@ const manageUsers: ApiModule = [
         //   await adminEnableUser(profile.username);
         // });
 
-        return profiles;
+        // return profiles;
+        return true;
       } catch (error) {
         throw error;
       }

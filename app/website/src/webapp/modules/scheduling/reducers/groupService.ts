@@ -1,6 +1,5 @@
 import { Reducer } from 'redux';
 import {
-  IGroupServices,
   IGroupServiceState,
   IGroupServiceActions,
   IGroupServiceActionTypes,
@@ -9,12 +8,12 @@ import {
   IPostGroupServiceAction,
 } from 'awayto';
 
-const initialGroupServiceState: IGroupServiceState = {
-  groupServices: {} as IGroupServices
-};
+const initialGroupServiceState = {
+  groupServices: {}
+} as IGroupServiceState;
 
 function reduceDeleteGroupService(state: IGroupServiceState, action: IDeleteGroupServiceAction): IGroupServiceState {
-  const groupServices = { ...state.groupServices } as IGroupServices;
+  const groupServices = { ...state.groupServices };
   action.payload.forEach(groupService => {
     delete groupServices[groupService.id as string];
   });

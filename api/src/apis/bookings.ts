@@ -10,7 +10,9 @@ const bookings: ApiModule = [
     cmnd : async (props) => {
       try {
 
-        const { serviceTierId, contactId, paymentId, agreement, description, brackets } = props.event.body as IBooking;
+
+
+        const { serviceTierId, contactId, paymentId, agreement, description, bookingScheduleBrackets } = props.event.body;
 
         const booking = (await props.db.query<IBooking>(`
           INSERT INTO bookings (service_tier_id, contact_id, payment_id, agreement, description)
@@ -18,9 +20,9 @@ const bookings: ApiModule = [
           RETURNING id, service_tier_id as "serviceTierId", contact_id as "contactId", payment_id as "paymentId", agreement, description
         `, [serviceTierId, contactId, paymentId, agreement, description])).rows[0];
         
-        const dbBookingScheduleBrackets = [] as IBookingScheduleBracket[];
+        const dbBookingScheduleBrackets = {} as Record<string, IBookingScheduleBracket>;
 
-        await asyncForEach(brackets, async b => {
+        await asyncForEach(Object.values(bookingScheduleBrackets), async b => {
           const dbBookingScheduleBracket = (await props.db.query<IBookingScheduleBracket>(`
             INSERT INTO booking_schedule_brackets (booking_id, schedule_bracket_id, hours)
             VALUES ($1, $2, $3)
@@ -35,10 +37,10 @@ const bookings: ApiModule = [
 
           dbBookingScheduleBracket.bracket = scheduleBracket;
 
-          dbBookingScheduleBrackets.push(dbBookingScheduleBracket);
+          dbBookingScheduleBrackets[scheduleBracket.id] = dbBookingScheduleBracket
         });
 
-        booking.brackets = dbBookingScheduleBrackets;
+        booking.bookingScheduleBrackets = dbBookingScheduleBrackets;
 
         return booking;
 
@@ -52,7 +54,7 @@ const bookings: ApiModule = [
     action: IBookingActionTypes.PUT_BOOKING,
     cmnd : async (props) => {
       try {
-        const { id, serviceTierId, contactId, paymentId, agreement, description } = props.event.body as IBooking;
+        const { id, serviceTierId, contactId, paymentId, agreement, description } = props.event.body;
 
         if (!id) throw new Error('invalid request, no booking id');
 

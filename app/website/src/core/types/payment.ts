@@ -1,4 +1,5 @@
 import { PayloadAction } from '.';
+import { Merge } from '../util';
 
 declare global {
   /**
@@ -7,6 +8,8 @@ declare global {
   interface ISharedState { 
     payments: IPaymentState
   }
+
+  interface IMergedState extends Merge<unknown, IPaymentState> {}
 
   /**
    * @category Awayto Redux

@@ -9,27 +9,27 @@ import {
   IPostGroupScheduleAction,
 } from 'awayto';
 
-const initialGroupScheduleState: IGroupScheduleState = {
-  groupSchedules: {} as IGroupSchedules
-};
+const initialGroupScheduleState = {
+  groupSchedules: {}
+} as IGroupScheduleState;
 
 function reduceDeleteGroupSchedule(state: IGroupScheduleState, action: IDeleteGroupScheduleAction): IGroupScheduleState {
-  const groupSchedules = { ...state.groupSchedules } as IGroupSchedules;
+  const groupSchedules = { ...state.groupSchedules };
   action.payload.forEach(groupSchedule => {
-    delete groupSchedules[groupSchedule.id as string];
+    delete groupSchedules[groupSchedule.id];
   });
   state.groupSchedules = groupSchedules;
   return { ...state };
 }
 
 function reducePostGroupSchedules(state: IGroupScheduleState, action: IPostGroupScheduleAction): IGroupScheduleState {
-  const groupSchedules = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id as string}`]: b } }), {});
+  const groupSchedules = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id}`]: b } }), {});
   state.groupSchedules = { ...state.groupSchedules, ...groupSchedules };
   return { ...state };
 }
 
 function reduceGetGroupSchedules(state: IGroupScheduleState, action: IGetGroupSchedulesAction): IGroupScheduleState {
-  state.groupSchedules = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id as string}`]: b } }), {});
+  state.groupSchedules = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id}`]: b } }), {});
   return { ...state };
 }
 

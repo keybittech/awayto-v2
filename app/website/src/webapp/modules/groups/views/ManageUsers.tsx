@@ -45,7 +45,10 @@ export function ManageUsers(props: IProps): JSX.Element {
     { name: 'Username', selector: row => row.username },
     { name: 'First Name', selector: row => row.firstName },
     { name: 'Last Name', selector: row => row.lastName },
-    { name: 'Group', selector: (user: IUserProfile) => user.groups ? user.groups.map(r => r.name).join(', ') : '' },
+    { name: 'Group', selector: (user: IUserProfile) => {
+      const userGroups = Object.values(user.groups);
+      return userGroups.length ? userGroups.map(r => r.name).join(', ') : ''
+    }},
     { name: 'Created', selector: (user: IUserProfile) => localFromNow(user.createdOn) },
   ] as TableColumn<IUserProfile>[], undefined)
 

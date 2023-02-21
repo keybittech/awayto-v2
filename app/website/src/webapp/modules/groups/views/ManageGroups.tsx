@@ -10,7 +10,7 @@ import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Logout from '@mui/icons-material/Logout';
 
-import { IUtilActionTypes, IGroup, IActionTypes, IRoles, IGroups, IGroupActionTypes, localFromNow } from 'awayto';
+import { IUtilActionTypes, IGroup, IActionTypes, IGroupActionTypes, localFromNow, IRole } from 'awayto';
 import { useRedux, useApi, useAct } from 'awayto-hooks';
 
 import ManageGroupModal from './ManageGroupModal';
@@ -31,8 +31,8 @@ export type ManageGroupsActions = {
   checkNameAction?: IActionTypes;
   postRolesAction?: IActionTypes;
   deleteRolesAction?: IActionTypes;
-  groups?: IGroups;
-  roles?: IRoles;
+  groups?: Record<string, IGroup>;
+  roles?: Record<string, IRole>;
 };
 
 declare global {
@@ -59,8 +59,8 @@ export function ManageGroups(props: IProps): JSX.Element {
     { cell: row => <Button key={`group_manage_selection_${row.name}`} onClick={() => navigate(`/group/${row.name}/manage/users`)} >Manage</Button>},
     { name: 'Name', selector: row => row.name },
     { name: 'Code', selector: row => row.code },
-    { name: 'Users', cell: (group: IGroup) => group.users || 0 },
-    { name: 'Roles', cell: (group: IGroup) => group.roles ? group.roles.map(r => r.name).join(', ') : '' },
+    { name: 'Users', cell: (group: IGroup) => group.usersCount || 0 },
+    { name: 'Roles', cell: (group: IGroup) => group.roles ? Object.values(group.roles).map(r => r.name).join(', ') : '' },
     { name: 'Created', selector: row => localFromNow(row.createdOn) }
   ] as TableColumn<IGroup>[], undefined);
 

@@ -11,7 +11,8 @@ const schedules: ApiModule = [
     cmnd: async (props) => {
       try {
 
-        const schedule = props.event.body as ISchedule;
+        const schedule = props.event.body;
+        
         const { name, brackets, duration, scheduleTimeUnitId, bracketTimeUnitId, slotTimeUnitId, slotDuration } = schedule;
 
         const { id } = (await props.db.query<ISchedule>(`
@@ -20,9 +21,13 @@ const schedules: ApiModule = [
           RETURNING id
         `, [name, duration, scheduleTimeUnitId, bracketTimeUnitId, slotTimeUnitId, slotDuration])).rows[0];
 
+        if (!id) {
+          throw { reason: 'Unable to create schedule id.' };
+        }
+
         schedule.id = id;
 
-        await asyncForEach(brackets, async b => {
+        await asyncForEach(Object.values(brackets), async b => {
           const { id: bracketId } = (await props.db.query<IScheduleBracket>(`
             INSERT INTO schedule_brackets (schedule_id, duration, multiplier, automatic)
             VALUES ($1, $2, $3, $4)
@@ -31,7 +36,7 @@ const schedules: ApiModule = [
 
           b.id = bracketId;
 
-          await asyncForEach(b.services, async s => {
+          await asyncForEach(Object.values(b.services), async s => {
             await props.db.query(`
               INSERT INTO schedule_bracket_services (schedule_bracket_id, service_id)
               VALUES ($1, $2)
@@ -39,7 +44,7 @@ const schedules: ApiModule = [
             `, [bracketId, s.id])
           });
 
-          await asyncForEach(b.slots, async s => {
+          await asyncForEach(Object.values(b.slots), async s => {
             const [{ id: slotId }] = (await props.db.query(`
               INSERT INTO schedule_bracket_slots (schedule_bracket_id, start_time, created_sub)
               VALUES ($1, $2, $3)
@@ -62,7 +67,7 @@ const schedules: ApiModule = [
     action: IScheduleActionTypes.PUT_SCHEDULE,
     cmnd: async (props) => {
       try {
-        const { id, name } = props.event.body as ISchedule;
+        const { id, name } = props.event.body;
 
         if (!id) throw new Error('invalid request, no schedule id');
 

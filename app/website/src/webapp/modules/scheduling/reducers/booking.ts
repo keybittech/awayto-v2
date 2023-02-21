@@ -12,9 +12,9 @@ import {
   IPutBookingAction
 } from 'awayto';
 
-const initialBookingState: IBookingState = {
-  bookings: {} as Record<string, IBooking>
-};
+const initialBookingState = {
+  bookings: {}
+} as IBookingState;
 
 function reduceDeleteBooking(state: IBookingState, action: IDeleteBookingAction): IBookingState {
   const bookings = { ...state.bookings };

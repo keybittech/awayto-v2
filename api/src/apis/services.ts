@@ -10,7 +10,7 @@ const services: ApiModule = [
     cmnd : async (props) => {
       try {
 
-        const { name, cost, tiers } = props.event.body as IService;
+        const { name, cost, tiers } = props.event.body;
 
         const service = (await props.db.query<IService>(`
           WITH input_rows(name, cost) as (VALUES ($1, $2::integer)), ins AS (
@@ -27,7 +27,7 @@ const services: ApiModule = [
           JOIN services s USING (name);
         `, [name, cost])).rows[0];
 
-        await asyncForEach(tiers, async t => {
+        await asyncForEach(Object.values(tiers), async t => {
           const serviceTier = (await props.db.query<IServiceTier>(`
             WITH input_rows(name, service_id, multiplier) as (VALUES ($1, $2::uuid, $3::decimal)), ins AS (
               INSERT INTO service_tiers (name, service_id, multiplier)
@@ -43,7 +43,7 @@ const services: ApiModule = [
             JOIN service_tiers st USING (name, service_id);
           `, [t.name, service.id, t.multiplier])).rows[0];
 
-          await asyncForEach(t.addons, async a => {
+          await asyncForEach(Object.values(t.addons), async a => {
             await props.db.query(`
               INSERT INTO service_tier_addons (service_addon_id, service_tier_id)
               VALUES ($1, $2)
@@ -64,7 +64,7 @@ const services: ApiModule = [
     action: IServiceActionTypes.PUT_SERVICE,
     cmnd : async (props) => {
       try {
-        const { id, name } = props.event.body as IService;
+        const { id, name } = props.event.body;
 
         if (!id) throw new Error('Service ID Missing');
 

@@ -1,4 +1,5 @@
 import { PayloadAction } from '.';
+import { Merge } from '../util';
 
 declare global {
   /**
@@ -7,6 +8,8 @@ declare global {
   interface ISharedState { 
     contacts: IContactState
   }
+
+  interface IMergedState extends Merge<unknown, IContactState> {}
 
   /**
    * @category Awayto Redux
@@ -26,7 +29,7 @@ declare global {
  * @category Awayto
  */
 export type IContact = {
-  id?: string;
+  id: string;
   name: string;
   email: string;
   phone: string;
@@ -35,7 +38,9 @@ export type IContact = {
 /**
  * @category Contact
  */
-export type IContactState = Partial<IContact>;
+export type IContactState = IContact & {
+  contacts: Record<string, IContact>;
+};
 
 /**
  * @category Action Types

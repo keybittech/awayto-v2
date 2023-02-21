@@ -1,4 +1,5 @@
 import { PayloadAction, IRole, IUserProfile, IService, IServiceAddon, ISchedule } from '.';
+import { Merge } from '../util';
 
 declare global {
   /**
@@ -9,8 +10,10 @@ declare global {
     groupService: IGroupServiceState;
     groupServiceAddon: IGroupServiceAddonState;
     groupSchedule: IGroupScheduleState;
-    assignments: IGroupRoleActions;
   }
+
+
+  interface IMergedState extends Merge<Merge<Merge<Merge<Merge<unknown, IGroupRoleActionState>, IGroupState>, IGroupServiceState>, IGroupServiceAddonState>, IGroupScheduleState> {}
 
   /**
    * @category Awayto Redux
@@ -28,11 +31,10 @@ declare global {
   }
 }
 
-
 /**
  * @category Authorization
  */
-export type GroupRoleActions = {
+export type IGroupRoleActions = {
   id?: string;
   fetch?: boolean;
   actions: {
@@ -41,10 +43,9 @@ export type GroupRoleActions = {
   }[];
 }
 
-/**
- * @category Authorization
- */
-export type IGroupRoleActions = Record<string, GroupRoleActions>;
+export type IGroupRoleActionState = {
+  assignments: Record<string, IGroupRoleActions>;
+};
 
 /**
  * @category Awayto
@@ -57,28 +58,20 @@ export type IGroup = {
   roleId: string;
   name: string;
   code: string;
-  users: number;
-  roles: IRole[];
+  usersCount: number;
+  roles: Record<string, IRole>;
 }
 
-/**
- * @category Groups
- */
-export type IGroups = Record<string, IGroup>;
-
-/**
- * @category Groups
- */
-export type IGroupState = {
-  groups: IGroups;
-  users: IUserProfile[];
+export type IGroupState = IGroup & {
+  groups: Record<string, IGroup>;
+  users: Record<string, IUserProfile>;
   isValid: boolean;
-  availableGroupAssignments: IGroupRoleActions;
+  availableGroupAssignments: Record<string, IGroupRoleActions>;
   needCheckName: boolean;
   checkingName: boolean;
   checkedName: string;
   error: Error | string;
-}
+};
 
 /**
  * @category Action Types
@@ -239,8 +232,8 @@ export type IGroupServices = Record<string, IGroupService>;
 /**
  * @category Group
  */
-export type IGroupServiceState = {
-  groupServices: IGroupServices;
+export type IGroupServiceState = IGroupService & {
+  groupServices: Record<string, IGroupService>
 };
 
 /**
@@ -292,8 +285,8 @@ export type IGroupServiceActions = IPostGroupServiceAction
   /**
    * @category Group
    */
-  export type IGroupScheduleState = {
-    groupSchedules: IGroupSchedules | IGroupSchedule[];
+  export type IGroupScheduleState = IGroupSchedule & {
+    groupSchedules: Record<string, IGroupSchedule>;
   };
   
   /**

@@ -8,7 +8,7 @@ const uuidFiles: ApiModule = [
     action: IUuidFilesActionTypes.POST_UUID_FILES,
     cmnd : async (props) => {
       try {
-        const { parentUuid: parent_uuid, fileId: file_id } = props.event.body as IUuidFiles;
+        const { parentUuid: parent_uuid, fileId: file_id } = props.event.body;
 
         const response = await props.db.query<IUuidFiles>(`
           INSERT INTO uuid_files (parent_uuid, file_id, created_on, created_sub)
@@ -29,7 +29,7 @@ const uuidFiles: ApiModule = [
     action: IUuidFilesActionTypes.PUT_UUID_FILES,
     cmnd : async (props) => {
       try {
-        const { id, parentUuid: parent_uuid, fileId: file_id } = props.event.body as IUuidFiles;
+        const { id, parentUuid: parent_uuid, fileId: file_id } = props.event.body;
 
         if (!id || !props.event.userSub) return false;
 
@@ -112,7 +112,7 @@ const uuidFiles: ApiModule = [
     action: IUuidFilesActionTypes.DISABLE_UUID_FILES,
     cmnd : async (props) => {
       try {
-        const { id, parentUuid: parent_uuid, fileId: file_id } = props.event.body as IUuidFiles;
+        const { id, parentUuid: parent_uuid, fileId: file_id } = props.event.body;
 
         await props.db.query(`
           UPDATE uuid_files

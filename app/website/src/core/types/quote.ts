@@ -1,4 +1,5 @@
 import { IContact, PayloadAction, IService, IServiceTier } from '.';
+import { Merge } from '../util';
 
 declare global {
   /**
@@ -7,6 +8,8 @@ declare global {
   interface ISharedState { 
     quotes: IQuoteState
   }
+
+  interface IMergedState extends Merge<unknown, IQuoteState> {}
 
   /**
    * @category Awayto Redux
@@ -26,24 +29,24 @@ declare global {
  * @category Awayto
  */
 export type IQuote = {
-  id?: string;
-  budgetId?: string;
-  timelineId?: string;
-  serviceTierId?: string;
-  contactId?: string;
+  id: string;
+  budgetId: string;
+  timelineId: string;
+  serviceTierId: string;
+  contactId: string;
   name: string;
   respondBy: string;
   description: string;
   desiredDuration: number;
-  service?: IService;
-  serviceTier?: IServiceTier;
-  contact?: IContact;
+  service: IService;
+  serviceTier: IServiceTier;
+  contact: IContact;
 };
 
 /**
  * @category Quote
  */
-export type IQuoteState = Partial<IQuote>;
+export type IQuoteState = IQuote;
 
 /**
  * @category Action Types

@@ -9,14 +9,14 @@ import RoleRepresentation, { RoleMappingPayload } from '@keycloak/keycloak-admin
 import GroupRepresentation from '@keycloak/keycloak-admin-client/lib/defs/groupRepresentation';
 import { performance } from 'perf_hooks';
 
-import { IGroupRoleActions, GroupRoleActions, SiteRoles, asyncForEach } from 'awayto';
+import { IGroupRoleActions, SiteRoles, asyncForEach } from 'awayto';
 
 let realm: RealmRepresentation = {};
 let appClient: ClientRepresentation = {};
 let appRoles: RoleRepresentation[] = [];
 let groupAdminRoles: RoleMappingPayload[] = [];
 let roleCall: RoleMappingPayload[] = [];
-let groupRoleActions: IGroupRoleActions = {};
+let groupRoleActions: Record<string, IGroupRoleActions> = {};
 let keycloakClient: BaseClient;
 
 const {
@@ -52,7 +52,7 @@ const regroup = async function (groupId?: string) {
     groups = groups.length ? groups : await keycloak.groups.find();
   }
 
-  const newGroupRoleActions: IGroupRoleActions = {};
+  const newGroupRoleActions: Record<string, IGroupRoleActions> = {};
 
   await asyncForEach(groups, async group => {
     if (!group.subGroups) return;
@@ -72,7 +72,7 @@ const regroup = async function (groupId?: string) {
         };
 
         if (roleMappings.clientMappings) {
-          newGroupRoleActions[path] = roleMappings.clientMappings[KC_CLIENT].mappings.reduce((m: Record<string, string | boolean | Record<string, string>[]>, { id: actionId, name }) => ({ ...m, id: subgroupId, fetch: false, actions: [...(m.actions || []) as Record<string, string>[], { id: actionId, name }] }), {}) as GroupRoleActions;
+          newGroupRoleActions[path] = roleMappings.clientMappings[KC_CLIENT].mappings.reduce((m: Record<string, string | boolean | Record<string, string>[]>, { id: actionId, name }) => ({ ...m, id: subgroupId, fetch: false, actions: [...(m.actions || []) as Record<string, string>[], { id: actionId, name }] }), {}) as IGroupRoleActions;
         }
 
       } else {

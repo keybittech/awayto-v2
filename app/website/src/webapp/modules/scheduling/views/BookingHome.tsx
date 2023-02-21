@@ -19,22 +19,6 @@ const { GET_SCHEDULES, GET_SCHEDULE_BY_ID } = IScheduleActionTypes;
 const { GET_SERVICE_BY_ID } = IServiceActionTypes;
 const { GET_FORMS } = IFormActionTypes;
 
-const quoteSchema = {
-  name: '',
-  budgetId: '',
-  timelineId: '',
-  desiredDuration: 0,
-  durationContext: '',
-  respondBy: '',
-  description: ''
-}
-
-const contactSchema = {
-  name: '',
-  email: '',
-  phone: ''
-}
-
 export function BookingHome(props: IProps): JSX.Element {
   const classes = useStyles();
   const api = useApi();
@@ -44,10 +28,10 @@ export function BookingHome(props: IProps): JSX.Element {
 
   const [schedule, setSchedule] = useState<ISchedule>();
   const [services, setServices] = useState<Record<string, IService>>({});
-  const [service, setService] = useState<IService>();
+  const [service, setService] = useState<IService>({} as IService);
   const [tier, setTier] = useState<IServiceTier>();
-  const [contact, setContact] = useState<IContact>({ ...contactSchema });
-  const [quote, setQuote] = useState<IQuote>({ ...quoteSchema });
+  const [contact, setContact] = useState({} as IContact);
+  const [quote, setQuote] = useState({} as IQuote);
   const [serviceTierAddons, setServiceTierAddons] = useState<string[]>([]);
 
   useEffect(() => {
@@ -59,6 +43,26 @@ export function BookingHome(props: IProps): JSX.Element {
     }
   }, []);
 
+  const serviceTiers = useMemo(() => Object.values(service?.tiers || {}), [service?.tiers]);
+
+  const tierColumns = useMemo(() => {
+    if (!service || !tier || !serviceTierAddons.length) return [];
+    return [
+      { name: '', selector: row => row.name } as TableColumn<Partial<IServiceAddon>>,
+      ...Object.values(service.tiers).reduce((memo, { id, name, addons }) => {
+        memo.push({
+          name: `${name}`,
+          cell: row => {
+            return Object.values(addons).map(ad => ad.name).indexOf(row.name as string) > -1 ? <Avatar sx={{ width: 24, height: 24, backgroundColor: 'white' }}><CheckIcon className={classes.green} /></Avatar> : '--';
+          }
+        });
+        return memo;
+      }, [] as TableColumn<Partial<IServiceAddon>>[])
+    ]
+  }, [serviceTierAddons, service, tier]);
+
+
+
   useEffect(() => {
     const [id] = Object.keys(schedules);
     if (id && !schedules[id].brackets) {
@@ -68,14 +72,19 @@ export function BookingHome(props: IProps): JSX.Element {
           const [sched] = data;
           setSchedule(sched);
 
-          sched.brackets.forEach(b => {
-            b.services.forEach(s => {
-              if (!services[s.id as string]) services[s.id as string] = s;
+          const brackets = Object.values(sched.brackets);
+
+          brackets.forEach((b, i) => {
+            const services = Object.values(b.services);
+            if (!i) {
+              const service = services[0];
+              setService(service);
+              setTier(Object.values(service.tiers)[0]);
+            }
+            services.forEach(s => {
+              if (!b.services[s.id]) b.services[s.id] = s;
             });
           });
-
-          setService(sched.brackets.at(0)?.services.at(0));
-          setTier(sched.brackets.at(0)?.services.at(0)?.tiers.at(0))
         }
       });
       return () => abort();
@@ -83,36 +92,21 @@ export function BookingHome(props: IProps): JSX.Element {
   }, [schedules]);
 
   useEffect(() => {
-    if (service?.tiers?.length) {
-      const addons = service.tiers.reduce<string[]>((memo, { addons }) => {
-        if (addons) {
-          for (let i = 0, v = addons.length; i < v; i++) {
-            const { name } = addons[i];
-            if (name && memo.indexOf(name) < 0) memo.push(name);
+    if (serviceTiers.length) {
+      const newAddons = serviceTiers.reduce<string[]>((memo, { addons }) => {
+        const serviceAddons = Object.values(addons);
+        if (serviceAddons) {
+          for (let i = 0, v = serviceAddons.length; i < v; i++) {
+            const { name } = serviceAddons[i];
+            if (memo.indexOf(name) < 0) memo.push(name);
           }
         }
         return memo;
       }, []);
 
-      setServiceTierAddons(addons);
+      setServiceTierAddons(newAddons);
     }
   }, [service]);
-
-  const tierColumns = useMemo(() => {
-    if (!service || !tier || !serviceTierAddons.length) return [];
-    return [
-      { name: '', selector: row => row.name } as TableColumn<IServiceAddon>,
-      ...service.tiers.reduce((memo, { id, name, addons }) => {
-        memo.push({
-          name: `${name}`,
-          cell: row => {
-            return addons.map(ad => ad.name).indexOf(row.name) > -1 ? <Avatar sx={{ width: 24, height: 24, backgroundColor: 'white' }}><CheckIcon className={classes.green} /></Avatar> : '--';
-          }
-        });
-        return memo;
-      }, [] as TableColumn<IServiceAddon>[])
-    ]
-  }, [serviceTierAddons, service, tier]);
 
   return <>
     {schedule && service && tier && <Grid container spacing={2}>
@@ -169,9 +163,9 @@ export function BookingHome(props: IProps): JSX.Element {
                         </Grid>
                         <Grid item xs={4}>
                           <TextField style={{ flex: '1' }} select label="Tier" fullWidth value={tier.id} onChange={e => {
-                            setTier(service.tiers.find(t => t.id === e.target.value));
+                            setTier(serviceTiers.find(t => t.id === e.target.value));
                           }}>
-                            {service.tiers.map((tier, i) => {
+                            {serviceTiers.map((tier, i) => {
                               return <MenuItem key={i} value={tier.id}>{tier.name}</MenuItem>
                             })}
                           </TextField>

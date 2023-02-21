@@ -1,8 +1,12 @@
+import { Merge } from '../util';
+
 declare global {
   /**
    * @category Awayto Redux
    */
   type ISharedActions =  ICommonModuleActions | IManageModuleActions | IProfileModuleActions;
+
+  interface IMergedState {}
 
 }
 

@@ -19,7 +19,7 @@ import APIs from './apis/index';
 import WebHooks from './webhooks/index';
 import { keycloakClient, groupRoleActions } from './util/keycloak';
 
-import { DecodedJWTToken, UserGroupRoles, StrategyUser, ILoadedState, IActionTypes } from 'awayto';
+import { DecodedJWTToken, UserGroupRoles, StrategyUser, ILoadedState, IActionTypes, ValueOf, StatePayloadValues } from 'awayto';
 import { IdTokenClaims, Strategy, StrategyVerifyCallbackUserInfo } from 'openid-client';
 
 import redis, { RedisClient } from './util/redis';
@@ -28,30 +28,37 @@ import { db, connected as dbConnected } from './util/db';
 
 // import './util/twitch';
 
+export type ApiEvent = {
+  method: string;
+  path: string;
+  public: boolean;
+  username?: string;
+  userSub: string;
+  sourceIp: string;
+  groups?: string[];
+  availableUserGroupRoles: UserGroupRoles;
+  pathParameters: Record<string, string>,
+  queryParameters: Record<string, string>,
+  body: Required<IMergedState>
+}
 
 /**
  * @category API
  */
 export type ApiProps = {
-  event: {
-    method: string;
-    path: string;
-    public: boolean;
-    username?: string;
-    userSub: string;
-    sourceIp: string;
-    groups?: string[];
-    availableUserGroupRoles: UserGroupRoles;
-    pathParameters: Record<string, string>,
-    queryParameters: Record<string, string>,
-    body: Array<ILoadedState> | Record<string, unknown> | AuthEvent
-  };
+  event: ApiEvent;
+  db: Client;
+  redis: RedisClient;
+}
+
+export type AuthProps = {
+  event: Omit<ApiEvent, 'body'> & { body: AuthBody };
   db: Client;
   redis: RedisClient;
 }
 
 export type IWebhooks = {
-  [prop: string]: (event: ApiProps) => Promise<void>;
+  [prop: string]: (event: AuthProps) => Promise<void>;
 };
 
 /**
@@ -71,7 +78,7 @@ export type ApiModulet = {
   cmnd(props: ApiProps, meta?: string): Promise<ApiResponseBody>;
 }
 
-export type AuthEvent = {
+export type AuthBody = {
   id: string;
   clientId: string;
   realmId: string;
@@ -230,7 +237,7 @@ async function go() {
 
       const requestId = uuid();
       try {
-        const body = req.body as AuthEvent;
+        const body = req.body as AuthBody;
         const { type, userId, ipAddress, details } = body;
 
         // Create trace event

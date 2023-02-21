@@ -1,4 +1,5 @@
 import { ITimeUnit, PayloadAction } from '.';
+import { Merge } from '../util';
 
 declare global {
   /**
@@ -7,6 +8,8 @@ declare global {
   interface ISharedState { 
     forms: IFormState
   }
+
+  interface IMergedState extends Merge<unknown, IFormState> {}
 
   /**
    * @category Awayto Redux
@@ -25,7 +28,7 @@ declare global {
  * @category Form
  */
 export type ILookup = {
-  id?: string;
+  id: string;
   name: string;
 }
 

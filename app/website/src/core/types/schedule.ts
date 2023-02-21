@@ -1,4 +1,4 @@
-import { IService } from 'awayto';
+import { IService, Merge } from 'awayto';
 import { ITimeUnitNames } from './time_unit';
 import { PayloadAction } from '.';
 
@@ -9,6 +9,8 @@ declare global {
   interface ISharedState { 
     schedule: IScheduleState;
   }
+
+  interface IMergedState extends Merge<unknown, ISchedule> {}
 
   /**
    * @category Awayto Redux
@@ -31,45 +33,48 @@ export enum BookingModes {
 /**
  * @category Schedule
  */
- export type IScheduleBracket = {
-  id?: string;
-  automatic: boolean;
-  scheduleId?: string;
-  duration: number;
-  multiplier: string;
-  services: IService[];
-  slots: IScheduleBracketSlot[];
-};
-
 export type IScheduleBracketSlot = {
-  id?: string;
-  scheduleBracketId?: string;
+  id: string;
+  scheduleBracketId: string;
   startTime: string;
 }
+
+/**
+ * @category Schedule
+ */
+ export type IScheduleBracket = {
+  id: string;
+  automatic: boolean;
+  scheduleId: string;
+  duration: number;
+  multiplier: string;
+  services: Record<string, IService>;
+  slots: Record<string, IScheduleBracketSlot>;
+};
 
 
 /**
  * @category Awayto
  */
 export type ISchedule = {
-  id?: string;
+  id: string;
   name: string;
-  duration: number | null;
-  scheduleTimeUnitId?: string;
-  scheduleTimeUnitName?: ITimeUnitNames;
-  bracketTimeUnitId?: string;
-  bracketTimeUnitName?: ITimeUnitNames;
-  slotTimeUnitId?: string;
-  slotTimeUnitName?: ITimeUnitNames;
+  duration: number;
+  scheduleTimeUnitId: string;
+  scheduleTimeUnitName: ITimeUnitNames;
+  bracketTimeUnitId: string;
+  bracketTimeUnitName: ITimeUnitNames;
+  slotTimeUnitId: string;
+  slotTimeUnitName: ITimeUnitNames;
   slotDuration: number;
-  brackets: IScheduleBracket[];
+  brackets: Record<string, IScheduleBracket>;
 };
 
 
 /**
  * @category Schedule
  */
-export type IScheduleState = {
+export type IScheduleState = ISchedule & {
   schedules: Record<string, ISchedule>;
 };
 

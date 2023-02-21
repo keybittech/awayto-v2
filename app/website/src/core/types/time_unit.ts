@@ -11,7 +11,7 @@ export enum TimeUnit {
 }
 
 export type ITimeUnit = {
-  id?: string;
+  id: string;
   name: ITimeUnitNames;
 }
 

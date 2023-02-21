@@ -12,16 +12,16 @@ import {
   IPutGroupAction
 } from 'awayto';
 
-const initialGroupState: IGroupState = {
-  groups: {} as Record<string, IGroup>,
-  users: [],
+const initialGroupState = {
+  groups: {},
+  users: {},
   checkedName: '',
   availableGroupAssignments: {},
   checkingName: false,
   error: '',
   isValid: true,
   needCheckName: false
-};
+} as IGroupState;
 
 function reduceDeleteGroup(state: IGroupState, action: IDeleteGroupAction): IGroupState {
   const groups = { ...state.groups };
