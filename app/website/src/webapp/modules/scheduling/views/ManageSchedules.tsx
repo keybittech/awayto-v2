@@ -12,7 +12,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { ISchedule, IActionTypes, localFromNow, IGroupSchedule, IUtilActionTypes } from 'awayto';
 import { useRedux, useApi, useAct } from 'awayto-hooks';
 
-import ManageScheduleModal from './ ManageScheduleModal';
+import ManageScheduleModal from './ManageScheduleModal';
 import { useParams } from 'react-router';
 
 const { OPEN_CONFIRM } = IUtilActionTypes;

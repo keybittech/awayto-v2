@@ -39,16 +39,7 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
   const yAxisTypeName = slotTimeUnitName == bracketTimeUnitName ? bracketTimeUnitName : slotTimeUnitName;
   const columnWidth = 150;
 
-  useEffect(() => {
-    if (schedule.brackets) {
-      for (const b in schedule.brackets) {
-        setSelectedBracket(schedule.brackets[b]);
-        break;
-      }
-    }
-  }, [schedule.brackets]);
-
-  // THe number of x axis divions
+  // The number of x axis divions
   const divisions = useMemo(() => {
     return moment.duration({ [scheduleTimeUnitName]: 1 }).as(xAxisTypeName)
   }, [scheduleTimeUnitName, xAxisTypeName]);
@@ -128,7 +119,7 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
     }}
     >
       <Grid container>
-        <Grid item xs={12} sm={8} ref={parentRef}>
+        <Grid item xs={12} ref={parentRef}>
           <Typography variant="h6">Schedule Display</Typography>
           <Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
             {scheduleBracketsValues.map((bracket, i) => {
@@ -162,7 +153,7 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
             </FixedSizeGrid>
           </Box>
         </Grid>
-        <Grid item xs={12} sm={4} sx={{ maxHeight: '600px', overflow: 'auto' }}>
+        <Grid item xs={12} sx={{ maxHeight: '600px', overflow: 'auto' }}>
           <Typography variant="h6">Selected Slots</Typography>
           {scheduleBracketsValues.map((b, i) => {
             const slots = Object.values(b.slots);

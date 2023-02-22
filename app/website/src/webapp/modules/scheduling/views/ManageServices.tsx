@@ -13,7 +13,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { IService, IActionTypes, localFromNow, IGroupService, IUtilActionTypes } from 'awayto';
 import { useRedux, useApi, useAct } from 'awayto-hooks';
 
-import ManageServiceModal from './ ManageServiceModal';
+import ManageServiceModal from './ManageServiceModal';
 
 const { OPEN_CONFIRM } = IUtilActionTypes;
 
@@ -95,7 +95,7 @@ export function ManageServices (props: IProps): JSX.Element {
   }, [groupName]);
 
   return <>
-    <Dialog open={dialog === 'manage_service'} fullWidth maxWidth="sm">
+    <Dialog scroll="paper" open={dialog === 'manage_service'} fullWidth maxWidth="sm">
       <ManageServiceModal {...props} editService={service} closeModal={() => {
         setDialog('')
         api(getServicesAction, true, { groupName });

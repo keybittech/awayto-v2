@@ -10,7 +10,7 @@ declare global {
     schedule: IScheduleState;
   }
 
-  interface IMergedState extends Merge<unknown, ISchedule> {}
+  interface IMergedState extends Merge<Merge<unknown, IScheduleState>, IScheduleBracketState> {}
 
   /**
    * @category Awayto Redux
@@ -52,6 +52,10 @@ export type IScheduleBracketSlot = {
   slots: Record<string, IScheduleBracketSlot>;
 };
 
+export type IScheduleBracketState = IScheduleBracket & {
+  schedules: Record<string, IScheduleBracket>;
+}
+
 
 /**
  * @category Awayto
@@ -84,6 +88,7 @@ export type IScheduleState = ISchedule & {
  */
 export enum IScheduleActionTypes {
   POST_SCHEDULE = "POST/schedules",
+  POST_SCEHDULE_BRACKETS = "POST/schedule/brackets",
   PUT_SCHEDULE = "PUT/schedules",
   GET_SCHEDULES = "GET/schedules",
   GET_SCHEDULE_BY_ID = "GET/schedules/:id",

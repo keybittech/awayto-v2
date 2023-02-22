@@ -75,9 +75,10 @@ export function ServiceHome(props: IProps): JSX.Element {
   return <Grid container spacing={2}>
 
     <Grid item xs={12}>
-      <Card>
+      <Card style={{ display: 'flex', flexDirection: 'column' }}>
         <CardHeader
-          title="Service"
+          title="Create Service"
+          subheader="Services are the functions of your organization. Each service has a set of tiers and features. As well, a cost may be associated with the service. If there is a cost, tiers can be used to provide a higher level of service at a higher cost, using the multiplier. Features can be added to each tier as necessary." 
           action={
             groups && group?.id && <TextField
               select
@@ -90,36 +91,7 @@ export function ServiceHome(props: IProps): JSX.Element {
           }
         />
         <CardContent sx={{ padding: '0 15px' }}>
-          <Grid container>
-            <Grid item>
-              <Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                <Typography variant="body2">Services are the functions of your organization. Each service has a set of tiers and features. As well, a cost may be associated with the service. If there is a cost, tiers can be used to provide a higher level of service at a higher cost, using the multiplier. Features can be added to each tier as necessary.</Typography>
-                <Typography variant="h6">Current Services: </Typography>
-                {Object.values(groupServices).map((service, i) => {
-                  return <Box key={`service-chip${i + 1}new`} m={1}><Chip label={`${service.name}`} onDelete={group && (() => {
-                    act(OPEN_CONFIRM, {
-                      isConfirming: true,
-                      message: 'Are you sure you want to delete this service?',
-                      action: () => {
-                        const [, res] = api(DELETE_GROUP_SERVICE, true, { groupName: group.name, ids: service.id });
-                        res?.then(() => {
-                          api(DELETE_SERVICE, true, { id: service.id });
-                        });
-                      }
-                    });
-                  })} /></Box>
-                })}
-              </Box>
-            </Grid>
-          </Grid>
-        </CardContent>
-      </Card>
-    </Grid>
 
-    <Grid item xs={12}>
-      <Card style={{ display: 'flex', flexDirection: 'column' }}>
-        <CardHeader title="Create Service" />
-        <CardContent sx={{ padding: '0 15px' }}>
           <Grid container>
             <Grid item xs={12} md={6}>
               <Box mb={4}>
@@ -137,14 +109,11 @@ export function ServiceHome(props: IProps): JSX.Element {
 
     <Grid item xs={12}>
       <Card style={{ display: 'flex', flexDirection: 'column' }}>
+        <CardHeader title="Add Tier" subheader='Some services divide their offering up into tiers. For example, a "Basic" tier may have some basic features, and the "Advanced" tier has more features. You should have at least 1 tier which describes the features offered by your service. During booking, your users will see this information.' />
+
         <CardContent sx={{ padding: '0 15px' }}>
           <Grid container>
             <Grid item xs={12} md={6}>
-              <Box mb={4}>
-                <Typography variant="h6">Add Tier</Typography>
-                <Typography variant="body2">Some services divide their offering up into tiers. For example, a "Basic" tier may have some basic features, and the "Advanced" tier has more features. You should have at least 1 tier which describes the features offered by your service. During booking, your users will see this information.</Typography>
-              </Box>
-
               <Box mb={4}>
                 {/* <Typography variant="body2">Some services divide their offering up into tiers. For example, a "Basic" tier may some basic features, and the "Advanced" tier has more features. If your service has no tier, you can ignore this section and we'll create a standard tier for you.</Typography> */}
                 <TextField fullWidth label="Name" value={newServiceTier.name} onChange={e => setNewServiceTier({ ...newServiceTier, name: e.target.value })} helperText="Ex: Basic, Mid-Tier, Advanced" />

@@ -13,53 +13,61 @@ const schedules: ApiModule = [
 
         const schedule = props.event.body;
         
-        const { name, brackets, duration, scheduleTimeUnitId, bracketTimeUnitId, slotTimeUnitId, slotDuration } = schedule;
+        const { name, duration, scheduleTimeUnitId, bracketTimeUnitId, slotTimeUnitId, slotDuration } = schedule;
 
-        const { id } = (await props.db.query<ISchedule>(`
+        const { rows: [{ id }] } = await props.db.query<ISchedule>(`
           INSERT INTO dbtable_schema.schedules (name, duration, schedule_time_unit_id, bracket_time_unit_id, slot_time_unit_id, slot_duration)
           VALUES ($1, $2, $3, $4, $5, $6)
           RETURNING id
-        `, [name, duration, scheduleTimeUnitId, bracketTimeUnitId, slotTimeUnitId, slotDuration])).rows[0];
-
-        if (!id) {
-          throw { reason: 'Unable to create schedule id.' };
-        }
+        `, [name, duration, scheduleTimeUnitId, bracketTimeUnitId, slotTimeUnitId, slotDuration]);
 
         schedule.id = id;
-
-        await asyncForEach(Object.values(brackets), async b => {
-          const { id: bracketId } = (await props.db.query<IScheduleBracket>(`
-            INSERT INTO dbtable_schema.schedule_brackets (schedule_id, duration, multiplier, automatic)
-            VALUES ($1, $2, $3, $4)
-            RETURNING id
-          `, [schedule.id, b.duration, b.multiplier, b.automatic])).rows[0];
-
-          b.id = bracketId;
-
-          await asyncForEach(Object.values(b.services), async s => {
-            await props.db.query(`
-              INSERT INTO dbtable_schema.schedule_bracket_services (schedule_bracket_id, service_id)
-              VALUES ($1, $2)
-              ON CONFLICT (schedule_bracket_id, service_id) DO NOTHING
-            `, [bracketId, s.id])
-          });
-
-          await asyncForEach(Object.values(b.slots), async s => {
-            const [{ id: slotId }] = (await props.db.query(`
-              INSERT INTO dbtable_schema.schedule_bracket_slots (schedule_bracket_id, start_time, created_sub)
-              VALUES ($1, $2, $3)
-              ON CONFLICT (schedule_bracket_id, start_time) DO NOTHING
-              RETURNING id
-            `, [bracketId, moment(s.startTime).utc().toString(), props.event.userSub])).rows;
-
-            s.id = slotId;
-          });
-        });
 
         return [schedule];
       } catch (error) {
         throw error;
       }
+    }
+  },
+
+  {
+    action: IScheduleActionTypes.POST_SCEHDULE_BRACKETS,
+    cmnd: async (props) => {
+      const { brackets } = props.event.body;
+      const newBrackets = {} as Record<string, IScheduleBracket>;
+
+      await asyncForEach(Object.values(brackets), async b => {
+        const { id: bracketId } = (await props.db.query<IScheduleBracket>(`
+          INSERT INTO dbtable_schema.schedule_brackets (schedule_id, duration, multiplier, automatic)
+          VALUES ($1, $2, $3, $4)
+          RETURNING id
+        `, [b.scheduleId, b.duration, b.multiplier, b.automatic])).rows[0];
+
+        b.id = bracketId;
+
+        await asyncForEach(Object.values(b.services), async s => {
+          await props.db.query(`
+            INSERT INTO dbtable_schema.schedule_bracket_services (schedule_bracket_id, service_id)
+            VALUES ($1, $2)
+            ON CONFLICT (schedule_bracket_id, service_id) DO NOTHING
+          `, [bracketId, s.id])
+        });
+
+        await asyncForEach(Object.values(b.slots), async s => {
+          const [{ id: slotId }] = (await props.db.query(`
+            INSERT INTO dbtable_schema.schedule_bracket_slots (schedule_bracket_id, start_time, created_sub)
+            VALUES ($1, $2, $3)
+            ON CONFLICT (schedule_bracket_id, start_time) DO NOTHING
+            RETURNING id
+          `, [bracketId, moment(s.startTime).utc().toString(), props.event.userSub])).rows;
+
+          s.id = slotId;
+        });
+
+        newBrackets[b.id] = b;
+      });
+
+      return brackets;
     }
   },
 
