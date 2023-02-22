@@ -9,34 +9,32 @@ import Tooltip from '@mui/material/Tooltip';
 import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-import { ISchedule, IActionTypes, localFromNow, IGroupSchedule, IUtilActionTypes } from 'awayto';
+import { IService, ISchedule, IActionTypes, localFromNow, IUtilActionTypes, IGroupSchedule } from 'awayto';
 import { useRedux, useApi, useAct } from 'awayto-hooks';
 
-import ManageSchedulesModal from './ManageSchedulesModal';
+import ManageScheduleBracketsModal from './ManageScheduleBracketsModal';
 import { useParams } from 'react-router';
 
 const { OPEN_CONFIRM } = IUtilActionTypes;
 
-export type ManageSchedulesActions = {
+export type ManageScheduleBracketsActions = {
   schedules?: Record<string, ISchedule>;
+  groupServices?: Record<string, IService>;
   groupSchedules?: Record<string, IGroupSchedule>;
-  getSchedulesAction?: IActionTypes;
-  postSchedulesAction?: IActionTypes;
-  postGroupSchedulesAction?: IActionTypes;
-  putSchedulesAction?: IActionTypes;
-  disableSchedulesAction?: IActionTypes;
-  deleteSchedulesAction?: IActionTypes;
-  deleteGroupSchedulesAction?: IActionTypes;
+  postScheduleAction?: IActionTypes;
+  postScheduleParentAction?: IActionTypes;
+  getScheduleBracketsAction?: IActionTypes;
+  postScheduleBracketsAction?: IActionTypes;
 };
 
 declare global {
-  interface IProps extends ManageSchedulesActions { }
+  interface IProps extends ManageScheduleBracketsActions { }
 }
 
-// This is how group owners interact with the schedule
+// This is how group users interact with the schedule
 
-export function ManageSchedules(props: IProps): JSX.Element {
-  const { schedules, getSchedulesAction, deleteGroupSchedulesAction } = props as IProps & Required<ManageSchedulesActions>;
+export function ManageScheduleBrackets(props: IProps): JSX.Element {
+  const { schedules, getScheduleBracketsAction } = props as IProps & Required<ManageScheduleBracketsActions>;
 
   const { groupName } = useParams();
 
@@ -52,16 +50,15 @@ export function ManageSchedules(props: IProps): JSX.Element {
 
   const columns = useMemo(() => [
     { id: 'createdOn', selector: row => row.createdOn, omit: true },
-    { name: 'Name', selector: row => row.name },
     { name: 'Created', selector: row => localFromNow(row.createdOn) }
   ] as TableColumn<ISchedule>[], [schedules])
 
   const actions = useMemo(() => {
     const { length } = selected;
     const acts = length == 1 ? [
-      <IconButton key={'manage_Schedule'} onClick={() => {
+      <IconButton key={'manage_ScheduleBracket'} onClick={() => {
         setSchedule(selected.pop());
-        setDialog('manage_Schedule');
+        setDialog('manage_ScheduleBracket');
         setToggle(!toggle);
       }}>
         <CreateIcon />
@@ -70,45 +67,45 @@ export function ManageSchedules(props: IProps): JSX.Element {
 
     return [
       ...acts,
-      <Tooltip key={'delete_schedule'} title="Delete"><IconButton onClick={() => {
-        if (groupName) {
+      // <Tooltip key={'delete_schedule'} title="Delete"><IconButton onClick={() => {
+      //   if (groupName) {
 
-          void act(OPEN_CONFIRM, {
-            isConfirming: true,
-            message: 'Are you sure you want to delete these schedules? This cannot be undone.',
-            action: () => {
+      //     void act(OPEN_CONFIRM, {
+      //       isConfirming: true,
+      //       message: 'Are you sure you want to delete these brackets? This cannot be undone.',
+      //       action: () => {
 
-              const [, res] = api(deleteGroupSchedulesAction, true, { groupName, ids: selected.map(s => s.id).join(',') })
-              res?.then(() => {
-                setToggle(!toggle);
-                api(getSchedulesAction, true, { groupName });
-              });
-            }
-          });
-        }
-      }}>
-        <DeleteIcon />
-      </IconButton></Tooltip>
+      //         const [, res] = api(deleteScheduleBracketsAction, true, { groupName, ids: selected.map(s => s.id).join(',') })
+      //         res?.then(() => {
+      //           setToggle(!toggle);
+      //           api(getScheduleBracketsAction, true, { groupName });
+      //         });
+      //       }
+      //     });
+      //   }
+      // }}>
+      //   <DeleteIcon />
+      // </IconButton></Tooltip>
     ]
   }, [selected, groupName])
 
   useEffect(() => {
     if (groupName) {
-      const [abort] = api(getSchedulesAction, true, { groupName });
+      const [abort] = api(getScheduleBracketsAction, true, { groupName });
       return () => abort();
     }
   }, [groupName]);
 
   return <>
     <Dialog open={dialog === 'manage_schedule'} fullWidth maxWidth="sm">
-      <ManageSchedulesModal {...props} editSchedule={schedule} closeModal={() => {
+      <ManageScheduleBracketsModal {...props} editSchedule={schedule} closeModal={() => {
         setDialog('')
-        api(getSchedulesAction, true, { groupName });
+        api(getScheduleBracketsAction, true, { groupName });
       }} />
     </Dialog>
 
     <DataTable
-      title="Schedules"
+      title="ScheduleBrackets"
       actions={<Button onClick={() => { setSchedule(undefined); setDialog('manage_schedule') }}>New</Button>}
       contextActions={actions}
       data={Object.values(schedules)}
@@ -128,4 +125,4 @@ export function ManageSchedules(props: IProps): JSX.Element {
   </>
 }
 
-export default ManageSchedules;
+export default ManageScheduleBrackets;

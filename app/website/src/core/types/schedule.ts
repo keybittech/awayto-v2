@@ -50,6 +50,7 @@ export type IScheduleBracketSlot = {
   multiplier: string;
   services: Record<string, IService>;
   slots: Record<string, IScheduleBracketSlot>;
+  createdOn: string;
 };
 
 export type IScheduleBracketState = IScheduleBracket & {
@@ -62,6 +63,7 @@ export type IScheduleBracketState = IScheduleBracket & {
  */
 export type ISchedule = {
   id: string;
+  parentUuid?: string;
   name: string;
   duration: number;
   scheduleTimeUnitId: string;
@@ -88,6 +90,7 @@ export type IScheduleState = ISchedule & {
  */
 export enum IScheduleActionTypes {
   POST_SCHEDULE = "POST/schedules",
+  POST_SCHEDULE_PARENT = "POST/schedule/:scheduleId/parent/:parentUuid",
   POST_SCEHDULE_BRACKETS = "POST/schedule/brackets",
   PUT_SCHEDULE = "PUT/schedules",
   GET_SCHEDULES = "GET/schedules",

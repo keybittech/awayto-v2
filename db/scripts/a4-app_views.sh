@@ -117,6 +117,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     bracket_time_unit_id as "bracketTimeUnitId",
     slot_time_unit_id as "slotTimeUnitId",
     slot_duration as "slotDuration",
+    created_sub as "createdSub",
     created_on as "createdOn",
     row_number() OVER () as row
   FROM

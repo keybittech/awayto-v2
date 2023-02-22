@@ -26,10 +26,10 @@ export function ManageServiceModal ({ editService, closeModal, ...props }: IProp
 
   const api = useApi();
   const act = useAct();
-  const [service, setService] = useState<Partial<IService>>({
+  const [service, setService] = useState({
     name: '',
     ...editService
-  });
+  } as IService);
   
   const handleSubmit = useCallback(() => {
     const { id, name } = service;

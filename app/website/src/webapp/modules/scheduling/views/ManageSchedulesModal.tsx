@@ -15,22 +15,11 @@ import { Mark } from "@mui/base";
 import { ISchedule, IUtilActionTypes, ITimeUnit, TimeUnit, timeUnitOrder } from "awayto";
 import { useApi, useAct, useRedux, useComponents } from 'awayto-hooks';
 
+import { scheduleSchema } from "./ScheduleHome";
 import { ManageSchedulesActions } from "./ManageSchedules";
 import { useParams } from "react-router";
 
 const { SET_SNACK } = IUtilActionTypes;
-
-const scheduleSchema = {
-  name: '',
-  duration: 1,
-  slotDuration: 30,
-  scheduleTimeUnitId: '',
-  scheduleTimeUnitName: '',
-  bracketTimeUnitId: '',
-  bracketTimeUnitName: '',
-  slotTimeUnitId: '',
-  slotTimeUnitName: ''
-};
 
 declare global {
   interface IProps {

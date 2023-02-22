@@ -113,47 +113,40 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
   }, [selected, buttonDown, selectedBracket, slotTimeUnitName, slotDuration, xAxisTypeName]);
 
   return <>
-    <Card sx={{
-      backgroundColor: '#444',
-      padding: '15px'
-    }}
-    >
-      <Grid container>
-        <Grid item xs={12} ref={parentRef}>
-          <Typography variant="h6">Schedule Display</Typography>
-          <Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-            {scheduleBracketsValues.map((bracket, i) => {
-              return <Box key={`bracket-chip${i + 1}new`} m={1}>
-                <Chip
-                  label={`#${i + 1} ${moment.duration({ [schedule.bracketTimeUnitName]: bracket.duration }).as(schedule.slotTimeUnitName) - (Object.keys(bracket.slots).length * schedule.slotDuration)} ${schedule.slotTimeUnitName}s (${bracket.multiplier}x)`}
-                  sx={{ '&:hover': { cursor: 'pointer' }, borderWidth: '1px', borderStyle: 'solid', borderColor: bracketColors[i], boxShadow: selectedBracket?.id === bracket.id ? 2 : undefined }}
-                  onDelete={() => {
-                    delete schedule.brackets[bracket.id];
-                    setSchedule({ ...schedule, brackets: { ...schedule.brackets } });
-                  }}
-                  onClick={() => {
-                    setSelectedBracket(bracket);
-                  }}
-                />
-              </Box>
-            })}
+    <Typography variant="caption">Click a bracket, then use up the allotted time by clicking on the time slots. Hold down the mouse button to select multiple slots. There can be leftover slots if they're unneeded.</Typography>
+    <Box ref={parentRef}>
+      <Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+        {scheduleBracketsValues.map((bracket, i) => {
+          return <Box key={`bracket-chip${i + 1}new`} m={1}>
+            <Chip
+              label={`#${i + 1} ${moment.duration({ [schedule.bracketTimeUnitName]: bracket.duration }).as(schedule.slotTimeUnitName) - (Object.keys(bracket.slots).length * schedule.slotDuration)} ${schedule.slotTimeUnitName}s (${bracket.multiplier}x)`}
+              sx={{ '&:hover': { cursor: 'pointer' }, borderWidth: '1px', borderStyle: 'solid', borderColor: bracketColors[i], boxShadow: selectedBracket?.id === bracket.id ? 2 : undefined }}
+              onDelete={() => {
+                delete schedule.brackets[bracket.id];
+                setSchedule({ ...schedule, brackets: { ...schedule.brackets } });
+              }}
+              onClick={() => {
+                setSelectedBracket(bracket);
+              }}
+            />
           </Box>
-          <Typography variant="body1">Click a bracket tag above to select it, then use up the allotted time by clicking on the time slots. Hold down the mouse button to select multiple slots. There can be leftover slots if they're unneeded.</Typography>
+        })}
+      </Box>
 
-          <Box onMouseLeave={() => setButtonDown(false)}>
-            <FixedSizeGrid
-              rowCount={selections}
-              columnCount={divisions}
-              rowHeight={30}
-              columnWidth={columnWidth}
-              height={400}
-              width={Math.min(width, columnWidth * divisions)}
-            >
-              {Cell}
-            </FixedSizeGrid>
-          </Box>
-        </Grid>
-        <Grid item xs={12} sx={{ maxHeight: '600px', overflow: 'auto' }}>
+      <Box onMouseLeave={() => setButtonDown(false)}>
+        <FixedSizeGrid
+          rowCount={selections}
+          columnCount={divisions}
+          rowHeight={30}
+          columnWidth={columnWidth}
+          height={400}
+          width={Math.min(width, columnWidth * divisions)}
+        >
+          {Cell}
+        </FixedSizeGrid>
+      </Box>
+    </Box>
+    {/* <Grid item xs={12} sx={{ maxHeight: '600px', overflow: 'auto' }}>
           <Typography variant="h6">Selected Slots</Typography>
           {scheduleBracketsValues.map((b, i) => {
             const slots = Object.values(b.slots);
@@ -167,8 +160,6 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
               })}
             </Box>
           })}
-        </Grid>
-      </Grid>
-    </Card>
+        </Grid> */}
   </>;
 }
