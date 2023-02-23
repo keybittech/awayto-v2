@@ -1,5 +1,6 @@
-import { IUuidNotes, IUuidNotesActionTypes } from 'awayto';
-import { asyncForEach } from 'awayto';
+import moment from 'moment';
+
+import { IUuidNotes, IUuidNotesActionTypes, asyncForEach } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
 
@@ -13,10 +14,10 @@ const uuidNotes: ApiModule = [
 
         const response = await props.db.query<IUuidNotes>(`
           INSERT INTO dbtable_schema.uuid_notes (parent_uuid, note, created_on, created_sub)
-          VALUES ($1, $2, $3, $4)
+          VALUES ($1, $2, $3, $4::uuid)
           ON CONFLICT (parent_uuid, note, created_sub) DO NOTHING
           RETURNING id
-        `, [parent_uuid, note, new Date(), props.event.userSub]);
+        `, [parent_uuid, note, moment().utc(), props.event.userSub]);
         
         return { id: response.rows[0].id };
 
@@ -34,7 +35,13 @@ const uuidNotes: ApiModule = [
 
         if (!id || !props.event.userSub) return false;
 
-        const updateProps = buildUpdate({ id, parent_uuid, note, updated_on: (new Date()).toString(), updated_sub: props.event.userSub });
+        const updateProps = buildUpdate({
+          id,
+          parent_uuid,
+          note,
+          updated_on: moment().utc(),
+          updated_sub: props.event.userSub
+        });
 
         await props.db.query(`
           UPDATE dbtable_schema.uuid_notes
@@ -118,9 +125,9 @@ const uuidNotes: ApiModule = [
         await asyncForEach(Object.values(notes), async note => {
           await props.db.query(`
             UPDATE dbtable_schema.uuid_notes
-            SET enabled = false
+            SET enabled = false, updated_on = $2, updated_sub = $3
             WHERE id = $1
-          `, [note.id]);
+          `, [note.id, moment().utc(), props.event.userSub]);
         });
 
         return notes;

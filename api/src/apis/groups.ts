@@ -1,10 +1,12 @@
-import { IGroup, IUuidRoles, DbError, IUserProfile, IGroupState, IRole, IGroupActionTypes } from 'awayto';
-import { asyncForEach } from 'awayto';
-import { ApiModule } from '../api';
-import { buildUpdate } from '../util/db';
+import moment from 'moment';
 import { performance } from 'perf_hooks';
 
+import { IGroup, IUuidRoles, DbError, IUserProfile, IGroupState, IRole, IGroupActionTypes, asyncForEach } from 'awayto';
+
+import { ApiModule } from '../api';
+import { buildUpdate } from '../util/db';
 import { keycloak, appClient, appRoles, groupAdminRoles, groupRoleActions, regroup, roleCall } from '../util/keycloak';
+
 
 const groups: ApiModule = [
 
@@ -20,7 +22,7 @@ const groups: ApiModule = [
         // Create a group in app db if user has no groups and name is unique
         const { rows: [group] } = await props.db.query<IGroup>(`
           INSERT INTO dbtable_schema.groups (external_id, code, role_id, name, created_sub)
-          VALUES ($1, $2, $3, $4, $5)
+          VALUES ($1, $2, $3, $4, $5::uuid)
           ON CONFLICT (name) DO NOTHING
           RETURNING id, name, created_sub
         `, [props.event.userSub, props.event.userSub, adminRoleId, name, props.event.userSub]);
@@ -49,9 +51,9 @@ const groups: ApiModule = [
 
           await props.db.query(`
             INSERT INTO dbtable_schema.uuid_roles (parent_uuid, role_id, external_id, created_on, created_sub)
-            VALUES ($1, $2, $3, $4, $5)
+            VALUES ($1, $2, $3, $4, $5::uuid)
             ON CONFLICT (parent_uuid, role_id) DO NOTHING
-          `, [group.id, groupRoleId, kcSubgroupId, new Date(), props.event.userSub])
+          `, [group.id, groupRoleId, kcSubgroupId, moment().utc(), props.event.userSub])
         });
 
         // Get the user uuid from the sub
@@ -62,7 +64,7 @@ const groups: ApiModule = [
         // Attach the user to the group in the app db
         await props.db.query(`
           INSERT INTO dbtable_schema.uuid_groups (parent_uuid, group_id, created_sub)
-          VALUES ($1, $2, $3)
+          VALUES ($1, $2, $3::uuid)
           ON CONFLICT (parent_uuid, group_id) DO NOTHING
           RETURNING id
         `, [userId, group.id, props.event.userSub]);
@@ -106,7 +108,12 @@ const groups: ApiModule = [
       try {
         const { id, name, roles, roleId: adminRoleId } = props.event.body;
 
-        const updateProps = buildUpdate({ id, name });
+        const updateProps = buildUpdate({
+          id,
+          name,
+          updated_sub: props.event.userSub,
+          updated_on: moment().utc()
+        });
 
         // Update the basic info about the group
         const { rows: [group] } = await props.db.query<IGroup>(`
@@ -150,9 +157,9 @@ const groups: ApiModule = [
           await keycloak.groups.setOrCreateChild({ id: group.externalId }, { name: role.name });
           await props.db.query(`
             INSERT INTO dbtable_schema.uuid_roles (parent_uuid, role_id, created_on, created_sub)
-            VALUES ($1, $2, $3, $4)
+            VALUES ($1, $2, $3, $4::uuid)
             ON CONFLICT (parent_uuid, role_id) DO NOTHING
-          `, [group.id, role.id, new Date(), props.event.userSub])
+          `, [group.id, role.id, moment().utc(), props.event.userSub])
         })
 
 
@@ -178,7 +185,7 @@ const groups: ApiModule = [
           `, [adminRoleId])).rows;
 
           // Set the new admin role for the group
-          await props.db.query(`UPDATE dbtable_schema.groups SET role_id = $1 WHERE id = $2`, [adminRoleId, group.id]);
+          await props.db.query(`UPDATE dbtable_schema.groups SET role_id = $1, updated_on = $3, updated_sub = $4 WHERE id = $2`, [adminRoleId, group.id, moment().utc(), props.event.userSub]);
           group.roleId = adminRoleId;
 
           // Attach keycloak roles to the new admin role subgroup
@@ -415,9 +422,9 @@ const groups: ApiModule = [
         await asyncForEach(Object.values(groups), async group => {
           await props.db.query(`
             UPDATE dbtable_schema.groups
-            SET enabled = false
+            SET enabled = false, updated_on = $2, updated_sub = $3
             WHERE id = $1
-          `, [group.id]);
+          `, [group.id, moment().utc(), props.event.userSub]);
         });
 
         return groups;
@@ -490,9 +497,9 @@ const groups: ApiModule = [
         `, [props.event.userSub])).rows;
 
         await props.db.query(`
-          INSERT INTO dbtable_schema.uuid_groups (parent_uuid, group_id)
-          VALUES ($1, $2);
-        `, [userId, groupId]);
+          INSERT INTO dbtable_schema.uuid_groups (parent_uuid, group_id, created_sub)
+          VALUES ($1, $2, $3::uuid);
+        `, [userId, groupId, props.event.userSub]);
 
         return true;
       } catch (error) {

@@ -8,9 +8,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR (50) NOT NULL UNIQUE,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
-    created_sub VARCHAR (50),
+    created_sub uuid REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
-    updated_sub VARCHAR (50),
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
     enabled BOOLEAN NOT NULL DEFAULT true
   );
 
@@ -25,9 +25,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR (50) NOT NULL UNIQUE,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
-    created_sub VARCHAR (50),
+    created_sub uuid REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
-    updated_sub VARCHAR (50),
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
     enabled BOOLEAN NOT NULL DEFAULT true
   );
 
@@ -40,13 +40,14 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
 
   CREATE TABLE dbtable_schema.services (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name VARCHAR (50) NOT NULL UNIQUE,
+    name VARCHAR (50) NOT NULL,
     cost VARCHAR(50) NOT NULL,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
-    created_sub VARCHAR (50),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
-    updated_sub VARCHAR (50),
-    enabled BOOLEAN NOT NULL DEFAULT true
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
+    enabled BOOLEAN NOT NULL DEFAULT true,
+    UNIQUE (name, created_sub)
   );
 
   CREATE TABLE dbtable_schema.uuid_services (
@@ -54,9 +55,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     parent_uuid uuid NOT NULL,
     service_id uuid NOT NULL REFERENCES dbtable_schema.services (id) ON DELETE CASCADE,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
-    created_sub VARCHAR (50),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
-    updated_sub VARCHAR (50),
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
     enabled BOOLEAN NOT NULL DEFAULT true,
     UNIQUE (parent_uuid, service_id)
   );
@@ -65,9 +66,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR (50) NOT NULL UNIQUE,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
-    created_sub VARCHAR (50),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
-    updated_sub VARCHAR (50),
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
     enabled BOOLEAN NOT NULL DEFAULT true
   );
 
@@ -76,9 +77,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     parent_uuid uuid NOT NULL,
     service_addon_id uuid NOT NULL REFERENCES dbtable_schema.service_addons (id) ON DELETE CASCADE,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
-    created_sub VARCHAR (50),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
-    updated_sub VARCHAR (50),
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
     enabled BOOLEAN NOT NULL DEFAULT true,
     UNIQUE (parent_uuid, service_addon_id)
   );
@@ -89,9 +90,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     service_id uuid NOT NULL REFERENCES dbtable_schema.services (id) ON DELETE CASCADE,
     multiplier DECIMAL NOT NULL,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
-    created_sub VARCHAR (50),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
-    updated_sub VARCHAR (50),
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
     enabled BOOLEAN NOT NULL DEFAULT true,
     UNIQUE (name, service_id)
   );
@@ -100,9 +101,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     service_tier_id uuid NOT NULL REFERENCES dbtable_schema.service_tiers (id) ON DELETE CASCADE,
     service_addon_id uuid NOT NULL REFERENCES dbtable_schema.service_addons (id) ON DELETE CASCADE,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
-    created_sub VARCHAR (50),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
-    updated_sub VARCHAR (50),
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
     enabled BOOLEAN NOT NULL DEFAULT true,
     UNIQUE (service_tier_id, service_addon_id)
   );
@@ -113,9 +114,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     email VARCHAR (250),
     phone VARCHAR (20),
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
-    created_sub VARCHAR (50),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
-    updated_sub VARCHAR (50),
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
     enabled BOOLEAN NOT NULL DEFAULT true
   );
 
@@ -123,9 +124,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR (50) NOT NULL UNIQUE,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
-    created_sub VARCHAR (50),
+    created_sub uuid REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
-    updated_sub VARCHAR (50),
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
     enabled BOOLEAN NOT NULL DEFAULT true
   );
 
@@ -148,10 +149,11 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     slot_time_unit_id uuid NOT NULL REFERENCES dbtable_schema.time_units (id) ON DELETE CASCADE,
     slot_duration INTEGER NOT NULL,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
-    created_sub VARCHAR (50),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
-    updated_sub VARCHAR (50),
-    enabled BOOLEAN NOT NULL DEFAULT true
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
+    enabled BOOLEAN NOT NULL DEFAULT true,
+    UNIQUE (name, created_sub)
   );
 
   CREATE TABLE dbtable_schema.uuid_schedules (
@@ -159,9 +161,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     parent_uuid uuid NOT NULL,
     schedule_id uuid NOT NULL REFERENCES dbtable_schema.schedules (id) ON DELETE CASCADE,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
-    created_sub VARCHAR (50),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
-    updated_sub VARCHAR (50),
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
     enabled BOOLEAN NOT NULL DEFAULT true,
     UNIQUE (parent_uuid, schedule_id)
   );
@@ -173,9 +175,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     multiplier DECIMAL NOT NULL,
     automatic BOOLEAN NOT NULL DEFAULT false,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
-    created_sub VARCHAR (50),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
-    updated_sub VARCHAR (50),
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
     enabled BOOLEAN NOT NULL DEFAULT true
   );
 
@@ -184,9 +186,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     schedule_bracket_id uuid NOT NULL REFERENCES dbtable_schema.schedule_brackets (id) ON DELETE CASCADE,
     start_time TIMESTAMP NOT NULL,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
-    created_sub VARCHAR (50),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
-    updated_sub VARCHAR (50),
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
     enabled BOOLEAN NOT NULL DEFAULT true,
     UNIQUE (schedule_bracket_id, start_time)
   );
@@ -195,9 +197,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     schedule_bracket_id uuid NOT NULL REFERENCES dbtable_schema.schedule_brackets (id) ON DELETE CASCADE,
     service_id uuid NOT NULL REFERENCES dbtable_schema.services (id) ON DELETE CASCADE,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
-    created_sub VARCHAR (50),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
-    updated_sub VARCHAR (50),
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
     enabled BOOLEAN NOT NULL DEFAULT true,
     UNIQUE (schedule_bracket_id, service_id)
   );
@@ -213,9 +215,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     contact_id uuid NOT NULL REFERENCES dbtable_schema.contacts (id) ON DELETE CASCADE,
     respond_by TIMESTAMP NOT NULL,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
-    created_sub VARCHAR (50),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
-    updated_sub VARCHAR (50),
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
     enabled BOOLEAN NOT NULL DEFAULT true
   );
 
@@ -224,9 +226,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     parent_uuid uuid NOT NULL,
     quote_id uuid NOT NULL REFERENCES dbtable_schema.quotes (id) ON DELETE CASCADE,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
-    created_sub VARCHAR (50),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
-    updated_sub VARCHAR (50),
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
     enabled BOOLEAN NOT NULL DEFAULT true,
     UNIQUE (parent_uuid, quote_id)
   );
@@ -236,9 +238,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     contact_id uuid NOT NULL REFERENCES dbtable_schema.contacts (id) ON DELETE CASCADE,
     details jsonb NOT NULL,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
-    created_sub VARCHAR (50),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
-    updated_sub VARCHAR (50),
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
     enabled BOOLEAN NOT NULL DEFAULT true
   );
 
@@ -247,9 +249,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     parent_uuid uuid NOT NULL,
     payment_id uuid NOT NULL REFERENCES dbtable_schema.payments (id) ON DELETE CASCADE,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
-    created_sub VARCHAR (50),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
-    updated_sub VARCHAR (50),
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
     enabled BOOLEAN NOT NULL DEFAULT true,
     UNIQUE (parent_uuid, payment_id)
   );
@@ -262,9 +264,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     agreement BOOLEAN NOT NULL,
     description VARCHAR (5000) NOT NULL,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
-    created_sub VARCHAR (50),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
-    updated_sub VARCHAR (50),
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
     enabled BOOLEAN NOT NULL DEFAULT true
   );
 
@@ -273,9 +275,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     parent_uuid uuid NOT NULL,
     booking_id uuid NOT NULL REFERENCES dbtable_schema.bookings (id) ON DELETE CASCADE,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
-    created_sub VARCHAR (50),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
-    updated_sub VARCHAR (50),
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
     enabled BOOLEAN NOT NULL DEFAULT true,
     UNIQUE (parent_uuid, booking_id)
   );
@@ -286,9 +288,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     schedule_bracket_id uuid NOT NULL REFERENCES dbtable_schema.schedule_brackets (id) ON DELETE CASCADE,
     duration INTEGER NOT NULL,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
-    created_sub VARCHAR (50),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
-    updated_sub VARCHAR (50),
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
     enabled BOOLEAN NOT NULL DEFAULT true,
     UNIQUE (booking_id, schedule_bracket_id)
   );

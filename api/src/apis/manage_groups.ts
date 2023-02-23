@@ -1,5 +1,6 @@
-import { IGroup, IUuidRoles, DbError, IGroupState, IManageGroupsActionTypes, IManageGroupsState } from 'awayto';
-import { asyncForEach } from 'awayto';
+import moment from 'moment';
+
+import { IGroup, IUuidRoles, DbError, IManageGroupsActionTypes, IManageGroupsState, asyncForEach } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
 
@@ -13,18 +14,18 @@ const manageGroups: ApiModule = [
         const { name, roles } = props.event.body;
 
         const { rows: [ group ] } = await props.db.query<IGroup>(`
-          INSERT INTO dbtable_schema.groups (name, created_on)
-          VALUES ($1, $2)
+          INSERT INTO dbtable_schema.groups (name, created_on, created_sub)
+          VALUES ($1, $2, $3::uuid)
           ON CONFLICT (name) DO NOTHING
           RETURNING id, name
-        `, [name, new Date()]);
+        `, [name, moment().utc(), props.event.userSub]);
 
         await asyncForEach(Object.values(roles), async role => {
           await props.db.query(`
             INSERT INTO dbtable_schema.uuid_roles (parent_uuid, role_id, created_on, created_sub)
-            VALUES ($1, $2, $3, $4)
+            VALUES ($1, $2, $3, $4::uuid)
             ON CONFLICT (parent_uuid, role_id) DO NOTHING
-          `, [group.id, role.id, new Date(), props.event.userSub])
+          `, [group.id, role.id, moment().utc(), props.event.userSub])
         });
 
         group.roles = roles;
@@ -49,7 +50,12 @@ const manageGroups: ApiModule = [
       try {
         const { id, name, roles } = props.event.body;
 
-        const updateProps = buildUpdate({ id, name });
+        const updateProps = buildUpdate({
+          id,
+          name,
+          updated_sub: props.event.userSub,
+          updated_on: moment().utc()
+        });
 
         const { rows: [ group ] } = await props.db.query<IGroup>(`
           UPDATE dbtable_schema.groups
@@ -72,9 +78,9 @@ const manageGroups: ApiModule = [
         await asyncForEach(rolesValues, async role => {
           await props.db.query(`
             INSERT INTO dbtable_schema.uuid_roles (parent_uuid, role_id, created_on, created_sub)
-            VALUES ($1, $2, $3, $4)
+            VALUES ($1, $2, $3, $4::uuid)
             ON CONFLICT (parent_uuid, role_id) DO NOTHING
-          `, [group.id, role.id, new Date(), props.event.userSub])
+          `, [group.id, role.id, moment().utc(), props.event.userSub])
         });
 
         group.roles = roles;

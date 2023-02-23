@@ -8,8 +8,8 @@ export default async function auditRequest(props: ApiProps): Promise<void> {
   const path = `${event.method}/${event.path}`;
 
   await db.query(`
-    INSERT INTO request_log(ip_address, sub, path, payload, direction)
-    VALUES ($1, $2, $3, $4, $5)
-  `, [event.sourceIp || 'localhost', event.userSub, path, auditBody, "REQUEST"]);
+    INSERT INTO request_log(ip_address, sub, path, payload, direction, created_sub)
+    VALUES ($1, $2, $3, $4, $5, $6::uuid)
+  `, [event.sourceIp || 'localhost', event.userSub, path, auditBody, "REQUEST", props.event.userSub]);
 
 }

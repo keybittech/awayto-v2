@@ -1,3 +1,5 @@
+import moment from 'moment';
+
 import { IManageRolesActionTypes, IRole } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
@@ -12,10 +14,10 @@ const manageRoles: ApiModule = [
         const { name } = props.event.body;
 
         const response = await props.db.query<IRole>(`
-          INSERT INTO dbtable_schema.roles (name)
-          VALUES ($1)
+          INSERT INTO dbtable_schema.roles (name, created_sub)
+          VALUES ($1, $2::uuid)
           RETURNING id, name
-        `, [name]);
+        `, [name, props.event.userSub]);
         
         return response.rows[0];
 
@@ -31,7 +33,12 @@ const manageRoles: ApiModule = [
       try {
         const { id, name } = props.event.body;
 
-        const updateProps = buildUpdate({ id, name });
+        const updateProps = buildUpdate({
+          id,
+          name,
+          updated_sub: props.event.userSub,
+          updated_on: moment().utc()
+        });
 
         const response = await props.db.query<IRole>(`
           UPDATE dbtable_schema.roles

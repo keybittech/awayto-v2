@@ -1,3 +1,5 @@
+import moment from 'moment';
+
 import { IContact, IContactActionTypes } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
@@ -12,10 +14,10 @@ const contacts: ApiModule = [
         const { name, email, phone } = props.event.body;
 
         const response = await props.db.query<IContact>(`
-          INSERT INTO dbtable_schema.contacts (name, email, phone)
-          VALUES ($1, $2, $3)
+          INSERT INTO dbtable_schema.contacts (name, email, phone, created_sub)
+          VALUES ($1, $2, $3, $4)
           RETURNING id, name, email, phone
-        `, [name, email, phone]);
+        `, [name, email, phone, props.event.userSub]);
         
         return response.rows[0];
 
@@ -33,7 +35,14 @@ const contacts: ApiModule = [
 
         if (!id) throw new Error('Must provide contact ID');
 
-        const updateProps = buildUpdate({ id, name, email, phone });
+        const updateProps = buildUpdate({
+          id,
+          name,
+          email,
+          phone,
+          updated_sub: props.event.userSub,
+          updated_on: moment().utc()
+        });
 
         const response = await props.db.query<IContact>(`
           UPDATE dbtable_schema.contacts
@@ -117,9 +126,9 @@ const contacts: ApiModule = [
 
         await props.db.query(`
           UPDATE dbtable_schema.contacts
-          SET enabled = false
+          SET enabled = false, updated_on = $2, updated_sub = $3
           WHERE id = $1
-        `, [id]);
+        `, [id, moment().utc(), props.event.userSub]);
 
         return { id };
         

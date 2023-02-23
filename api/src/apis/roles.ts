@@ -1,7 +1,9 @@
+import moment from 'moment';
+
 import { IRole, IRoleActionTypes, IUserProfile } from 'awayto';
 import { asyncForEach } from 'awayto';
 import { ApiModule } from '../api';
-import { buildUpdate } from '../util/db';
+import { adminSub, buildUpdate } from '../util/db';
 
 const roles: ApiModule = [
 
@@ -13,7 +15,7 @@ const roles: ApiModule = [
         const { name } = props.event.body;
 
         const { rows: [ role ] } = await props.db.query<IRole>(`
-          WITH input_rows(name, created_sub) as (VALUES ($1, $2)), ins AS (
+          WITH input_rows(name, created_sub) as (VALUES ($1, $2::uuid)), ins AS (
             INSERT INTO dbtable_schema.roles (name, created_sub)
             SELECT * FROM input_rows
             ON CONFLICT (name) DO NOTHING
@@ -25,7 +27,7 @@ const roles: ApiModule = [
           SELECT s.id, s.name
           FROM input_rows
           JOIN dbtable_schema.roles s USING (name);
-        `, [name, props.event.userSub]);
+        `, [name, adminSub]);
 
         const { rows: [{ id: userId }] } = await props.db.query<IUserProfile>(`
           SELECT id FROM dbtable_schema.users WHERE sub = $1
@@ -33,7 +35,7 @@ const roles: ApiModule = [
 
         await props.db.query(`
           INSERT INTO dbtable_schema.uuid_roles (parent_uuid, role_id, created_sub)
-          VALUES ($1, $2, $3)
+          VALUES ($1, $2, $3::uuid)
           ON CONFLICT (parent_uuid, role_id) DO NOTHING
         `, [userId, role.id, props.event.userSub]);
 
@@ -53,7 +55,12 @@ const roles: ApiModule = [
       try {
         const { id, name } = props.event.body;
 
-        const updateProps = buildUpdate({ id, name });
+        const updateProps = buildUpdate({
+          id,
+          name,
+          updated_sub: props.event.userSub,
+          updated_on: moment().utc()
+        });
 
         const { rows: [ role ] } = await props.db.query<IRole>(`
           UPDATE dbtable_schema.roles
@@ -153,9 +160,9 @@ const roles: ApiModule = [
         await asyncForEach(Object.values(roles), async role => {
           await props.db.query(`
             UPDATE dbtable_schema.roles
-            SET enabled = false
+            SET enabled = false, updated_on = $2, updated_sub = $3
             WHERE id = $1
-          `, [role.id]);
+          `, [role.id, moment().utc(), props.event.userSub]);
         });
 
         return roles;

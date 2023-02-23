@@ -133,7 +133,7 @@ async function go() {
       await new Promise<void>(res => setTimeout(() => {
         setConnections();
         res();
-      }, 5000))
+      }, 1250))
     }
 
     console.log('starting api with connections', JSON.stringify(connections, null, 2))
@@ -398,7 +398,7 @@ async function go() {
           } catch (error) {
             const err = error as Error & { reason: string };
 
-            console.log('protected error', err.message);
+            console.log('protected error', err.message || err.reason);
             logger.log('error response', { requestId, error: err });
 
             // Handle failures

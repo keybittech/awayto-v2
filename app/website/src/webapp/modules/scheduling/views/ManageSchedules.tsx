@@ -59,9 +59,9 @@ export function ManageSchedules(props: IProps): JSX.Element {
   const actions = useMemo(() => {
     const { length } = selected;
     const acts = length == 1 ? [
-      <IconButton key={'manage_Schedule'} onClick={() => {
+      <IconButton key={'manage_schedule'} onClick={() => {
         setSchedule(selected.pop());
-        setDialog('manage_Schedule');
+        setDialog('manage_schedule');
         setToggle(!toggle);
       }}>
         <CreateIcon />
@@ -102,7 +102,7 @@ export function ManageSchedules(props: IProps): JSX.Element {
   return <>
     <Dialog open={dialog === 'manage_schedule'} fullWidth maxWidth="sm">
       <ManageSchedulesModal {...props} editSchedule={schedule} closeModal={() => {
-        setDialog('')
+        setDialog('');
         api(getSchedulesAction, true, { groupName });
       }} />
     </Dialog>

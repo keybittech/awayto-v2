@@ -1,5 +1,6 @@
-import { IUser, IUserActionTypes } from 'awayto';
-import { asyncForEach } from 'awayto';
+import moment from 'moment';
+
+import { IUser, IUserActionTypes, asyncForEach } from 'awayto';
 import { ApiModule } from '../api';
 
 const users: ApiModule = [
@@ -98,9 +99,9 @@ const users: ApiModule = [
         await asyncForEach(Object.values(users), async role => {
           await props.db.query(`
             UPDATE dbtable_schema.users
-            SET enabled = false
+            SET enabled = false, updated_on = $2, updated_sub = $3
             WHERE id = $1
-          `, [role.id]);
+          `, [role.id, moment().utc(), props.event.userSub]);
         });
 
         return users;

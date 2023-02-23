@@ -1,3 +1,5 @@
+import moment from 'moment';
+
 import { IServiceTier, IServiceTierActionTypes } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
@@ -12,10 +14,10 @@ const service_tiers: ApiModule = [
         const { name, serviceId, multiplier } = props.event.body;
 
         const response = await props.db.query<IServiceTier>(`
-          INSERT INTO dbtable_schema.service_tiers (name, serviceId, multiplier)
-          VALUES ($1, $2, $3)
+          INSERT INTO dbtable_schema.service_tiers (name, serviceId, multiplier, created_sub)
+          VALUES ($1, $2, $3, $4::uuid)
           RETURNING id, name, serviceId, multiplier
-        `, [name, serviceId, multiplier]);
+        `, [name, serviceId, multiplier, props.event.userSub]);
         
         return response.rows[0];
 
@@ -33,7 +35,13 @@ const service_tiers: ApiModule = [
 
         if (!id) throw new Error('Service ID or Service Tier ID Missing');
 
-        const updateProps = buildUpdate({ id, name, multiplier });
+        const updateProps = buildUpdate({
+          id,
+          name,
+          multiplier,
+          updated_sub: props.event.userSub,
+          updated_on: moment().utc()
+        });
 
         const response = await props.db.query<IServiceTier>(`
           UPDATE dbtable_schema.service_tiers
@@ -117,9 +125,9 @@ const service_tiers: ApiModule = [
 
         await props.db.query(`
           UPDATE dbtable_schema.service_tiers
-          SET enabled = false
+          SET enabled = false, updated_on = $2, updated_sub = $3
           WHERE id = $1
-        `, [id]);
+        `, [id, moment().utc(), props.event.userSub]);
 
         return { id };
         

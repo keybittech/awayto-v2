@@ -1,3 +1,5 @@
+import moment from 'moment';
+
 import { IServiceAddon, IServiceAddonActionTypes } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
@@ -12,8 +14,8 @@ const serviceAddons: ApiModule = [
         const { name } = props.event.body;
 
         const response = await props.db.query<IServiceAddon>(`
-          WITH input_rows(name) as (VALUES ($1)), ins AS (
-            INSERT INTO dbtable_schema.service_addons (name)
+          WITH input_rows(name, created_sub) as (VALUES ($1, $2::uuid)), ins AS (
+            INSERT INTO dbtable_schema.service_addons (name, created_sub)
             SELECT * FROM input_rows
             ON CONFLICT (name) DO NOTHING
             RETURNING id, name
@@ -24,7 +26,7 @@ const serviceAddons: ApiModule = [
           SELECT sa.id, sa.name
           FROM input_rows
           JOIN dbtable_schema.service_addons sa USING (name);
-        `, [name]);
+        `, [name, props.event.userSub]);
         
         return response.rows;
 
@@ -42,7 +44,12 @@ const serviceAddons: ApiModule = [
 
         if (!id) throw new Error('Service Addon ID Missing');
 
-        const updateProps = buildUpdate({ id, name });
+        const updateProps = buildUpdate({
+          id,
+          name,
+          updated_sub: props.event.userSub,
+          updated_on: moment().utc()
+        });
 
         const response = await props.db.query<IServiceAddon>(`
           UPDATE dbtable_schema.service_addons
@@ -127,9 +134,9 @@ const serviceAddons: ApiModule = [
 
         await props.db.query(`
           UPDATE dbtable_schema.service_addons
-          SET enabled = false
+          SET enabled = false, updated_on = $2, updated_sub = $3
           WHERE id = $1
-        `, [id]);
+        `, [id, moment().utc(), props.event.userSub]);
 
         return { id };
         

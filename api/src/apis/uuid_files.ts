@@ -1,3 +1,5 @@
+import moment from 'moment';
+
 import { IUuidFiles, IUuidFilesActionTypes } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
@@ -12,10 +14,10 @@ const uuidFiles: ApiModule = [
 
         const response = await props.db.query<IUuidFiles>(`
           INSERT INTO dbtable_schema.uuid_files (parent_uuid, file_id, created_on, created_sub)
-          VALUES ($1, $2, $3, $4)
+          VALUES ($1, $2, $3, $4::uuid)
           ON CONFLICT (parent_uuid, file_id) DO NOTHING
           RETURNING id
-        `, [parent_uuid, file_id, new Date(), props.event.userSub]);
+        `, [parent_uuid, file_id, moment().utc(), props.event.userSub]);
         
         return { id: response.rows[0].id };
 
@@ -33,7 +35,13 @@ const uuidFiles: ApiModule = [
 
         if (!id || !props.event.userSub) return false;
 
-        const updateProps = buildUpdate({ id, parent_uuid, file_id, updated_on: (new Date()).toString(), updated_sub: props.event.userSub });
+        const updateProps = buildUpdate({
+          id,
+          parent_uuid,
+          file_id,
+          updated_on: moment().utc(),
+          updated_sub: props.event.userSub
+        });
 
         await props.db.query(`
           UPDATE dbtable_schema.uuid_files
@@ -116,9 +124,9 @@ const uuidFiles: ApiModule = [
 
         await props.db.query(`
           UPDATE dbtable_schema.uuid_files
-          SET enabled = false
+          SET enabled = false, updated_on = $3, updated_sub = $4
           WHERE parent_uuid = $1 AND file_id = $2
-        `, [parent_uuid, file_id]);
+        `, [parent_uuid, file_id, moment().utc(), props.event.userSub]);
 
         return { id };
         

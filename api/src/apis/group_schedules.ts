@@ -19,7 +19,7 @@ const groupServices: ApiModule = [
         // Attach schedule to group
         await props.db.query(`
           INSERT INTO dbtable_schema.uuid_schedules (parent_uuid, schedule_id, created_sub)
-          VALUES ($1, $2, $3)
+          VALUES ($1, $2, $3::uuid)
           ON CONFLICT (parent_uuid, schedule_id) DO NOTHING
           RETURNING id
         `, [groupId, scheduleId, props.event.userSub]);

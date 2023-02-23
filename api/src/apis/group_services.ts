@@ -19,13 +19,11 @@ const groupServices: ApiModule = [
         // Attach service to group
         await props.db.query(`
           INSERT INTO dbtable_schema.uuid_services (parent_uuid, service_id, created_sub)
-          VALUES ($1, $2, $3)
+          VALUES ($1, $2, $3::uuid)
           ON CONFLICT (parent_uuid, service_id) DO NOTHING
           RETURNING id
         `, [groupId, serviceId, props.event.userSub]);
 
-
-        console.log({ GRPSVCDELREDIS: props.event.userSub + `group/${groupName}/services` })
         await props.redis.del(props.event.userSub + `group/${groupName}/services`);
 
         return [];

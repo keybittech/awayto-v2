@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef, useCallback, Suspense } from "react";
+import React, { useMemo, useState, useRef, useCallback, Suspense, useEffect } from "react";
 import moment from 'moment';
 
 import Grid from '@mui/material/Grid';
@@ -15,8 +15,8 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 
-import { ISchedule, IScheduleBracket, ITimeUnitNames, IUtilActionTypes, timeUnitOrder } from "awayto";
-import { useApi, useAct, useComponents } from 'awayto-hooks';
+import { IGroup, ISchedule, IScheduleBracket, ITimeUnitNames, IUtilActionTypes, timeUnitOrder } from "awayto";
+import { useApi, useAct, useComponents, useRedux } from 'awayto-hooks';
 
 import { scheduleSchema } from "./ScheduleHome";
 import { ManageScheduleBracketsActions } from "./ManageScheduleBrackets";
@@ -37,7 +37,7 @@ declare global {
 
 export function ManageScheduleBracketsModal({ editSchedule, closeModal, ...props }: IProps): JSX.Element {
 
-  const { groupServices, groupSchedules, postScheduleAction, postScheduleBracketsAction, postScheduleParentAction } = props as IProps & Required<ManageScheduleBracketsActions>;
+  const { getScheduleByIdAction, groupServices, groupSchedules, getGroupServicesAction, getGroupSchedulesAction, getScheduleBracketsAction, postScheduleAction, postScheduleBracketsAction, postScheduleParentAction } = props as IProps & Required<ManageScheduleBracketsActions>;
 
   const api = useApi();
   const act = useAct();
@@ -45,20 +45,68 @@ export function ManageScheduleBracketsModal({ editSchedule, closeModal, ...props
 
   const scheduleParent = useRef<HTMLDivElement>(null);
   const [view, setView] = useState(1);
-  const [schedule, setSchedule] = useState({ ...scheduleSchema, brackets: {}, ...editSchedule });
-  const [bracket, setBracket] = useState({
-    ...bracketSchema,
-    services: {},
-    slots: {}
-  } as IScheduleBracket);
+  const [schedule, setSchedule] = useState({ ...scheduleSchema, brackets: {} } as ISchedule);
+  const [bracket, setBracket] = useState({ ...bracketSchema, services: {}, slots: {} } as IScheduleBracket);
+  const { groups } = useRedux(state => state.profile);
+  const { timeUnits } = useRedux(state => state.forms);
+  const [group, setGroup] = useState({ id: '', name: '' } as IGroup);
+
+
+  const attachScheduleUnits = useCallback((sched: ISchedule) => {
+    sched.scheduleTimeUnitName = timeUnits.find(u => u.id === sched.scheduleTimeUnitId)?.name as ITimeUnitNames;
+    sched.bracketTimeUnitName = timeUnits.find(u => u.id === sched.bracketTimeUnitId)?.name as ITimeUnitNames;
+    sched.slotTimeUnitName = timeUnits.find(u => u.id === sched.slotTimeUnitId)?.name as ITimeUnitNames;
+  }, [groupSchedules]);
+
+  useEffect(() => {
+    if (groups && !editSchedule) {
+      for (const g in groups) {
+        setGroup(groups[g]);
+        break;
+      }
+    }
+    if (groupSchedules) {
+      if (editSchedule) {
+        const [, res] = api(getScheduleByIdAction, false, { id: editSchedule.id });
+        res?.then(scheduleRes => {
+          const [sched] = scheduleRes as ISchedule[];
+          if (!sched.brackets) sched.brackets = {};
+          attachScheduleUnits(sched);
+          setSchedule({ ...sched });
+        })
+      } else {
+        for (const g in groupSchedules) {
+          const sched = groupSchedules[g];
+          attachScheduleUnits(sched);
+          setSchedule({ ...sched, brackets: {} });
+          break;
+        }
+      }
+    }
+  }, [editSchedule, groups, groupSchedules]);
+
+  useEffect(() => {
+    if (!group?.name) return;
+    const [abort1] = api(getGroupServicesAction, true, { groupName: group.name });
+    const [abort2] = api(getGroupSchedulesAction, false, { groupName: group.name });
+    const [abort3] = api(getScheduleBracketsAction);
+    return () => {
+      abort1();
+      abort2();
+      abort3();
+    }
+  }, [group]);
 
   const scheduleBracketsValues = useMemo(() => Object.values(schedule.brackets), [schedule.brackets]);
-  const bracketServicesValues = useMemo(() => Object.values(bracket.services), [bracket.services]);
+  const bracketServicesValues = useMemo(() => {
+    if (Object.keys(bracket.services).length) setView(2);
+    return Object.values(bracket.services);
+  }, [bracket.services]);
 
   const remainingBracketTime = useMemo(() => {
     if (schedule.scheduleTimeUnitName) {
       // Complex time adjustment example - this gets the remaining time that can be scheduled based on the schedule context, which always selects its first child as the subcontext (Week > Day), multiply this by the schedule duration in that context (1 week is 7 days), then convert the result to whatever the bracket type is. So if the schedule is for 40 hours per week, the schedule duration is 1 week, which is 7 days. The bracket, in hours, gives 24 hrs per day * 7 days, resulting in 168 total hours. Finally, subtract the time used by selected slots in the schedule display.
-      const scheduleUnitChildUnit = timeUnitOrder[timeUnitOrder.indexOf(schedule.scheduleTimeUnitName as ITimeUnitNames) - 1];
+      const scheduleUnitChildUnit = timeUnitOrder[timeUnitOrder.indexOf(schedule.scheduleTimeUnitName) - 1];
       const scheduleChildDuration = moment.duration({ [schedule.scheduleTimeUnitName]: 1 }).as(scheduleUnitChildUnit)
       const usedDuration = scheduleBracketsValues.reduce((m, d) => m + d.duration, 0);
       const totalDuration = moment.duration({ [scheduleUnitChildUnit]: Math.floor(scheduleChildDuration) }).as(schedule.bracketTimeUnitName as moment.unitOfTime.Base);
@@ -95,34 +143,55 @@ export function ManageScheduleBracketsModal({ editSchedule, closeModal, ...props
     <DialogContent>
 
       {1 === view ? <>
+        <Box mt={2} />
+        {!editSchedule && <Box mb={4}>
+          <TextField
+            select
+            fullWidth
+            value={group.id}
+            label="Group"
+            helperText="Select the group for this schedule."
+            onChange={e => {
+              if (groups) {
+                setGroup(groups[e.target.value]);
+              }
+            }}
+          >
+            {Object.values(groups || {}).map(group => <MenuItem key={`group-select${group.id}`} value={group.id}>{group.name}</MenuItem>)}
+          </TextField>
+        </Box>}
 
-        <Box mt={2} mb={4}>
+        <Box mb={4}>
           <TextField
             select
             fullWidth
             disabled={!!editSchedule?.id}
-            label="Schedules"
-            helperText="Select a schedule to add the bracket to."
+            label="Group Schedules"
+            helperText="Select a group schedule to add to."
             value={schedule.id}
             onChange={e => {
-              setSchedule({ ...groupSchedules[e.target.value], brackets: {} });
+              if (!editSchedule) {
+                const sched = groupSchedules[e.target.value];
+                attachScheduleUnits(sched);
+                setSchedule({ ...sched, brackets: {} });
+              }
             }}
           >
             {Object.values(groupSchedules).map(s => <MenuItem key={`schedule-select${s.id}`} value={s.id}>{s.name}</MenuItem>)}
           </TextField>
         </Box>
 
-        {schedule && schedule.bracketTimeUnitName && <Box mb={4}>
+        <Box mb={4}>
           <Typography variant="body1"></Typography>
           <TextField
             fullWidth
             type="number"
-            helperText={`Number of ${schedule.bracketTimeUnitName}s for this bracket. (Remaining: ${remainingBracketTime})`}
+            helperText={`Number of ${schedule.bracketTimeUnitName}s for this schedule. (Remaining: ${remainingBracketTime})`}
             label={`# of ${schedule.bracketTimeUnitName}s`}
             value={bracket.duration || ''}
             onChange={e => setBracket({ ...bracket, duration: Math.min(Math.max(0, parseInt(e.target.value || '', 10)), remainingBracketTime) })}
           />
-        </Box>}
+        </Box>
 
         <Box sx={{ display: 'none' }}>
           <Typography variant="h6">Multiplier</Typography>
@@ -144,7 +213,7 @@ export function ManageScheduleBracketsModal({ editSchedule, closeModal, ...props
             select
             fullWidth
             label="Services"
-            helperText="Select the services that will be available to schedule."
+            helperText="Select the services available to be scheduled."
             value={''}
             onChange={e => {
               bracket.services[e.target.value] = groupServices[e.target.value];
@@ -156,7 +225,7 @@ export function ManageScheduleBracketsModal({ editSchedule, closeModal, ...props
 
           <Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
             {bracketServicesValues.map((service, i) => {
-              return <Box key={`service-chip${i + 1}new`} m={1}><Chip label={`${service.name} Cost: ${service.cost || ''}`} onDelete={() => {
+              return <Box key={`service-chip${i + 1}new`} m={1}><Chip label={`${service.name} ${service.cost ? `Cost: ${service.cost}` : ''}`} onDelete={() => {
                 delete bracket.services[service.id];
                 setBracket({ ...bracket, services: { ...bracket.services } });
               }} /></Box>
@@ -193,7 +262,6 @@ export function ManageScheduleBracketsModal({ editSchedule, closeModal, ...props
               } else {
                 void act(SET_SNACK, { snackOn: 'Provide a duration, and at least 1 service.', snackType: 'info' });
               }
-              setView(2)
             }}
           >
             Continue

@@ -1,3 +1,5 @@
+import moment from 'moment';
+
 import { IPayment, IPaymentActionTypes } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
@@ -12,10 +14,10 @@ const payments: ApiModule = [
         const { contactId, details } = props.event.body;
 
         const response = await props.db.query<IPayment>(`
-          INSERT INTO dbtable_schema.payments (contact_id, details)
-          VALUES ($1, $2)
+          INSERT INTO dbtable_schema.payments (contact_id, details, created_sub)
+          VALUES ($1, $2, $3::uuid)
           RETURNING id, contact_id as "contactId", details
-        `, [contactId, details]);
+        `, [contactId, details, props.event.userSub]);
         
         return response.rows[0];
 
@@ -31,7 +33,13 @@ const payments: ApiModule = [
       try {
         const { id, contactId, details } = props.event.body;
 
-        const updateProps = buildUpdate({ id, contactId, details: JSON.stringify(details) });
+        const updateProps = buildUpdate({
+          id,
+          contact_id: contactId,
+          details: JSON.stringify(details),
+          updated_sub: props.event.userSub,
+          updated_on: moment().utc()
+        });
 
         const response = await props.db.query<IPayment>(`
           UPDATE dbtable_schema.payments
@@ -115,9 +123,9 @@ const payments: ApiModule = [
 
         await props.db.query(`
           UPDATE dbtable_schema.payments
-          SET enabled = false
+          SET enabled = false, updated_on = $2, updated_sub = $3
           WHERE id = $1
-        `, [id]);
+        `, [id, moment().utc(), props.event.userSub]);
 
         return { id };
         

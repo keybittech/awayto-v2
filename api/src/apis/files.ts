@@ -1,4 +1,5 @@
-import { v4 as uuidV4 } from 'uuid';
+import moment from 'moment';
+import { v4 as uuid } from 'uuid';
 
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
@@ -10,16 +11,16 @@ const files: ApiModule = [
     action: IFilesActionTypes.POST_FILES,
     cmnd : async (props) => {
       try {
-        const uuid = uuidV4();
+        const newUuid = uuid();
         const { name, fileTypeId: file_type_id, location } = props.event.body;
 
         const response = await props.db.query<{ id: string }>(`
           INSERT INTO dbtable_schema.files (uuid, name, file_type_id, location, created_on, created_sub)
-          VALUES ($1, $2, $3, $4, $5, $6)
+          VALUES ($1, $2, $3, $4, $5, $6::uuid)
           RETURNING id
-        `, [uuid, name, file_type_id, location, new Date(), props.event.userSub]);
+        `, [newUuid, name, file_type_id, location, moment().utc(), props.event.userSub]);
         
-        return { id: response.rows[0].id, uuid };
+        return { id: response.rows[0].id, newUuid };
 
       } catch (error) {
         throw error;
@@ -35,7 +36,14 @@ const files: ApiModule = [
 
         if (!id || !props.event.userSub) return false;
 
-        const updateProps = buildUpdate({ id, name, file_type_id, location, updated_on: (new Date()).toString(), updated_sub: props.event.userSub });
+        const updateProps = buildUpdate({
+          id,
+          name,
+          file_type_id,
+          location,
+          updated_on: moment().utc(),
+          updated_sub: props.event.userSub
+        });
 
         await props.db.query(`
           UPDATE dbtable_schema.files
@@ -118,9 +126,9 @@ const files: ApiModule = [
 
         await props.db.query(`
           UPDATE dbtable_schema.files
-          SET enabled = false
+          SET enabled = false, updated_on = $2, updated_sub = $3
           WHERE id = $1
-        `, [id]);
+        `, [id, moment().utc(), props.event.userSub]);
 
         return { id };
         

@@ -18,7 +18,7 @@ const groupServiceAddons: ApiModule = [
         // Attach service addon to group
         await props.db.query(`
           INSERT INTO dbtable_schema.uuid_service_addons (parent_uuid, service_addon_id, created_sub)
-          VALUES ($1, $2, $3)
+          VALUES ($1, $2, $3::uuid)
           ON CONFLICT (parent_uuid, service_addon_id) DO NOTHING
           RETURNING id
         `, [groupId, serviceAddonId, props.event.userSub]);

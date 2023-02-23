@@ -1,5 +1,6 @@
-import { IService, IServiceActionTypes, IServiceTier } from 'awayto';
-import { asyncForEach } from 'awayto';
+import moment from 'moment';
+
+import { DbError, IService, IServiceActionTypes, IServiceTier, asyncForEach } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
 
@@ -13,24 +14,15 @@ const services: ApiModule = [
         const { name, cost, tiers } = props.event.body;
 
         const { rows: [service] } = await props.db.query<IService>(`
-          WITH input_rows(name, cost) as (VALUES ($1, $2::integer)), ins AS (
-            INSERT INTO dbtable_schema.services (name, cost)
-            SELECT * FROM input_rows
-            ON CONFLICT (name) DO NOTHING
-            RETURNING id, name, cost, created_on
-          )
-          SELECT id, name, cost, created_on
-          FROM ins
-          UNION ALL
-          SELECT s.id, s.name, s.cost, s.created_on
-          FROM input_rows
-          JOIN dbtable_schema.services s USING (name);
-        `, [name, cost]);
+          INSERT INTO dbtable_schema.services (name, cost, created_sub)
+          VALUES ($1, $2::integer, $3::uuid)
+          RETURNING id, name, cost, created_on
+        `, [name, cost, props.event.userSub]);
 
         await asyncForEach(Object.values(tiers).sort((a, b) => a.order - b.order), async t => {
           const serviceTier = (await props.db.query<IServiceTier>(`
-            WITH input_rows(name, service_id, multiplier) as (VALUES ($1, $2::uuid, $3::decimal)), ins AS (
-              INSERT INTO dbtable_schema.service_tiers (name, service_id, multiplier)
+            WITH input_rows(name, service_id, multiplier, created_sub) as (VALUES ($1, $2::uuid, $3::decimal, $4::uuid)), ins AS (
+              INSERT INTO dbtable_schema.service_tiers (name, service_id, multiplier, created_sub)
               SELECT * FROM input_rows
               ON CONFLICT (name, service_id) DO NOTHING
               RETURNING id
@@ -41,20 +33,26 @@ const services: ApiModule = [
             SELECT st.id
             FROM input_rows
             JOIN dbtable_schema.service_tiers st USING (name, service_id);
-          `, [t.name, service.id, t.multiplier])).rows[0];
+          `, [t.name, service.id, t.multiplier, props.event.userSub])).rows[0];
 
           await asyncForEach(Object.values(t.addons).sort((a, b) => a.order - b.order), async a => {
             await props.db.query(`
-              INSERT INTO dbtable_schema.service_tier_addons (service_addon_id, service_tier_id)
-              VALUES ($1, $2)
+              INSERT INTO dbtable_schema.service_tier_addons (service_addon_id, service_tier_id, created_sub)
+              VALUES ($1, $2, $3::uuid)
               ON CONFLICT (service_addon_id, service_tier_id) DO NOTHING
-            `, [a.id, serviceTier.id]);
+            `, [a.id, serviceTier.id, props.event.userSub]);
           })
         });
         
         return [service];
 
       } catch (error) {
+        const { constraint } = error as DbError;
+
+        if ('services_name_created_sub_key' === constraint) {
+          throw { reason: 'You already have a service with the same name.' }
+        }
+
         throw error;
       }
     }
@@ -68,7 +66,12 @@ const services: ApiModule = [
 
         if (!id) throw new Error('Service ID Missing');
 
-        const updateProps = buildUpdate({ id, name });
+        const updateProps = buildUpdate({
+          id,
+          name,
+          updated_sub: props.event.userSub,
+          updated_on: moment().utc()
+        });
 
         const response = await props.db.query<IService>(`
           UPDATE dbtable_schema.services
@@ -160,10 +163,10 @@ const services: ApiModule = [
 
         await asyncForEach(idSplit, async id => {
           await props.db.query(`
-            UPDATE services
-            SET enabled = false
+            UPDATE dbtable_schema.services
+            SET enabled = false, updated_on = $2, updated_sub = $3
             WHERE id = $1
-          `, [id]);
+          `, [id, moment().utc(), props.event.userSub]);
 
           await props.redis.del(props.event.userSub + 'services/' + id);
         });
