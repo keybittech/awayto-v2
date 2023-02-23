@@ -52,13 +52,6 @@ export function ScheduleHome(props: IProps): JSX.Element {
   const { groupServices } = useRedux(state => state.groupService);
   const { groupSchedules } = useRedux(state => state.groupSchedule);
 
-  useEffect(() => {
-    const [abort] = api(GET_SCHEDULES);
-    return () => {
-      abort();
-    }
-  }, []);
-
   return <>
 
     <ManageScheduleBrackets

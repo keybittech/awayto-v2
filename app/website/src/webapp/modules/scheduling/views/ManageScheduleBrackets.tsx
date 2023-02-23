@@ -1,13 +1,25 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import DataTable, { TableColumn } from 'react-data-table-component';
 
 import IconButton from '@mui/material/IconButton';
 import Dialog from '@mui/material/Dialog';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import Alert from '@mui/material/Alert';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import CardActionArea from '@mui/material/CardActionArea';
+import CardHeader from '@mui/material/CardHeader';
+import TextField from '@mui/material/TextField';
+import Switch from '@mui/material/Switch';
+import Grid from '@mui/material/Grid';
 import Button from '@mui/material/Button';
+import Slider from '@mui/material/Slider';
+import MenuItem from '@mui/material/MenuItem';
 
 import CreateIcon from '@mui/icons-material/Create';
 
-import { IService, ISchedule, IActionTypes, localFromNow, IGroupSchedule } from 'awayto';
+import { IService, ISchedule, IActionTypes, localFromNow, IGroupSchedule, IGroup } from 'awayto';
 import { useRedux, useApi, useAct } from 'awayto-hooks';
 
 import ManageScheduleBracketsModal from './ManageScheduleBracketsModal';
@@ -32,7 +44,7 @@ declare global {
 // This is how group users interact with the schedule
 
 export function ManageScheduleBrackets(props: IProps): JSX.Element {
-  const { schedules, getScheduleBracketsAction } = props as IProps & Required<ManageScheduleBracketsActions>;
+  const { getGroupSchedulesAction, groupSchedules, getScheduleBracketsAction } = props as IProps & Required<ManageScheduleBracketsActions>;
 
   const act = useAct();
   const api = useApi();
@@ -41,6 +53,28 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
   const [selected, setSelected] = useState<ISchedule[]>([]);
   const [toggle, setToggle] = useState(false);
   const [dialog, setDialog] = useState('');
+  const { groups } = useRedux(state => state.profile);
+  const [group, setGroup] = useState({ id: '' } as IGroup);
+
+  if (!groups) return <></>;
+
+  useEffect(() => {
+    if (groups) {
+      for (const g in groups) {
+        setGroup(groups[g]);
+        break;
+      }
+    }
+  }, [groups])
+
+  useEffect(() => {
+    if (group.name) {
+      const [abort] = api(getGroupSchedulesAction, false, { groupName: group.name });
+      return () => {
+        abort();
+      }
+    }
+  }, [group]);
 
   const updateState = useCallback((state: { selectedRows: ISchedule[] }) => setSelected(state.selectedRows), [setSelected]);
 
@@ -49,7 +83,7 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
     { name: 'Name', selector: row => row.name },
     { name: 'Created', selector: row => localFromNow(row.createdOn) },
     // TODO make a column that summarizes the bracket load
-  ] as TableColumn<ISchedule>[], [schedules]);
+  ] as TableColumn<ISchedule>[], []);
 
   const actions = useMemo(() => {
     const { length } = selected;
@@ -95,34 +129,62 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
       }} />
     </Dialog>
 
-    <DataTable
-      title="Schedules"
-      actions={[
-        <Button
-          key={'schedule_bracket_manage_schedule'}
-          onClick={() => {
+    <Grid container spacing={2}>
+      <Grid item xs={12}>
+        <Card>
+          <CardContent>
+
+          <DataTable
+          title="Schedules"
+          actions={[
+            <Box key={'schedule_bracket_group_select'}>
+              <TextField
+                select
+                fullWidth
+                value={group.id}
+                label="Group"
+                variant="standard"
+                onChange={e => {
+                  setGroup(groups[e.target.value]);
+                }}
+              >
+                {Object.values(groups).map(group => <MenuItem key={`group-select${group.id}`} value={group.id}>{group.name}</MenuItem>)}
+              </TextField>
+            </Box>
+          ]}
+          contextActions={actions}
+          data={Object.values(groupSchedules)}
+          defaultSortFieldId="createdOn"
+          defaultSortAsc={false}
+          theme={util.theme}
+          columns={columns}
+          selectableRows
+          selectableRowsHighlight={true}
+          // selectableRowsComponent={<Checkbox />}
+          onSelectedRowsChange={updateState}
+          clearSelectedRows={toggle}
+          pagination={true}
+          paginationPerPage={5}
+          paginationRowsPerPageOptions={[5, 10, 25]}
+        />
+          </CardContent>
+        </Card>
+      </Grid>
+      <Grid item xs={12}>
+        <Card>
+          <CardActionArea onClick={() => {
             setSchedule(undefined);
             setDialog('manage_schedule');
-          }}
-        >
-          New
-        </Button>
-      ]}
-      contextActions={actions}
-      data={Object.values(schedules)}
-      defaultSortFieldId="createdOn"
-      defaultSortAsc={false}
-      theme={util.theme}
-      columns={columns}
-      selectableRows
-      selectableRowsHighlight={true}
-      // selectableRowsComponent={<Checkbox />}
-      onSelectedRowsChange={updateState}
-      clearSelectedRows={toggle}
-      pagination={true}
-      paginationPerPage={5}
-      paginationRowsPerPageOptions={[5, 10, 25]}
-    />
+          }}>
+            <Box mx={2} sx={{ display: 'flex' }}>
+              <Typography color="secondary" variant="button">
+                Create Schedule
+              </Typography>
+            </Box>
+          </CardActionArea>
+        </Card>
+      </Grid>
+    </Grid>
   </>
 }
 

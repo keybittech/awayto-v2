@@ -31,11 +31,12 @@ const bracketSchema = {
 
 declare global {
   interface IProps {
+    group?: IGroup;
     editSchedule?: ISchedule;
   }
 }
 
-export function ManageScheduleBracketsModal({ editSchedule, closeModal, ...props }: IProps): JSX.Element {
+export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, ...props }: IProps): JSX.Element {
 
   const { getScheduleByIdAction, groupServices, groupSchedules, getGroupServicesAction, getGroupSchedulesAction, getScheduleBracketsAction, postScheduleAction, postScheduleBracketsAction, postScheduleParentAction } = props as IProps & Required<ManageScheduleBracketsActions>;
 
@@ -47,10 +48,7 @@ export function ManageScheduleBracketsModal({ editSchedule, closeModal, ...props
   const [view, setView] = useState(1);
   const [schedule, setSchedule] = useState({ ...scheduleSchema, brackets: {} } as ISchedule);
   const [bracket, setBracket] = useState({ ...bracketSchema, services: {}, slots: {} } as IScheduleBracket);
-  const { groups } = useRedux(state => state.profile);
   const { timeUnits } = useRedux(state => state.forms);
-  const [group, setGroup] = useState({ id: '', name: '' } as IGroup);
-
 
   const attachScheduleUnits = useCallback((sched: ISchedule) => {
     sched.scheduleTimeUnitName = timeUnits.find(u => u.id === sched.scheduleTimeUnitId)?.name as ITimeUnitNames;
@@ -59,12 +57,6 @@ export function ManageScheduleBracketsModal({ editSchedule, closeModal, ...props
   }, [groupSchedules]);
 
   useEffect(() => {
-    if (groups && !editSchedule) {
-      for (const g in groups) {
-        setGroup(groups[g]);
-        break;
-      }
-    }
     if (groupSchedules) {
       if (editSchedule) {
         const [, res] = api(getScheduleByIdAction, false, { id: editSchedule.id });
@@ -83,7 +75,7 @@ export function ManageScheduleBracketsModal({ editSchedule, closeModal, ...props
         }
       }
     }
-  }, [editSchedule, groups, groupSchedules]);
+  }, [editSchedule, groupSchedules]);
 
   useEffect(() => {
     if (!group?.name) return;
@@ -144,22 +136,6 @@ export function ManageScheduleBracketsModal({ editSchedule, closeModal, ...props
 
       {1 === view ? <>
         <Box mt={2} />
-        {!editSchedule && <Box mb={4}>
-          <TextField
-            select
-            fullWidth
-            value={group.id}
-            label="Group"
-            helperText="Select the group for this schedule."
-            onChange={e => {
-              if (groups) {
-                setGroup(groups[e.target.value]);
-              }
-            }}
-          >
-            {Object.values(groups || {}).map(group => <MenuItem key={`group-select${group.id}`} value={group.id}>{group.name}</MenuItem>)}
-          </TextField>
-        </Box>}
 
         <Box mb={4}>
           <TextField

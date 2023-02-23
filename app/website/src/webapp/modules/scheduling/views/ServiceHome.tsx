@@ -222,7 +222,7 @@ export function ServiceHome(props: IProps): JSX.Element {
             void act(SET_SNACK, { snackOn: 'Provide the service name, cost and at least 1 tier.', snackType: 'info' });
           }
         }}>
-          <Box mx={2} sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box mx={2} sx={{ display: 'flex' }}>
             <Typography color="secondary" variant="button">Create Service</Typography>
           </Box>
         </CardActionArea>
