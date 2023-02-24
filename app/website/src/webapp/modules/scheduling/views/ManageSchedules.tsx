@@ -3,10 +3,12 @@ import DataTable, { TableColumn } from 'react-data-table-component';
 
 import IconButton from '@mui/material/IconButton';
 import Dialog from '@mui/material/Dialog';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 
-import CreateIcon from '@mui/icons-material/Create';
+import EventNoteIcon from '@mui/icons-material/EventNote';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import { ISchedule, IActionTypes, localFromNow, IGroupSchedule, IUtilActionTypes } from 'awayto';
@@ -59,36 +61,39 @@ export function ManageSchedules(props: IProps): JSX.Element {
   const actions = useMemo(() => {
     const { length } = selected;
     const acts = length == 1 ? [
-      <IconButton key={'manage_schedule'} onClick={() => {
-        setSchedule(selected.pop());
-        setDialog('manage_schedule');
-        setToggle(!toggle);
-      }}>
-        <CreateIcon />
-      </IconButton>
+      <Tooltip title="View Details">
+        <IconButton key={'manage_schedule'} onClick={() => {
+          setSchedule(selected.pop());
+          setDialog('manage_schedule');
+          setToggle(!toggle);
+        }}>
+          <EventNoteIcon />
+        </IconButton>
+      </Tooltip>
     ] : [];
 
     return [
       ...acts,
-      <Tooltip key={'delete_schedule'} title="Delete"><IconButton onClick={() => {
-        if (groupName) {
+      <Tooltip key={'delete_schedule'} title="Delete">
+        <IconButton onClick={() => {
+          if (groupName) {
+            void act(OPEN_CONFIRM, {
+              isConfirming: true,
+              message: 'Are you sure you want to delete these schedules? This cannot be undone.',
+              action: () => {
 
-          void act(OPEN_CONFIRM, {
-            isConfirming: true,
-            message: 'Are you sure you want to delete these schedules? This cannot be undone.',
-            action: () => {
-
-              const [, res] = api(deleteGroupSchedulesAction, true, { groupName, ids: selected.map(s => s.id).join(',') })
-              res?.then(() => {
-                setToggle(!toggle);
-                api(getSchedulesAction, true, { groupName });
-              });
-            }
-          });
-        }
-      }}>
-        <DeleteIcon />
-      </IconButton></Tooltip>
+                const [, res] = api(deleteGroupSchedulesAction, true, { groupName, ids: selected.map(s => s.id).join(',') })
+                res?.then(() => {
+                  setToggle(!toggle);
+                  api(getSchedulesAction, true, { groupName });
+                });
+              }
+            });
+          }
+        }}>
+          <DeleteIcon />
+        </IconButton>
+      </Tooltip>
     ]
   }, [selected, groupName])
 
@@ -107,24 +112,28 @@ export function ManageSchedules(props: IProps): JSX.Element {
       }} />
     </Dialog>
 
-    <DataTable
-      title="Schedules"
-      actions={<Button onClick={() => { setSchedule(undefined); setDialog('manage_schedule') }}>New</Button>}
-      contextActions={actions}
-      data={Object.values(schedules)}
-      defaultSortFieldId="createdOn"
-      defaultSortAsc={false}
-      theme={util.theme}
-      columns={columns}
-      selectableRows
-      selectableRowsHighlight={true}
-      // selectableRowsComponent={<Checkbox />}
-      onSelectedRowsChange={updateState}
-      clearSelectedRows={toggle}
-      pagination={true}
-      paginationPerPage={5}
-      paginationRowsPerPageOptions={[5, 10, 25]}
-    />
+    <Card>
+      <CardContent>
+        <DataTable
+          title="Schedule Templates"
+          actions={<Button onClick={() => { setSchedule(undefined); setDialog('manage_schedule') }}>New</Button>}
+          contextActions={actions}
+          data={Object.values(schedules)}
+          defaultSortFieldId="createdOn"
+          defaultSortAsc={false}
+          theme={util.theme}
+          columns={columns}
+          selectableRows
+          selectableRowsHighlight={true}
+          // selectableRowsComponent={<Checkbox />}
+          onSelectedRowsChange={updateState}
+          clearSelectedRows={toggle}
+          pagination={true}
+          paginationPerPage={5}
+          paginationRowsPerPageOptions={[5, 10, 25]}
+        />
+      </CardContent>
+    </Card>
   </>
 }
 

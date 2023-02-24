@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo, useEffect } from "react";
 import moment from "moment";
 
+import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
@@ -117,16 +118,21 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
     <DialogTitle>{schedule.id ? 'Manage' : 'Create'} Schedule</DialogTitle>
     <DialogContent>
 
-      <Box mb={2}>
-        <Typography variant="body2">Use premade selections for this schedule.</Typography>
-        <Button color="secondary" onClick={() => setDefault('40hoursweekly30minsessions')}>40 hours per week, 30 minute slot</Button>
-        <Button color="secondary" onClick={() => setDefault('dailybookingpermonth')}>daily booking per month</Button>
+      <Box mb={4}>
+        {!schedule.id ? <>
+          <Typography variant="body2">Use premade selections for this schedule.</Typography>
+          <Button color="secondary" onClick={() => setDefault('40hoursweekly30minsessions')}>40 hours per week, 30 minute slot</Button>
+          <Button color="secondary" onClick={() => setDefault('dailybookingpermonth')}>daily booking per month</Button>
+        </> : <>
+          <Alert color="info">Schedule templates are read-only after creation.</Alert>
+        </>}
       </Box>
 
       <Box mb={4}>
         <TextField
           fullWidth
           label="Name"
+          disabled={!!schedule.id}
           helperText="Ex: Spring 2022 Campaign, Q1 Offering"
           value={schedule.name || ''}
           onChange={e => setSchedule({ ...schedule, name: e.target.value })}
@@ -136,6 +142,7 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
       <Box mb={4}>
         <SelectLookup
           noEmptyValue
+          disabled={!!schedule.id}
           lookupName="Schedule Duration"
           helperText="The length of time the schedule will run over. This determines the overall context of the schedule and how time will be divided and managed within. For example, a 40 hour per week schedule would require configuring a 1 week Schedule Duration."
           lookupValue={schedule.scheduleTimeUnitId}
@@ -153,6 +160,7 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
         <TextField
           fullWidth
           type="number"
+          disabled={!!schedule.id}
           label={`# of ${schedule.scheduleTimeUnitName}s`}
           helperText="Provide a duration. After this duration, the schedule will reset, and all bookings will be available again."
           value={schedule.duration}
@@ -166,6 +174,7 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
       <Box mb={4}>
         <SelectLookup
           noEmptyValue
+          disabled={!!schedule.id}
           lookupName="Bracket Duration Type"
           helperText="How to measure blocks of time within the Schedule Duration. For example, in a 40 hour per week situation, blocks of time are divided in hours. Multiple brackets can be used on a single schedule, and all of them share the same Bracket Duration Type."
           lookupValue={schedule.bracketTimeUnitId}
@@ -183,6 +192,7 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
       <Box mb={4}>
         <SelectLookup
           noEmptyValue
+          disabled={!!schedule.id}
           lookupName="Booking Slot Length"
           helperText={`The # of ${schedule.slotTimeUnitName}s to deduct from the bracket upon accepting a booking. Alternatively, if you meet with clients, this is the length of time per session.`}
           lookupValue={schedule.slotTimeUnitId}
@@ -197,17 +207,24 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
 
         <Box mt={2} sx={{ display: 'flex', alignItems: 'baseline' }}>
           <Box>{schedule.slotDuration} <span>&nbsp;</span> &nbsp;</Box>
-          <Slider value={schedule.slotDuration} onChange={(_, val) => {
-            setSchedule({ ...schedule, slotDuration: parseFloat(val.toString()) });
-          }} step={null} marks={slotDurationMarks} max={Math.max(...slotDurationMarks.map(m => m.value))} />
+          <Slider
+            disabled={!!schedule.id}
+            value={schedule.slotDuration}
+            step={null}
+            marks={slotDurationMarks}
+            max={Math.max(...slotDurationMarks.map(m => m.value))}
+            onChange={(_, val) => {
+              setSchedule({ ...schedule, slotDuration: parseFloat(val.toString()) });
+            }}
+          />
         </Box>
       </Box>
 
     </DialogContent>
     <DialogActions>
       <Grid container justifyContent="space-between">
-        <Button onClick={closeModal}>Cancel</Button>
-        <Button onClick={handleSubmit}>Submit</Button>
+        <Button onClick={closeModal}>{schedule.id ? 'Close' : 'Cancel'}</Button>
+        {!schedule.id && <Button onClick={handleSubmit}>Submit</Button>}
       </Grid>
     </DialogActions>
   </>

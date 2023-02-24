@@ -65,6 +65,9 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
           if (!sched.brackets) sched.brackets = {};
           attachScheduleUnits(sched);
           setSchedule({ ...sched });
+          if (Object.keys(sched.brackets).length) {
+            setView(2);
+          }
         })
       } else {
         for (const g in groupSchedules) {
@@ -90,10 +93,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
   }, [group]);
 
   const scheduleBracketsValues = useMemo(() => Object.values(schedule.brackets), [schedule.brackets]);
-  const bracketServicesValues = useMemo(() => {
-    if (Object.keys(bracket.services).length) setView(2);
-    return Object.values(bracket.services);
-  }, [bracket.services]);
+  const bracketServicesValues = useMemo(() => Object.values(bracket.services), [bracket.services]);
 
   const remainingBracketTime = useMemo(() => {
     if (schedule.scheduleTimeUnitName) {
@@ -112,12 +112,16 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
       const { name, duration, scheduleTimeUnitName, brackets } = schedule;
       if (name && duration && scheduleTimeUnitName && scheduleBracketsValues.length) {
 
-        const [, res] = api(postScheduleAction, false, schedule);
+        const [, res] = !schedule.id ? 
+          api(postScheduleAction, false, schedule) :
+          [undefined, new Promise(res => res([schedule]))];
         res?.then(resSchedules => {
           const [sched] = resSchedules as ISchedule[];
 
           const [, rex] = api(postScheduleBracketsAction, false, { scheduleId: sched.id, brackets })
-          const [, rez] = api(postScheduleParentAction, false, { scheduleId: sched.id, parentUuid: schedule.id });
+          const [, rez] = !schedule.id ?
+            api(postScheduleParentAction, false, { scheduleId: sched.id, parentUuid: schedule.id }) :
+            [undefined, new Promise(res => res(true))];
           void Promise.all([rex, rez]).then(() => {
             act(SET_SNACK, { snackOn: 'Successfully added ' + name, snackType: 'info' });
             if (closeModal) closeModal();
@@ -235,6 +239,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
                 schedule.brackets[bracket.id] = bracket;
                 setSchedule({ ...schedule, brackets: { ...schedule.brackets } })
                 setBracket({ ...bracketSchema, services: {}, slots: {} } as IScheduleBracket);
+                setView(2);
               } else {
                 void act(SET_SNACK, { snackOn: 'Provide a duration, and at least 1 service.', snackType: 'info' });
               }

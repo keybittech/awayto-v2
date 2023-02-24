@@ -16,7 +16,7 @@ pre {
 }
 
 .App {
-   text-align: center; 
+  text-align: center;
 }
 
 .App-logo {
@@ -40,63 +40,81 @@ pre {
 }
 
 @keyframes App-logo-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .artists-grid {
   padding-top: 15px;
 }
 
-.image { 
-    width: 100%;
-    height: 100%;
+.image {
+  width: 100%;
+  height: 100%;
 }
 
 .button {
-    margin: 0;
-    top: 'auto';
-    right: 100;
-    bottom: 20;
-    left: 'auto';
-    position: 'fixed';
-  }
+  margin: 0;
+  top: 'auto';
+  right: 100;
+  bottom: 20;
+  left: 'auto';
+  position: 'fixed';
+}
 
-  .preview-image { 
-    display: block;
-    max-width:300px;
-    max-height:300px;
-    width: auto;
-    height: auto;
-  }
+.preview-image {
+  display: block;
+  max-width: 300px;
+  max-height: 300px;
+  width: auto;
+  height: auto;
+}
 
-  .root {
-    display: 'flex';
-  }
-  .appBar   {
-    z-index:  100;
-  }
+.root {
+  display: 'flex';
+}
 
-  .drawer {
-    width: 240;
-    padding-left: 500;
-  }
+.appBar {
+  z-index: 100;
+}
 
-  .drawerPaper  {
-    width: 240px;
-    display: flex;
-  }
-  .drawerContainer {
-    overflow: 'auto';
-  }
-  .content {
-    flex-grow: 1;
-  }
+.drawer {
+  width: 240;
+  padding-left: 500;
+}
 
-  .typeHeader {
-    color: black
-  }
+.drawerPaper {
+  width: 240px;
+  display: flex;
+}
 
-  .hovering-drag {
-    opacity: .1;
-  }
+.drawerContainer {
+  overflow: 'auto';
+}
+
+.content {
+  flex-grow: 1;
+}
+
+.typeHeader {
+  color: black
+}
+
+.hovering-drag {
+  opacity: .1;
+}
+
+
+.rdt_Table,
+.rdt_TableHeader,
+.rdt_TableHeadRow,
+.rdt_TableRow,
+.rdt_TableCell,
+.rdt_Pagination {
+  background-color: unset !important;
+}

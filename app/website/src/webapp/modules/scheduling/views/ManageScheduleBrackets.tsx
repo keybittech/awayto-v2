@@ -44,7 +44,7 @@ declare global {
 // This is how group users interact with the schedule
 
 export function ManageScheduleBrackets(props: IProps): JSX.Element {
-  const { getGroupSchedulesAction, groupSchedules, getScheduleBracketsAction } = props as IProps & Required<ManageScheduleBracketsActions>;
+  const { getGroupServicesAction, getGroupSchedulesAction, groupSchedules, getScheduleBracketsAction } = props as IProps & Required<ManageScheduleBracketsActions>;
 
   const act = useAct();
   const api = useApi();
@@ -69,9 +69,11 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
 
   useEffect(() => {
     if (group.name) {
-      const [abort] = api(getGroupSchedulesAction, false, { groupName: group.name });
+      const [abort1] = api(getGroupSchedulesAction, false, { groupName: group.name });
+      const [abort2] = api(getGroupServicesAction, false, { groupName: group.name });
       return () => {
-        abort();
+        abort1();
+        abort2();
       }
     }
   }, [group]);

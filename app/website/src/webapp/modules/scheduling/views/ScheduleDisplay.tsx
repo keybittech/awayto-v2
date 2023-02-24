@@ -52,9 +52,10 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
   const scheduleBracketsValues = useMemo(() => Object.values(schedule.brackets), [schedule.brackets]);
 
   const Cell = useCallback((props: GridCell) => {
-    const target = `schedule_selection_${props.columnIndex}_${props.rowIndex}`;
-    const exists = selected[target];
     const startTime = moment().startOf(xAxisTypeName).startOf(scheduleTimeUnitName).add(slotDuration * props.rowIndex, slotTimeUnitName).add(props.columnIndex, xAxisTypeName);
+
+    const target = `schedule_bracket_slot_selection_${startTime.utc().local().toISOString()}`;
+    const exists = selected[target];
     const weekLabel = TimeUnit.WEEK === xAxisTypeName ? `W${Math.ceil(startTime.date() / 7)}` : '';
 
     const setValue = useCallback(function () {
@@ -82,22 +83,6 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
       }
     }, [schedule.brackets, selectedBracket, scheduleBracketsValues, selected]);
 
-    useEffect(() => {
-      const resizeObserver = new ResizeObserver(([event]) => {
-        setWidth(event.contentBoxSize[0].inlineSize);
-      });
-
-      if (parentRef && parentRef.current) {
-        resizeObserver.observe(parentRef.current);
-      }
-    }, [parentRef]);
-
-    useEffect(() => {
-      if (Object.keys(selected).length && 0 === Object.keys(scheduleBracketsValues[0].slots).length) {
-        setSelected({});
-      }
-    }, [selected, scheduleBracketsValues])
-
     return <CardActionArea
       style={props.style}
       sx={{ position: 'relative', '&:hover': { opacity: '1', boxShadow: '2' }, border: exists ? `1px solid ${bracketColors[scheduleBracketsValues.findIndex(b => b.id === exists.scheduleBracketId)]}` : undefined, backgroundColor: '#444', opacity: !exists ? '.33' : '1', textAlign: 'center', boxShadow: exists ? '2' : undefined }}
@@ -111,6 +96,30 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
       {weekLabel} {startTime.format('ddd hh:mm A')}
     </CardActionArea>
   }, [selected, buttonDown, selectedBracket, slotTimeUnitName, slotDuration, xAxisTypeName]);
+
+  useEffect(() => {
+    const resizeObserver = new ResizeObserver(([event]) => {
+      setWidth(event.contentBoxSize[0].inlineSize);
+    });
+
+    if (parentRef && parentRef.current) {
+      resizeObserver.observe(parentRef.current);
+    }
+  }, [parentRef]);
+
+  useEffect(() => {
+    if (Object.keys(selected).length && scheduleBracketsValues.some(b => !Object.keys(b.slots).length)) {
+      setSelected({});
+    } else if (!Object.keys(selected).length && scheduleBracketsValues.some(b => Object.keys(b.slots).length)) {
+      const newSelected = {} as Record<string, IScheduleBracketSlot>;
+      scheduleBracketsValues.forEach(b => {
+        Object.values(b.slots).forEach(s => {
+          newSelected[`schedule_bracket_slot_selection_${moment.utc(s.startTime).local().toISOString()}`] = s;
+        });
+      });
+      setSelected(newSelected);
+    }
+  }, [selected, scheduleBracketsValues]);
 
   return <>
     <Typography variant="caption">Click a bracket, then use up the allotted time by clicking on the time slots. Hold down the mouse button to select multiple slots. There can be leftover slots if they're unneeded.</Typography>

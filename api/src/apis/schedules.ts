@@ -65,6 +65,11 @@ const schedules: ApiModule = [
       try {
         const { scheduleId, brackets } = props.event.body;
         const newBrackets = {} as Record<string, IScheduleBracket>;
+
+        await props.db.query(`
+          DELETE FROM dbtable_schema.schedule_brackets
+          WHERE schedule_id = $1 AND created_sub = $2
+        `, [scheduleId, props.event.userSub]);
   
         await asyncForEach(Object.values(brackets), async b => {
           const { id: bracketId } = (await props.db.query<IScheduleBracket>(`
@@ -73,6 +78,18 @@ const schedules: ApiModule = [
             RETURNING id
           `, [scheduleId, b.duration, b.multiplier, b.automatic, props.event.userSub])).rows[0];
   
+          if (isNaN(parseInt(b.id))) {
+            await props.db.query(`
+              DELETE FROM dbtable_schema.schedule_bracket_services
+              WHERE schedule_bracket_id = $1 AND created_sub = $2
+            `, [b.id, props.event.userSub]);
+
+            await props.db.query(`
+              DELETE FROM dbtable_schema.schedule_bracket_slots
+              WHERE schedule_bracket_id = $1 AND created_sub = $2
+            `, [b.id, props.event.userSub]);
+          }
+
           b.id = bracketId;
   
           await asyncForEach(Object.values(b.services), async s => {
@@ -96,6 +113,8 @@ const schedules: ApiModule = [
   
           newBrackets[b.id] = b;
         });
+
+        await props.redis.del(props.event.userSub + 'schedules/' + scheduleId);
   
         return brackets;
         
