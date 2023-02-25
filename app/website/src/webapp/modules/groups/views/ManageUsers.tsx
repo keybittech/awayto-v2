@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import DataTable, { TableColumn }  from 'react-data-table-component';
+import DataTable, { TableColumn } from 'react-data-table-component';
 
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
 import IconButton from '@mui/material/IconButton';
 import Dialog from '@mui/material/Dialog';
 import Button from '@mui/material/Button';
@@ -45,10 +47,12 @@ export function ManageUsers(props: IProps): JSX.Element {
     { name: 'Username', selector: row => row.username },
     { name: 'First Name', selector: row => row.firstName },
     { name: 'Last Name', selector: row => row.lastName },
-    { name: 'Group', selector: (user: IUserProfile) => {
-      const userGroups = Object.values(user.groups || {});
-      return userGroups.length ? userGroups.map(r => r.name).join(', ') : ''
-    }},
+    {
+      name: 'Group', selector: (user: IUserProfile) => {
+        const userGroups = Object.values(user.groups || {});
+        return userGroups.length ? userGroups.map(r => r.name).join(', ') : ''
+      }
+    },
     { name: 'Created', selector: (user: IUserProfile) => user.createdOn },
   ] as TableColumn<IUserProfile>[], undefined)
 
@@ -92,25 +96,28 @@ export function ManageUsers(props: IProps): JSX.Element {
     <Dialog open={dialog === 'manage_user'} fullWidth maxWidth="lg">
       <ManageUserModal {...props} editUser={user} closeModal={() => setDialog('')} />
     </Dialog>
-
-    <DataTable
-      title="Users"
-      actions={<Button onClick={() => { setUser(undefined); setDialog('manage_user') }}>New</Button>}
-      contextActions={actions}
-      data={users ? Object.values(users) : []}
-      theme={util.theme}
-      columns={columns}
-      defaultSortFieldId="createdOn"
-      defaultSortAsc={false}
-      selectableRows
-      selectableRowsHighlight={true}
-      // selectableRowsComponent={<><Checkbox /></>}
-      onSelectedRowsChange={updateSelections}
-      clearSelectedRows={toggle}
-      pagination={true}
-      paginationPerPage={5}
-      paginationRowsPerPageOptions={[5, 10, 25]}
-    />
+    <Card>
+      <CardContent>
+        <DataTable
+          title="Users"
+          actions={<Button onClick={() => { setUser(undefined); setDialog('manage_user') }}>New</Button>}
+          contextActions={actions}
+          data={users ? Object.values(users) : []}
+          theme={util.theme}
+          columns={columns}
+          defaultSortFieldId="createdOn"
+          defaultSortAsc={false}
+          selectableRows
+          selectableRowsHighlight={true}
+          // selectableRowsComponent={<><Checkbox /></>}
+          onSelectedRowsChange={updateSelections}
+          clearSelectedRows={toggle}
+          pagination={true}
+          paginationPerPage={5}
+          paginationRowsPerPageOptions={[5, 10, 25]}
+        />
+      </CardContent>
+    </Card>
   </>
 }
 

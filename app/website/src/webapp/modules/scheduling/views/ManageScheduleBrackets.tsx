@@ -155,39 +155,39 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
         <Card>
           <CardContent>
 
-          <DataTable
-          title="Schedules"
-          actions={[
-            <Box key={'schedule_bracket_group_select'}>
-              <TextField
-                select
-                fullWidth
-                value={group.id}
-                label="Group"
-                variant="standard"
-                onChange={e => {
-                  setGroup(groups[e.target.value]);
-                }}
-              >
-                {Object.values(groups).map(group => <MenuItem key={`group-select${group.id}`} value={group.id}>{group.name}</MenuItem>)}
-              </TextField>
-            </Box>
-          ]}
-          contextActions={actions}
-          data={Object.values(schedules)}
-          defaultSortFieldId="createdOn"
-          defaultSortAsc={false}
-          theme={util.theme}
-          columns={columns}
-          selectableRows
-          selectableRowsHighlight={true}
-          // selectableRowsComponent={<Checkbox />}
-          onSelectedRowsChange={updateState}
-          clearSelectedRows={toggle}
-          pagination={true}
-          paginationPerPage={5}
-          paginationRowsPerPageOptions={[5, 10, 25]}
-        />
+            <DataTable
+              title="Schedules"
+              actions={[
+                <Box key={'schedule_bracket_group_select'}>
+                  <TextField
+                    select
+                    fullWidth
+                    value={group.id}
+                    label="Group"
+                    variant="standard"
+                    onChange={e => {
+                      setGroup(groups[e.target.value]);
+                    }}
+                  >
+                    {Object.values(groups).map(group => <MenuItem key={`group-select${group.id}`} value={group.id}>{group.name}</MenuItem>)}
+                  </TextField>
+                </Box>
+              ]}
+              contextActions={actions}
+              data={Object.values(schedules)}
+              defaultSortFieldId="createdOn"
+              defaultSortAsc={false}
+              theme={util.theme}
+              columns={columns}
+              selectableRows
+              selectableRowsHighlight={true}
+              // selectableRowsComponent={<Checkbox />}
+              onSelectedRowsChange={updateState}
+              clearSelectedRows={toggle}
+              pagination={true}
+              paginationPerPage={5}
+              paginationRowsPerPageOptions={[5, 10, 25]}
+            />
           </CardContent>
         </Card>
       </Grid>

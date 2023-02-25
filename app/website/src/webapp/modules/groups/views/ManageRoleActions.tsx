@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import DataTable, { TableColumn } from 'react-data-table-component';
 
 import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
@@ -69,8 +70,8 @@ export function ManageRoleActions(): JSX.Element {
     return [
       { selector: (row: { name: string }) => row.name },
       ...groupRoles.reduce((memo, { name }) => {
-        const subgroup =`/${groupName}/${name}`;
-          memo.push({ name, cell: row => <Checkbox checked={assignments[subgroup] ? assignments[subgroup].actions.some(a => a.name === row.name) : false} onChange={e => handleCheck(subgroup, row.name, e.target.checked)} />});
+        const subgroup = `/${groupName}/${name}`;
+        memo.push({ name, cell: row => <Checkbox checked={assignments[subgroup] ? assignments[subgroup].actions.some(a => a.name === row.name) : false} onChange={e => handleCheck(subgroup, row.name, e.target.checked)} /> });
         return memo;
       }, [] as TableColumn<{ name: string }>[])
     ]
@@ -80,18 +81,8 @@ export function ManageRoleActions(): JSX.Element {
 
   return <>
 
-    <Box mb={4}>
-      <DataTable
-        className={classes.datatable}
-        title="Action-Role Matrix"
-        data={options}
-        theme={util.theme}
-        columns={columns}
-      />
-    </Box>
-
     <Grid container>
-      <Grid item xs={12}>
+      <Grid item mb={2} xs={12}>
         <Card>
           <CardActionArea disabled={!util.canSubmitAssignments} onClick={handleSubmit}>
             <Grid container direction="row" justifyContent="space-between">
@@ -110,6 +101,18 @@ export function ManageRoleActions(): JSX.Element {
         </Card>
       </Grid>
     </Grid>
+
+    <Card>
+      <CardContent>
+        <DataTable
+          className={classes.datatable}
+          title="Action-Role Matrix"
+          data={options}
+          theme={util.theme}
+          columns={columns}
+        />
+      </CardContent>
+    </Card>
 
   </>
 }

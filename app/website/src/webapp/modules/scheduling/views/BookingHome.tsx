@@ -171,8 +171,10 @@ export function BookingHome(props: IProps): JSX.Element {
                         </Grid>
                       </Grid>
                       <Box mt={6}>
-                        <Card square>
-                          {tierColumns.length > 0 && <DataTable title="Tier Addon Comparison" theme={util.theme} data={serviceTierAddons.map(name => ({ name }))} columns={tierColumns} />}
+                        <Card>
+                          <CardContent>
+                            {tierColumns.length > 0 && <DataTable title="Tier Addon Comparison" theme={util.theme} data={serviceTierAddons.map(name => ({ name }))} columns={tierColumns} />}
+                          </CardContent>
                         </Card>
                       </Box>
                     </Grid>

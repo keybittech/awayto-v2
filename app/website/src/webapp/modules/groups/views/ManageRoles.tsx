@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import DataTable, { TableColumn } from 'react-data-table-component';
 
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
 import IconButton from '@mui/material/IconButton';
 import Dialog from '@mui/material/Dialog';
 import Button from '@mui/material/Button';
@@ -26,7 +28,7 @@ declare global {
   interface IProps extends ManageRolesActions { }
 }
 
-export function ManageRoles (props: IProps): JSX.Element {
+export function ManageRoles(props: IProps): JSX.Element {
   const { roles, getRolesAction, deleteRolesAction } = props as IProps & Required<ManageRolesActions>;
 
   const hasGroupRole = useGroupSecure();
@@ -84,24 +86,29 @@ export function ManageRoles (props: IProps): JSX.Element {
       }} />
     </Dialog>
 
-    <DataTable
-      title="Roles"
-      actions={<Button onClick={() => { setRole(undefined); setDialog('manage_role') }}>New</Button>}
-      contextActions={actions}
-      data={roles ? Object.values(roles) : []}
-      defaultSortFieldId="createdOn"
-      defaultSortAsc={false}
-      theme={util.theme}
-      columns={columns}
-      selectableRows
-      selectableRowsHighlight={true}
-      // selectableRowsComponent={<Checkbox />}
-      onSelectedRowsChange={updateState}
-      clearSelectedRows={toggle}
-      pagination={true}
-      paginationPerPage={5}
-      paginationRowsPerPageOptions={[5, 10, 25]}
-    />
+    <Card>
+      <CardContent>
+
+        <DataTable
+          title="Roles"
+          actions={<Button onClick={() => { setRole(undefined); setDialog('manage_role') }}>New</Button>}
+          contextActions={actions}
+          data={roles ? Object.values(roles) : []}
+          defaultSortFieldId="createdOn"
+          defaultSortAsc={false}
+          theme={util.theme}
+          columns={columns}
+          selectableRows
+          selectableRowsHighlight={true}
+          // selectableRowsComponent={<Checkbox />}
+          onSelectedRowsChange={updateState}
+          clearSelectedRows={toggle}
+          pagination={true}
+          paginationPerPage={5}
+          paginationRowsPerPageOptions={[5, 10, 25]}
+        />
+      </CardContent>
+    </Card>
   </>
 }
 

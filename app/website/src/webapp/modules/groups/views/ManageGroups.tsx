@@ -5,6 +5,8 @@ import IconButton from '@mui/material/IconButton';
 import Dialog from '@mui/material/Dialog';
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
 
 import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -56,7 +58,7 @@ export function ManageGroups(props: IProps): JSX.Element {
 
   const columns = useMemo(() => [
     { id: 'createdOn', selector: row => row.createdOn, omit: true },
-    { cell: row => <Button key={`group_manage_selection_${row.name}`} onClick={() => navigate(`/group/${row.name}/manage/users`)} >Manage</Button>},
+    { cell: row => <Button key={`group_manage_selection_${row.name}`} onClick={() => navigate(`/group/${row.name}/manage/users`)} >Manage</Button> },
     { name: 'Name', selector: row => row.name },
     { name: 'Code', selector: row => row.code },
     { name: 'Users', cell: (group: IGroup) => group.usersCount || 0 },
@@ -158,35 +160,38 @@ export function ManageGroups(props: IProps): JSX.Element {
     </Dialog>
 
 
-
-    <DataTable
-      title="Groups"
-      actions={[
-        <Button key={'join_group_button'} onClick={() => {
-          setGroup(undefined);
-          setDialog('groups_join');
-        }}>Join</Button>,
-        <Button key={'create_group_button'} onClick={() => {
-          setGroup(undefined);
-          setDialog('create_group');
-        }}>Create</Button>
-      ]}
-      contextActions={actions}
-      data={groups ? Object.values(groups) : []}
-      theme={util.theme}
-      columns={columns}
-      defaultSortFieldId="createdOn"
-      defaultSortAsc={false}
-      selectableRows
-      selectableRowsSingle
-      selectableRowsHighlight={true}
-      // selectableRowsComponent={<Checkbox />}
-      onSelectedRowsChange={updateState}
-      clearSelectedRows={toggle}
-      pagination={true}
-      paginationPerPage={5}
-      paginationRowsPerPageOptions={[5, 10, 25]}
-    />
+    <Card>
+      <CardContent>
+        <DataTable
+          title="Groups"
+          actions={[
+            <Button key={'join_group_button'} onClick={() => {
+              setGroup(undefined);
+              setDialog('groups_join');
+            }}>Join</Button>,
+            <Button key={'create_group_button'} onClick={() => {
+              setGroup(undefined);
+              setDialog('create_group');
+            }}>Create</Button>
+          ]}
+          contextActions={actions}
+          data={groups ? Object.values(groups) : []}
+          theme={util.theme}
+          columns={columns}
+          defaultSortFieldId="createdOn"
+          defaultSortAsc={false}
+          selectableRows
+          selectableRowsSingle
+          selectableRowsHighlight={true}
+          // selectableRowsComponent={<Checkbox />}
+          onSelectedRowsChange={updateState}
+          clearSelectedRows={toggle}
+          pagination={true}
+          paginationPerPage={5}
+          paginationRowsPerPageOptions={[5, 10, 25]}
+        />
+      </CardContent>
+    </Card>
   </>
 }
 

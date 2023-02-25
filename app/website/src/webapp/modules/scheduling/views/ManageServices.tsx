@@ -2,6 +2,8 @@ import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import DataTable, { TableColumn } from 'react-data-table-component';
 import { useParams } from 'react-router';
 
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
 import IconButton from '@mui/material/IconButton';
 import Dialog from '@mui/material/Dialog';
 import Button from '@mui/material/Button';
@@ -32,7 +34,7 @@ declare global {
   interface IProps extends ManageServicesActions { }
 }
 
-export function ManageServices (props: IProps): JSX.Element {
+export function ManageServices(props: IProps): JSX.Element {
   const { services, getServicesAction, deleteGroupServicesAction } = props as IProps & Required<ManageServicesActions>;
 
   const { groupName } = useParams();
@@ -101,25 +103,28 @@ export function ManageServices (props: IProps): JSX.Element {
         api(getServicesAction, true, { groupName });
       }} />
     </Dialog>
-
-    <DataTable
-      title="Services"
-      actions={<Button onClick={() => { setService(undefined); setDialog('manage_service') }}>New</Button>}
-      contextActions={actions}
-      data={Object.values(services)}
-      defaultSortFieldId="createdOn"
-      defaultSortAsc={false}
-      theme={util.theme}
-      columns={columns}
-      selectableRows
-      selectableRowsHighlight={true}
-      // selectableRowsComponent={<Checkbox />}
-      onSelectedRowsChange={updateState}
-      clearSelectedRows={toggle}
-      pagination={true}
-      paginationPerPage={5}
-      paginationRowsPerPageOptions={[5, 10, 25]}
-    />
+    <Card>
+      <CardContent>
+        <DataTable
+          title="Services"
+          actions={<Button onClick={() => { setService(undefined); setDialog('manage_service') }}>New</Button>}
+          contextActions={actions}
+          data={Object.values(services)}
+          defaultSortFieldId="createdOn"
+          defaultSortAsc={false}
+          theme={util.theme}
+          columns={columns}
+          selectableRows
+          selectableRowsHighlight={true}
+          // selectableRowsComponent={<Checkbox />}
+          onSelectedRowsChange={updateState}
+          clearSelectedRows={toggle}
+          pagination={true}
+          paginationPerPage={5}
+          paginationRowsPerPageOptions={[5, 10, 25]}
+        />
+      </CardContent>
+    </Card>
   </>
 }
 

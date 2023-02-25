@@ -1,6 +1,8 @@
 import React, { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 import DataTable, { TableColumn } from 'react-data-table-component';
 import Button from '@mui/material/Button';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
 
 import { IFile, IFilesActionTypes, FileStoreStrategies } from 'awayto';
 import { useApi, useRedux, useFileStore } from 'awayto-hooks';
@@ -13,7 +15,7 @@ declare global {
   }
 }
 
-export function FileManager (): JSX.Element {
+export function FileManager(): JSX.Element {
   const api = useApi();
   const fileSelectRef = useRef<HTMLInputElement>(null);
   const { files } = useRedux(state => state.files);
@@ -30,7 +32,7 @@ export function FileManager (): JSX.Element {
     }
   }
 
-  function deleteFiles(){
+  function deleteFiles() {
     if (selected.length) {
       // void api(DELETE_FILES, true, selected);
       setToggle(!toggle);
@@ -63,22 +65,26 @@ export function FileManager (): JSX.Element {
   }, [selected])
 
   return <>
-    <input type="file" multiple id="new-file" onChange={e => e.target.files && setNewFiles(Array.from(e.target.files))} ref={fileSelectRef} style={{display: 'none'}}/>
+    <input type="file" multiple id="new-file" onChange={e => e.target.files && setNewFiles(Array.from(e.target.files))} ref={fileSelectRef} style={{ display: 'none' }} />
 
-    <DataTable
-      style={{ maxHeight: '150px', overflow: 'auto' }}
-      title="Files"
-      actions={<Button onClick={addFiles}>Add</Button>}
-      contextActions={actions}
-      data={files ? Object.values(files) : []}
-      theme={util.theme}
-      columns={columns}
-      selectableRows
-      selectableRowsHighlight={true}
-      // selectableRowsComponent={<Checkbox />}
-      onSelectedRowsChange={updateSelection}
-      clearSelectedRows={toggle}
-    />
+    <Card>
+      <CardContent>
+        <DataTable
+          style={{ maxHeight: '150px', overflow: 'auto' }}
+          title="Files"
+          actions={<Button onClick={addFiles}>Add</Button>}
+          contextActions={actions}
+          data={files ? Object.values(files) : []}
+          theme={util.theme}
+          columns={columns}
+          selectableRows
+          selectableRowsHighlight={true}
+          // selectableRowsComponent={<Checkbox />}
+          onSelectedRowsChange={updateSelection}
+          clearSelectedRows={toggle}
+        />
+      </CardContent>
+    </Card>
   </>
 }
 
