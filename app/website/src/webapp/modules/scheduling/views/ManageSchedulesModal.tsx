@@ -28,7 +28,7 @@ declare global {
 }
 
 export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IProps): JSX.Element {
-  const { getSchedulesAction, putSchedulesAction, postSchedulesAction, postGroupSchedulesAction } = props as IProps & Required<ManageSchedulesActions>;
+  const { getGroupSchedulesAction, putGroupSchedulesAction, postGroupSchedulesAction } = props as IProps & Required<ManageSchedulesActions>;
 
   const { groupName } = useParams();
 
@@ -91,18 +91,12 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
 
     const { id, name, duration, slotTimeUnitName } = schedule;
     if (name && duration && slotTimeUnitName) {
-      const [, res] = api(id ? putSchedulesAction : postSchedulesAction, false, schedule);
-      res?.then(schedules => {
-        if (schedules) {
-          const [schedule] = schedules as ISchedule[];
-          const [, rez] = api(postGroupSchedulesAction, false, { scheduleId: schedule.id, groupName });
-          rez?.then(() => {
-            api(getSchedulesAction, true, { groupName });
-            act(SET_SNACK, { snackOn: 'Successfully added ' + name, snackType: 'info' });
-            if (closeModal)
-              closeModal();
-          });
-        }
+      const [, res] = api(id ? putGroupSchedulesAction : postGroupSchedulesAction, false, id ? { id, name, groupName } : { ...schedule, groupName });
+      res?.then(() => {
+        api(getGroupSchedulesAction, true, { groupName });
+        act(SET_SNACK, { snackOn: 'Successfully added ' + name, snackType: 'info' });
+        if (closeModal)
+          closeModal();
       });
 
     } else {

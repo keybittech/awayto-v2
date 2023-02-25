@@ -60,8 +60,6 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
 
   const testDur = Duration.parse('PT03H');
 
-  console.log({ dur: testDur.toString() })
-
   const Cell = useCallback((gridCell: GridCell) => {
 
     let cellDuration = Duration.ZERO;
@@ -132,8 +130,6 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
       const newSelected = {} as Record<string, IScheduleBracketSlot>;
       scheduleBracketsValues.forEach(b => {
         Object.values(b.slots).forEach(s => {
-          // const [hours, minutes, seconds] = s.startTime.split(':');
-          // const cellTime = Duration.ZERO.plusHours(parseInt(hours)).plusMinutes(parseInt(minutes)).plusSeconds(parseFloat(seconds));          
           newSelected[`schedule_bracket_slot_selection_${s.startTime}`] = s;
         });
       });

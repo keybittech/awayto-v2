@@ -1,4 +1,5 @@
 import { performance } from 'perf_hooks';
+import { v4 as uuid } from 'uuid';
 
 import { IGroup, IUuidRoles, DbError, IUserProfile, IGroupState, IRole, IGroupActionTypes, asyncForEach, utcNowString } from 'awayto';
 
@@ -17,6 +18,13 @@ const groups: ApiModule = [
 
         const { name, roles, roleId: adminRoleId } = props.event.body;
         let primaryRoleSubgroupId = '';
+
+        const groupSub = uuid();
+
+        await props.db.query(`
+          INSERT INTO dbtable_schema.users (sub, username, created_on, created_sub)
+          VALUES ($1::uuid, $2, $3, $1::uuid)
+        `, [groupSub, 'system_group_' + name, new Date()]);
 
         // Create a group in app db if user has no groups and name is unique
         const { rows: [group] } = await props.db.query<IGroup>(`
@@ -41,7 +49,7 @@ const groups: ApiModule = [
           if (groupRoleId === adminRoleId) {
             primaryRoleSubgroupId = kcSubgroupId;
 
-            const res = await keycloak.groups.addClientRoleMappings({
+            await keycloak.groups.addClientRoleMappings({
               id: primaryRoleSubgroupId,
               clientUniqueId: appClient.id!,
               roles: groupAdminRoles as { id: string, name: string }[]

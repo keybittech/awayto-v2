@@ -20,12 +20,10 @@ import { useParams } from 'react-router';
 const { OPEN_CONFIRM } = IUtilActionTypes;
 
 export type ManageSchedulesActions = {
-  schedules?: Record<string, ISchedule>;
   groupSchedules?: Record<string, IGroupSchedule>;
-  getSchedulesAction?: IActionTypes;
-  postSchedulesAction?: IActionTypes;
+  getGroupSchedulesAction?: IActionTypes;
   postGroupSchedulesAction?: IActionTypes;
-  putSchedulesAction?: IActionTypes;
+  putGroupSchedulesAction?: IActionTypes;
   disableSchedulesAction?: IActionTypes;
   deleteSchedulesAction?: IActionTypes;
   deleteGroupSchedulesAction?: IActionTypes;
@@ -38,7 +36,7 @@ declare global {
 // This is how group owners interact with the schedule
 
 export function ManageSchedules(props: IProps): JSX.Element {
-  const { schedules, getSchedulesAction, deleteGroupSchedulesAction } = props as IProps & Required<ManageSchedulesActions>;
+  const { groupSchedules, getGroupSchedulesAction, deleteGroupSchedulesAction } = props as IProps & Required<ManageSchedulesActions>;
 
   const { groupName } = useParams();
 
@@ -56,7 +54,7 @@ export function ManageSchedules(props: IProps): JSX.Element {
     { id: 'createdOn', selector: row => row.createdOn, omit: true },
     { name: 'Name', selector: row => row.name },
     { name: 'Created', selector: row => row.createdOn }
-  ] as TableColumn<ISchedule>[], [schedules])
+  ] as TableColumn<ISchedule>[], [groupSchedules])
 
   const actions = useMemo(() => {
     const { length } = selected;
@@ -85,7 +83,7 @@ export function ManageSchedules(props: IProps): JSX.Element {
                 const [, res] = api(deleteGroupSchedulesAction, true, { groupName, ids: selected.map(s => s.id).join(',') })
                 res?.then(() => {
                   setToggle(!toggle);
-                  api(getSchedulesAction, true, { groupName });
+                  api(getGroupSchedulesAction, true, { groupName });
                 });
               }
             });
@@ -99,7 +97,7 @@ export function ManageSchedules(props: IProps): JSX.Element {
 
   useEffect(() => {
     if (groupName) {
-      const [abort] = api(getSchedulesAction, true, { groupName });
+      const [abort] = api(getGroupSchedulesAction, true, { groupName });
       return () => abort();
     }
   }, [groupName]);
@@ -108,7 +106,7 @@ export function ManageSchedules(props: IProps): JSX.Element {
     <Dialog open={dialog === 'manage_schedule'} fullWidth maxWidth="sm">
       <ManageSchedulesModal {...props} editSchedule={schedule} closeModal={() => {
         setDialog('');
-        api(getSchedulesAction, true, { groupName });
+        api(getGroupSchedulesAction, true, { groupName });
       }} />
     </Dialog>
 
@@ -118,7 +116,7 @@ export function ManageSchedules(props: IProps): JSX.Element {
           title="Schedule Templates"
           actions={<Button onClick={() => { setSchedule(undefined); setDialog('manage_schedule') }}>New</Button>}
           contextActions={actions}
-          data={Object.values(schedules)}
+          data={Object.values(groupSchedules)}
           defaultSortFieldId="createdOn"
           defaultSortAsc={false}
           theme={util.theme}

@@ -44,7 +44,7 @@ declare global {
 // This is how group users interact with the schedule
 
 export function ManageScheduleBrackets(props: IProps): JSX.Element {
-  const { getGroupServicesAction, getGroupSchedulesAction, groupSchedules, getScheduleBracketsAction } = props as IProps & Required<ManageScheduleBracketsActions>;
+  const { getGroupServicesAction, getGroupSchedulesAction, schedules, getScheduleBracketsAction } = props as IProps & Required<ManageScheduleBracketsActions>;
 
   const act = useAct();
   const api = useApi();
@@ -65,7 +65,12 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
         break;
       }
     }
-  }, [groups])
+  }, [groups]);
+
+  useEffect(() => {
+    const [abort] = api(getScheduleBracketsAction);
+    return () => abort();
+  }, []);
 
   useEffect(() => {
     if (group.name) {
@@ -127,7 +132,7 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
     <Dialog open={dialog === 'manage_schedule'} fullWidth maxWidth="sm">
       <ManageScheduleBracketsModal {...props} editSchedule={schedule} closeModal={() => {
         setDialog('')
-        api(getScheduleBracketsAction);
+        // api(getScheduleBracketsAction);
       }} />
     </Dialog>
 
@@ -155,7 +160,7 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
             </Box>
           ]}
           contextActions={actions}
-          data={Object.values(groupSchedules)}
+          data={Object.values(schedules)}
           defaultSortFieldId="createdOn"
           defaultSortAsc={false}
           theme={util.theme}

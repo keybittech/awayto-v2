@@ -14,7 +14,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 
-import { getRelativeDuration, IGroup, ISchedule, IScheduleBracket, ITimeUnitNames, IUtilActionTypes, TimeUnit, timeUnitOrder, utcNowString } from "awayto";
+import { getRelativeDuration, IGroup, IGroupSchedule, ISchedule, IScheduleBracket, ITimeUnitNames, IUtilActionTypes, TimeUnit, timeUnitOrder, utcNowString } from "awayto";
 import { useApi, useAct, useComponents, useRedux } from 'awayto-hooks';
 
 import { scheduleSchema } from "./ScheduleHome";
@@ -37,7 +37,7 @@ declare global {
 
 export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, ...props }: IProps): JSX.Element {
 
-  const { getScheduleByIdAction, groupServices, groupSchedules, getGroupServicesAction, getGroupSchedulesAction, getScheduleBracketsAction, postScheduleAction, postScheduleBracketsAction, postScheduleParentAction } = props as IProps & Required<ManageScheduleBracketsActions>;
+  const { getScheduleByIdAction, groupServices, groupSchedules, getGroupServicesAction, getGroupSchedulesAction, postScheduleAction, postScheduleBracketsAction, postScheduleParentAction } = props as IProps & Required<ManageScheduleBracketsActions>;
 
   const api = useApi();
   const act = useAct();
@@ -61,11 +61,13 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
         const [, res] = api(getScheduleByIdAction, false, { id: editSchedule.id });
         res?.then(scheduleRes => {
           const [sched] = scheduleRes as ISchedule[];
-          if (!sched.brackets) sched.brackets = {};
-          attachScheduleUnits(sched);
-          setSchedule({ ...sched });
-          if (Object.keys(sched.brackets).length) {
-            setView(2);
+          if (sched) {
+            if (!sched.brackets) sched.brackets = {};
+            attachScheduleUnits(sched);
+            setSchedule({ ...sched });
+            if (Object.keys(sched.brackets).length) {
+              setView(2);
+            }
           }
         })
       } else {
@@ -83,11 +85,9 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
     if (!group?.name) return;
     const [abort1] = api(getGroupServicesAction, true, { groupName: group.name });
     const [abort2] = api(getGroupSchedulesAction, false, { groupName: group.name });
-    const [abort3] = api(getScheduleBracketsAction);
     return () => {
       abort1();
       abort2();
-      abort3();
     }
   }, [group]);
 
@@ -111,14 +111,14 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
       const { name, duration, scheduleTimeUnitName, brackets } = schedule;
       if (name && duration && scheduleTimeUnitName && scheduleBracketsValues.length) {
 
-        const [, res] = !schedule.id ? 
+        const [, res] = !editSchedule ? 
           api(postScheduleAction, false, schedule) :
           [undefined, new Promise(res => res([schedule]))];
         res?.then(resSchedules => {
           const [sched] = resSchedules as ISchedule[];
 
           const [, rex] = api(postScheduleBracketsAction, false, { scheduleId: sched.id, brackets })
-          const [, rez] = !schedule.id ?
+          const [, rez] = !editSchedule ?
             api(postScheduleParentAction, false, { scheduleId: sched.id, parentUuid: schedule.id }) :
             [undefined, new Promise(res => res(true))];
           void Promise.all([rex, rez]).then(() => {

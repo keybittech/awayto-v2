@@ -15,18 +15,9 @@ const schedules: ApiModule = [
         const { name, duration, scheduleTimeUnitId, bracketTimeUnitId, slotTimeUnitId, slotDuration } = schedule;
 
         const { rows: [{ id }] } = await props.db.query<ISchedule>(`
-          WITH input_rows(name, created_sub, duration, slot_duration, schedule_time_unit_id, bracket_time_unit_id, slot_time_unit_id) as (VALUES ($1, $2::uuid, $3::integer, $4::integer, $5::uuid, $6::uuid, $7::uuid)), ins AS (
-            INSERT INTO dbtable_schema.schedules (name, created_sub, duration, slot_duration, schedule_time_unit_id, bracket_time_unit_id, slot_time_unit_id)
-            SELECT * FROM input_rows
-            ON CONFLICT (name, created_sub) DO NOTHING
-            RETURNING id, name
-          )
-          SELECT id, name
-          FROM ins
-          UNION ALL
-          SELECT s.id, s.name
-          FROM input_rows
-          JOIN dbtable_schema.schedules s USING (name)
+          INSERT INTO dbtable_schema.schedules (name, created_sub, duration, slot_duration, schedule_time_unit_id, bracket_time_unit_id, slot_time_unit_id)
+          VALUES ($1, $2::uuid, $3::integer, $4::integer, $5::uuid, $6::uuid, $7::uuid)
+          RETURNING id, name, created_on as "createdOn"
         `, [name, props.event.userSub, duration, slotDuration, scheduleTimeUnitId, bracketTimeUnitId, slotTimeUnitId]);
 
         schedule.id = id;

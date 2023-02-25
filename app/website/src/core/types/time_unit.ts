@@ -66,8 +66,6 @@ export const startOfWeek = LocalDate.now().with(TemporalAdjusters.previous(first
 export function getContextFormattedDuration(contextUnit: ITimeUnitNames, duration: string): string {
   let formatted = 'No format!';
 
-  console.log({ duration })
-
   if (TimeUnit.DAY === contextUnit) {
     formatted = startOfWeek.plus(Duration.parse(duration)).format(formatter);
   } else if (TimeUnit.WEEK === contextUnit) {

@@ -187,7 +187,7 @@ export type IGroupServiceAddonState = {
  * @category Action Types
  */
 export enum IGroupServiceAddonActionTypes {
-  POST_GROUP_SERVICE_ADDON = "GET/group/:groupName/service_addons/:serviceAddonId",
+  POST_GROUP_SERVICE_ADDON = "POST/group/:groupName/service_addons/:serviceAddonId",
   GET_GROUP_SERVICE_ADDONS = "GET/group/:groupName/service_addons",
   DELETE_GROUP_SERVICE_ADDON = "DELETE/group/:groupName/service_addons/:serviceAddonId"
 }
@@ -240,7 +240,7 @@ export type IGroupServiceState = IGroupService & {
  * @category Action Types
  */
 export enum IGroupServiceActionTypes {
-  POST_GROUP_SERVICE = "GET/group/:groupName/services/:serviceId",
+  POST_GROUP_SERVICE = "POST/group/:groupName/services/:serviceId",
   GET_GROUP_SERVICES = "GET/group/:groupName/services",
   DELETE_GROUP_SERVICE = "DELETE/group/:groupName/services/:ids"
 }
@@ -293,8 +293,10 @@ export type IGroupServiceActions = IPostGroupServiceAction
    * @category Action Types
    */
   export enum IGroupScheduleActionTypes {
-    POST_GROUP_SCHEDULE = "GET/group/:groupName/schedules/:scheduleId",
+    POST_GROUP_SCHEDULE = "POST/group/:groupName/schedules",
+    PUT_GROUP_SCHEDULE = "PUT/group/:groupName/schedules",
     GET_GROUP_SCHEDULES = "GET/group/:groupName/schedules",
+    GET_GROUP_SCHEDULE_BY_ID = "GET/group/:groupName/schedules/:scheduleId",
     DELETE_GROUP_SCHEDULE = "DELETE/group/:groupName/schedules/:ids"
   }
   
@@ -303,10 +305,21 @@ export type IGroupServiceActions = IPostGroupServiceAction
    */
   export type IPostGroupScheduleAction = PayloadAction<IGroupScheduleActionTypes.POST_GROUP_SCHEDULE, IGroupSchedule[]>;
   
+
+  /**
+   * @category Group
+   */
+  export type IPutGroupScheduleAction = PayloadAction<IGroupScheduleActionTypes.PUT_GROUP_SCHEDULE, IGroupSchedule[]>;
+  
   /**
    * @category Group
    */
   export type IGetGroupSchedulesAction = PayloadAction<IGroupScheduleActionTypes.GET_GROUP_SCHEDULES, IGroupSchedule[]>;
+  
+  /**
+   * @category Group
+   */
+  export type IGetGroupScheduleByGroupIdAction = PayloadAction<IGroupScheduleActionTypes.GET_GROUP_SCHEDULE_BY_ID, IGroupSchedule[]>;
   
   /**
    * @category Group
@@ -317,5 +330,7 @@ export type IGroupServiceActions = IPostGroupServiceAction
    * @category Group
    */
   export type IGroupScheduleActions = IPostGroupScheduleAction
+    | IPutGroupScheduleAction
     | IGetGroupSchedulesAction
+    | IGetGroupScheduleByGroupIdAction
     | IDeleteGroupScheduleAction;

@@ -28,10 +28,5 @@ export const hasGroupRole = function (groupName: string, availableUserGroupRoles
   if (!targetRoles) return false;
   if (!availableUserGroupRoles) return false;
   if (!availableUserGroupRoles[groupName]) return false;
-
-  // const roleNameArrays = Object.values(availableUserGroupRoles[groupName]).flatMap(ra => ra);
-
-  // console.log({ roleNameArrays })
-
   return Object.values(availableUserGroupRoles[groupName]).some((gr) => (gr as string[]).some(r => targetRoles.includes(SiteRoles[r as SiteRoles])));
 }

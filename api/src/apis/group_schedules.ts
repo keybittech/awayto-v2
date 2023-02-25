@@ -1,20 +1,41 @@
-import { asyncForEach, IGroup, IGroupScheduleActionTypes, IGroupService, IGroupServiceAddon } from 'awayto';
-import { ApiModule } from '../api';
+import { asyncForEach, IGroup, IGroupSchedule, IGroupScheduleActionTypes, IGroupService, IGroupServiceAddon, ISchedule, IScheduleActionTypes, IUserProfile } from 'awayto';
+import { ApiEvent, ApiModule } from '../api';
+import schedules from './schedules';
 
 const groupServices: ApiModule = [
 
   {
     action: IGroupScheduleActionTypes.POST_GROUP_SCHEDULE,
-    cmnd : async (props) => {
+    cmnd: async (props) => {
       try {
 
-        const { groupName, scheduleId } = props.event.pathParameters;
+        const { groupName } = props.event.pathParameters;
 
-        const [{ id: groupId }] = (await props.db.query<IGroup>(`
+        const { rows: [{ id: groupId }] } = await props.db.query<IGroup>(`
           SELECT id
           FROM dbview_schema.enabled_groups
           WHERE name = $1
-        `, [groupName])).rows
+        `, [groupName]);
+
+        const { rows: [{ sub: groupSub }] } = await props.db.query<IUserProfile>(`
+          SELECT sub
+          FROM dbview_schema.enabled_users
+          WHERE username = $1
+        `, ['system_group_' + groupName]);
+
+        const postSchedule = schedules.find(api => api.action === IScheduleActionTypes.POST_SCHEDULE);
+
+        const [schedule] = await postSchedule?.cmnd({
+          event: {
+            ...props.event,
+            userSub: groupSub,
+            body: props.event.body
+          } as ApiEvent,
+          db: props.db,
+          redis: props.redis
+        }) as [IGroupSchedule];
+
+        schedule.groupId = groupId;
 
         // Attach schedule to group
         await props.db.query(`
@@ -22,11 +43,38 @@ const groupServices: ApiModule = [
           VALUES ($1, $2, $3::uuid)
           ON CONFLICT (parent_uuid, schedule_id) DO NOTHING
           RETURNING id
-        `, [groupId, scheduleId, props.event.userSub]);
+        `, [groupId, schedule.id, groupSub]);
 
         await props.redis.del(`${props.event.userSub}group/${groupName}/schedules`);
-        
-        return [];
+
+        return [schedule];
+
+      } catch (error) {
+        throw error;
+      }
+    }
+  },
+  {
+    action: IGroupScheduleActionTypes.PUT_GROUP_SCHEDULE,
+    cmnd: async (props) => {
+      try {
+
+        const { groupName } = props.event.pathParameters;
+
+        const postSchedule = schedules.find(api => api.action === IScheduleActionTypes.PUT_SCHEDULE);
+
+        const [schedule] = await postSchedule?.cmnd({
+          event: {
+            ...props.event,
+            body: props.event.body
+          } as ApiEvent,
+          db: props.db,
+          redis: props.redis
+        }) as [IGroupSchedule];
+
+        await props.redis.del(`${props.event.userSub}group/${groupName}/schedules`);
+
+        return [schedule];
 
       } catch (error) {
         throw error;
@@ -36,7 +84,7 @@ const groupServices: ApiModule = [
 
   {
     action: IGroupScheduleActionTypes.GET_GROUP_SCHEDULES,
-    cmnd : async (props) => {
+    cmnd: async (props) => {
       try {
         const { groupName } = props.event.pathParameters;
 
@@ -46,15 +94,43 @@ const groupServices: ApiModule = [
           WHERE name = $1
         `, [groupName])).rows
 
-        const response = await props.db.query<IGroupServiceAddon>(`
+        const response = await props.db.query<IGroupSchedule>(`
           SELECT es.*, eus."parentUuid" as "groupId"
           FROM dbview_schema.enabled_uuid_schedules eus
           LEFT JOIN dbview_schema.enabled_schedules es ON es.id = eus."scheduleId"
           WHERE eus."parentUuid" = $1
         `, [groupId]);
-        
+
         return response.rows;
-        
+
+      } catch (error) {
+        throw error;
+      }
+
+    }
+  },
+
+  {
+    action: IGroupScheduleActionTypes.GET_GROUP_SCHEDULE_BY_ID,
+    cmnd: async (props) => {
+      try {
+        const { groupName } = props.event.pathParameters;
+
+        const [{ id: groupId }] = (await props.db.query<IGroup>(`
+          SELECT id
+          FROM dbview_schema.enabled_groups
+          WHERE name = $1
+        `, [groupName])).rows
+
+        const response = await props.db.query<IGroupSchedule>(`
+          SELECT es.*, eus."parentUuid" as "groupId"
+          FROM dbview_schema.enabled_uuid_schedules eus
+          LEFT JOIN dbview_schema.enabled_schedules es ON es.id = eus."scheduleId"
+          WHERE eus."parentUuid" = $1
+        `, [groupId]);
+
+        return response.rows;
+
       } catch (error) {
         throw error;
       }
@@ -64,7 +140,7 @@ const groupServices: ApiModule = [
 
   {
     action: IGroupScheduleActionTypes.DELETE_GROUP_SCHEDULE,
-    cmnd : async (props) => {
+    cmnd: async (props) => {
       try {
 
         const { groupName, ids } = props.event.pathParameters;
