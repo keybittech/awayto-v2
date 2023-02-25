@@ -132,6 +132,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     parent_uuid as "parentUuid",
     schedule_id as "scheduleId",
     created_on as "createdOn",
+    created_sub as "createdSub",
     row_number() OVER () as row
   FROM
     dbtable_schema.uuid_schedules
@@ -374,23 +375,25 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
   OR REPLACE VIEW dbview_schema.enabled_group_schedules_ext AS
   SELECT
     eg.id as "groupId",
-    eesbe.* as brackets
+    eesbe.* as brackets,
+    csch."scheduleId" as "scheduleId",
+    msch."scheduleId" as "parentScheduleId",
+    eu.username,
+    CONCAT(eu."firstName", ' ', LEFT(eu."lastName", 1)) as name
   FROM
     dbview_schema.enabled_groups eg
   LEFT JOIN dbview_schema.enabled_uuid_schedules msch ON msch."parentUuid" = eg.id
   LEFT JOIN dbview_schema.enabled_uuid_schedules csch ON csch."parentUuid" = msch."scheduleId"
+  JOIN dbview_schema.enabled_users eu ON eu.sub = csch."createdSub"
   LEFT JOIN LATERAL (
     SELECT
       JSONB_OBJECT_AGG(sbss.id, TO_JSONB(sbss)) as brackets
     FROM
       (
         SELECT 
-          esbe.*,
-          eu.username,
-          CONCAT(eu."firstName", ' ', LEFT(eu."lastName", 1)) as name
+          esbe.*
         FROM
           dbview_schema.enabled_schedule_brackets_ext esbe
-          JOIN dbview_schema.enabled_users eu ON eu.sub = esbe."createdSub"
         WHERE
           esbe."scheduleId" = csch."scheduleId"
       ) sbss

@@ -275,6 +275,7 @@ export type IGroupServiceActions = IPostGroupServiceAction
    */
   export type IGroupSchedule = ISchedule & {
     groupId: string;
+    parentScheduleId: string;
   };
   
   /**

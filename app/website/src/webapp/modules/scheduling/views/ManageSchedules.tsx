@@ -22,6 +22,7 @@ const { OPEN_CONFIRM } = IUtilActionTypes;
 export type ManageSchedulesActions = {
   groupSchedules?: Record<string, IGroupSchedule>;
   getGroupSchedulesAction?: IActionTypes;
+  getGroupSchedulesByIdAction?: IActionTypes;
   postGroupSchedulesAction?: IActionTypes;
   putGroupSchedulesAction?: IActionTypes;
   disableSchedulesAction?: IActionTypes;

@@ -114,20 +114,13 @@ const groupServices: ApiModule = [
     action: IGroupScheduleActionTypes.GET_GROUP_SCHEDULE_BY_ID,
     cmnd: async (props) => {
       try {
-        const { groupName } = props.event.pathParameters;
-
-        const [{ id: groupId }] = (await props.db.query<IGroup>(`
-          SELECT id
-          FROM dbview_schema.enabled_groups
-          WHERE name = $1
-        `, [groupName])).rows
+        const { scheduleId } = props.event.pathParameters;
 
         const response = await props.db.query<IGroupSchedule>(`
-          SELECT es.*, eus."parentUuid" as "groupId"
-          FROM dbview_schema.enabled_uuid_schedules eus
-          LEFT JOIN dbview_schema.enabled_schedules es ON es.id = eus."scheduleId"
-          WHERE eus."parentUuid" = $1
-        `, [groupId]);
+          SELECT egse.*
+          FROM dbview_schema.enabled_group_schedules_ext egse
+          WHERE egse."parentScheduleId" = $1
+        `, [scheduleId]);
 
         return response.rows;
 

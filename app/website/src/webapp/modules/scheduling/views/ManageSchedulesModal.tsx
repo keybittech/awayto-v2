@@ -12,7 +12,7 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import { Mark } from "@mui/base";
 
-import { ISchedule, IUtilActionTypes, ITimeUnit, TimeUnit, timeUnitOrder, getRelativeDuration } from "awayto";
+import { ISchedule, IUtilActionTypes, ITimeUnit, TimeUnit, timeUnitOrder, getRelativeDuration, IGroupSchedule } from "awayto";
 import { useApi, useAct, useRedux, useComponents } from 'awayto-hooks';
 
 import { scheduleSchema } from "./ScheduleHome";
@@ -28,7 +28,7 @@ declare global {
 }
 
 export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IProps): JSX.Element {
-  const { getGroupSchedulesAction, putGroupSchedulesAction, postGroupSchedulesAction } = props as IProps & Required<ManageSchedulesActions>;
+  const { getGroupSchedulesAction, getGroupSchedulesByIdAction, putGroupSchedulesAction, postGroupSchedulesAction } = props as IProps & Required<ManageSchedulesActions>;
 
   const { groupName } = useParams();
 
@@ -105,7 +105,17 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
 
   }, [schedule]);
 
-  useEffect(() => setDefault('40hoursweekly30minsessions'), []);
+  useEffect(() => {
+    if (editSchedule) {
+      const [, res] = api(getGroupSchedulesByIdAction, { groupName, scheduleId: editSchedule.id }, { load: true });
+      res?.then(schedules => {
+        const [sched] = schedules as IGroupSchedule[];
+        setSchedule({ ...schedule, brackets: sched.brackets });
+      })
+    } else {
+      setDefault('40hoursweekly30minsessions');
+    }
+  }, []);
 
   return <>
     <DialogTitle>{schedule.id ? 'Manage' : 'Create'} Schedule</DialogTitle>

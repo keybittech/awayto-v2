@@ -63,7 +63,6 @@ export type IScheduleBracketState = IScheduleBracket & {
  */
 export type ISchedule = {
   id: string;
-  parentUuid?: string;
   name: string;
   duration: number;
   scheduleTimeUnitId: string;
