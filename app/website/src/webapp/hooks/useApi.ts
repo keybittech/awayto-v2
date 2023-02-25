@@ -154,6 +154,8 @@ export function useApi(): <T extends { [prop: string]: unknown}, R = IMergedStat
         });
         
         if (load) act(SET_LOADING, { isLoading: false });
+        
+        throw err;
       });
 
       return [abort, response];
