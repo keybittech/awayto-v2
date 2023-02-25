@@ -139,6 +139,20 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
     <Grid container spacing={2}>
       <Grid item xs={12}>
         <Card>
+          <CardActionArea onClick={() => {
+            setSchedule(undefined);
+            setDialog('manage_schedule');
+          }}>
+            <Box mx={2} sx={{ display: 'flex' }}>
+              <Typography color="secondary" variant="button">
+                Create Schedule
+              </Typography>
+            </Box>
+          </CardActionArea>
+        </Card>
+      </Grid>
+      <Grid item xs={12}>
+        <Card>
           <CardContent>
 
           <DataTable
@@ -175,20 +189,6 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
           paginationRowsPerPageOptions={[5, 10, 25]}
         />
           </CardContent>
-        </Card>
-      </Grid>
-      <Grid item xs={12}>
-        <Card>
-          <CardActionArea onClick={() => {
-            setSchedule(undefined);
-            setDialog('manage_schedule');
-          }}>
-            <Box mx={2} sx={{ display: 'flex' }}>
-              <Typography color="secondary" variant="button">
-                Create Schedule
-              </Typography>
-            </Box>
-          </CardActionArea>
         </Card>
       </Grid>
     </Grid>

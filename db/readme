@@ -13,3 +13,44 @@ TRUNCATE TABLE uuid_groups CASCADE;
 TRUNCATE TABLE uuid_roles CASCADE;
 TRUNCATE TABLE uuid_files CASCADE;
 TRUNCATE TABLE uuid_notes CASCADE;
+
+
+RESTART FRESH USERS TABLE:
+
+
+  INSERT INTO
+    dbtable_schema.file_types (name)
+  VALUES
+    ('images'),
+    ('documents');
+
+    
+
+  INSERT INTO
+    dbtable_schema.budgets (name)
+  VALUES
+    ('\$500 - \$1,000'),
+    ('\$1,000 - \$10,000'),
+    ('\$10,000 - \$100,000');
+
+    
+
+  INSERT INTO
+    dbtable_schema.timelines (name)
+  VALUES
+    ('1 month'),
+    ('6 months'),
+    ('1 year');
+
+    
+
+  INSERT INTO
+    dbtable_schema.time_units (name)
+  VALUES
+    ('minute'),
+    ('hour'),
+    ('day'),
+    ('week'),
+    ('month'),
+    ('year');
+    

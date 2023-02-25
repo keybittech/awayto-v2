@@ -294,7 +294,7 @@ const groups: ApiModule = [
         FROM dbview_schema.enabled_groups g
         LEFT JOIN dbview_schema.enabled_uuid_groups eug ON eug."groupId" = g.id
         LEFT JOIN dbview_schema.enabled_users eu ON eu.id = eug."parentUuid"
-        WHERE g."externalId" = $1 AND eu.sub = ANY($2::varchar[])
+        WHERE g."externalId" = $1 AND eu.sub = ANY($2::uuid[])
       `, [groupExternalId, sessions.map(u => u.userId)])).rows;
 
 
