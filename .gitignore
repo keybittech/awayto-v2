@@ -11,3 +11,4 @@ target
 *.jks
 cert-file
 cert-signed
+query.test

@@ -1,5 +1,7 @@
 docker exec -u postgres <containerId> psql sysmaindb postgres -f /docker-entrypoint-initdb.d/2-base_views.sql
 
+// Query to file
+docker exec -u postgres <containerId> psql sysmaindb -c "SELECT 1" >> query.test
 
 DROP uuids
 
