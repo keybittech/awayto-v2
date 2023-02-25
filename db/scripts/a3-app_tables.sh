@@ -184,7 +184,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
   CREATE TABLE dbtable_schema.schedule_bracket_slots (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     schedule_bracket_id uuid NOT NULL REFERENCES dbtable_schema.schedule_brackets (id) ON DELETE CASCADE,
-    start_time TIMESTAMP NOT NULL,
+    start_time INTERVAL NOT NULL,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
     created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,

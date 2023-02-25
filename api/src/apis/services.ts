@@ -1,6 +1,4 @@
-import moment from 'moment';
-
-import { DbError, IService, IServiceActionTypes, IServiceTier, asyncForEach } from 'awayto';
+import { DbError, IService, IServiceActionTypes, IServiceTier, asyncForEach, utcNowString } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
 
@@ -70,7 +68,7 @@ const services: ApiModule = [
           id,
           name,
           updated_sub: props.event.userSub,
-          updated_on: moment().utc()
+          updated_on: utcNowString()
         });
 
         const response = await props.db.query<IService>(`
@@ -166,7 +164,7 @@ const services: ApiModule = [
             UPDATE dbtable_schema.services
             SET enabled = false, updated_on = $2, updated_sub = $3
             WHERE id = $1
-          `, [id, moment().utc(), props.event.userSub]);
+          `, [id, utcNowString(), props.event.userSub]);
 
           await props.redis.del(props.event.userSub + 'services/' + id);
         });

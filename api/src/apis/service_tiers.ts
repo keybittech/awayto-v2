@@ -1,6 +1,4 @@
-import moment from 'moment';
-
-import { IServiceTier, IServiceTierActionTypes } from 'awayto';
+import { IServiceTier, IServiceTierActionTypes, utcNowString } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
 
@@ -40,7 +38,7 @@ const service_tiers: ApiModule = [
           name,
           multiplier,
           updated_sub: props.event.userSub,
-          updated_on: moment().utc()
+          updated_on: utcNowString()
         });
 
         const response = await props.db.query<IServiceTier>(`
@@ -127,7 +125,7 @@ const service_tiers: ApiModule = [
           UPDATE dbtable_schema.service_tiers
           SET enabled = false, updated_on = $2, updated_sub = $3
           WHERE id = $1
-        `, [id, moment().utc(), props.event.userSub]);
+        `, [id, utcNowString(), props.event.userSub]);
 
         return { id };
         

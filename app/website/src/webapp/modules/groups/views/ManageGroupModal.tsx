@@ -62,7 +62,6 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
     group.roleId = primaryRole;
     const [, res] = api(id ? putGroupsAction : postGroupsAction, false, group);
     res?.then(() => {
-      // !id && act(SET_LOADING, { isLoading: true, loadingMessage: 'Please allow a moment for your group to be configured.' })
       id && act(SET_SNACK, { snackType: 'success', snackOn: 'Group updated! Please allow up to a minute for any related permissions changes to persist.' } )
       !id && keycloak.clearToken();
     });

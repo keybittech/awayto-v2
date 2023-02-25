@@ -1,5 +1,4 @@
 import React, { useMemo, useState, useRef, useCallback, Suspense, useEffect } from "react";
-import moment from 'moment';
 
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
@@ -15,7 +14,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 
-import { IGroup, ISchedule, IScheduleBracket, ITimeUnitNames, IUtilActionTypes, timeUnitOrder } from "awayto";
+import { getRelativeDuration, IGroup, ISchedule, IScheduleBracket, ITimeUnitNames, IUtilActionTypes, TimeUnit, timeUnitOrder, utcNowString } from "awayto";
 import { useApi, useAct, useComponents, useRedux } from 'awayto-hooks';
 
 import { scheduleSchema } from "./ScheduleHome";
@@ -99,10 +98,10 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
     if (schedule.scheduleTimeUnitName) {
       // Complex time adjustment example - this gets the remaining time that can be scheduled based on the schedule context, which always selects its first child as the subcontext (Week > Day), multiply this by the schedule duration in that context (1 week is 7 days), then convert the result to whatever the bracket type is. So if the schedule is for 40 hours per week, the schedule duration is 1 week, which is 7 days. The bracket, in hours, gives 24 hrs per day * 7 days, resulting in 168 total hours. Finally, subtract the time used by selected slots in the schedule display.
       const scheduleUnitChildUnit = timeUnitOrder[timeUnitOrder.indexOf(schedule.scheduleTimeUnitName) - 1];
-      const scheduleChildDuration = moment.duration({ [schedule.scheduleTimeUnitName]: 1 }).as(scheduleUnitChildUnit)
+      const scheduleChildDuration = getRelativeDuration(1, schedule.scheduleTimeUnitName, scheduleUnitChildUnit); // 7
       const usedDuration = scheduleBracketsValues.reduce((m, d) => m + d.duration, 0);
-      const totalDuration = moment.duration({ [scheduleUnitChildUnit]: Math.floor(scheduleChildDuration) }).as(schedule.bracketTimeUnitName as moment.unitOfTime.Base);
-      return Math.floor(totalDuration - usedDuration)
+      const totalDuration = getRelativeDuration(Math.floor(scheduleChildDuration), scheduleUnitChildUnit, schedule.bracketTimeUnitName);    
+      return Math.floor(totalDuration - usedDuration);
     }
     return 0;
   }, [schedule, scheduleBracketsValues]);

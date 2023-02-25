@@ -1,6 +1,4 @@
-import moment from 'moment';
-
-import { IRole, IRoleActionTypes, IUserProfile } from 'awayto';
+import { IRole, IRoleActionTypes, IUserProfile, utcNowString } from 'awayto';
 import { asyncForEach } from 'awayto';
 import { ApiModule } from '../api';
 import { adminSub, buildUpdate } from '../util/db';
@@ -59,7 +57,7 @@ const roles: ApiModule = [
           id,
           name,
           updated_sub: props.event.userSub,
-          updated_on: moment().utc()
+          updated_on: utcNowString()
         });
 
         const { rows: [ role ] } = await props.db.query<IRole>(`
@@ -162,7 +160,7 @@ const roles: ApiModule = [
             UPDATE dbtable_schema.roles
             SET enabled = false, updated_on = $2, updated_sub = $3
             WHERE id = $1
-          `, [role.id, moment().utc(), props.event.userSub]);
+          `, [role.id, utcNowString(), props.event.userSub]);
         });
 
         return roles;

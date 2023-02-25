@@ -1,6 +1,4 @@
-import moment from 'moment';
-
-import { IServiceAddon, IServiceAddonActionTypes } from 'awayto';
+import { IServiceAddon, IServiceAddonActionTypes, utcNowString } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
 
@@ -48,7 +46,7 @@ const serviceAddons: ApiModule = [
           id,
           name,
           updated_sub: props.event.userSub,
-          updated_on: moment().utc()
+          updated_on: utcNowString()
         });
 
         const response = await props.db.query<IServiceAddon>(`
@@ -136,7 +134,7 @@ const serviceAddons: ApiModule = [
           UPDATE dbtable_schema.service_addons
           SET enabled = false, updated_on = $2, updated_sub = $3
           WHERE id = $1
-        `, [id, moment().utc(), props.event.userSub]);
+        `, [id, utcNowString(), props.event.userSub]);
 
         return { id };
         

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import moment from 'moment';
 
 import TextField from '@mui/material/TextField';
 import Slider from '@mui/material/Slider';
@@ -187,7 +186,7 @@ export function ServiceHome(props: IProps): JSX.Element {
             <Typography variant="h6">Tiers</Typography>
             <Typography variant="body2">The order that tiers appear here is the order they will be listed during booking.</Typography>
             {Object.keys(newService.tiers).length > 0 && <Box mt={4} sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-              {Object.values(newService.tiers).sort((a, b) => moment(a.createdOn).milliseconds() - moment(b.createdOn).milliseconds()).map((tier, i) => {
+              {Object.values(newService.tiers).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime()).map((tier, i) => {
                 const addons = Object.values(tier.addons);
                 return <Box key={`service-tier-chip${i + 1}new`} m={1}><Chip classes={{ root: classes.chipRoot, label: classes.chipLabel }} label={<Typography>{`#${i + 1} ` + tier.name + ' (' + tier.multiplier + 'x): ' + (addons.length ? addons.map(a => a.name).join(', ') : 'No features.')}</Typography>} onDelete={() => {
                   delete newService.tiers[tier.id];

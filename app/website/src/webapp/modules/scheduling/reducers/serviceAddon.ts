@@ -19,14 +19,14 @@ const initialServiceAddonState: IServiceAddonState = {
 function reduceDeleteServiceAddon(state: IServiceAddonState, action: IDeleteServiceAddonAction): IServiceAddonState {
   const serviceAddons = { ...state.serviceAddons };
   action.payload.forEach(serviceAddon => {
-    delete serviceAddons[serviceAddon.id as string];
+    delete serviceAddons[serviceAddon.id];
   });
   state.serviceAddons = serviceAddons;
   return { ...state };
 }
 
 function reduceServiceAddons(state: IServiceAddonState, action: IGetServiceAddonsAction | IDisableServiceAddonAction | IGetServiceAddonByIdAction | IPostServiceAddonAction | IPutServiceAddonAction): IServiceAddonState {
-  const serviceAddons = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id as string}`]: b } }), {});
+  const serviceAddons = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id}`]: b } }), {});
   state.serviceAddons = { ...state.serviceAddons, ...serviceAddons };
   return { ...state };
 }

@@ -1,7 +1,6 @@
-import moment from 'moment';
 import { performance } from 'perf_hooks';
 
-import { IGroup, IUuidRoles, DbError, IUserProfile, IGroupState, IRole, IGroupActionTypes, asyncForEach } from 'awayto';
+import { IGroup, IUuidRoles, DbError, IUserProfile, IGroupState, IRole, IGroupActionTypes, asyncForEach, utcNowString } from 'awayto';
 
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
@@ -53,7 +52,7 @@ const groups: ApiModule = [
             INSERT INTO dbtable_schema.uuid_roles (parent_uuid, role_id, external_id, created_on, created_sub)
             VALUES ($1, $2, $3, $4, $5::uuid)
             ON CONFLICT (parent_uuid, role_id) DO NOTHING
-          `, [group.id, groupRoleId, kcSubgroupId, moment().utc(), props.event.userSub])
+          `, [group.id, groupRoleId, kcSubgroupId, utcNowString(), props.event.userSub])
         });
 
         // Get the user uuid from the sub
@@ -112,7 +111,7 @@ const groups: ApiModule = [
           id,
           name,
           updated_sub: props.event.userSub,
-          updated_on: moment().utc()
+          updated_on: utcNowString()
         });
 
         // Update the basic info about the group
@@ -159,7 +158,7 @@ const groups: ApiModule = [
             INSERT INTO dbtable_schema.uuid_roles (parent_uuid, role_id, created_on, created_sub)
             VALUES ($1, $2, $3, $4::uuid)
             ON CONFLICT (parent_uuid, role_id) DO NOTHING
-          `, [group.id, role.id, moment().utc(), props.event.userSub])
+          `, [group.id, role.id, utcNowString(), props.event.userSub])
         })
 
 
@@ -185,7 +184,7 @@ const groups: ApiModule = [
           `, [adminRoleId])).rows;
 
           // Set the new admin role for the group
-          await props.db.query(`UPDATE dbtable_schema.groups SET role_id = $1, updated_on = $3, updated_sub = $4 WHERE id = $2`, [adminRoleId, group.id, moment().utc(), props.event.userSub]);
+          await props.db.query(`UPDATE dbtable_schema.groups SET role_id = $1, updated_on = $3, updated_sub = $4 WHERE id = $2`, [adminRoleId, group.id, utcNowString(), props.event.userSub]);
           group.roleId = adminRoleId;
 
           // Attach keycloak roles to the new admin role subgroup
@@ -424,7 +423,7 @@ const groups: ApiModule = [
             UPDATE dbtable_schema.groups
             SET enabled = false, updated_on = $2, updated_sub = $3
             WHERE id = $1
-          `, [group.id, moment().utc(), props.event.userSub]);
+          `, [group.id, utcNowString(), props.event.userSub]);
         });
 
         return groups;

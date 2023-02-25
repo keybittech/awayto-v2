@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import moment from 'moment';
 import DataTable, { TableColumn } from 'react-data-table-component';
 
 import Avatar from '@mui/material/Avatar';
@@ -25,6 +24,7 @@ export function BookingHome(props: IProps): JSX.Element {
   const classes = useStyles();
   const api = useApi();
   const { FileManager } = useComponents();
+  const util = useRedux(state => state.util);
   const { schedules } = useRedux(state => state.schedule);
   const { budgets, timelines, timeUnits } = useRedux(state => state.forms);
 
@@ -51,7 +51,7 @@ export function BookingHome(props: IProps): JSX.Element {
     if (!service || !tier || !serviceTierAddons.length) return [];
     return [
       { name: '', selector: row => row.name } as TableColumn<Partial<IServiceAddon>>,
-      ...Object.values(service.tiers).sort((a, b) => moment(a.createdOn).milliseconds() - moment(b.createdOn).milliseconds()).reduce((memo, { id, name, addons }) => {
+      ...Object.values(service.tiers).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime()).reduce((memo, { id, name, addons }) => {
         memo.push({
           name: `${name}`,
           cell: row => {
@@ -79,7 +79,7 @@ export function BookingHome(props: IProps): JSX.Element {
             setServices(bracketServices);
             for (const s in bracketServices) {
               setService(bracketServices[s]);
-              setTier(Object.values(bracketServices[s].tiers).sort((a, b) => moment(a.createdOn).milliseconds() - moment(b.createdOn).milliseconds())[0]);
+              setTier(Object.values(bracketServices[s].tiers).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime())[0]);
               break;
             }
             break;
@@ -92,7 +92,7 @@ export function BookingHome(props: IProps): JSX.Element {
 
   useEffect(() => {
     if (serviceTiers.length) {
-      const newAddons = serviceTiers.sort((a, b) => moment(a.createdOn).milliseconds() - moment(b.createdOn).milliseconds()).reduce<string[]>((memo, { addons }) => {
+      const newAddons = serviceTiers.sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime()).reduce<string[]>((memo, { addons }) => {
         const serviceAddons = Object.values(addons);
         if (serviceAddons) {
           for (let i = 0, v = serviceAddons.length; i < v; i++) {
@@ -164,7 +164,7 @@ export function BookingHome(props: IProps): JSX.Element {
                           <TextField style={{ flex: '1' }} select label="Tier" fullWidth value={tier.id} onChange={e => {
                             setTier(serviceTiers.find(t => t.id === e.target.value) as IServiceTier);
                           }}>
-                            {serviceTiers.sort((a, b) => moment(b.createdOn).milliseconds() - moment(a.createdOn).milliseconds()).map((tier, i) => {
+                            {serviceTiers.sort((a, b) => new Date(b.createdOn).getTime() - new Date(a.createdOn).getTime()).map((tier, i) => {
                               return <MenuItem key={i} value={tier.id}>{tier.name}</MenuItem>
                             })}
                           </TextField>
@@ -172,7 +172,7 @@ export function BookingHome(props: IProps): JSX.Element {
                       </Grid>
                       <Box mt={6}>
                         <Card square>
-                          {tierColumns.length > 0 && <DataTable title="Tier Addon Comparison" data={serviceTierAddons.map(name => ({ name }))} columns={tierColumns} />}
+                          {tierColumns.length > 0 && <DataTable title="Tier Addon Comparison" theme={util.theme} data={serviceTierAddons.map(name => ({ name }))} columns={tierColumns} />}
                         </Card>
                       </Box>
                     </Grid>

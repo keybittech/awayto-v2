@@ -9,7 +9,7 @@ import CreateIcon from '@mui/icons-material/Create';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 
-import { IManageUsersActionTypes, IUserProfile, IActionTypes, IUsers, localFromNow } from 'awayto';
+import { IManageUsersActionTypes, IUserProfile, IActionTypes, IUsers } from 'awayto';
 import { useRedux, useApi } from 'awayto-hooks';
 
 import ManageUserModal from './ManageUserModal';
@@ -49,7 +49,7 @@ export function ManageUsers(props: IProps): JSX.Element {
       const userGroups = Object.values(user.groups || {});
       return userGroups.length ? userGroups.map(r => r.name).join(', ') : ''
     }},
-    { name: 'Created', selector: (user: IUserProfile) => localFromNow(user.createdOn) },
+    { name: 'Created', selector: (user: IUserProfile) => user.createdOn },
   ] as TableColumn<IUserProfile>[], undefined)
 
   const actions = useMemo(() => {

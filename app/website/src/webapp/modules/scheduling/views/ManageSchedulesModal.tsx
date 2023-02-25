@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useMemo, useEffect } from "react";
-import moment from "moment";
 
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
@@ -13,7 +12,7 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import { Mark } from "@mui/base";
 
-import { ISchedule, IUtilActionTypes, ITimeUnit, TimeUnit, timeUnitOrder } from "awayto";
+import { ISchedule, IUtilActionTypes, ITimeUnit, TimeUnit, timeUnitOrder, getRelativeDuration } from "awayto";
 import { useApi, useAct, useRedux, useComponents } from 'awayto-hooks';
 
 import { scheduleSchema } from "./ScheduleHome";
@@ -78,8 +77,8 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
     if (!bracketTimeUnitName || !slotTimeUnitName || !scheduleTimeUnitName || !duration) return factors;
     // const subdivided = bracketTimeUnitName !== slotTimeUnitName;
     // const finalDuration = !subdivided ? 
-    //   Math.round(moment.duration({ [scheduleTimeUnitName]: duration }).as(bracketTimeUnitName)) : 
-    const finalDuration = Math.round(moment.duration({ [bracketTimeUnitName]: 1 }).as(slotTimeUnitName as moment.unitOfTime.Base));
+    //   Math.round(getRelativeDuration(duration, scheduleTimeUnitName, bracketTimeUnitName)) : 
+    const finalDuration = Math.round(getRelativeDuration(1, bracketTimeUnitName, slotTimeUnitName));
     for (let value = 1; value <= finalDuration; value++) {
       if (finalDuration % value === 0) {
         factors.push({ value, label: value });

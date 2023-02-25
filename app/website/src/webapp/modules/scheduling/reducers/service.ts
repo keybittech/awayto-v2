@@ -18,7 +18,7 @@ const initialServiceState: IServiceState = {
 function reduceDeleteService(state: IServiceState, action: IDeleteServiceAction): IServiceState {
   const services = { ...state.services };
   action.payload.forEach(service => {
-    delete services[service.id as string];
+    delete services[service.id];
   });
   state.services = services;
   return { ...state };
@@ -26,7 +26,7 @@ function reduceDeleteService(state: IServiceState, action: IDeleteServiceAction)
 
 
 function reduceServices(state: IServiceState, action: IGetServicesAction | IDisableServiceAction | IGetServiceByIdAction | IPostServiceAction | IPutServiceAction): IServiceState {
-  const services = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id as string}`]: b } }), {});
+  const services = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id}`]: b } }), {});
   state.services = { ...state.services, ...services };
   return { ...state };
 }

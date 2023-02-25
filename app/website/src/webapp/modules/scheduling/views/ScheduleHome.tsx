@@ -17,7 +17,6 @@ import MenuItem from '@mui/material/MenuItem';
 import { IScheduleActionTypes, IUtilActionTypes, ISchedule, IScheduleBracket, IGroupServiceActionTypes, IGroupScheduleActionTypes, IGroup, BookingModes, timeUnitOrder, TimeUnit, ITimeUnitNames, IService, ITimeUnit } from 'awayto';
 import { useApi, useRedux, useComponents, useAct } from 'awayto-hooks';
 import { Mark } from '@mui/base';
-import moment from 'moment';
 
 const { GET_GROUP_SERVICES } = IGroupServiceActionTypes;
 const { GET_GROUP_SCHEDULES } = IGroupScheduleActionTypes;

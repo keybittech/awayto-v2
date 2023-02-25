@@ -1,6 +1,4 @@
-import moment from 'moment';
-
-import { IQuote, IQuoteActionTypes } from 'awayto';
+import { IQuote, IQuoteActionTypes, utcNowString } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
 
@@ -47,7 +45,7 @@ const quotes: ApiModule = [
           respond_by: respondBy,
           description,
           updated_sub: props.event.userSub,
-          updated_on: moment().utc()
+          updated_on: utcNowString()
         });
 
         const response = await props.db.query<IQuote>(`
@@ -134,7 +132,7 @@ const quotes: ApiModule = [
           UPDATE dbtable_schema.quotes
           SET enabled = false, updated_on = $2, updated_sub = $3
           WHERE id = $1
-        `, [id, moment().utc(), props.event.userSub]);
+        `, [id, utcNowString(), props.event.userSub]);
 
         return { id };
         

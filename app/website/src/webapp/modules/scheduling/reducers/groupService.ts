@@ -15,20 +15,20 @@ const initialGroupServiceState = {
 function reduceDeleteGroupService(state: IGroupServiceState, action: IDeleteGroupServiceAction): IGroupServiceState {
   const groupServices = { ...state.groupServices };
   action.payload.forEach(groupService => {
-    delete groupServices[groupService.id as string];
+    delete groupServices[groupService.id];
   });
   state.groupServices = groupServices;
   return { ...state };
 }
 
 function reducePostGroupServices(state: IGroupServiceState, action: IPostGroupServiceAction): IGroupServiceState {
-  const groupServices = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id as string}`]: b } }), {});
+  const groupServices = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id}`]: b } }), {});
   state.groupServices = { ...state.groupServices, ...groupServices };
   return { ...state };
 }
 
 function reduceGetGroupServices(state: IGroupServiceState, action: IGetGroupServicesAction): IGroupServiceState {
-  state.groupServices = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id as string}`]: b } }), {});
+  state.groupServices = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id}`]: b } }), {});
   return { ...state };
 }
 

@@ -16,20 +16,20 @@ const initialGroupServiceAddonState: IGroupServiceAddonState = {
 function reduceDeleteGroupServiceAddon(state: IGroupServiceAddonState, action: IDeleteGroupServiceAddonAction): IGroupServiceAddonState {
   const groupServiceAddons = { ...state.groupServiceAddons };
   action.payload.forEach(groupServiceAddon => {
-    delete groupServiceAddons[groupServiceAddon.id as string];
+    delete groupServiceAddons[groupServiceAddon.id];
   });
   state.groupServiceAddons = groupServiceAddons;
   return { ...state };
 }
 
 function reducePostGroupServiceAddons(state: IGroupServiceAddonState, action: IPostGroupServiceAddonAction): IGroupServiceAddonState {
-  const groupServiceAddons = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id as string}`]: b } }), {});
+  const groupServiceAddons = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id}`]: b } }), {});
   state.groupServiceAddons = { ...state.groupServiceAddons, ...groupServiceAddons };
   return { ...state };
 }
 
 function reduceGetGroupServiceAddons(state: IGroupServiceAddonState, action: IGetGroupServiceAddonsAction): IGroupServiceAddonState {
-  state.groupServiceAddons = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id as string}`]: b } }), {});
+  state.groupServiceAddons = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id}`]: b } }), {});
   return { ...state };
 }
 

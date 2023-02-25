@@ -1,6 +1,4 @@
-import moment from 'moment';
-
-import { IGroup, IUuidRoles, DbError, IManageGroupsActionTypes, IManageGroupsState, asyncForEach } from 'awayto';
+import { IGroup, IUuidRoles, DbError, IManageGroupsActionTypes, IManageGroupsState, asyncForEach, utcNowString } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
 
@@ -18,14 +16,14 @@ const manageGroups: ApiModule = [
           VALUES ($1, $2, $3::uuid)
           ON CONFLICT (name) DO NOTHING
           RETURNING id, name
-        `, [name, moment().utc(), props.event.userSub]);
+        `, [name, utcNowString(), props.event.userSub]);
 
         await asyncForEach(Object.values(roles), async role => {
           await props.db.query(`
             INSERT INTO dbtable_schema.uuid_roles (parent_uuid, role_id, created_on, created_sub)
             VALUES ($1, $2, $3, $4::uuid)
             ON CONFLICT (parent_uuid, role_id) DO NOTHING
-          `, [group.id, role.id, moment().utc(), props.event.userSub])
+          `, [group.id, role.id, utcNowString(), props.event.userSub])
         });
 
         group.roles = roles;
@@ -54,7 +52,7 @@ const manageGroups: ApiModule = [
           id,
           name,
           updated_sub: props.event.userSub,
-          updated_on: moment().utc()
+          updated_on: utcNowString()
         });
 
         const { rows: [ group ] } = await props.db.query<IGroup>(`
@@ -80,7 +78,7 @@ const manageGroups: ApiModule = [
             INSERT INTO dbtable_schema.uuid_roles (parent_uuid, role_id, created_on, created_sub)
             VALUES ($1, $2, $3, $4::uuid)
             ON CONFLICT (parent_uuid, role_id) DO NOTHING
-          `, [group.id, role.id, moment().utc(), props.event.userSub])
+          `, [group.id, role.id, utcNowString(), props.event.userSub])
         });
 
         group.roles = roles;

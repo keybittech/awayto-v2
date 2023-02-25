@@ -10,7 +10,7 @@ import Tooltip from '@mui/material/Tooltip';
 import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-import { IService, IActionTypes, localFromNow, IGroupService, IUtilActionTypes } from 'awayto';
+import { IService, IActionTypes, IGroupService, IUtilActionTypes } from 'awayto';
 import { useRedux, useApi, useAct } from 'awayto-hooks';
 
 import ManageServiceModal from './ManageServiceModal';
@@ -50,7 +50,7 @@ export function ManageServices (props: IProps): JSX.Element {
   const columns = useMemo(() => [
     { id: 'createdOn', selector: row => row.createdOn, omit: true },
     { name: 'Name', selector: row => row.name },
-    { name: 'Created', selector: row => localFromNow(row.createdOn) }
+    { name: 'Created', selector: row => row.createdOn }
   ] as TableColumn<IService>[], [services])
 
   const actions = useMemo(() => {

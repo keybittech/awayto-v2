@@ -1,6 +1,4 @@
-import moment from 'moment';
-
-import { IUserActionTypes, IUserProfile, IUserProfileActionTypes } from 'awayto';
+import { IUserProfile, IUserProfileActionTypes, utcNowString } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
 import { appClient, keycloak, roleCall } from '../util/keycloak';
@@ -18,7 +16,7 @@ const profile: ApiModule = [
           INSERT INTO dbtable_schema.users (sub, username, first_name, last_name, email, image, created_on, created_sub, ip_address)
           VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8::uuid, $9)
           RETURNING id, sub, username, first_name as "firstName", last_name as "lastName", email, image
-        `, [sub || props.event.userSub, username, firstName, lastName, email, image, moment().utc(), props.event.userSub, props.event.sourceIp]);
+        `, [sub || props.event.userSub, username, firstName, lastName, email, image, utcNowString(), props.event.userSub, props.event.sourceIp]);
 
         return user;
 
@@ -42,7 +40,7 @@ const profile: ApiModule = [
           last_name,
           email,
           image,
-          updated_on: moment().utc(),
+          updated_on: utcNowString(),
           updated_sub: props.event.userSub
         });
 
@@ -172,7 +170,7 @@ const profile: ApiModule = [
           UPDATE dbtable_schema.users
           SET enabled = false, updated_on = $2, updated_sub = $3
           WHERE id = $1
-        `, [id, moment().utc(), props.event.userSub]);
+        `, [id, utcNowString(), props.event.userSub]);
 
         return { id };
         

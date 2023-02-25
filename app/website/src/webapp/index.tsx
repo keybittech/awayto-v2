@@ -22,6 +22,8 @@ import reportWebVitals from './reportWebVitals';
 import { initKeycloak } from './keycloak';
 import { BrowserRouter } from 'react-router-dom';
 
+import '@js-joda/timezone'
+
 import './index.css';
 import './App.css';
 

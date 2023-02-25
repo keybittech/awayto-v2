@@ -11,7 +11,7 @@ import Tooltip from '@mui/material/Tooltip';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-import { ISchedule, IActionTypes, localFromNow, IGroupSchedule, IUtilActionTypes } from 'awayto';
+import { ISchedule, IActionTypes, IGroupSchedule, IUtilActionTypes } from 'awayto';
 import { useRedux, useApi, useAct } from 'awayto-hooks';
 
 import ManageSchedulesModal from './ManageSchedulesModal';
@@ -55,13 +55,13 @@ export function ManageSchedules(props: IProps): JSX.Element {
   const columns = useMemo(() => [
     { id: 'createdOn', selector: row => row.createdOn, omit: true },
     { name: 'Name', selector: row => row.name },
-    { name: 'Created', selector: row => localFromNow(row.createdOn) }
+    { name: 'Created', selector: row => row.createdOn }
   ] as TableColumn<ISchedule>[], [schedules])
 
   const actions = useMemo(() => {
     const { length } = selected;
     const acts = length == 1 ? [
-      <Tooltip title="View Details">
+      <Tooltip key={'view_schedule_details'} title="View Details">
         <IconButton key={'manage_schedule'} onClick={() => {
           setSchedule(selected.pop());
           setDialog('manage_schedule');

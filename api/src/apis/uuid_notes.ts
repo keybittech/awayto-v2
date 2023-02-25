@@ -1,6 +1,4 @@
-import moment from 'moment';
-
-import { IUuidNotes, IUuidNotesActionTypes, asyncForEach } from 'awayto';
+import { IUuidNotes, IUuidNotesActionTypes, asyncForEach, utcNowString } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
 
@@ -17,7 +15,7 @@ const uuidNotes: ApiModule = [
           VALUES ($1, $2, $3, $4::uuid)
           ON CONFLICT (parent_uuid, note, created_sub) DO NOTHING
           RETURNING id
-        `, [parent_uuid, note, moment().utc(), props.event.userSub]);
+        `, [parent_uuid, note, utcNowString(), props.event.userSub]);
         
         return { id: response.rows[0].id };
 
@@ -39,7 +37,7 @@ const uuidNotes: ApiModule = [
           id,
           parent_uuid,
           note,
-          updated_on: moment().utc(),
+          updated_on: utcNowString(),
           updated_sub: props.event.userSub
         });
 
@@ -127,7 +125,7 @@ const uuidNotes: ApiModule = [
             UPDATE dbtable_schema.uuid_notes
             SET enabled = false, updated_on = $2, updated_sub = $3
             WHERE id = $1
-          `, [note.id, moment().utc(), props.event.userSub]);
+          `, [note.id, utcNowString(), props.event.userSub]);
         });
 
         return notes;

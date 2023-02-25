@@ -1,6 +1,4 @@
-import moment from 'moment';
-
-import { IPayment, IPaymentActionTypes } from 'awayto';
+import { IPayment, IPaymentActionTypes, utcNowString } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
 
@@ -38,7 +36,7 @@ const payments: ApiModule = [
           contact_id: contactId,
           details: JSON.stringify(details),
           updated_sub: props.event.userSub,
-          updated_on: moment().utc()
+          updated_on: utcNowString()
         });
 
         const response = await props.db.query<IPayment>(`
@@ -125,7 +123,7 @@ const payments: ApiModule = [
           UPDATE dbtable_schema.payments
           SET enabled = false, updated_on = $2, updated_sub = $3
           WHERE id = $1
-        `, [id, moment().utc(), props.event.userSub]);
+        `, [id, utcNowString(), props.event.userSub]);
 
         return { id };
         

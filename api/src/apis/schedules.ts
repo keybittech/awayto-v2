@@ -1,8 +1,7 @@
-import { DbError, ISchedule, IScheduleActionTypes, IScheduleBracket } from 'awayto';
+import { DbError, ISchedule, IScheduleActionTypes, IScheduleBracket, utcNowString } from 'awayto';
 import { asyncForEach } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
-import moment from 'moment';
 
 const schedules: ApiModule = [
 
@@ -103,10 +102,10 @@ const schedules: ApiModule = [
           await asyncForEach(Object.values(b.slots), async s => {
             const [{ id: slotId }] = (await props.db.query(`
               INSERT INTO dbtable_schema.schedule_bracket_slots (schedule_bracket_id, start_time, created_sub)
-              VALUES ($1, $2, $3::uuid)
+              VALUES ($1, $2::interval, $3::uuid)
               ON CONFLICT (schedule_bracket_id, start_time) DO NOTHING
               RETURNING id
-            `, [bracketId, moment(s.startTime).utc().toString(), props.event.userSub])).rows;
+            `, [bracketId, s.startTime, props.event.userSub])).rows;
   
             s.id = slotId;
           });
@@ -136,7 +135,7 @@ const schedules: ApiModule = [
           id,
           name,
           updated_sub: props.event.userSub,
-          updated_on: moment().utc()
+          updated_on: utcNowString()
         });
 
         const response = await props.db.query<ISchedule>(`
@@ -225,7 +224,7 @@ const schedules: ApiModule = [
           UPDATE dbtable_schema.schedules
           SET enabled = false, updated_on = $2, updated_sub = $3
           WHERE id = $1
-        `, [id, moment().utc(), props.event.userSub]);
+        `, [id, utcNowString(), props.event.userSub]);
 
         return { id };
 

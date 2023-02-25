@@ -9,7 +9,7 @@ import Tooltip from '@mui/material/Tooltip';
 import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-import { IRole, IActionTypes, localFromNow } from 'awayto';
+import { IRole, IActionTypes } from 'awayto';
 import { useRedux, useApi, useGroupSecure } from 'awayto-hooks';
 
 import ManageRoleModal from './ManageRoleModal';
@@ -42,7 +42,7 @@ export function ManageRoles (props: IProps): JSX.Element {
   const columns = useMemo(() => [
     { id: 'createdOn', selector: row => row.createdOn, omit: true },
     { name: 'Name', selector: row => row.name },
-    { name: 'Created', selector: row => localFromNow(row.createdOn) }
+    { name: 'Created', selector: row => row.createdOn }
   ] as TableColumn<IRole>[], [])
 
   const actions = useMemo(() => {

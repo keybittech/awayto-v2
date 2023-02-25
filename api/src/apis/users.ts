@@ -1,6 +1,4 @@
-import moment from 'moment';
-
-import { IUser, IUserActionTypes, asyncForEach } from 'awayto';
+import { IUser, IUserActionTypes, asyncForEach, utcNowString } from 'awayto';
 import { ApiModule } from '../api';
 
 const users: ApiModule = [
@@ -101,7 +99,7 @@ const users: ApiModule = [
             UPDATE dbtable_schema.users
             SET enabled = false, updated_on = $2, updated_sub = $3
             WHERE id = $1
-          `, [role.id, moment().utc(), props.event.userSub]);
+          `, [role.id, utcNowString(), props.event.userSub]);
         });
 
         return users;

@@ -1111,18 +1111,6 @@
   resolved "https://registry.yarnpkg.com/@csstools/normalize.css/-/normalize.css-10.1.0.tgz#f0950bba18819512d42f7197e56c518aa491cf18"
   integrity sha512-ij4wRiunFfaJxjB0BdrYHIH8FxBJpOwNPhhAcunlmPdXudL1WQV1qoP9un6JsEBAgQH+7UXyyjh0g7jTxXK6tg==
 
-"@date-io/core@^1.3.13", "@date-io/core@^1.3.6":
-  version "1.3.13"
-  resolved "https://registry.yarnpkg.com/@date-io/core/-/core-1.3.13.tgz#90c71da493f20204b7a972929cc5c482d078b3fa"
-  integrity sha512-AlEKV7TxjeK+jxWVKcCFrfYAk8spX9aCyiToFIiLPtfQbsjmRGLIhb5VZgptQcJdHtLXo7+m0DuurwFgUToQuA==
-
-"@date-io/moment@^1.3.13":
-  version "1.3.13"
-  resolved "https://registry.yarnpkg.com/@date-io/moment/-/moment-1.3.13.tgz#56c2772bc4f6675fc6970257e6033e7a7c2960f0"
-  integrity sha512-3kJYusJtQuOIxq6byZlzAHoW/18iExJer9qfRF5DyyzdAk074seTuJfdofjz4RFfTd/Idk8WylOQpWtERqvFuQ==
-  dependencies:
-    "@date-io/core" "^1.3.13"
-
 "@emotion/babel-plugin@^11.10.6":
   version "11.10.6"
   resolved "https://registry.yarnpkg.com/@emotion/babel-plugin/-/babel-plugin-11.10.6.tgz#a68ee4b019d661d6f37dec4b8903255766925ead"
@@ -1540,6 +1528,21 @@
   dependencies:
     "@jridgewell/resolve-uri" "3.1.0"
     "@jridgewell/sourcemap-codec" "1.4.14"
+
+"@js-joda/core@^5.5.2":
+  version "5.5.2"
+  resolved "https://registry.yarnpkg.com/@js-joda/core/-/core-5.5.2.tgz#3d7953004d70adf6a0a4140a78c948de758284e0"
+  integrity sha512-retLUN4TwCJ0QJDi9OCJwYVaXAz93NeOkEtEQL98M2bykBOxmURlP0YlfsuE46kItOOVZIWRYC3KsSLhQ1R2Qw==
+
+"@js-joda/locale_en-us@^4.8.6":
+  version "4.8.6"
+  resolved "https://registry.yarnpkg.com/@js-joda/locale_en-us/-/locale_en-us-4.8.6.tgz#78c9fb3ae8070bf33a30a84ecc0900569f93f330"
+  integrity sha512-j7LX8XhDsly+cNWkuF/+/NgKhsusnmf8ycoEgzdml9d7eEGEt5Hkd3jpthC/0pjjui9o4cVeegVrJkl4GKwhig==
+
+"@js-joda/timezone@^2.17.2":
+  version "2.17.2"
+  resolved "https://registry.yarnpkg.com/@js-joda/timezone/-/timezone-2.17.2.tgz#599e7e66ce7ddd048130a075ec8b68ab69c062c3"
+  integrity sha512-QZR6ymcQfnb6cqNvzEVcxLqAjYyS7Grs8IR6rJvv/bH+nTb1HI2zGXSYZZdL5ly+hEHOeWFx4BtaJ9jaY7m6QQ==
 
 "@mui/base@5.0.0-alpha.118":
   version "5.0.0-alpha.118"
@@ -2020,13 +2023,6 @@
   version "5.1.2"
   resolved "https://registry.yarnpkg.com/@types/minimatch/-/minimatch-5.1.2.tgz#07508b45797cb81ec3f273011b054cd0755eddca"
   integrity sha512-K0VQKziLUWkVKiRVrx4a40iPaxTUefQmjtkQofBkYRcoaaL/8rhwDWww9qWbrgicNOgnpIsMxyNIUM4+n6dUIA==
-
-"@types/moment-duration-format@^2.2.2":
-  version "2.2.3"
-  resolved "https://registry.yarnpkg.com/@types/moment-duration-format/-/moment-duration-format-2.2.3.tgz#247b402fe4652dae4a1daabb0c98325b943c373c"
-  integrity sha512-NQrnFOX1PTvHY8OH1aLoZntAkc2ad/1Cdl31UWIEaqBpDJ/m5SwfFBtFaX7TBLavASeLxG8DL7rm3NHKCLduaA==
-  dependencies:
-    moment ">=2.14.0"
 
 "@types/node@*":
   version "18.13.0"
@@ -8325,16 +8321,6 @@ mkdirp@^1.0.3, mkdirp@^1.0.4:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/mkdirp/-/mkdirp-1.0.4.tgz#3eb5ed62622756d79a5f0e2a221dfebad75c2f7e"
   integrity sha512-vVqVZQyf3WLx2Shd0qJ9xuvqgAyKPLAiqITEtqW0oIUjzo3PePDd6fW9iFz30ef7Ysp/oiWqbhszeGWW2T6Gzw==
-
-moment-duration-format@^2.3.2:
-  version "2.3.2"
-  resolved "https://registry.yarnpkg.com/moment-duration-format/-/moment-duration-format-2.3.2.tgz#5fa2b19b941b8d277122ff3f87a12895ec0d6212"
-  integrity sha512-cBMXjSW+fjOb4tyaVHuaVE/A5TqkukDWiOfxxAjY+PEqmmBQlLwn+8OzwPiG3brouXKY5Un4pBjAeB6UToXHaQ==
-
-moment@>=2.14.0, moment@^2.27.0:
-  version "2.29.4"
-  resolved "https://registry.yarnpkg.com/moment/-/moment-2.29.4.tgz#3dbe052889fe7c1b2ed966fcb3a77328964ef108"
-  integrity sha512-5LC9SOxjSc2HF6vO2CyuTDNivEdoz2IvyJJGj6X8DJ0eFyfszE0QiEd+iXmBvUP3WHxSjFH/vIsA0EN00cgr8w==
 
 move-concurrently@^1.0.1:
   version "1.0.1"

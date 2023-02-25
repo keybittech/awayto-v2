@@ -1,9 +1,8 @@
-import moment from 'moment';
 import { v4 as uuid } from 'uuid';
 
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
-import { IFile, IFilesActionTypes } from 'awayto';
+import { IFile, IFilesActionTypes, utcNowString } from 'awayto';
 
 const files: ApiModule = [
 
@@ -18,7 +17,7 @@ const files: ApiModule = [
           INSERT INTO dbtable_schema.files (uuid, name, file_type_id, location, created_on, created_sub)
           VALUES ($1, $2, $3, $4, $5, $6::uuid)
           RETURNING id
-        `, [newUuid, name, file_type_id, location, moment().utc(), props.event.userSub]);
+        `, [newUuid, name, file_type_id, location, utcNowString(), props.event.userSub]);
         
         return { id: response.rows[0].id, newUuid };
 
@@ -41,7 +40,7 @@ const files: ApiModule = [
           name,
           file_type_id,
           location,
-          updated_on: moment().utc(),
+          updated_on: utcNowString(),
           updated_sub: props.event.userSub
         });
 
@@ -128,7 +127,7 @@ const files: ApiModule = [
           UPDATE dbtable_schema.files
           SET enabled = false, updated_on = $2, updated_sub = $3
           WHERE id = $1
-        `, [id, moment().utc(), props.event.userSub]);
+        `, [id, utcNowString(), props.event.userSub]);
 
         return { id };
         

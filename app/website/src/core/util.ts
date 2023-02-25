@@ -1,5 +1,3 @@
-import moment from 'moment';
-
 /**
  * @category Util
  */
@@ -28,14 +26,6 @@ export const passwordGen = (): string => {
   });
 
   return pass.join('');
-}
-
-export const localMoment = (date: string, format: string): string => {
-  return moment(moment.utc(date).toDate()).local().format(format);
-}
-
-export const localFromNow = (date: string): string => {
-  return moment(moment.utc(date).toDate()).local().fromNow();
 }
 
 

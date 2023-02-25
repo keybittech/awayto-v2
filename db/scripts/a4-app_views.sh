@@ -352,16 +352,44 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
                   SELECT
                     esbs.*
                   FROM
-                    dbtable_schema.schedule_bracket_slots sbs
-                    JOIN dbview_schema.enabled_schedule_bracket_slots esbs ON esbs.id = sbs.id
+                    dbview_schema.enabled_schedule_bracket_slots esbs
                   WHERE
-                    sbs.schedule_bracket_id = esb.id
+                    esbs."scheduleBracketId" = esb.id
                 ) slts
             ) as eesl ON true
           WHERE
             esb."scheduleId" = es.id
         ) sbss
     ) as eesb ON true;
+
+  CREATE
+  OR REPLACE VIEW dbview_schema.enabled_group_schedules_ext AS
+  SELECT
+    eg.id as "groupId",
+    eslts.* as slots
+  FROM
+    dbview_schema.enabled_groups eg
+  LEFT JOIN dbview_schema.enabled_uuid_schedules msch ON msch."parentUuid" = eg.id
+  LEFT JOIN LATERAL (
+    SELECT
+      JSONB_OBJECT_AGG(esbs.id, TO_JSONB(esbs)) as slots
+    FROM
+      dbview_schema.enabled_uuid_schedules csch
+      LEFT JOIN dbview_schema.enabled_schedule_brackets esb ON esb."scheduleId" = csch."scheduleId"
+      LEFT JOIN dbview_schema.enabled_schedule_bracket_slots esbs ON esbs."scheduleBracketId" = esb.id
+    WHERE
+      csch."parentUuid" = msch."scheduleId"
+    UNION
+    SELECT
+      JSONB_OBJECT_AGG(esbs.id, TO_JSONB(esbs)) as slots
+    FROM
+      dbview_schema.enabled_schedule_brackets esb
+      LEFT JOIN dbview_schema.enabled_schedule_bracket_slots esbs ON esbs."scheduleBracketId" = esb.id
+    WHERE
+      esb."scheduleId" = msch."scheduleId"
+  ) as eslts ON true;
+
+  
 
   CREATE
   OR REPLACE VIEW dbview_schema.enabled_quotes_ext AS

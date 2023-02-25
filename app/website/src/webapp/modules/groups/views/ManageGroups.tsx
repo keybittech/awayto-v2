@@ -10,7 +10,7 @@ import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Logout from '@mui/icons-material/Logout';
 
-import { IUtilActionTypes, IGroup, IActionTypes, IGroupActionTypes, localFromNow, IRole } from 'awayto';
+import { IUtilActionTypes, IGroup, IActionTypes, IGroupActionTypes, IRole } from 'awayto';
 import { useRedux, useApi, useAct } from 'awayto-hooks';
 
 import ManageGroupModal from './ManageGroupModal';
@@ -61,7 +61,7 @@ export function ManageGroups(props: IProps): JSX.Element {
     { name: 'Code', selector: row => row.code },
     { name: 'Users', cell: (group: IGroup) => group.usersCount || 0 },
     { name: 'Roles', cell: (group: IGroup) => group.roles ? Object.values(group.roles).map(r => r.name).join(', ') : '' },
-    { name: 'Created', selector: row => localFromNow(row.createdOn) }
+    { name: 'Created', selector: row => row.createdOn }
   ] as TableColumn<IGroup>[], undefined);
 
   const actions = useMemo(() => {

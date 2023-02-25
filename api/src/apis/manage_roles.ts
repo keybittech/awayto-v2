@@ -1,6 +1,4 @@
-import moment from 'moment';
-
-import { IManageRolesActionTypes, IRole } from 'awayto';
+import { IManageRolesActionTypes, IRole, utcNowString } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
 
@@ -37,7 +35,7 @@ const manageRoles: ApiModule = [
           id,
           name,
           updated_sub: props.event.userSub,
-          updated_on: moment().utc()
+          updated_on: utcNowString()
         });
 
         const response = await props.db.query<IRole>(`

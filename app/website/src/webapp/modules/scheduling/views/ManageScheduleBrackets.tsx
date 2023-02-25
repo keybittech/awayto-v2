@@ -19,7 +19,7 @@ import MenuItem from '@mui/material/MenuItem';
 
 import CreateIcon from '@mui/icons-material/Create';
 
-import { IService, ISchedule, IActionTypes, localFromNow, IGroupSchedule, IGroup } from 'awayto';
+import { IService, ISchedule, IActionTypes, IGroupSchedule, IGroup } from 'awayto';
 import { useRedux, useApi, useAct } from 'awayto-hooks';
 
 import ManageScheduleBracketsModal from './ManageScheduleBracketsModal';
@@ -83,7 +83,7 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
   const columns = useMemo(() => [
     { id: 'createdOn', selector: row => row.createdOn, omit: true },
     { name: 'Name', selector: row => row.name },
-    { name: 'Created', selector: row => localFromNow(row.createdOn) },
+    { name: 'Created', selector: row => row.createdOn },
     // TODO make a column that summarizes the bracket load
   ] as TableColumn<ISchedule>[], []);
 

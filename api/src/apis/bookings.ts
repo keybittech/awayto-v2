@@ -1,6 +1,4 @@
-import moment from 'moment';
-
-import { asyncForEach, IBookingActionTypes } from 'awayto';
+import { asyncForEach, IBookingActionTypes, utcNowString } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
 import { IBooking, IBookingScheduleBracket, IScheduleBracket, ITimeUnit, ITimeUnitNames } from 'awayto';
@@ -68,7 +66,7 @@ const bookings: ApiModule = [
           agreement,
           description,
           updated_sub: props.event.userSub,
-          updated_on: moment().utc()
+          updated_on: utcNowString()
         });
 
         const response = await props.db.query<IBooking>(`
@@ -155,7 +153,7 @@ const bookings: ApiModule = [
           UPDATE dbtable_schema.bookings
           SET enabled = false, updated_on = $2, updated_sub = $3
           WHERE id = $1
-        `, [id, moment().utc(), props.event.userSub]);
+        `, [id, utcNowString(), props.event.userSub]);
 
         return { id };
         

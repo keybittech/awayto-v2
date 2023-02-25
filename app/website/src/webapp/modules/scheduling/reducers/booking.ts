@@ -19,14 +19,14 @@ const initialBookingState = {
 function reduceDeleteBooking(state: IBookingState, action: IDeleteBookingAction): IBookingState {
   const bookings = { ...state.bookings };
   action.payload.forEach(booking => {
-    delete bookings[booking.id as string];
+    delete bookings[booking.id];
   });
   state.bookings = bookings;
   return { ...state };
 }
 
 function reduceBookings(state: IBookingState, action: IGetBookingsAction | IDisableBookingAction | IGetBookingByIdAction | IPostBookingAction | IPutBookingAction): IBookingState {
-  const bookings = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id as string}`]: b } }), {});
+  const bookings = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id}`]: b } }), {});
   state.bookings = { ...state.bookings, ...bookings };
   return { ...state };
 }

@@ -1,6 +1,4 @@
-import moment from 'moment';
-
-import { IUuidFiles, IUuidFilesActionTypes } from 'awayto';
+import { IUuidFiles, IUuidFilesActionTypes, utcNowString } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
 
@@ -17,7 +15,7 @@ const uuidFiles: ApiModule = [
           VALUES ($1, $2, $3, $4::uuid)
           ON CONFLICT (parent_uuid, file_id) DO NOTHING
           RETURNING id
-        `, [parent_uuid, file_id, moment().utc(), props.event.userSub]);
+        `, [parent_uuid, file_id, utcNowString(), props.event.userSub]);
         
         return { id: response.rows[0].id };
 
@@ -39,7 +37,7 @@ const uuidFiles: ApiModule = [
           id,
           parent_uuid,
           file_id,
-          updated_on: moment().utc(),
+          updated_on: utcNowString(),
           updated_sub: props.event.userSub
         });
 
@@ -126,7 +124,7 @@ const uuidFiles: ApiModule = [
           UPDATE dbtable_schema.uuid_files
           SET enabled = false, updated_on = $3, updated_sub = $4
           WHERE parent_uuid = $1 AND file_id = $2
-        `, [parent_uuid, file_id, moment().utc(), props.event.userSub]);
+        `, [parent_uuid, file_id, utcNowString(), props.event.userSub]);
 
         return { id };
         

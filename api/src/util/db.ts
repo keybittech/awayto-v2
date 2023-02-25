@@ -1,10 +1,8 @@
-import moment from 'moment';
-
 import postgres, { Client } from 'pg';
 import { v4 as uuid } from 'uuid';
 import { IUserProfile } from '../../../app/website/src/core/types';
 
-type BuildParamTypes = string | number | boolean | moment.Moment;
+type BuildParamTypes = string | number | boolean;
 
 interface BuildUpdateParams {
   [key: string]: BuildParamTypes;
