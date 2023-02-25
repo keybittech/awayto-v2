@@ -58,7 +58,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
   useEffect(() => {
     if (groupSchedules) {
       if (editSchedule) {
-        const [, res] = api(getScheduleByIdAction, false, { id: editSchedule.id });
+        const [, res] = api(getScheduleByIdAction, { id: editSchedule.id }, { load: true });
         res?.then(scheduleRes => {
           const [sched] = scheduleRes as ISchedule[];
           if (sched) {
@@ -83,8 +83,8 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
 
   useEffect(() => {
     if (!group?.name) return;
-    const [abort1] = api(getGroupServicesAction, true, { groupName: group.name });
-    const [abort2] = api(getGroupSchedulesAction, false, { groupName: group.name });
+    const [abort1] = api(getGroupServicesAction, { groupName: group.name });
+    const [abort2] = api(getGroupSchedulesAction, { groupName: group.name });
     return () => {
       abort1();
       abort2();
@@ -112,14 +112,14 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
       if (name && duration && scheduleTimeUnitName && scheduleBracketsValues.length) {
 
         const [, res] = !editSchedule ? 
-          api(postScheduleAction, false, schedule) :
+          api(postScheduleAction, schedule, { load: true }) :
           [undefined, new Promise(res => res([schedule]))];
         res?.then(resSchedules => {
           const [sched] = resSchedules as ISchedule[];
 
-          const [, rex] = api(postScheduleBracketsAction, false, { scheduleId: sched.id, brackets })
+          const [, rex] = api(postScheduleBracketsAction, { scheduleId: sched.id, brackets })
           const [, rez] = !editSchedule ?
-            api(postScheduleParentAction, false, { scheduleId: sched.id, parentUuid: schedule.id }) :
+            api(postScheduleParentAction, { scheduleId: sched.id, parentUuid: schedule.id }) :
             [undefined, new Promise(res => res(true))];
           void Promise.all([rex, rez]).then(() => {
             act(SET_SNACK, { snackOn: 'Successfully added ' + name, snackType: 'info' });

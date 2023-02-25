@@ -39,7 +39,7 @@ export function ManageServiceModal ({ editService, closeModal, ...props }: IProp
       return;
     }
 
-    const [, res] = api(id ? putServicesAction : postServicesAction, true, service);
+    const [, res] = api(id ? putServicesAction : postServicesAction, service, { load: true });
     
     res?.then(() => {
       if (closeModal)

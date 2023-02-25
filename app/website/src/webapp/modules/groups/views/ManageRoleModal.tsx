@@ -39,7 +39,7 @@ export function ManageRoleModal ({ editRole, closeModal, ...props }: IProps): JS
       return;
     }
 
-    const [, res] = api(id ? putRolesAction : postRolesAction, true, role);
+    const [, res] = api(id ? putRolesAction : postRolesAction, role, { load: true });
     
     res?.then(() => {
       if (closeModal)

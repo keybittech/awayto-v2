@@ -71,18 +71,18 @@ export function ManageUsers(props: IProps): JSX.Element {
     return [
       ...actions,
       <IconButton key={'lock_user'} onClick={() => {
-        api(LOCK_MANAGE_USERS, true, { users: selected.map(u => ({ username: u.username })) });
+        api(LOCK_MANAGE_USERS, { users: selected.map(u => ({ username: u.username })) }, { load: true });
         setToggle(!toggle);
       }}><LockIcon /></IconButton>,
       <IconButton key={'unlock_user'} onClick={() => {
-        api(UNLOCK_MANAGE_USERS, true, { users: selected.map(u => ({ username: u.username })) });
+        api(UNLOCK_MANAGE_USERS, { users: selected.map(u => ({ username: u.username })) }, { load: true });
         setToggle(!toggle);
       }}><LockOpenIcon /></IconButton>,
     ];
   }, [selected])
 
   useEffect(() => {
-    const [abort] = api(getAction, true);
+    const [abort] = api(getAction);
     return () => abort();
   }, []);
 

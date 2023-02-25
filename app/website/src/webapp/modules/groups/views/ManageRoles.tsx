@@ -62,10 +62,10 @@ export function ManageRoles(props: IProps): JSX.Element {
     return [
       ...acts,
       <Tooltip key={'delete_group'} title="Delete"><IconButton onClick={() => {
-        const [, res] = api(deleteRolesAction, true, { ids: selected.map(s => s.id).join(',') })
+        const [, res] = api(deleteRolesAction, { ids: selected.map(s => s.id).join(',') }, { load: true })
         res?.then(() => {
           setToggle(!toggle);
-          api(getRolesAction, true);
+          api(getRolesAction);
         });
       }}>
         <DeleteIcon />
@@ -74,7 +74,7 @@ export function ManageRoles(props: IProps): JSX.Element {
   }, [selected])
 
   useEffect(() => {
-    const [abort] = api(getRolesAction, true);
+    const [abort] = api(getRolesAction);
     return () => abort();
   }, []);
 

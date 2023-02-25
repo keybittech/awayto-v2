@@ -60,7 +60,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
     group.name = formatName(name);
     group.roles = roleIds.reduce((m, d) => ({ ...m, [d]: roles[d] }), {}) as Record<string, IRole>;
     group.roleId = primaryRole;
-    const [, res] = api(id ? putGroupsAction : postGroupsAction, false, group);
+    const [, res] = api(id ? putGroupsAction : postGroupsAction, group, { load: true });
     res?.then(() => {
       id && act(SET_SNACK, { snackType: 'success', snackOn: 'Group updated! Please allow up to a minute for any related permissions changes to persist.' } )
       !id && keycloak.clearToken();
@@ -88,7 +88,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
   useEffect(() => {
     if (needCheckName && checkedName) {
       act(CHECK_GROUPS_NAME, { checkingName: true, needCheckName: false, isValid: false });
-      api(CHECK_GROUPS_NAME, true, { name: checkedName });
+      api(CHECK_GROUPS_NAME, { name: checkedName }, { load: true });
     }
   }, [needCheckName, checkedName]);
 

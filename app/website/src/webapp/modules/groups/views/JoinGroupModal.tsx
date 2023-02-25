@@ -26,7 +26,7 @@ export function JoinGroupModal ({ closeModal }: IProps): JSX.Element {
       return;
     }
 
-    api(GROUPS_JOIN, true, { code });
+    api(GROUPS_JOIN, { code }, { load: true });
 
     if (closeModal)
       closeModal();

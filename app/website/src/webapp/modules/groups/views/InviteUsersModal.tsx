@@ -37,7 +37,7 @@ export function InviteUsersModal({ closeModal, ...props }: IProps): JSX.Element 
       return;
     }
 
-    api(POST_GROUPS_USERS_INVITE, true, { users });
+    api(POST_GROUPS_USERS_INVITE, { users }, { load: true });
 
     if (closeModal)
       closeModal();

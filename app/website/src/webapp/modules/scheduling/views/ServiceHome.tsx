@@ -62,8 +62,8 @@ export function ServiceHome(props: IProps): JSX.Element {
 
   useEffect(() => {
     if (!group?.name) return;
-    const [abort1] = api(GET_GROUP_SERVICES, true, { groupName: group.name });
-    const [abort2, rez] = api(GET_GROUP_SERVICE_ADDONS, false, { groupName: group.name });
+    const [abort1] = api(GET_GROUP_SERVICES, { groupName: group.name });
+    const [abort2, rez] = api(GET_GROUP_SERVICE_ADDONS, { groupName: group.name });
     rez?.then(() => setServiceTierAddonIds([]));
     return () => {
       abort1();
@@ -203,14 +203,14 @@ export function ServiceHome(props: IProps): JSX.Element {
       <Card>
         <CardActionArea onClick={() => {
           if (newService.name && Object.keys(newService.tiers)?.length) {
-            const [, res] = api(POST_SERVICE, true, { ...newService });
+            const [, res] = api(POST_SERVICE, { ...newService }, { load: true });
 
             res?.then(services => {
               if (services && group) {
                 const [service] = services as IService[];
-                const [, rez] = api(POST_GROUP_SERVICE, true, { serviceId: service.id, groupName: group.name });
+                const [, rez] = api(POST_GROUP_SERVICE, { serviceId: service.id, groupName: group.name }, { load: true });
                 rez?.then(() => {
-                  api(GET_GROUP_SERVICES, true, { groupName: group.name });
+                  api(GET_GROUP_SERVICES, { groupName: group.name });
                   act(SET_SNACK, { snackOn: `Successfully added ${service.name} to ${group.name}`, snackType: 'info' });
                   setNewService({ ...serviceSchema, tiers: {} } as IService);
                   setServiceTierAddonIds([]);

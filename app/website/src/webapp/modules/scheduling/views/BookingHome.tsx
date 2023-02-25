@@ -37,7 +37,7 @@ export function BookingHome(props: IProps): JSX.Element {
   const [serviceTierAddons, setServiceTierAddons] = useState<string[]>([]);
 
   useEffect(() => {
-    const [abort1] = api(GET_SCHEDULES, true)
+    const [abort1] = api(GET_SCHEDULES)
     const [abort2] = api(GET_FORMS);
     return () => {
       abort1();
@@ -68,7 +68,7 @@ export function BookingHome(props: IProps): JSX.Element {
   useEffect(() => {
     const [id] = Object.keys(schedules);
     if (id && !schedules[id].brackets) {
-      const [abort, res] = api<ISchedule, ISchedule[]>(GET_SCHEDULE_BY_ID, true, { id })
+      const [abort, res] = api<ISchedule, ISchedule[]>(GET_SCHEDULE_BY_ID, { id }, { load: true })
       res?.then(data => {
         if (data) {
           const [sched] = data;
@@ -135,7 +135,7 @@ export function BookingHome(props: IProps): JSX.Element {
                       <Grid container spacing={2}>
                         <Grid item xs={4}>
                           <TextField style={{ flex: '1' }} select label="Schedules" fullWidth value={schedule.id} onChange={e => {
-                            void api(GET_SCHEDULE_BY_ID, true, { id: e.target.value })
+                            void api(GET_SCHEDULE_BY_ID, { id: e.target.value })
                             // .then(res => {
                             //   if (res) {
                             //     setSchedule(res)

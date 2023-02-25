@@ -80,10 +80,10 @@ export function ManageSchedules(props: IProps): JSX.Element {
               message: 'Are you sure you want to delete these schedules? This cannot be undone.',
               action: () => {
 
-                const [, res] = api(deleteGroupSchedulesAction, true, { groupName, ids: selected.map(s => s.id).join(',') })
+                const [, res] = api(deleteGroupSchedulesAction, { groupName, ids: selected.map(s => s.id).join(',') }, { load: true })
                 res?.then(() => {
                   setToggle(!toggle);
-                  api(getGroupSchedulesAction, true, { groupName });
+                  api(getGroupSchedulesAction, { groupName });
                 });
               }
             });
@@ -97,7 +97,7 @@ export function ManageSchedules(props: IProps): JSX.Element {
 
   useEffect(() => {
     if (groupName) {
-      const [abort] = api(getGroupSchedulesAction, true, { groupName });
+      const [abort] = api(getGroupSchedulesAction, { groupName });
       return () => abort();
     }
   }, [groupName]);
@@ -106,7 +106,7 @@ export function ManageSchedules(props: IProps): JSX.Element {
     <Dialog open={dialog === 'manage_schedule'} fullWidth maxWidth="sm">
       <ManageSchedulesModal {...props} editSchedule={schedule} closeModal={() => {
         setDialog('');
-        api(getGroupSchedulesAction, true, { groupName });
+        api(getGroupSchedulesAction, { groupName });
       }} />
     </Dialog>
 

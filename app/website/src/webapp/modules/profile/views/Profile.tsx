@@ -52,7 +52,7 @@ export function Profile(props: IProps): JSX.Element {
   });
 
   useEffect(() => {
-    const [abort] = api(GET_USER_PROFILE_DETAILS, true);
+    const [abort] = api(GET_USER_PROFILE_DETAILS);
     return () => abort();
   }, []);
 
@@ -85,9 +85,11 @@ export function Profile(props: IProps): JSX.Element {
       profile.image = await fileStore?.put(file);
     }
     console.log('just put profile with image', profile);
-    void api(PUT_USER_PROFILE, true, profile);
-    act(SET_SNACK, { snackType: 'success', snackOn: 'Profile updated!' });
-    setFile(undefined);
+    const [, res] = api(PUT_USER_PROFILE, profile, { load: true });
+    res?.then(() => {
+      act(SET_SNACK, { snackType: 'success', snackOn: 'Profile updated!' });
+      setFile(undefined);
+    })
   }
 
   return <>

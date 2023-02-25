@@ -74,8 +74,8 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
 
   useEffect(() => {
     if (group.name) {
-      const [abort1] = api(getGroupSchedulesAction, false, { groupName: group.name });
-      const [abort2] = api(getGroupServicesAction, false, { groupName: group.name });
+      const [abort1] = api(getGroupSchedulesAction, { groupName: group.name });
+      const [abort2] = api(getGroupServicesAction, { groupName: group.name });
       return () => {
         abort1();
         abort2();

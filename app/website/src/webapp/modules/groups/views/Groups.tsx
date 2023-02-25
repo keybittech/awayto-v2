@@ -12,17 +12,7 @@ export function Groups (props: IProps): JSX.Element {
   const { ManageGroups } = useComponents()
   const user = useRedux(state => state.profile);
 
-  // useEffect(() => {
-  //   const [abort, res] = api(POST_ASSIST, true, { message: 'What are the important things to review while examining the response from the first time I use the openai davinci 003 model using the openai npm package?'});
-  //   res?.then(data => {
-  //     console.log(data);
-  //   });
-
-  //   return () => abort();
-  // }, [])
-
   return <>
-    {/* {groups.map(g => <Button key={`group_selection_${g.name}`} onClick={() => navigate(`/group/${g.name}/manage/users`)} > Manage Group</Button>)} */}
     <ManageGroups {...props}
       groups={user.groups}
       roles={user.roles}

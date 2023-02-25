@@ -91,9 +91,9 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
 
     const { id, name, duration, slotTimeUnitName } = schedule;
     if (name && duration && slotTimeUnitName) {
-      const [, res] = api(id ? putGroupSchedulesAction : postGroupSchedulesAction, false, id ? { id, name, groupName } : { ...schedule, groupName });
+      const [, res] = api(id ? putGroupSchedulesAction : postGroupSchedulesAction, id ? { id, name, groupName } : { ...schedule, groupName }, { });
       res?.then(() => {
-        api(getGroupSchedulesAction, true, { groupName });
+        api(getGroupSchedulesAction, { groupName });
         act(SET_SNACK, { snackOn: 'Successfully added ' + name, snackType: 'info' });
         if (closeModal)
           closeModal();

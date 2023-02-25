@@ -82,7 +82,7 @@ export function ManageGroups(props: IProps): JSX.Element {
           isConfirming: true,
           message: 'Are you sure you want to leave this group?',
           action: () => {
-            const [, res] = api(GROUPS_LEAVE, true, { code: selected.pop()?.code });
+            const [, res] = api(GROUPS_LEAVE, { code: selected.pop()?.code }, { load: true });
             res?.then(() => {
               api(getGroupsAction);
               setToggle(!toggle);
@@ -104,7 +104,7 @@ export function ManageGroups(props: IProps): JSX.Element {
     return [
       ...acts,
       isOwner && <Tooltip key={'delete_group'} title="Delete"><IconButton onClick={() => {
-        const [, res] = api(deleteGroupsAction, true, { ids: selected.map(s => s.id).join(',') });
+        const [, res] = api(deleteGroupsAction, { ids: selected.map(s => s.id).join(',') }, { load: true });
         res?.then(() => {
           keycloak.clearToken();
         });

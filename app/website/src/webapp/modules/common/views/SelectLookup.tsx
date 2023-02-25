@@ -53,19 +53,19 @@ export function SelectLookup({ lookupChange, disabled = false, defaultValue, att
     setNewLookup({ name: '' } as ILookup)
 
     if (refetchAction) {
-      api(refetchAction, true, parentUuidName && parentUuid ? { [parentUuidName]: parentUuid } : {});
+      api(refetchAction, parentUuidName && parentUuid ? { [parentUuidName]: parentUuid } : {}, { load: true });
     }
   }
 
   const handleSubmit = useCallback(() => {
     setLookupUpdater(newLookup.name);
     if (createAction) {
-      const [, res] = api(createAction, true, newLookup);
+      const [, res] = api(createAction, newLookup, { load: true } );
 
       res?.then(lookup => {
         const [{ id: lookupId }] = lookup as ILookup[];
         if (attachAction && lookupId && parentUuid && parentUuidName && attachName) {
-          const [, rez] = api(attachAction, true, { [parentUuidName]: parentUuid, [attachName]: lookupId })
+          const [, rez] = api(attachAction, { [parentUuidName]: parentUuid, [attachName]: lookupId }, { load: true })
           rez?.then(() => refresh());
         } else {
           refresh();
@@ -172,10 +172,10 @@ export function SelectLookup({ lookupChange, disabled = false, defaultValue, att
               lookupChange('');
             }
             const actionIdentifier = deleteAction.substring(deleteAction.lastIndexOf(':')+1, deleteAction.length);
-            const [, res] = api(deleteAction, true, parentUuidName && attachName ? { [parentUuidName]: parentUuid, [attachName]: lookup.id } : { [actionIdentifier]: lookup.id });
+            const [, res] = api(deleteAction, parentUuidName && attachName ? { [parentUuidName]: parentUuid, [attachName]: lookup.id } : { [actionIdentifier]: lookup.id }, { load: true });
             res?.then(() => {
               if (refetchAction) {
-                api(refetchAction, true, parentUuidName && parentUuid ? { [parentUuidName]: parentUuid } : {});
+                api(refetchAction, parentUuidName && parentUuid ? { [parentUuidName]: parentUuid } : {}, { load: true });
               }
             });
           }} />}

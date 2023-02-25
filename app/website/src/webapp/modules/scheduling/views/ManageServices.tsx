@@ -75,10 +75,10 @@ export function ManageServices(props: IProps): JSX.Element {
             isConfirming: true,
             message: 'Are you sure you want to delete these services? This cannot be undone.',
             action: () => {
-              const [, res] = api(deleteGroupServicesAction, true, { groupName, ids: selected.map(s => s.id).join(',') })
+              const [, res] = api(deleteGroupServicesAction, { groupName, ids: selected.map(s => s.id).join(',') }, { load: true })
               res?.then(() => {
                 setToggle(!toggle);
-                api(getServicesAction, true, { groupName });
+                api(getServicesAction, { groupName });
               });
             }
           });
@@ -91,7 +91,7 @@ export function ManageServices(props: IProps): JSX.Element {
 
   useEffect(() => {
     if (groupName) {
-      const [abort] = api(getServicesAction, true, { groupName });
+      const [abort] = api(getServicesAction, { groupName });
       return () => abort();
     }
   }, [groupName]);
@@ -100,7 +100,7 @@ export function ManageServices(props: IProps): JSX.Element {
     <Dialog scroll="paper" open={dialog === 'manage_service'} fullWidth maxWidth="sm">
       <ManageServiceModal {...props} editService={service} closeModal={() => {
         setDialog('')
-        api(getServicesAction, true, { groupName });
+        api(getServicesAction, { groupName });
       }} />
     </Dialog>
     <Card>

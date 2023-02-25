@@ -47,13 +47,13 @@ export function ManageUserModal({ editUser, closeModal }: IProps): JSX.Element {
   });
 
   useEffect(() => {
-    const [abort] = api(GET_MANAGE_GROUPS, true);
+    const [abort] = api(GET_MANAGE_GROUPS);
     return () => abort();
   }, []);
 
   useEffect(() =>{
     if (editUser?.id) {
-      const [abort] = api(GET_MANAGE_USERS_BY_ID, true, { id: editUser.id });
+      const [abort] = api(GET_MANAGE_USERS_BY_ID, { id: editUser.id });
       return () => abort();
     }
   }, [editUser]);

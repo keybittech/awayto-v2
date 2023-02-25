@@ -62,6 +62,15 @@ const generator = new PathGenerator(routeCollection);
 const { SET_LOADING, API_SUCCESS, SET_SNACK } = IUtilActionTypes;
 
 
+type ApiMeta = {
+  load: boolean;
+  noRedux: boolean;
+  noRedis: boolean;
+  debounce: {
+    time: number;
+  }
+}
+
 /**
  * The `useApi` hook provides type-bound api functionality. By passing in a {@link IActionTypes} we can control the structure of the api request, and more easily handle it on the backend.
  * 
@@ -77,24 +86,26 @@ const { SET_LOADING, API_SUCCESS, SET_SNACK } = IUtilActionTypes;
  * 
  * As long as we have setup our model, `GET_MANAGE_USERS` will inform the system of the API endpoint and shape of the request/response.
  * 
- * If the endpoint takes path parameters, we can pass them in as options. Pass a boolean as the second argument to show or hide a loading screen.
+ * If the endpoint takes path parameters, we can pass them in as options. Pass an options object as the third argument to pass options like show a loading screen or skip redis/redux.
  *
  * ```
- * api(GET_MANAGE_USERS_BY_ID, false, { id });
+ * api(GET_MANAGE_USERS_BY_ID, { id }, { noRedis: true });
  * ```
  * 
  * @category Hooks
  */
 
-export function useApi(): <T extends { [prop: string]: unknown}, R = IMergedState>(actionType: IActionTypes, load?: boolean, body?: Partial<T | StatePayloadValues>, meta?: unknown) => [(reason?: string)=> void, Promise<void | R> | undefined] {
+export function useApi(): <T extends { [prop: string]: unknown}, R = IMergedState>(actionType: IActionTypes, body?: Partial<T | StatePayloadValues>, meta?: Partial<ApiMeta>) => [(reason?: string)=> void, Promise<void | R> | undefined] {
   const act = useAct();
 
-  const api = useCallback(<T extends { [prop: string]: unknown}, R = IMergedState>(actionType: IActionTypes, load?: boolean, body?: Partial<T | StatePayloadValues>, meta?: unknown): [(reason?: string)=> void, Promise<void | R> | undefined] => {
+  const api = useCallback(<T extends { [prop: string]: unknown}, R = IMergedState>(actionType: IActionTypes, body?: Partial<T | StatePayloadValues>, meta = {} as Partial<ApiMeta>): [(reason?: string)=> void, Promise<void | R> | undefined] => {
 
     const abortController: AbortController = new AbortController();
     function abort(reason?: string) {
       abortController.abort(reason);
     }
+    
+    const { load } = meta;
 
     try {
 

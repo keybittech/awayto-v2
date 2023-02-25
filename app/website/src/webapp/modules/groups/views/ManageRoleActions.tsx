@@ -35,8 +35,8 @@ export function ManageRoleActions(): JSX.Element {
 
   useEffect(() => {
     if (!groupName) return;
-    const [abort1] = api(GET_USER_PROFILE_DETAILS, true);
-    const [abort2] = api(GET_GROUPS_ASSIGNMENTS, true, { groupName });
+    const [abort1] = api(GET_USER_PROFILE_DETAILS);
+    const [abort2] = api(GET_GROUPS_ASSIGNMENTS, { groupName });
     return () => {
       abort1();
       abort2();
@@ -52,7 +52,7 @@ export function ManageRoleActions(): JSX.Element {
   const handleSubmit = useCallback(() => {
     try {
       act(SET_UPDATE_ASSIGNMENTS, { canSubmitAssignments: false });
-      const [, res] = api(PUT_GROUPS_ASSIGNMENTS, false, { groupName, assignments });
+      const [, res] = api(PUT_GROUPS_ASSIGNMENTS, { groupName, assignments });
       res?.then(() => {
         act(SET_SNACK, { snackType: 'success', snackOn: 'Assignments can be updated again in 1 minute.' });
         setTimeout(() => act(SET_UPDATE_ASSIGNMENTS, { canSubmitAssignments: true }), 58 * 1000);
