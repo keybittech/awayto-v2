@@ -74,6 +74,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     id,
     name,
     cost,
+    form_version_id as "formVersionId",
     created_on as "createdOn",
     row_number() OVER () as row
   FROM
@@ -123,8 +124,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
   OR REPLACE VIEW dbview_schema.enabled_service_tiers AS
   SELECT
     id,
-    name,
     service_id as "serviceId",
+    form_version_id as "formVersionId",
+    name,
     multiplier,
     created_on as "createdOn",
     row_number() OVER () as row

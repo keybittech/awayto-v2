@@ -56,3 +56,66 @@ RESTART FRESH USERS TABLE:
     ('month'),
     ('year');
     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    ------------------------------
+
+
+
+    
+
+	CREATE OR REPLACE FUNCTION enforce_photo_count() RETURNS trigger AS $$
+	DECLARE
+			max_photo_count INTEGER := 10;
+			photo_count INTEGER := 0;
+			must_check BOOLEAN := false;
+	BEGIN
+			IF TG_OP = 'INSERT' THEN
+					must_check := true;
+			END IF;
+
+			IF TG_OP = 'UPDATE' THEN
+					IF (NEW.owner != OLD.owner) THEN
+							must_check := true;
+					END IF;
+			END IF;
+
+			IF must_check THEN
+					-- prevent concurrent inserts from multiple transactions
+					LOCK TABLE photos IN EXCLUSIVE MODE;
+
+					SELECT INTO photo_count COUNT(*) 
+					FROM photos 
+					WHERE owner = NEW.owner;
+
+					IF photo_count >= max_photo_count THEN
+							RAISE EXCEPTION 'Cannot insert more than % photos for each user.', max_photo_count;
+					END IF;
+			END IF;
+
+			RETURN NEW;
+	END;
+	$$ LANGUAGE plpgsql;
+
+
+	CREATE TRIGGER enforce_photo_count 
+			BEFORE INSERT OR UPDATE ON photos
+			FOR EACH ROW EXECUTE PROCEDURE enforce_photo_count();
