@@ -4,7 +4,8 @@ import {
   IGroupScheduleActions,
   IGroupScheduleActionTypes,
   IGetGroupSchedulesAction,
-  IGetGroupScheduleByGroupIdAction,
+  IGetGroupScheduleByIdAction,
+  IGetGroupScheduleMasterByIdAction,
   IDeleteGroupScheduleAction,
   IPostGroupScheduleAction,
   IPutGroupScheduleAction
@@ -23,7 +24,7 @@ function reduceDeleteGroupSchedule(state: IGroupScheduleState, action: IDeleteGr
   return { ...state };
 }
 
-function reducePostGroupSchedules(state: IGroupScheduleState, action: IPostGroupScheduleAction | IGetGroupScheduleByGroupIdAction | IPutGroupScheduleAction): IGroupScheduleState {
+function reducePostGroupSchedules(state: IGroupScheduleState, action: IPostGroupScheduleAction | IGetGroupScheduleByIdAction | IPutGroupScheduleAction | IGetGroupScheduleMasterByIdAction): IGroupScheduleState {
   const groupSchedules = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id}`]: b } }), {});
   state.groupSchedules = { ...state.groupSchedules, ...groupSchedules };
   return { ...state };
@@ -41,6 +42,7 @@ const groupSchedulesReducer: Reducer<IGroupScheduleState, IGroupScheduleActions>
     case IGroupScheduleActionTypes.POST_GROUP_SCHEDULE:
     case IGroupScheduleActionTypes.PUT_GROUP_SCHEDULE:
     case IGroupScheduleActionTypes.GET_GROUP_SCHEDULE_BY_ID:
+    case IGroupScheduleActionTypes.GET_GROUP_SCHEDULE_MASTER_BY_ID:
       return reducePostGroupSchedules(state, action);
     case IGroupScheduleActionTypes.GET_GROUP_SCHEDULES:
       return reduceGetGroupSchedules(state, action);

@@ -64,7 +64,8 @@ export type IScheduleBracketState = IScheduleBracket & {
 export type ISchedule = {
   id: string;
   name: string;
-  duration: number;
+  startTime: string;
+  endTime: string;
   scheduleTimeUnitId: string;
   scheduleTimeUnitName: ITimeUnitNames;
   bracketTimeUnitId: string;

@@ -132,6 +132,28 @@ const groupServices: ApiModule = [
   },
 
   {
+    action: IGroupScheduleActionTypes.GET_GROUP_SCHEDULE_MASTER_BY_ID,
+    cmnd: async (props) => {
+      try {
+        const { groupName, scheduleId } = props.event.pathParameters;
+
+        const response = await props.db.query<ISchedule>(`
+          SELECT ese.*
+          FROM dbview_schema.enabled_schedules_ext ese
+          JOIN dbview_schema.enabled_users eu ON eu.sub = ese."createdSub"
+          WHERE ese.id = $1 AND eu.username = $2
+        `, [scheduleId, 'system_group_' + groupName]);
+
+        return response.rows;
+
+      } catch (error) {
+        throw error;
+      }
+
+    }
+  },
+
+  {
     action: IGroupScheduleActionTypes.DELETE_GROUP_SCHEDULE,
     cmnd: async (props) => {
       try {

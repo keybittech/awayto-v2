@@ -154,7 +154,8 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
   SELECT
     id,
     name,
-    duration,
+    start_time as "startTime",
+    end_time as "endTime",
     schedule_time_unit_id as "scheduleTimeUnitId",
     bracket_time_unit_id as "bracketTimeUnitId",
     slot_time_unit_id as "slotTimeUnitId",

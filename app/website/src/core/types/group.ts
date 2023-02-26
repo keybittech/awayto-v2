@@ -298,6 +298,7 @@ export type IGroupServiceActions = IPostGroupServiceAction
     PUT_GROUP_SCHEDULE = "PUT/group/:groupName/schedules",
     GET_GROUP_SCHEDULES = "GET/group/:groupName/schedules",
     GET_GROUP_SCHEDULE_BY_ID = "GET/group/:groupName/schedules/:scheduleId",
+    GET_GROUP_SCHEDULE_MASTER_BY_ID = "GET/group/:groupName/schedulemaster/:scheduleId",
     DELETE_GROUP_SCHEDULE = "DELETE/group/:groupName/schedules/:ids"
   }
   
@@ -320,7 +321,12 @@ export type IGroupServiceActions = IPostGroupServiceAction
   /**
    * @category Group
    */
-  export type IGetGroupScheduleByGroupIdAction = PayloadAction<IGroupScheduleActionTypes.GET_GROUP_SCHEDULE_BY_ID, IGroupSchedule[]>;
+  export type IGetGroupScheduleByIdAction = PayloadAction<IGroupScheduleActionTypes.GET_GROUP_SCHEDULE_BY_ID, IGroupSchedule[]>;
+  
+  /**
+   * @category Group
+   */
+  export type IGetGroupScheduleMasterByIdAction = PayloadAction<IGroupScheduleActionTypes.GET_GROUP_SCHEDULE_MASTER_BY_ID, IGroupSchedule[]>;
   
   /**
    * @category Group
@@ -333,5 +339,6 @@ export type IGroupServiceActions = IPostGroupServiceAction
   export type IGroupScheduleActions = IPostGroupScheduleAction
     | IPutGroupScheduleAction
     | IGetGroupSchedulesAction
-    | IGetGroupScheduleByGroupIdAction
+    | IGetGroupScheduleByIdAction
+    | IGetGroupScheduleMasterByIdAction
     | IDeleteGroupScheduleAction;
