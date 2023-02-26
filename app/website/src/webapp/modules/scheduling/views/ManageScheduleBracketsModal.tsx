@@ -53,7 +53,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
     sched.scheduleTimeUnitName = timeUnits.find(u => u.id === sched.scheduleTimeUnitId)?.name as ITimeUnitNames;
     sched.bracketTimeUnitName = timeUnits.find(u => u.id === sched.bracketTimeUnitId)?.name as ITimeUnitNames;
     sched.slotTimeUnitName = timeUnits.find(u => u.id === sched.slotTimeUnitId)?.name as ITimeUnitNames;
-  }, [groupSchedules]);
+  }, [timeUnits]);
 
   useEffect(() => {
     if (groupSchedules) {
@@ -69,7 +69,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
               setView(2);
             }
           }
-        })
+        }).catch(console.warn);
       } else {
         for (const g in groupSchedules) {
           const sched = groupSchedules[g];
@@ -108,12 +108,12 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
 
   const handleSubmit = useCallback(() => {
     if (schedule) {
-      const { name, duration, scheduleTimeUnitName, brackets } = schedule;
-      if (name && duration && scheduleTimeUnitName && scheduleBracketsValues.length) {
+      const { name, scheduleTimeUnitName, brackets } = schedule;
+      if (name && scheduleTimeUnitName && scheduleBracketsValues.length) {
 
         const [, res] = !editSchedule ? 
           api(postScheduleAction, schedule, { load: true }) :
-          [undefined, new Promise(res => res([schedule]))];
+          [undefined, new Promise<ISchedule[]>(res => res([schedule]))];
         res?.then(resSchedules => {
           const [sched] = resSchedules as ISchedule[];
 
@@ -124,7 +124,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
           void Promise.all([rex, rez]).then(() => {
             act(SET_SNACK, { snackOn: 'Successfully added ' + name, snackType: 'info' });
             if (closeModal) closeModal();
-          });
+          }).catch(console.warn);
         })
 
       } else {

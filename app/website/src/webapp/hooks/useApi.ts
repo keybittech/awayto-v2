@@ -95,10 +95,10 @@ type ApiMeta = {
  * @category Hooks
  */
 
-export function useApi(): <T extends { [prop: string]: unknown}, R = IMergedState>(actionType: IActionTypes, body?: Partial<T | StatePayloadValues>, meta?: Partial<ApiMeta>) => [(reason?: string)=> void, Promise<void | R> | undefined] {
+export function useApi(): <T extends { [prop: string]: unknown}, R = IMergedState>(actionType: IActionTypes, body?: Partial<T | StatePayloadValues>, meta?: Partial<ApiMeta>) => [(reason?: string)=> void, Promise<R> | undefined] {
   const act = useAct();
 
-  const api = useCallback(<T extends { [prop: string]: unknown}, R = IMergedState>(actionType: IActionTypes, body?: Partial<T | StatePayloadValues>, meta = {} as Partial<ApiMeta>): [(reason?: string)=> void, Promise<void | R> | undefined] => {
+  const api = useCallback(<T extends { [prop: string]: unknown}, R = IMergedState>(actionType: IActionTypes, body?: Partial<T | StatePayloadValues>, meta = {} as Partial<ApiMeta>): [(reason?: string)=> void, Promise<R> | undefined] => {
 
     const abortController: AbortController = new AbortController();
     function abort(reason?: string) {
@@ -156,7 +156,7 @@ export function useApi(): <T extends { [prop: string]: unknown}, R = IMergedStat
       .catch(err => {
         const { name, requestId, reason } = err as ApiErrorResponse;
 
-        if (['AbortError'].includes(name as string)) return;
+        if (['AbortError'].includes(name as string)) throw 'Request aborted.';
 
         act(SET_SNACK, {
           snackRequestId: requestId,

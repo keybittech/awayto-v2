@@ -70,7 +70,7 @@ export function SelectLookup({ lookupChange, disabled = false, defaultValue, att
         } else {
           refresh();
         }
-      })
+      }).catch(console.warn);
     }
   }, [newLookup, createAction, attachAction, attachName, parentUuid, parentUuidName]);
 
@@ -177,7 +177,7 @@ export function SelectLookup({ lookupChange, disabled = false, defaultValue, att
               if (refetchAction) {
                 api(refetchAction, parentUuidName && parentUuid ? { [parentUuidName]: parentUuid } : {}, { load: true });
               }
-            });
+            }).catch(console.warn);
           }} />}
         </MenuItem>
       )) : []}

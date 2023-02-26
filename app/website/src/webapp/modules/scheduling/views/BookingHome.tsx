@@ -70,22 +70,20 @@ export function BookingHome(props: IProps): JSX.Element {
     if (id && !schedules[id].brackets) {
       const [abort, res] = api<ISchedule, ISchedule[]>(GET_SCHEDULE_BY_ID, { id }, { load: true })
       res?.then(data => {
-        if (data) {
-          const [sched] = data;
-          setSchedule(sched);
+        const [sched] = data;
+        setSchedule(sched);
 
-          for (const b in sched.brackets) {
-            const bracketServices = sched.brackets[b].services;
-            setServices(bracketServices);
-            for (const s in bracketServices) {
-              setService(bracketServices[s]);
-              setTier(Object.values(bracketServices[s].tiers).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime())[0]);
-              break;
-            }
+        for (const b in sched.brackets) {
+          const bracketServices = sched.brackets[b].services;
+          setServices(bracketServices);
+          for (const s in bracketServices) {
+            setService(bracketServices[s]);
+            setTier(Object.values(bracketServices[s].tiers).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime())[0]);
             break;
           }
+          break;
         }
-      });
+      }).catch(console.warn);
       return () => abort();
     }
   }, [schedules]);

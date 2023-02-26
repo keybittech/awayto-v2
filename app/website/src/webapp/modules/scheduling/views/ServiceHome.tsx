@@ -49,7 +49,7 @@ export function ServiceHome(props: IProps): JSX.Element {
   const { groupServices } = useRedux(state => state.groupService);
   const { groupServiceAddons } = useRedux(state => state.groupServiceAddon);
   const { groups } = useRedux(state => state.profile);
-  const [group, setGroup] = useState<IGroup>();
+  const [group, setGroup] = useState({} as IGroup);
 
   useEffect(() => {
     if (groups) {
@@ -61,7 +61,7 @@ export function ServiceHome(props: IProps): JSX.Element {
   }, [groups]);
 
   useEffect(() => {
-    if (!group?.name) return;
+    if (!group.name) return;
     const [abort1] = api(GET_GROUP_SERVICES, { groupName: group.name });
     const [abort2, rez] = api(GET_GROUP_SERVICE_ADDONS, { groupName: group.name });
     rez?.then(() => setServiceTierAddonIds([]));
@@ -79,7 +79,7 @@ export function ServiceHome(props: IProps): JSX.Element {
           title="Create Service"
           subheader="Services are the functions of your organization. Each service has a set of tiers and features. As well, a cost may be associated with the service. If there is a cost, tiers can be used to provide a higher level of service at a higher cost, using the multiplier. Features can be added to each tier as necessary." 
           action={
-            groups && group?.id && <TextField
+            groups && group.id && <TextField
               select
               value={group.id}
               label="Group"
@@ -118,13 +118,13 @@ export function ServiceHome(props: IProps): JSX.Element {
                 <TextField fullWidth label="Name" value={newServiceTier.name} onChange={e => setNewServiceTier({ ...newServiceTier, name: e.target.value })} helperText="Ex: Basic, Mid-Tier, Advanced" />
               </Box>
 
-              <Box mb={4} sx={{ display: 'flex', alignItems: 'baseline' }}>
+              {group.name && <Box mb={4} sx={{ display: 'flex', alignItems: 'baseline' }}>
                 <SelectLookup
                   multiple
                   lookupName='Feature'
                   lookups={Object.values(groupServiceAddons)}
                   lookupValue={serviceTierAddonIds}
-                  parentUuid={group?.name}
+                  parentUuid={group.name}
                   parentUuidName='groupName'
                   lookupChange={(val: string[]) => {
                     const gsa = Object.values(groupServiceAddons).filter(s => val.includes(s.id)).map(s => s.id);
@@ -137,7 +137,7 @@ export function ServiceHome(props: IProps): JSX.Element {
                   attachName='serviceAddonId'
                   {...props}
                 />
-              </Box>
+              </Box>}
 
               <Box>
                 <Typography variant="h6">Multiplier</Typography>
@@ -202,21 +202,19 @@ export function ServiceHome(props: IProps): JSX.Element {
     <Grid item xs={12}>
       <Card>
         <CardActionArea onClick={() => {
-          if (newService.name && Object.keys(newService.tiers)?.length) {
+          if (newService.name && group.name && Object.keys(newService.tiers)?.length) {
             const [, res] = api(POST_SERVICE, { ...newService }, { load: true });
 
             res?.then(services => {
-              if (services && group) {
-                const [service] = services as IService[];
-                const [, rez] = api(POST_GROUP_SERVICE, { serviceId: service.id, groupName: group.name }, { load: true });
-                rez?.then(() => {
-                  api(GET_GROUP_SERVICES, { groupName: group.name });
-                  act(SET_SNACK, { snackOn: `Successfully added ${service.name} to ${group.name}`, snackType: 'info' });
-                  setNewService({ ...serviceSchema, tiers: {} } as IService);
-                  setServiceTierAddonIds([]);
-                });
-              }
-            });
+              const [service] = services as IService[];
+              const [, rez] = api(POST_GROUP_SERVICE, { serviceId: service.id, groupName: group.name }, { load: true });
+              rez?.then(() => {
+                api(GET_GROUP_SERVICES, { groupName: group.name });
+                act(SET_SNACK, { snackOn: `Successfully added ${service.name} to ${group.name}`, snackType: 'info' });
+                setNewService({ ...serviceSchema, tiers: {} } as IService);
+                setServiceTierAddonIds([]);
+              });
+            }).catch(console.warn);
           } else {
             void act(SET_SNACK, { snackOn: 'Provide the service name, cost and at least 1 tier.', snackType: 'info' });
           }

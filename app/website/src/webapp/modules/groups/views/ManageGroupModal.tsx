@@ -64,7 +64,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
     res?.then(() => {
       id && act(SET_SNACK, { snackType: 'success', snackOn: 'Group updated! Please allow up to a minute for any related permissions changes to persist.' } )
       !id && keycloak.clearToken();
-    });
+    }).catch(console.warn);
   }, [group, roles, roleIds, primaryRole]);
 
   const badName = !checkingName && !isValid && !!group?.name && formatName(group.name) == checkedName;

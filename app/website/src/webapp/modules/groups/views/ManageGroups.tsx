@@ -86,7 +86,7 @@ export function ManageGroups(props: IProps): JSX.Element {
             res?.then(() => {
               api(getGroupsAction);
               setToggle(!toggle);
-            });
+            }).catch(console.warn);
           }
         });
       }}>
@@ -107,7 +107,7 @@ export function ManageGroups(props: IProps): JSX.Element {
         const [, res] = api(deleteGroupsAction, { ids: selected.map(s => s.id).join(',') }, { load: true });
         res?.then(() => {
           keycloak.clearToken();
-        });
+        }).catch(console.warn);
       }}><DeleteIcon /></IconButton></Tooltip>
     ];
   }, [selected]);

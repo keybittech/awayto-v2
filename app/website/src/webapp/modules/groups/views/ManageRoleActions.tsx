@@ -56,7 +56,7 @@ export function ManageRoleActions(): JSX.Element {
       res?.then(() => {
         act(SET_SNACK, { snackType: 'success', snackOn: 'Assignments can be updated again in 1 minute.' });
         setTimeout(() => act(SET_UPDATE_ASSIGNMENTS, { canSubmitAssignments: true }), 58 * 1000);
-      });
+      }).catch(console.warn);
     } catch (error) {
       act(SET_UPDATE_ASSIGNMENTS, { canSubmitAssignments: true });
     }

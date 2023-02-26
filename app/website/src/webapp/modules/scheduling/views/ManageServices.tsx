@@ -79,7 +79,7 @@ export function ManageServices(props: IProps): JSX.Element {
               res?.then(() => {
                 setToggle(!toggle);
                 api(getServicesAction, { groupName });
-              });
+              }).catch(console.warn);
             }
           });
         }

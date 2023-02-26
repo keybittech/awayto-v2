@@ -44,7 +44,7 @@ export function ManageServiceModal ({ editService, closeModal, ...props }: IProp
     res?.then(() => {
       if (closeModal)
         closeModal();
-    });
+    }).catch(console.warn);
 
   }, [service]);
 

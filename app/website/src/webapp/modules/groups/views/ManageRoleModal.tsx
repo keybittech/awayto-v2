@@ -44,7 +44,7 @@ export function ManageRoleModal ({ editRole, closeModal, ...props }: IProps): JS
     res?.then(() => {
       if (closeModal)
         closeModal();
-    });
+    }).catch(console.warn);
 
   }, [role]);
 

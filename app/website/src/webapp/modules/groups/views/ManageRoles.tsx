@@ -66,7 +66,7 @@ export function ManageRoles(props: IProps): JSX.Element {
         res?.then(() => {
           setToggle(!toggle);
           api(getRolesAction);
-        });
+        }).catch(console.warn);
       }}>
         <DeleteIcon />
       </IconButton></Tooltip>

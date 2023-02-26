@@ -118,7 +118,7 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
       //         res?.then(() => {
       //           setToggle(!toggle);
       //           api(getScheduleBracketsAction, true, { groupName });
-      //         });
+      //         }).catch(console.warn);
       //       }
       //     });
       //   }

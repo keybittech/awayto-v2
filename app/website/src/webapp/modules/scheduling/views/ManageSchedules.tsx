@@ -22,7 +22,7 @@ const { OPEN_CONFIRM } = IUtilActionTypes;
 export type ManageSchedulesActions = {
   groupSchedules?: Record<string, IGroupSchedule>;
   getGroupSchedulesAction?: IActionTypes;
-  getGroupSchedulesByIdAction?: IActionTypes;
+  getGroupScheduleMasterByIdAction?: IActionTypes;
   postGroupSchedulesAction?: IActionTypes;
   putGroupSchedulesAction?: IActionTypes;
   disableSchedulesAction?: IActionTypes;
@@ -85,7 +85,7 @@ export function ManageSchedules(props: IProps): JSX.Element {
                 res?.then(() => {
                   setToggle(!toggle);
                   api(getGroupSchedulesAction, { groupName });
-                });
+                }).catch(console.warn);
               }
             });
           }

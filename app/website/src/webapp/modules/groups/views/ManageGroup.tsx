@@ -14,7 +14,7 @@ const { PUT_ROLES, POST_ROLES, DELETE_ROLES } = IRoleActionTypes;
 const { POST_SERVICE, PUT_SERVICE, DELETE_SERVICE, DISABLE_SERVICE } = IServiceActionTypes;
 const { DELETE_SCHEDULE, DISABLE_SCHEDULE } = IScheduleActionTypes;
 const { GET_GROUP_SERVICES, POST_GROUP_SERVICE, DELETE_GROUP_SERVICE } = IGroupServiceActionTypes;
-const { GET_GROUP_SCHEDULES, GET_GROUP_SCHEDULE_BY_ID, POST_GROUP_SCHEDULE, PUT_GROUP_SCHEDULE, DELETE_GROUP_SCHEDULE } = IGroupScheduleActionTypes;
+const { GET_GROUP_SCHEDULES, GET_GROUP_SCHEDULE_MASTER_BY_ID, POST_GROUP_SCHEDULE, PUT_GROUP_SCHEDULE, DELETE_GROUP_SCHEDULE } = IGroupScheduleActionTypes;
 
 
 declare global {
@@ -83,7 +83,7 @@ export function ManageGroup(props: IProps): JSX.Element {
         return <ManageSchedules
           groupSchedules={groupSchedules}
           getGroupSchedulesAction={GET_GROUP_SCHEDULES}
-          getGroupSchedulesByIdAction={GET_GROUP_SCHEDULE_BY_ID}
+          getGroupScheduleMasterByIdAction={GET_GROUP_SCHEDULE_MASTER_BY_ID}
           postGroupSchedulesAction={POST_GROUP_SCHEDULE}
           putGroupSchedulesAction={PUT_GROUP_SCHEDULE}
           disableSchedulesAction={DISABLE_SCHEDULE}

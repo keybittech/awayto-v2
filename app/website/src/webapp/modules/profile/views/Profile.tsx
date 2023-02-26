@@ -89,7 +89,7 @@ export function Profile(props: IProps): JSX.Element {
     res?.then(() => {
       act(SET_SNACK, { snackType: 'success', snackOn: 'Profile updated!' });
       setFile(undefined);
-    })
+    }).catch(console.warn);
   }
 
   return <>
