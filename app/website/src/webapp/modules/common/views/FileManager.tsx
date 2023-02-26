@@ -4,10 +4,10 @@ import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 
-import { IFile, IFilesActionTypes, FileStoreStrategies } from 'awayto';
+import { IFile, IFileActionTypes, FileStoreStrategies } from 'awayto';
 import { useApi, useRedux, useFileStore } from 'awayto-hooks';
 
-const { POST_FILES, DELETE_FILES } = IFilesActionTypes;
+const { POST_FILE, DELETE_FILE } = IFileActionTypes;
 
 declare global {
   interface IProps {
@@ -18,7 +18,7 @@ declare global {
 export function FileManager(): JSX.Element {
   const api = useApi();
   const fileSelectRef = useRef<HTMLInputElement>(null);
-  const { files } = useRedux(state => state.files);
+  const { files } = useRedux(state => state.file);
   const util = useRedux(state => state.util);
   const fileStore = useFileStore();
   const [toggle, setToggle] = useState(false);
@@ -34,7 +34,7 @@ export function FileManager(): JSX.Element {
 
   function deleteFiles() {
     if (selected.length) {
-      // void api(DELETE_FILES, true, selected);
+      // void api(DELETE_FILE, true, selected);
       setToggle(!toggle);
     }
   }
@@ -48,7 +48,7 @@ export function FileManager(): JSX.Element {
   //         const location = await fileStore.post(file);
   //         postFiles.push({ location, name: file.name, fileTypeName: FileStoreStrategies.FILE_SYSTEM })
   //       }
-  //       void api(POST_FILES, true, postFiles);
+  //       void api(POST_FILE, true, postFiles);
   //     }
   //     void go();
   //   }

@@ -29,6 +29,46 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     enabled = true;
 
   CREATE
+  OR REPLACE VIEW dbview_schema.enabled_forms AS
+  SELECT
+    id,
+    name,
+    created_on as "createdOn",
+    created_sub as "createdSub",
+    row_number() OVER () as row
+  FROM
+    dbtable_schema.forms
+  WHERE
+    enabled = true;
+
+  CREATE
+  OR REPLACE VIEW dbview_schema.enabled_group_forms AS
+  SELECT
+    group_id as "groupId",
+    form_id as "formId",
+    created_on as "createdOn",
+    created_sub as "createdSub",
+    row_number() OVER () as row
+  FROM
+    dbtable_schema.group_forms
+  WHERE
+    enabled = true;
+
+  CREATE
+  OR REPLACE VIEW dbview_schema.enabled_form_versions AS
+  SELECT
+    id,
+    form,
+    form_id as "formId",
+    created_on as "createdOn",
+    created_sub as "createdSub",
+    row_number() OVER () as row
+  FROM
+    dbtable_schema.form_versions
+  WHERE
+    enabled = true;
+
+  CREATE
   OR REPLACE VIEW dbview_schema.enabled_services AS
   SELECT
     id,

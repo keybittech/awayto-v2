@@ -26,7 +26,7 @@ export function BookingHome(props: IProps): JSX.Element {
   const { FileManager } = useComponents();
   const util = useRedux(state => state.util);
   const { schedules } = useRedux(state => state.schedule);
-  const { budgets, timelines, timeUnits } = useRedux(state => state.lookups);
+  const { budgets, timelines, timeUnits } = useRedux(state => state.lookup);
 
   const [schedule, setSchedule] = useState({ } as ISchedule);
   const [services, setServices] = useState<Record<string, IService>>({});

@@ -5,7 +5,7 @@ import routeMatch, { RouteMatch } from 'route-match';
 import {
   IActionTypes,
   IUtilActionTypes,
-  IFilesActionTypes,
+  IFileActionTypes,
   IScheduleActionTypes,
   IServiceActionTypes,
   IManageUsersActionTypes,
@@ -33,7 +33,7 @@ export function registerApi(api: IActionTypes): void {
 }
 
 let ApiActions = Object.assign(
-  IFilesActionTypes,
+  IFileActionTypes,
   IScheduleActionTypes,
   IServiceActionTypes,
   IServiceAddonActionTypes,

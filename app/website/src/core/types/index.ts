@@ -201,6 +201,7 @@ export * from './user';
 
 export * from './booking';
 export * from './contact';
+export * from './form';
 export * from './lookup';
 export * from './payment';
 export * from './quote';

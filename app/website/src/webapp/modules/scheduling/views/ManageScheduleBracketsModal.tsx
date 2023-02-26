@@ -47,7 +47,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
   const [view, setView] = useState(1);
   const [schedule, setSchedule] = useState({ ...scheduleSchema, brackets: {} } as ISchedule);
   const [bracket, setBracket] = useState({ ...bracketSchema, services: {}, slots: {} } as IScheduleBracket);
-  const { timeUnits } = useRedux(state => state.lookups);
+  const { timeUnits } = useRedux(state => state.lookup);
 
   const attachScheduleUnits = useCallback((sched: ISchedule) => {
     sched.scheduleTimeUnitName = timeUnits.find(u => u.id === sched.scheduleTimeUnitId)?.name as ITimeUnitNames;

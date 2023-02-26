@@ -2,22 +2,22 @@ import { v4 as uuid } from 'uuid';
 
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
-import { IFile, IFileActionTypes, utcNowString } from 'awayto';
+import { IForm, IFormActionTypes, utcNowString } from 'awayto';
 
-const files: ApiModule = [
+const forms: ApiModule = [
 
   {
-    action: IFileActionTypes.POST_FILE,
+    action: IFormActionTypes.POST_FORM,
     cmnd : async (props) => {
       try {
         const newUuid = uuid();
-        const { name, fileTypeId: file_type_id, location } = props.event.body;
+        const { name } = props.event.body;
 
         const response = await props.db.query<{ id: string }>(`
-          INSERT INTO dbtable_schema.files (uuid, name, file_type_id, location, created_on, created_sub)
-          VALUES ($1, $2, $3, $4, $5, $6::uuid)
+          INSERT INTO dbtable_schema.forms (name, created_on, created_sub)
+          VALUES ($1, $2, $3::uuid)
           RETURNING id
-        `, [newUuid, name, file_type_id, location, utcNowString(), props.event.userSub]);
+        `, [name, utcNowString(), props.event.userSub]);
         
         return { id: response.rows[0].id, newUuid };
 
@@ -28,24 +28,22 @@ const files: ApiModule = [
   },
 
   {
-    action: IFileActionTypes.PUT_FILE,
+    action: IFormActionTypes.PUT_FORM,
     cmnd : async (props) => {
       try {
-        const { id, name, fileTypeId: file_type_id, location } = props.event.body;
+        const { id, name } = props.event.body;
 
         if (!id || !props.event.userSub) return false;
 
         const updateProps = buildUpdate({
           id,
           name,
-          file_type_id,
-          location,
           updated_on: utcNowString(),
           updated_sub: props.event.userSub
         });
 
         await props.db.query(`
-          UPDATE dbtable_schema.files
+          UPDATE dbtable_schema.forms
           SET ${updateProps.string}
           WHERE id = $1
         `, updateProps.array);
@@ -60,12 +58,12 @@ const files: ApiModule = [
   },
 
   {
-    action: IFileActionTypes.GET_FILES,
+    action: IFormActionTypes.GET_FORMS,
     cmnd : async (props) => {
       try {
 
-        const response = await props.db.query<IFile>(`
-          SELECT * FROM dbview_schema.enabled_files
+        const response = await props.db.query<IForm>(`
+          SELECT * FROM dbview_schema.enabled_forms
         `);
         
         return response.rows;
@@ -78,13 +76,13 @@ const files: ApiModule = [
   },
 
   {
-    action: IFileActionTypes.GET_FILE_BY_ID,
+    action: IFormActionTypes.GET_FORM_BY_ID,
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;
 
-        const response = await props.db.query<IFile>(`
-          SELECT * FROM dbview_schema.enabled_files
+        const response = await props.db.query<IForm>(`
+          SELECT * FROM dbview_schema.enabled_forms
           WHERE id = $1
         `, [id]);
         
@@ -98,13 +96,13 @@ const files: ApiModule = [
   },
 
   {
-    action: IFileActionTypes.DELETE_FILE,
+    action: IFormActionTypes.DELETE_FORM,
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;
 
-        const response = await props.db.query<IFile>(`
-          DELETE FROM dbtable_schema.files
+        const response = await props.db.query<IForm>(`
+          DELETE FROM dbtable_schema.forms
           WHERE id = $1
         `, [id]);
         
@@ -118,13 +116,13 @@ const files: ApiModule = [
   },
 
   {
-    action: IFileActionTypes.DISABLE_FILE,
+    action: IFormActionTypes.DISABLE_FORM,
     cmnd : async (props) => {
       try {
         const { id } = props.event.pathParameters;
 
         await props.db.query(`
-          UPDATE dbtable_schema.files
+          UPDATE dbtable_schema.forms
           SET enabled = false, updated_on = $2, updated_sub = $3
           WHERE id = $1
         `, [id, utcNowString(), props.event.userSub]);
@@ -140,4 +138,4 @@ const files: ApiModule = [
 
 ];
 
-export default files;
+export default forms;

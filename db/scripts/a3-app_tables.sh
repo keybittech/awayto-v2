@@ -38,10 +38,53 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     ('6 months'),
     ('1 year');
 
+  CREATE TABLE dbtable_schema.forms (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR (50) NOT NULL,
+    created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
+    updated_on TIMESTAMP,
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
+    enabled BOOLEAN NOT NULL DEFAULT true
+  );
+
+  CREATE TABLE dbtable_schema.group_forms (
+    group_id uuid NOT NULL REFERENCES dbtable_schema.groups (id),
+    form_id uuid NOT NULL REFERENCES dbtable_schema.forms (id),
+    created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
+    updated_on TIMESTAMP,
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
+    enabled BOOLEAN NOT NULL DEFAULT true
+  );
+
+  CREATE TABLE dbtable_schema.form_versions (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    form_id uuid NOT NULL REFERENCES dbtable_schema.forms (id),
+    form JSONB NOT NULL,
+    created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
+    updated_on TIMESTAMP,
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
+    enabled BOOLEAN NOT NULL DEFAULT true
+  );
+
+  CREATE TABLE dbtable_schema.form_version_submissions (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    form_version_id uuid NOT NULL REFERENCES dbtable_schema.form_versions (id),
+    submissions JSONB NOT NULL,
+    created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
+    updated_on TIMESTAMP,
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
+    enabled BOOLEAN NOT NULL DEFAULT true
+  );
+
   CREATE TABLE dbtable_schema.services (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR (50) NOT NULL,
     cost VARCHAR(50) NOT NULL,
+    form_version_id uuid REFERENCES dbtable_schema.form_versions (id),
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
     created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
@@ -86,8 +129,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
 
   CREATE TABLE dbtable_schema.service_tiers (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name VARCHAR (500) NOT NULL,
     service_id uuid NOT NULL REFERENCES dbtable_schema.services (id) ON DELETE CASCADE,
+    form_version_id uuid REFERENCES dbtable_schema.form_versions (id),
+    name VARCHAR (500) NOT NULL,
     multiplier DECIMAL NOT NULL,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
     created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),

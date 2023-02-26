@@ -6,7 +6,7 @@ declare global {
    * @category Awayto Redux
    */
   interface ISharedState { 
-    lookups: ILookupState
+    lookup: ILookupState
   }
 
   interface IMergedState extends Merge<unknown, ILookupState> {}
@@ -20,12 +20,12 @@ declare global {
    * @category Awayto Redux
    */
   interface ISharedActionTypes {
-    lookups: ILookupActionTypes;
+    lookup: ILookupActionTypes;
   }
 }
 
 /**
- * @category Form
+ * @category Lookup
  */
 export type ILookup = {
   id: string;
@@ -33,7 +33,7 @@ export type ILookup = {
 }
 
 /**
- * @category Form
+ * @category Lookup
  */
 export type ILookupState = Partial<ILookup> & {
   budgets: ILookup[];
@@ -49,11 +49,11 @@ export enum ILookupActionTypes {
 }
 
 /**
- * @category Form
+ * @category Lookup
  */
-export type IGetFormsAction = PayloadAction<ILookupActionTypes.GET_LOOKUPS, ILookup>;
+export type IGetLookupsAction = PayloadAction<ILookupActionTypes.GET_LOOKUPS, ILookup>;
 
 /**
- * @category Form
+ * @category Lookup
  */
-export type ILookupActions = IGetFormsAction;
+export type ILookupActions = IGetLookupsAction;
