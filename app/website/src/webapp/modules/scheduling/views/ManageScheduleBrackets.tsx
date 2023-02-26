@@ -68,7 +68,8 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
   }, [groups]);
 
   useEffect(() => {
-    const [abort] = api(getScheduleBracketsAction);
+    const [abort, res] = api(getScheduleBracketsAction);
+    res?.catch(console.warn);
     return () => abort();
   }, []);
 

@@ -52,7 +52,8 @@ export function Profile(props: IProps): JSX.Element {
   });
 
   useEffect(() => {
-    const [abort] = api(GET_USER_PROFILE_DETAILS);
+    const [abort, res] = api(GET_USER_PROFILE_DETAILS);
+    res?.catch(console.warn);
     return () => abort();
   }, []);
 

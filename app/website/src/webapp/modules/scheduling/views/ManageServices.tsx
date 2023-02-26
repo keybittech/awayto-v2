@@ -91,7 +91,8 @@ export function ManageServices(props: IProps): JSX.Element {
 
   useEffect(() => {
     if (groupName) {
-      const [abort] = api(getServicesAction, { groupName });
+      const [abort, res] = api(getServicesAction, { groupName });
+      res?.catch(console.warn);
       return () => abort();
     }
   }, [groupName]);

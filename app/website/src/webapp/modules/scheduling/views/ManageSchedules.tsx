@@ -98,7 +98,8 @@ export function ManageSchedules(props: IProps): JSX.Element {
 
   useEffect(() => {
     if (groupName) {
-      const [abort] = api(getGroupSchedulesAction, { groupName });
+      const [abort, res] = api(getGroupSchedulesAction, { groupName });
+      res?.catch(console.warn);
       return () => abort();
     }
   }, [groupName]);

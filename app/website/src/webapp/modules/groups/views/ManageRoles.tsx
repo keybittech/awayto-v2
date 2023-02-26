@@ -74,7 +74,8 @@ export function ManageRoles(props: IProps): JSX.Element {
   }, [selected])
 
   useEffect(() => {
-    const [abort] = api(getRolesAction);
+    const [abort, res] = api(getRolesAction);
+    res?.catch(console.warn);
     return () => abort();
   }, []);
 

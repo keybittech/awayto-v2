@@ -82,7 +82,8 @@ export function ManageUsers(props: IProps): JSX.Element {
   }, [selected])
 
   useEffect(() => {
-    const [abort] = api(getAction);
+    const [abort, res] = api(getAction);
+    res?.catch(console.warn);
     return () => abort();
   }, []);
 
