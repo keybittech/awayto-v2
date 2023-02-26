@@ -13,12 +13,12 @@ import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import CheckIcon from '@mui/icons-material/Check';
 
-import { IServiceActionTypes, IFormActionTypes, IScheduleActionTypes, ISchedule, IService, IServiceAddon, IServiceTier, IQuote, IContact } from 'awayto';
+import { IServiceActionTypes, ILookupActionTypes, IScheduleActionTypes, ISchedule, IService, IServiceAddon, IServiceTier, IQuote, IContact } from 'awayto';
 import { useApi, useRedux, useComponents, useStyles } from 'awayto-hooks';
 
 const { GET_SCHEDULES, GET_SCHEDULE_BY_ID } = IScheduleActionTypes;
 const { GET_SERVICE_BY_ID } = IServiceActionTypes;
-const { GET_FORMS } = IFormActionTypes;
+const { GET_LOOKUPS } = ILookupActionTypes;
 
 export function BookingHome(props: IProps): JSX.Element {
   const classes = useStyles();
@@ -26,7 +26,7 @@ export function BookingHome(props: IProps): JSX.Element {
   const { FileManager } = useComponents();
   const util = useRedux(state => state.util);
   const { schedules } = useRedux(state => state.schedule);
-  const { budgets, timelines, timeUnits } = useRedux(state => state.forms);
+  const { budgets, timelines, timeUnits } = useRedux(state => state.lookups);
 
   const [schedule, setSchedule] = useState({ } as ISchedule);
   const [services, setServices] = useState<Record<string, IService>>({});
@@ -38,7 +38,7 @@ export function BookingHome(props: IProps): JSX.Element {
 
   useEffect(() => {
     const [abort1] = api(GET_SCHEDULES)
-    const [abort2] = api(GET_FORMS);
+    const [abort2] = api(GET_LOOKUPS);
     return () => {
       abort1();
       abort2();

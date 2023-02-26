@@ -1,26 +1,26 @@
 import { ITimeUnit, PayloadAction } from '.';
-import { Merge } from '../util';
+import { Merge } from '../util'
 
 declare global {
   /**
    * @category Awayto Redux
    */
   interface ISharedState { 
-    forms: IFormState
+    lookups: ILookupState
   }
 
-  interface IMergedState extends Merge<unknown, IFormState> {}
+  interface IMergedState extends Merge<unknown, ILookupState> {}
 
   /**
    * @category Awayto Redux
    */
-  type IFormModuleActions = IFormActions;
+  type ILookupModuleActions = ILookupActions;
 
   /**
    * @category Awayto Redux
    */
   interface ISharedActionTypes {
-    forms: IFormActionTypes;
+    lookups: ILookupActionTypes;
   }
 }
 
@@ -33,32 +33,27 @@ export type ILookup = {
 }
 
 /**
- * @category Awayto
+ * @category Form
  */
-export type IForm = {
+export type ILookupState = Partial<ILookup> & {
   budgets: ILookup[];
   timelines: ILookup[];
   timeUnits: ITimeUnit[];
 };
 
 /**
- * @category Form
- */
-export type IFormState = IForm;
-
-/**
  * @category Action Types
  */
-export enum IFormActionTypes {
-  GET_FORMS = "GET/forms"
+export enum ILookupActionTypes {
+  GET_LOOKUPS = "GET/lookups"
 }
 
 /**
  * @category Form
  */
-export type IGetFormsAction = PayloadAction<IFormActionTypes.GET_FORMS, IForm>;
+export type IGetFormsAction = PayloadAction<ILookupActionTypes.GET_LOOKUPS, ILookup>;
 
 /**
  * @category Form
  */
-export type IFormActions = IGetFormsAction;
+export type ILookupActions = IGetFormsAction;

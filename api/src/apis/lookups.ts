@@ -1,11 +1,11 @@
 import { ApiModule } from '../api';
 
-import { IFormActionTypes, ILookup, ITimeUnit } from 'awayto';
+import { ILookupActionTypes, ILookup, ITimeUnit } from 'awayto';
 
 const forms: ApiModule = [
 
   {
-    action: IFormActionTypes.GET_FORMS,
+    action: ILookupActionTypes.GET_LOOKUPS,
     cmnd : async (props) => {
       try {
 

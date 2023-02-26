@@ -35,7 +35,7 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
   const api = useApi();
   const act = useAct();
   const { SelectLookup } = useComponents();
-  const { timeUnits } = useRedux(state => state.forms);
+  const { timeUnits } = useRedux(state => state.lookups);
   const [schedule, setSchedule] = useState({ ...scheduleSchema, ...editSchedule } as ISchedule);
 
   const setDefault = useCallback((type: string) => {

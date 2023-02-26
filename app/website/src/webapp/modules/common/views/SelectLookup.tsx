@@ -9,7 +9,7 @@ import Grid from '@mui/material/Grid';
 import ClearIcon from '@mui/icons-material/Clear';
 import CheckIcon from '@mui/icons-material/Check';
 
-import { ILookup, IActionTypes, IFormActionTypes, IUtilActionTypes } from 'awayto';
+import { ILookup, IActionTypes, IUtilActionTypes } from 'awayto';
 import { useApi, useAct } from 'awayto-hooks';
 
 declare global {

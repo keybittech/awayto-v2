@@ -6,7 +6,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import keycloak from './keycloak';
 
 import { getBaseComponents, getDesignTokens, getThemedComponents } from './hooks/useStyles';
-import { IUserProfileActionTypes, IFormActionTypes, SiteRoles } from 'awayto';
+import { IUserProfileActionTypes, ILookupActionTypes, SiteRoles } from 'awayto';
 import { useRedux, useComponents, useApi } from 'awayto-hooks';
 
 import './App.css';
@@ -16,7 +16,7 @@ const {
 } = process.env as { [prop: string]: string };
 
 const { GET_USER_PROFILE_DETAILS } = IUserProfileActionTypes;
-const { GET_FORMS } = IFormActionTypes;
+const { GET_LOOKUPS } = ILookupActionTypes;
 
 const App = (props: IProps): JSX.Element => {
   const api = useApi();
@@ -32,7 +32,7 @@ const App = (props: IProps): JSX.Element => {
     if (keycloak.authenticated) {
       
       const [abort1, res] = api(GET_USER_PROFILE_DETAILS);
-      const [abort2] = api(GET_FORMS);
+      const [abort2] = api(GET_LOOKUPS);
 
       res?.then(() => {
         setReady(true);
