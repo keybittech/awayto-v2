@@ -1,3 +1,4 @@
+import type {} from '@mui/x-date-pickers/themeAugmentation';
 import { Theme, ThemeOptions } from '@mui/material/styles/createTheme';
 
 import makeStyles from '@mui/styles/makeStyles';
@@ -142,15 +143,7 @@ export const getBaseComponents: () => ThemeOptions = () => ({
           paddingRight: 0,
         }
       }
-    },
-    MuiTypography: {
-      styleOverrides: {
-        root: {
-          marginTop: 12,
-          marginBottom: 12,
-        }
-      }
-    },
+    }
   }
 });
 

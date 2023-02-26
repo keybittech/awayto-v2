@@ -3,6 +3,8 @@ import ThemeProvider from '@mui/material/styles/ThemeProvider';
 import deepmerge from '@mui/utils/deepmerge';
 import createTheme from '@mui/material/styles/createTheme';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import JsJodaAdapter from '@date-io/js-joda';
 import keycloak from './keycloak';
 
 import { getBaseComponents, getDesignTokens, getThemedComponents } from './hooks/useStyles';
@@ -32,11 +34,11 @@ const App = (props: IProps): JSX.Element => {
     if (keycloak.authenticated) {
       
       const [abort1, res] = api(GET_USER_PROFILE_DETAILS);
-      const [abort2] = api(GET_LOOKUPS);
+      const [abort2, rez] = api(GET_LOOKUPS);
 
-      res?.then(() => {
+      Promise.all([res, rez]).then(() => {
         setReady(true);
-      });
+      }).catch(console.warn);
 
       const interval: NodeJS.Timeout = setInterval(() => {
         const resources = keycloak.tokenParsed?.resource_access;
@@ -55,9 +57,11 @@ const App = (props: IProps): JSX.Element => {
 
   return <>
     {ready && <Suspense>
-      <ThemeProvider theme={currentTheme}>
-        <Layout {...props} />
-      </ThemeProvider>
+      <LocalizationProvider dateAdapter={JsJodaAdapter}>
+        <ThemeProvider theme={currentTheme}>
+          <Layout {...props} />
+        </ThemeProvider>
+      </LocalizationProvider>
     </Suspense>}
   </>
 }

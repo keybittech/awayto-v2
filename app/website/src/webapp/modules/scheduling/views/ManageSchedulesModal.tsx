@@ -11,13 +11,15 @@ import Slider from '@mui/material/Slider';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import { Mark } from "@mui/base";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 
-import { ISchedule, IUtilActionTypes, ITimeUnit, TimeUnit, timeUnitOrder, getRelativeDuration, IGroupSchedule } from "awayto";
+import { ISchedule, IUtilActionTypes, ITimeUnit, TimeUnit, timeUnitOrder, getRelativeDuration, IGroupSchedule, ITimeUnitNames } from "awayto";
 import { useApi, useAct, useRedux, useComponents } from 'awayto-hooks';
 
 import { scheduleSchema } from "./ScheduleHome";
 import { ManageSchedulesActions } from "./ManageSchedules";
 import { useParams } from "react-router";
+import { LocalDateTime } from "@js-joda/core";
 
 const { SET_SNACK } = IUtilActionTypes;
 
@@ -28,7 +30,7 @@ declare global {
 }
 
 export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IProps): JSX.Element {
-  const { getGroupSchedulesAction, getGroupSchedulesByIdAction, putGroupSchedulesAction, postGroupSchedulesAction } = props as IProps & Required<ManageSchedulesActions>;
+  const { getGroupSchedulesAction, getGroupScheduleMasterByIdAction, putGroupSchedulesAction, postGroupSchedulesAction } = props as IProps & Required<ManageSchedulesActions>;
 
   const { groupName } = useParams();
 
@@ -38,43 +40,46 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
   const { timeUnits } = useRedux(state => state.lookup);
   const [schedule, setSchedule] = useState({ ...scheduleSchema, ...editSchedule } as ISchedule);
 
+  const attachScheduleUnits = useCallback((sched: ISchedule): ISchedule => {
+    sched.scheduleTimeUnitName = timeUnits.find(u => u.id === sched.scheduleTimeUnitId)?.name as ITimeUnitNames;
+    sched.bracketTimeUnitName = timeUnits.find(u => u.id === sched.bracketTimeUnitId)?.name as ITimeUnitNames;
+    sched.slotTimeUnitName = timeUnits.find(u => u.id === sched.slotTimeUnitId)?.name as ITimeUnitNames;
+    return sched;
+  }, [timeUnits]);
+
   const setDefault = useCallback((type: string) => {
-    const weekId = timeUnits.find(s => s.name === TimeUnit.WEEK)?.id;
-    const hourId = timeUnits.find(s => s.name === TimeUnit.HOUR)?.id;
-    const dayId = timeUnits.find(s => s.name === TimeUnit.DAY)?.id;
-    const minuteId = timeUnits.find(s => s.name === TimeUnit.MINUTE)?.id;
-    const monthId = timeUnits.find(s => s.name === TimeUnit.MONTH)?.id;
+    const weekId = timeUnits.find(s => s.name === TimeUnit.WEEK)!.id;
+    const hourId = timeUnits.find(s => s.name === TimeUnit.HOUR)!.id;
+    const dayId = timeUnits.find(s => s.name === TimeUnit.DAY)!.id;
+    const minuteId = timeUnits.find(s => s.name === TimeUnit.MINUTE)!.id;
+    const monthId = timeUnits.find(s => s.name === TimeUnit.MONTH)!.id;
     if ('40hoursweekly30minsessions' === type) {
-      setSchedule({
+      setSchedule(attachScheduleUnits({
         ...schedule,
-        duration: 1,
+        startTime: '',
+        endTime: '',
         scheduleTimeUnitId: weekId,
-        scheduleTimeUnitName: TimeUnit.WEEK,
         bracketTimeUnitId: hourId,
-        bracketTimeUnitName: TimeUnit.HOUR,
         slotTimeUnitId: minuteId,
-        slotTimeUnitName: TimeUnit.MINUTE,
         slotDuration: 30
-      } as ISchedule);
+      }));
     } else if ('dailybookingpermonth') {
-      setSchedule({
+      setSchedule(attachScheduleUnits({
         ...schedule,
-        duration: 1,
+        startTime: '',
+        endTime: '',
         scheduleTimeUnitId: monthId,
-        scheduleTimeUnitName: TimeUnit.MONTH,
         bracketTimeUnitId: weekId,
-        bracketTimeUnitName: TimeUnit.WEEK,
         slotTimeUnitId: dayId,
-        slotTimeUnitName: TimeUnit.DAY,
         slotDuration: 1
-      } as ISchedule);
+      }));
     }
   }, [timeUnits, schedule]);
 
   const slotDurationMarks = useMemo(() => {
-    const { duration, scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName } = schedule;
+    const { scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName } = schedule;
     const factors = [] as Mark[];
-    if (!bracketTimeUnitName || !slotTimeUnitName || !scheduleTimeUnitName || !duration) return factors;
+    if (!bracketTimeUnitName || !slotTimeUnitName || !scheduleTimeUnitName) return factors;
     // const subdivided = bracketTimeUnitName !== slotTimeUnitName;
     // const finalDuration = !subdivided ? 
     //   Math.round(getRelativeDuration(duration, scheduleTimeUnitName, bracketTimeUnitName)) : 
@@ -89,29 +94,31 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
 
   const handleSubmit = useCallback(() => {
 
-    const { id, name, duration, slotTimeUnitName } = schedule;
-    if (name && duration && slotTimeUnitName) {
+    const { id, name, startTime, slotTimeUnitName } = schedule;
+    if (name && startTime && slotTimeUnitName) {
       const [, res] = api(id ? putGroupSchedulesAction : postGroupSchedulesAction, id ? { id, name, groupName } : { ...schedule, groupName }, { });
       res?.then(() => {
         api(getGroupSchedulesAction, { groupName });
         act(SET_SNACK, { snackOn: 'Successfully added ' + name, snackType: 'info' });
         if (closeModal)
           closeModal();
-      });
+      }).catch(console.warn);
 
     } else {
-      act(SET_SNACK, { snackOn: 'A schedule should have a name, a duration, and at least 1 bracket.', snackType: 'info' });
+      act(SET_SNACK, { snackOn: 'A schedule should have a name, a start time, and at least 1 bracket.', snackType: 'info' });
     }
 
   }, [schedule]);
 
   useEffect(() => {
     if (editSchedule) {
-      const [, res] = api(getGroupSchedulesByIdAction, { groupName, scheduleId: editSchedule.id }, { load: true });
+      const [abort, res] = api(getGroupScheduleMasterByIdAction, { groupName, scheduleId: editSchedule.id }, { load: true });
       res?.then(schedules => {
         const [sched] = schedules as IGroupSchedule[];
-        setSchedule({ ...schedule, brackets: sched.brackets });
-      })
+        attachScheduleUnits(sched);
+        setSchedule({ ...sched });
+      }).catch(console.warn);
+      return () => abort();
     } else {
       setDefault('40hoursweekly30minsessions');
     }
@@ -159,7 +166,7 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
         />
       </Box>
 
-      <Box mb={4}>
+      {/* <Box mb={4}>
         <TextField
           fullWidth
           type="number"
@@ -170,6 +177,20 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
           onChange={e => {
             setSchedule({ ...schedule, duration: Math.min(Math.max(0, parseInt(e.target.value || '', 10)), 999) })
           }}
+        />
+      </Box> */}
+
+      <Box mb={4}>
+        <DateTimePicker
+          label="Start Time"
+          value={schedule.startTime ? LocalDateTime.parse(schedule.startTime) : LocalDateTime.now()}
+          onChange={e => {
+            if (e) {
+              setSchedule({ ...schedule, startTime: e.toString() });
+              console.log(e)
+            }
+          }}
+          renderInput={(params) => <TextField {...params} />}
         />
       </Box>
 

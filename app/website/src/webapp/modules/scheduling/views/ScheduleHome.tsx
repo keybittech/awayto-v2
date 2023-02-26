@@ -27,7 +27,8 @@ const { SET_SNACK } = IUtilActionTypes;
 export const scheduleSchema = {
   id: '',
   name: '',
-  duration: 1,
+  startTime: '',
+  endTime: '',
   slotDuration: 30,
   scheduleTimeUnitId: '',
   scheduleTimeUnitName: '',

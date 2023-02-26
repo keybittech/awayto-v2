@@ -4,6 +4,7 @@
   "description": "awayto-wcapp",
   "homepage": "/app",
   "dependencies": {
+    "@date-io/js-joda": "^2.16.1",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
     "@js-joda/core": "^5.5.2",
@@ -12,6 +13,7 @@
     "@mui/icons-material": "^5.11.0",
     "@mui/material": "^5.11.7",
     "@mui/styles": "^5.11.7",
+    "@mui/x-date-pickers": "^5.0.20",
     "@react-keycloak/web": "^3.4.0",
     "@types/react-window": "^1.8.5",
     "connected-react-router": "^6.9.3",
