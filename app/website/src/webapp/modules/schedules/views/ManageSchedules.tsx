@@ -25,8 +25,6 @@ export type ManageSchedulesActions = {
   getGroupScheduleMasterByIdAction?: IActionTypes;
   postGroupSchedulesAction?: IActionTypes;
   putGroupSchedulesAction?: IActionTypes;
-  disableSchedulesAction?: IActionTypes;
-  deleteSchedulesAction?: IActionTypes;
   deleteGroupSchedulesAction?: IActionTypes;
 };
 

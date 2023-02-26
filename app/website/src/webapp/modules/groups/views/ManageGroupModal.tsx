@@ -19,7 +19,7 @@ import NotInterestedIcon from '@mui/icons-material/NotInterested';
 
 import { IGroup, IUtilActionTypes, IGroupActionTypes, IRole } from 'awayto';
 import { useAct, useApi, useRedux, useComponents } from 'awayto-hooks';
-import { ManageGroupsActions } from './ManageGroups';
+import { GroupsHomeActions } from './GroupsHome';
 import keycloak from '../../../keycloak';
 
 const { SET_SNACK, SET_LOADING } = IUtilActionTypes;
@@ -32,7 +32,7 @@ declare global {
 }
 
 export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): JSX.Element {
-  const { roles, getRolesAction, putGroupsAction, postGroupsAction, postRolesAction, deleteRolesAction } = props as Required<ManageGroupsActions>;
+  const { roles, getRolesAction, putGroupsAction, postGroupsAction, postRolesAction, deleteRolesAction } = props as Required<GroupsHomeActions>;
   
   const api = useApi();
   const act = useAct();

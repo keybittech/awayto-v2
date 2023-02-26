@@ -24,13 +24,34 @@ declare global {
   }
 }
 
+
+/**
+ * @category Form
+ */
+export type IField = {
+  id: string;
+  name: string;
+  value: string;
+  helperText: string;
+  type: string;
+  defaultValue: string;
+  required: boolean;
+};
+
+/**
+ * @category Form
+ */
+export type IFormTemplate = {
+  fields: Record<string, IField>;
+};
+
 /**
  * @category Form
  */
 export type IFormVersionSubmission = {
   id: string;
   formVersionId: string;
-  submission: Record<string, unknown>;
+  submission: IFormTemplate;
 }
 
 /**
@@ -39,7 +60,9 @@ export type IFormVersionSubmission = {
 export type IFormVersion = {
   id: string;
   formId: string;
-  form: Record<string, unknown>;
+  form: IFormTemplate;
+  createdOn: string;
+  createdSub: string;
 }
 
 /**
@@ -49,6 +72,8 @@ export type IForm = {
   id: string;
   name: string;
   versions: IFormVersion[];
+  createdOn: string;
+  createdSub: string;
 }
 
 /**

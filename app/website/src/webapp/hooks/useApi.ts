@@ -16,12 +16,14 @@ import {
   IGroupServiceActionTypes,
   IGroupServiceAddonActionTypes,
   IGroupScheduleActionTypes,
+  IGroupFormActionTypes,
   IRoleActionTypes,
   IUserActionTypes,
   ApiErrorResponse,
   IServiceAddonActionTypes,
   IAssistActionTypes,
-  StatePayloadValues
+  StatePayloadValues,
+  IFormActionTypes
 } from 'awayto';
 
 import { useAct } from './useAct';
@@ -45,9 +47,11 @@ let ApiActions = Object.assign(
   IGroupServiceActionTypes,
   IGroupServiceAddonActionTypes,
   IGroupScheduleActionTypes,
+  IGroupFormActionTypes,
   IRoleActionTypes,
   IUserActionTypes,
-  IAssistActionTypes
+  IAssistActionTypes,
+  IFormActionTypes
 ) as Record<string, string>;
 
 const { Route, RouteCollection, PathGenerator } = routeMatch as RouteMatch;

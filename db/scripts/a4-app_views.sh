@@ -44,6 +44,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
   CREATE
   OR REPLACE VIEW dbview_schema.enabled_group_forms AS
   SELECT
+    id,
     group_id as "groupId",
     form_id as "formId",
     created_on as "createdOn",

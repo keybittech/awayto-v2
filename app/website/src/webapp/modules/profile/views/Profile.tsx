@@ -23,7 +23,7 @@ export function Profile(props: IProps): JSX.Element {
   const api = useApi();
   const act = useAct();
   const fileStore = useFileStore();
-  const { PickTheme, ManageGroups } = useComponents();
+  const { PickTheme, GroupsHome } = useComponents();
 
   const user = useRedux(state => state.profile);
 
@@ -157,7 +157,7 @@ export function Profile(props: IProps): JSX.Element {
             <Typography variant="h6">Group</Typography>
           </Grid>
           <Grid item>
-            <ManageGroups {...props}
+            <GroupsHome {...props}
               groups={user.groups}
               roles={user.roles}
               getGroupsAction={GET_USER_PROFILE_DETAILS}

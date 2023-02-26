@@ -1,4 +1,4 @@
-import { PayloadAction, IRole, IUserProfile, IService, IServiceAddon, ISchedule } from '.';
+import { PayloadAction, IRole, IUserProfile, IService, IServiceAddon, ISchedule, IForm } from '.';
 import { Merge } from '../util';
 
 declare global {
@@ -10,15 +10,16 @@ declare global {
     groupService: IGroupServiceState;
     groupServiceAddon: IGroupServiceAddonState;
     groupSchedule: IGroupScheduleState;
+    groupForm: IGroupFormState;
   }
 
 
-  interface IMergedState extends Merge<Merge<Merge<Merge<Merge<unknown, IGroupRoleActionState>, IGroupState>, IGroupServiceState>, IGroupServiceAddonState>, IGroupScheduleState> {}
+  interface IMergedState extends Merge<Merge<Merge<Merge<Merge<Merge<unknown, IGroupRoleActionState>, IGroupState>, IGroupServiceState>, IGroupServiceAddonState>, IGroupScheduleState>, IGroupFormState> {}
 
   /**
    * @category Awayto Redux
    */
-  type IGroupModuleActions = IGroupActions | IGroupServiceActions | IGroupServiceAddonActions | IGroupScheduleActions;
+  type IGroupModuleActions = IGroupActions | IGroupServiceActions | IGroupServiceAddonActions | IGroupScheduleActions | IGroupFormActions;
 
   /**
    * @category Awayto Redux
@@ -28,6 +29,7 @@ declare global {
     groupService: IGroupServiceActionTypes;
     groupServiceAddon: IGroupServiceAddonActionTypes;
     groupSchedule: IGroupScheduleActionTypes;
+    groupForm: IGroupFormActionTypes;
   }
 }
 
@@ -174,13 +176,8 @@ export type IGroupServiceAddon = IServiceAddon & {
 /**
  * @category Group
  */
-export type IGroupServiceAddons = Record<string, IGroupServiceAddon>;
-
-/**
- * @category Group
- */
 export type IGroupServiceAddonState = {
-  groupServiceAddons: IGroupServiceAddons;
+  groupServiceAddons: Record<string, IGroupServiceAddon>;
 };
 
 /**
@@ -223,11 +220,6 @@ export type IGroupServiceAddonActions = IPostGroupServiceAddonAction
 export type IGroupService = IService & {
   groupId: string;
 };
-
-/**
- * @category Group
- */
-export type IGroupServices = Record<string, IGroupService>;
 
 /**
  * @category Group
@@ -277,11 +269,6 @@ export type IGroupServiceActions = IPostGroupServiceAction
     groupId: string;
     parentScheduleId: string;
   };
-  
-  /**
-   * @category Group
-   */
-  export type IGroupSchedules = Record<string, IGroupSchedule>;
   
   /**
    * @category Group
@@ -342,3 +329,73 @@ export type IGroupServiceActions = IPostGroupServiceAction
     | IGetGroupScheduleByIdAction
     | IGetGroupScheduleMasterByIdAction
     | IDeleteGroupScheduleAction;
+
+
+
+    
+  /**
+   * @category Group
+   */
+  export type IGroupForm = IForm & {
+    id: string;
+    groupId: string;
+    formId: string;
+  };
+  
+  /**
+   * @category Group
+   */
+  export type IGroupForms = Record<string, IGroupForm>;
+  
+  /**
+   * @category Group
+   */
+  export type IGroupFormState = IGroupForm & {
+    groupForms: Record<string, IGroupForm>;
+  };
+  
+  /**
+   * @category Action Types
+   */
+  export enum IGroupFormActionTypes {
+    POST_GROUP_FORM = "POST/group/:groupName/forms",
+    PUT_GROUP_FORM = "PUT/group/:groupName/forms",
+    GET_GROUP_FORMS = "GET/group/:groupName/forms",
+    GET_GROUP_FORM_BY_ID = "GET/group/:groupName/forms/:formId",
+    DELETE_GROUP_FORM = "DELETE/group/:groupName/forms/:ids"
+  }
+  
+  /**
+   * @category Group
+   */
+  export type IPostGroupFormAction = PayloadAction<IGroupFormActionTypes.POST_GROUP_FORM, IGroupForm[]>;
+  
+
+  /**
+   * @category Group
+   */
+  export type IPutGroupFormAction = PayloadAction<IGroupFormActionTypes.PUT_GROUP_FORM, IGroupForm[]>;
+  
+  /**
+   * @category Group
+   */
+  export type IGetGroupFormsAction = PayloadAction<IGroupFormActionTypes.GET_GROUP_FORMS, IGroupForm[]>;
+  
+  /**
+   * @category Group
+   */
+  export type IGetGroupFormByIdAction = PayloadAction<IGroupFormActionTypes.GET_GROUP_FORM_BY_ID, IGroupForm[]>;
+  
+  /**
+   * @category Group
+   */
+  export type IDeleteGroupFormAction = PayloadAction<IGroupFormActionTypes.DELETE_GROUP_FORM, IGroupForm[]>;
+  
+  /**
+   * @category Group
+   */
+  export type IGroupFormActions = IPostGroupFormAction
+    | IPutGroupFormAction
+    | IGetGroupFormsAction
+    | IGetGroupFormByIdAction
+    | IDeleteGroupFormAction;

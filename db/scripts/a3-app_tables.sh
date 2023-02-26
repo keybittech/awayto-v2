@@ -49,6 +49,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
   );
 
   CREATE TABLE dbtable_schema.group_forms (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     group_id uuid NOT NULL REFERENCES dbtable_schema.groups (id),
     form_id uuid NOT NULL REFERENCES dbtable_schema.forms (id),
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),

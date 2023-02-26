@@ -24,7 +24,7 @@ import keycloak from '../../../keycloak';
 const { OPEN_CONFIRM, SET_LOADING } = IUtilActionTypes;
 const { GROUPS_LEAVE } = IGroupActionTypes;
 
-export type ManageGroupsActions = {
+export type GroupsHomeActions = {
   getGroupsAction?: IActionTypes;
   deleteGroupsAction?: IActionTypes;
   putGroupsAction?: IActionTypes;
@@ -38,11 +38,11 @@ export type ManageGroupsActions = {
 };
 
 declare global {
-  interface IProps extends ManageGroupsActions { }
+  interface IProps extends GroupsHomeActions { }
 }
 
-export function ManageGroups(props: IProps): JSX.Element {
-  const { getGroupsAction, deleteGroupsAction, groups } = props as Required<ManageGroupsActions>;
+export function GroupsHome(props: IProps): JSX.Element {
+  const { getGroupsAction, deleteGroupsAction, groups } = props as Required<GroupsHomeActions>;
 
   const act = useAct();
   const api = useApi();
@@ -196,4 +196,4 @@ export function ManageGroups(props: IProps): JSX.Element {
   </>
 }
 
-export default ManageGroups;
+export default GroupsHome;

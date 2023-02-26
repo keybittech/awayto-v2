@@ -1,6 +1,5 @@
 import { Reducer } from 'redux';
 import {
-  IGroupServiceAddons,
   IGroupServiceAddonState,
   IGroupServiceAddonActions,
   IGroupServiceAddonActionTypes,
@@ -10,7 +9,7 @@ import {
 } from 'awayto';
 
 const initialGroupServiceAddonState: IGroupServiceAddonState = {
-  groupServiceAddons: {} as IGroupServiceAddons
+  groupServiceAddons: {}
 };
 
 function reduceDeleteGroupServiceAddon(state: IGroupServiceAddonState, action: IDeleteGroupServiceAddonAction): IGroupServiceAddonState {

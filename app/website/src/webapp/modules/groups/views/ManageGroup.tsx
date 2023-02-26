@@ -5,17 +5,16 @@ import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 
-import { IRoleActionTypes, IUserActionTypes, IUserProfileActionTypes, IGroupServiceActionTypes, IGroupScheduleActionTypes, IServiceActionTypes, IScheduleActionTypes, SiteRoles } from 'awayto';
+import { IRoleActionTypes, IUserActionTypes, IUserProfileActionTypes, IGroupServiceActionTypes, IGroupScheduleActionTypes, IServiceActionTypes, IScheduleActionTypes, SiteRoles, IGroupFormActionTypes } from 'awayto';
 import { useComponents, useRedux } from 'awayto-hooks';
 
 const { GET_USER_PROFILE_DETAILS } = IUserProfileActionTypes;
 const { GET_USERS } = IUserActionTypes;
 const { PUT_ROLES, POST_ROLES, DELETE_ROLES } = IRoleActionTypes;
 const { POST_SERVICE, PUT_SERVICE, DELETE_SERVICE, DISABLE_SERVICE } = IServiceActionTypes;
-const { DELETE_SCHEDULE, DISABLE_SCHEDULE } = IScheduleActionTypes;
 const { GET_GROUP_SERVICES, POST_GROUP_SERVICE, DELETE_GROUP_SERVICE } = IGroupServiceActionTypes;
 const { GET_GROUP_SCHEDULES, GET_GROUP_SCHEDULE_MASTER_BY_ID, POST_GROUP_SCHEDULE, PUT_GROUP_SCHEDULE, DELETE_GROUP_SCHEDULE } = IGroupScheduleActionTypes;
-
+const { GET_GROUP_FORMS, GET_GROUP_FORM_BY_ID, POST_GROUP_FORM, PUT_GROUP_FORM, DELETE_GROUP_FORM } = IGroupFormActionTypes;
 
 declare global {
   interface IProps {
@@ -32,6 +31,7 @@ export function ManageGroup(props: IProps): JSX.Element {
   const { users } = useRedux(state => state.user);
   const { groupServices } = useRedux(state => state.groupService);
   const { groupSchedules } = useRedux(state => state.groupSchedule);
+  const { groupForms } = useRedux(state => state.groupForm);
 
   const { ManageUsers, ManageRoles, ManageRoleActions, ManageForms, ManageServices, ManageSchedules, GroupSecure } = useComponents();
 
@@ -70,7 +70,15 @@ export function ManageGroup(props: IProps): JSX.Element {
       case 'matrix':
         return <ManageRoleActions {...props} />
       case 'forms':
-        return <ManageForms {...props} />
+        return <ManageForms
+          groupForms={groupForms}
+          getGroupFormsAction={GET_GROUP_FORMS}
+          postGroupFormsAction={POST_GROUP_FORM}
+          getGroupFormByIdAction={GET_GROUP_FORM_BY_ID}
+          putGroupFormsAction={PUT_GROUP_FORM}
+          deleteGroupFormsAction={DELETE_GROUP_FORM}
+          {...props}
+        />
       case 'services':
         return <ManageServices
           services={groupServices}
@@ -89,8 +97,6 @@ export function ManageGroup(props: IProps): JSX.Element {
           getGroupScheduleMasterByIdAction={GET_GROUP_SCHEDULE_MASTER_BY_ID}
           postGroupSchedulesAction={POST_GROUP_SCHEDULE}
           putGroupSchedulesAction={PUT_GROUP_SCHEDULE}
-          disableSchedulesAction={DISABLE_SCHEDULE}
-          deleteSchedulesAction={DELETE_SCHEDULE}
           deleteGroupSchedulesAction={DELETE_GROUP_SCHEDULE}
         />
       default:
