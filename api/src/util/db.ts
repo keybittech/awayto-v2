@@ -2,14 +2,15 @@ import postgres, { Client } from 'pg';
 import { v4 as uuid } from 'uuid';
 import { IUserProfile } from '../../../app/website/src/core/types';
 
-type BuildParamTypes = string | number | boolean;
+type BuildParamTypes = string | number | boolean | null;
 
 interface BuildUpdateParams {
   [key: string]: BuildParamTypes;
 }
 
-// When postgres retrieves a timestamp, it wants to auto convert it to a new Date(). When this happens, it gets double converted to utc because we should be storing dates as utc when they go in usually from the DEFAULT on the table.
+// When postgres retrieves a timestamp or date, it wants to auto convert it to a new Date(). When this happens, it gets double converted to utc because we should be storing dates as utc when they go in usually from the DEFAULT on the table.
 postgres.types.setTypeParser(1114, stringValue => stringValue);
+postgres.types.setTypeParser(1082, stringValue => stringValue);
 
 const {
   PG_HOST,

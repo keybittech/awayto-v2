@@ -73,6 +73,9 @@
     "webpack-cli": "^3.1.0",
     "webpack-node-externals": "^1.7.2"
   },
+  "resolutions": {
+    "react-error-overlay": "6.0.9"
+  },
   "scripts": {
     "start": "HTTPS=true react-app-rewired start",
     "build": "react-app-rewired build"

@@ -11,7 +11,6 @@ import Slider from '@mui/material/Slider';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import { Mark } from "@mui/base";
-import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 
 import { ISchedule, IUtilActionTypes, ITimeUnit, TimeUnit, timeUnitOrder, getRelativeDuration, IGroupSchedule, ITimeUnitNames } from "awayto";
 import { useApi, useAct, useRedux, useComponents } from 'awayto-hooks';
@@ -19,7 +18,6 @@ import { useApi, useAct, useRedux, useComponents } from 'awayto-hooks';
 import { scheduleSchema } from "./ScheduleHome";
 import { ManageSchedulesActions } from "./ManageSchedules";
 import { useParams } from "react-router";
-import { LocalDateTime } from "@js-joda/core";
 
 const { SET_SNACK } = IUtilActionTypes;
 
@@ -56,8 +54,6 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
     if ('40hoursweekly30minsessions' === type) {
       setSchedule(attachScheduleUnits({
         ...schedule,
-        startTime: '',
-        endTime: '',
         scheduleTimeUnitId: weekId,
         bracketTimeUnitId: hourId,
         slotTimeUnitId: minuteId,
@@ -66,8 +62,6 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
     } else if ('dailybookingpermonth') {
       setSchedule(attachScheduleUnits({
         ...schedule,
-        startTime: '',
-        endTime: '',
         scheduleTimeUnitId: monthId,
         bracketTimeUnitId: weekId,
         slotTimeUnitId: dayId,
@@ -94,18 +88,27 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
 
   const handleSubmit = useCallback(() => {
 
-    const { id, name, startTime, slotTimeUnitName } = schedule;
-    if (name && startTime && slotTimeUnitName) {
-      const [, res] = api(id ? putGroupSchedulesAction : postGroupSchedulesAction, id ? { id, name, groupName } : { ...schedule, groupName }, { });
+    const { id, name, startTime, endTime } = schedule;
+    if (!id) {
+      if (name && startTime) {
+        const [, res] = api(postGroupSchedulesAction, { ...schedule, groupName });
+        res?.then(() => {
+          api(getGroupSchedulesAction, { groupName });
+          act(SET_SNACK, { snackOn: 'Successfully added ' + name + 'as a master schedule!', snackType: 'info' });
+          if (closeModal)
+            closeModal();
+        }).catch(console.warn);
+  
+      } else {
+        act(SET_SNACK, { snackOn: 'A schedule should have a name, a start time.', snackType: 'info' });
+      }
+    } else {
+      const [, res] = api(putGroupSchedulesAction, { id, startTime, endTime, groupName });
       res?.then(() => {
-        api(getGroupSchedulesAction, { groupName });
-        act(SET_SNACK, { snackOn: 'Successfully added ' + name, snackType: 'info' });
+        act(SET_SNACK, { snackOn: 'Schedule updated!', snackType: 'info' });
         if (closeModal)
           closeModal();
       }).catch(console.warn);
-
-    } else {
-      act(SET_SNACK, { snackOn: 'A schedule should have a name, a start time, and at least 1 bracket.', snackType: 'info' });
     }
 
   }, [schedule]);
@@ -127,6 +130,62 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
   return <>
     <DialogTitle>{schedule.id ? 'Manage' : 'Create'} Schedule</DialogTitle>
     <DialogContent>
+      <Box mt={2} />
+
+      <Box mb={4}>
+        <TextField
+          fullWidth
+          disabled={!!schedule.id}
+          label="Name"
+          helperText="Ex: Spring 2022 Campaign, Q1 Offering"
+          value={schedule.name || ''}
+          onChange={e => setSchedule({ ...schedule, name: e.target.value })}
+        />
+      </Box>
+
+      <Box mb={4}>
+        <Grid container spacing={2} direction="row">
+          <Grid item xs={6}>
+            
+            <TextField
+              fullWidth
+              label="Start Date"
+              type="date"
+              value={schedule.startTime || ''}
+              helperText="Schedule is active after this date. Clear this date to deactivate the schedule. Deactivated schedules do not allow new bookings to be made."
+              onChange={e => setSchedule({ ...schedule, startTime: e.target.value })}
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+            {/* <DesktopDatePicker
+              label="Start Date"
+              value={schedule.startTime ? schedule.startTime : null}
+              onChange={e => {
+                // if (e) {
+                //   console.log({ schedule, e, str: e ? nativeJs(new Date(e.toString())) : null })
+                //   setSchedule({ ...schedule, startTime: nativeJs(new Date(e.toString())).toString() })
+                //   // setSchedule({ ...schedule, startTime: e ? e.format(DateTimeFormatter.ofPattern("yyyy-mm-dd")) : '' });
+                // }
+              }}
+              renderInput={(params) => <TextField helperText="Bookings can be scheduled any time after this date. Removing this value and saving the schedule will deactivate it, preventing it from being seen during booking." {...params} />}
+            /> */}
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              fullWidth
+              label="End Date"
+              type="date"
+              value={schedule.endTime || ''}
+              helperText="Optional. No bookings will be allowed after this date."
+              onChange={e => setSchedule({ ...schedule, endTime: e.target.value })}
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+          </Grid>
+        </Grid>
+      </Box>
 
       <Box mb={4}>
         {!schedule.id ? <>
@@ -134,19 +193,8 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
           <Button color="secondary" onClick={() => setDefault('40hoursweekly30minsessions')}>40 hours per week, 30 minute slot</Button>
           <Button color="secondary" onClick={() => setDefault('dailybookingpermonth')}>daily booking per month</Button>
         </> : <>
-          <Alert color="info">Schedule templates are read-only after creation.</Alert>
+          <Alert color="info">Schedule template durations are read-only after creation.</Alert>
         </>}
-      </Box>
-
-      <Box mb={4}>
-        <TextField
-          fullWidth
-          label="Name"
-          disabled={!!schedule.id}
-          helperText="Ex: Spring 2022 Campaign, Q1 Offering"
-          value={schedule.name || ''}
-          onChange={e => setSchedule({ ...schedule, name: e.target.value })}
-        />
       </Box>
 
       <Box mb={4}>
@@ -181,21 +229,6 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
       </Box> */}
 
       <Box mb={4}>
-        <DateTimePicker
-          label="Start Time"
-          value={schedule.startTime ? LocalDateTime.parse(schedule.startTime) : LocalDateTime.now()}
-          onChange={e => {
-            if (e) {
-              setSchedule({ ...schedule, startTime: e.toString() });
-              console.log(e)
-            }
-          }}
-          renderInput={(params) => <TextField {...params} />}
-        />
-      </Box>
-
-
-      <Box mb={4}>
         <SelectLookup
           noEmptyValue
           disabled={!!schedule.id}
@@ -206,7 +239,7 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
           lookupChange={(val: string) => {
             const { name, id } = timeUnits?.find(c => c.id === val) as ITimeUnit;
             setSchedule({ ...schedule, bracketTimeUnitName: name, bracketTimeUnitId: id, slotTimeUnitName: name, slotTimeUnitId: id, slotDuration: 1 });
-          }} 
+          }}
           {...props}
         />
       </Box>
@@ -248,7 +281,7 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
     <DialogActions>
       <Grid container justifyContent="space-between">
         <Button onClick={closeModal}>{schedule.id ? 'Close' : 'Cancel'}</Button>
-        {!schedule.id && <Button onClick={handleSubmit}>Submit</Button>}
+        <Button onClick={handleSubmit}>Submit</Button>
       </Grid>
     </DialogActions>
   </>

@@ -187,8 +187,8 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
   CREATE TABLE dbtable_schema.schedules (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR (50),
-    start_time TIMESTAMP NOT NULL,
-    end_time TIMESTAMP,
+    start_time DATE,
+    end_time DATE,
     schedule_time_unit_id uuid NOT NULL REFERENCES dbtable_schema.time_units (id) ON DELETE CASCADE,
     bracket_time_unit_id uuid NOT NULL REFERENCES dbtable_schema.time_units (id) ON DELETE CASCADE,
     slot_time_unit_id uuid NOT NULL REFERENCES dbtable_schema.time_units (id) ON DELETE CASCADE,

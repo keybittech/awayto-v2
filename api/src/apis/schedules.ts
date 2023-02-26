@@ -12,13 +12,13 @@ const schedules: ApiModule = [
 
         const schedule = props.event.body;
         
-        const { name, duration, scheduleTimeUnitId, bracketTimeUnitId, slotTimeUnitId, slotDuration } = schedule;
+        const { name, scheduleTimeUnitId, bracketTimeUnitId, slotTimeUnitId, slotDuration, startTime, endTime } = schedule;
 
         const { rows: [{ id }] } = await props.db.query<ISchedule>(`
-          INSERT INTO dbtable_schema.schedules (name, created_sub, duration, slot_duration, schedule_time_unit_id, bracket_time_unit_id, slot_time_unit_id)
-          VALUES ($1, $2::uuid, $3::integer, $4::integer, $5::uuid, $6::uuid, $7::uuid)
+          INSERT INTO dbtable_schema.schedules (name, created_sub, slot_duration, schedule_time_unit_id, bracket_time_unit_id, slot_time_unit_id, start_time, end_time)
+          VALUES ($1, $2::uuid, $3::integer, $4::uuid, $5::uuid, $6::uuid, $7, $8)
           RETURNING id, name, created_on as "createdOn"
-        `, [name, props.event.userSub, duration, slotDuration, scheduleTimeUnitId, bracketTimeUnitId, slotTimeUnitId]);
+        `, [name, props.event.userSub, slotDuration, scheduleTimeUnitId, bracketTimeUnitId, slotTimeUnitId, startTime || null, endTime || null]);
 
         schedule.id = id;
 
@@ -118,13 +118,14 @@ const schedules: ApiModule = [
     action: IScheduleActionTypes.PUT_SCHEDULE,
     cmnd: async (props) => {
       try {
-        const { id, name } = props.event.body;
+        const { id, startTime, endTime } = props.event.body;
 
         if (!id) throw new Error('invalid request, no schedule id');
 
         const updateProps = buildUpdate({
           id,
-          name,
+          start_time: startTime || null,
+          end_time: endTime || null,
           updated_sub: props.event.userSub,
           updated_on: utcNowString()
         });

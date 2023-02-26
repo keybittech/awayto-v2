@@ -119,7 +119,8 @@ export function ManageGroups(props: IProps): JSX.Element {
   }, [groups, profile.availableUserGroupRoles, util.isLoading]);
 
   useEffect(() => {
-    const [abort] = api(getGroupsAction);
+    const [abort, res] = api(getGroupsAction);
+    res?.catch(console.warn);
     return () => abort();
   }, []);
 

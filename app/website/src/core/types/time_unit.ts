@@ -1,4 +1,4 @@
-import { Period, ChronoUnit, Duration, LocalDate, nativeJs, TemporalAdjusters, LocalDateTime, ZoneId, DateTimeFormatter } from "@js-joda/core";
+import { ChronoUnit, Duration, LocalDate, nativeJs, TemporalAdjusters, ZoneId, DateTimeFormatter } from "@js-joda/core";
 import { Locale, WeekFields } from "@js-joda/locale_en-us";
 
 export type ITimeUnitNames  = 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year';

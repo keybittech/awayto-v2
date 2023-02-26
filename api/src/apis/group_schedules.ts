@@ -73,6 +73,7 @@ const groupServices: ApiModule = [
         }) as [IGroupSchedule];
 
         await props.redis.del(`${props.event.userSub}group/${groupName}/schedules`);
+        await props.redis.del(`${props.event.userSub}group/${groupName}/schedulemaster/${schedule.id}`);
 
         return [schedule];
 
