@@ -33,12 +33,13 @@ export function ManageGroup(props: IProps): JSX.Element {
   const { groupServices } = useRedux(state => state.groupService);
   const { groupSchedules } = useRedux(state => state.groupSchedule);
 
-  const { ManageUsers, ManageRoles, ManageRoleActions, ManageServices, ManageSchedules, GroupSecure } = useComponents();
+  const { ManageUsers, ManageRoles, ManageRoleActions, ManageForms, ManageServices, ManageSchedules, GroupSecure } = useComponents();
 
   const menuRoles: Record<string, SiteRoles[]> = {
     users: [SiteRoles.APP_GROUP_USERS],
     roles: [SiteRoles.APP_GROUP_ROLES],
     matrix: [SiteRoles.APP_GROUP_ADMIN],
+    forms: [SiteRoles.APP_GROUP_ADMIN],
     services: [SiteRoles.APP_GROUP_SERVICES],
     schedules: [SiteRoles.APP_GROUP_SCHEDULES],
   }
@@ -68,6 +69,8 @@ export function ManageGroup(props: IProps): JSX.Element {
         />
       case 'matrix':
         return <ManageRoleActions {...props} />
+      case 'forms':
+        return <ManageForms {...props} />
       case 'services':
         return <ManageServices
           services={groupServices}
