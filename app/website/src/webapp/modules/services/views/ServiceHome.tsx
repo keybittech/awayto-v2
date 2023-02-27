@@ -25,15 +25,13 @@ const { SET_SNACK } = IUtilActionTypes;
 const serviceSchema = {
   name: '',
   cost: '',
-  formId: '',
-  formVersionId: ''
+  formId: ''
 };
 
 const serviceTierSchema = {
   name: '',
   multiplier: '1.00',
-  formId: '',
-  formVersionId: ''
+  formId: ''
 };
 
 const validCost = function (cost: string): boolean {
@@ -127,7 +125,7 @@ export function ServiceHome(props: IProps): JSX.Element {
                   helperText="Optional."
                   onChange={async e => {
                     const form = await getGroupFormById(e.target.value);
-                    setNewService({ ...newService, formId: form?.id, formVersionId: form?.version?.id })
+                    setNewService({ ...newService, formId: form?.id })
                   }}
                 >
                   {Object.values(groupForms).map(form => <MenuItem key={`form-version-select${form.id}`} value={form.id}>{form.name}</MenuItem>)}
@@ -181,7 +179,7 @@ export function ServiceHome(props: IProps): JSX.Element {
                   helperText="Optional."
                   onChange={async e => {
                     const form = await getGroupFormById(e.target.value);
-                    setNewServiceTier({ ...newServiceTier, formId: form?.id, formVersionId: form?.version?.id })
+                    setNewServiceTier({ ...newServiceTier, formId: form?.id })
                   }}
                 >
                   {Object.values(groupForms).map(form => <MenuItem key={`form-version-select${form.id}`} value={form.id}>{form.name}</MenuItem>)}

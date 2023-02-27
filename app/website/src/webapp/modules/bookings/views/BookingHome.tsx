@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import DataTable, { TableColumn } from 'react-data-table-component';
+import { useParams } from 'react-router';
 
 import Avatar from '@mui/material/Avatar';
 import Grid from '@mui/material/Grid';
@@ -13,14 +14,17 @@ import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import CheckIcon from '@mui/icons-material/Check';
 
-import { ILookupActionTypes, IScheduleActionTypes, ISchedule, IService, IServiceAddon, IServiceTier, IQuote, IContact } from 'awayto';
+import { ILookupActionTypes, IScheduleActionTypes, IGroupFormActionTypes, ISchedule, IService, IServiceAddon, IServiceTier, IQuote, IContact, IForm } from 'awayto';
 import { useApi, useRedux, useComponents, useStyles } from 'awayto-hooks';
 
+const { GET_GROUP_FORM_BY_ID } = IGroupFormActionTypes;
 const { GET_SCHEDULES, GET_SCHEDULE_BY_ID } = IScheduleActionTypes;
 const { GET_LOOKUPS } = ILookupActionTypes;
 
 export function BookingHome(props: IProps): JSX.Element {
   const classes = useStyles();
+  const { groupName } = useParams();
+
   const api = useApi();
   const { FileManager } = useComponents();
   const util = useRedux(state => state.util);
@@ -34,6 +38,8 @@ export function BookingHome(props: IProps): JSX.Element {
   const [contact, setContact] = useState({} as IContact);
   const [quote, setQuote] = useState({} as IQuote);
   const [serviceTierAddons, setServiceTierAddons] = useState<string[]>([]);
+  const [serviceForm, setServiceForm] = useState({} as IForm);
+  const [tierForm, setTierForm] = useState({} as IForm);
 
   useEffect(() => {
     const [abort1] = api(GET_SCHEDULES)
@@ -43,6 +49,12 @@ export function BookingHome(props: IProps): JSX.Element {
       abort2();
     }
   }, []);
+
+  useEffect(() => {
+    if (service.formId && service.formId != serviceForm.id) {
+      const [, res] = api(GET_GROUP_FORM_BY_ID, { groupName, formId: service.formId });
+    }
+  }, [service, tier])
 
   const serviceTiers = useMemo(() => Object.values(service?.tiers || {}), [service?.tiers]);
 

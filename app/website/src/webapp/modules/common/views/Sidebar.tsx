@@ -56,10 +56,6 @@ export function Sidebar(): JSX.Element {
               <ListItemIcon><EventNoteIcon color={location.pathname === '/schedule' ? "secondary" : "primary"} /></ListItemIcon>
               <ListItemText classes={{ primary: classes.menuText }}>Schedule</ListItemText>
             </ListItem>}
-            {hasRole([SiteRoles.APP_GROUP_BOOKINGS]) && <ListItem className={classes.menuIcon} onClick={() => navigate('/booking')} button key={'booking'}>
-              <ListItemIcon><LibraryBooksIcon color={location.pathname === '/booking' ? "secondary" : "primary"} /></ListItemIcon>
-              <ListItemText classes={{ primary: classes.menuText }}>Booking</ListItemText>
-            </ListItem>}
           </List>
         </Grid>
         <Grid item xs={12}>

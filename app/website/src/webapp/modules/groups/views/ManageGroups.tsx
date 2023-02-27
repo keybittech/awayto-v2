@@ -12,8 +12,8 @@ import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Logout from '@mui/icons-material/Logout';
 
-import { IUtilActionTypes, IGroup, IActionTypes, IGroupActionTypes, IRole } from 'awayto';
-import { useRedux, useApi, useAct } from 'awayto-hooks';
+import { IUtilActionTypes, IGroup, IActionTypes, IGroupActionTypes, IRole, SiteRoles } from 'awayto';
+import { useRedux, useApi, useAct, useSecure } from 'awayto-hooks';
 
 import ManageGroupModal from './ManageGroupModal';
 import JoinGroupModal from './JoinGroupModal';
@@ -46,6 +46,7 @@ export function ManageGroups(props: IProps): JSX.Element {
 
   const act = useAct();
   const api = useApi();
+  const hasRole = useSecure();
   const navigate = useNavigate();
   const util = useRedux(state => state.util);
   const profile = useRedux(state => state.profile);
@@ -58,11 +59,11 @@ export function ManageGroups(props: IProps): JSX.Element {
 
   const columns = useMemo(() => [
     { id: 'createdOn', selector: row => row.createdOn, omit: true },
-    { cell: row => <Button key={`group_manage_selection_${row.name}`} onClick={() => navigate(`/group/${row.name}/manage/users`)} >Manage</Button> },
+    hasRole([SiteRoles.APP_GROUP_BOOKINGS]) && { cell: row => <Button key={`group_manage_selection_${row.name}`} onClick={() => navigate(`/group/${row.name}/manage/users`)} >Manage</Button> },
+    { cell: row => <Button key={`group_booking_selection_${row.name}`} onClick={() => navigate(`/group/${row.name}/booking`)} >Booking</Button> },
     { name: 'Name', selector: row => row.name },
     { name: 'Code', selector: row => row.code },
     { name: 'Users', cell: (group: IGroup) => group.usersCount || 0 },
-    { name: 'Roles', cell: (group: IGroup) => group.roles ? Object.values(group.roles).map(r => r.name).join(', ') : '' },
     { name: 'Created', selector: row => row.createdOn }
   ] as TableColumn<IGroup>[], undefined);
 

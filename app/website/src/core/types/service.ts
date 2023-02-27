@@ -38,7 +38,6 @@ export type IService = {
   cost: string;
   tiers: Record<string, IServiceTier>;
   formId?: string;
-  formVersionId?: string;
   createdOn: string;
 };
 
@@ -181,7 +180,6 @@ export type IServiceActions = IPostServiceAction
   id: string;
   serviceId: string;
   formId?: string;
-  formVersionId?: string;
   name: string;
   multiplier: string;
   addons: Record<string, IServiceAddon>;

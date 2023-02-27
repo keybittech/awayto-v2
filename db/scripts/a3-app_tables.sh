@@ -86,7 +86,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR (50) NOT NULL,
     cost VARCHAR(50) NOT NULL,
-    form_version_id uuid REFERENCES dbtable_schema.form_versions (id),
+    form_id uuid REFERENCES dbtable_schema.forms (id),
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
     created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
@@ -132,7 +132,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
   CREATE TABLE dbtable_schema.service_tiers (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     service_id uuid NOT NULL REFERENCES dbtable_schema.services (id) ON DELETE CASCADE,
-    form_version_id uuid REFERENCES dbtable_schema.form_versions (id),
+    form_id uuid REFERENCES dbtable_schema.forms (id),
     name VARCHAR (500) NOT NULL,
     multiplier DECIMAL NOT NULL,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),

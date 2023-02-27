@@ -9,18 +9,18 @@ const services: ApiModule = [
     cmnd : async (props) => {
       try {
 
-        const { name, cost, formVersionId, tiers } = props.event.body;
+        const { name, cost, formId, tiers } = props.event.body;
 
         const { rows: [service] } = await props.db.query<IService>(`
-          INSERT INTO dbtable_schema.services (name, cost, form_version_id, created_sub)
+          INSERT INTO dbtable_schema.services (name, cost, form_id, created_sub)
           VALUES ($1, $2::integer, $3::uuid, $4::uuid)
           RETURNING id, name, cost, created_on
-        `, [name, cost || 0, formVersionId || undefined, props.event.userSub]);
+        `, [name, cost || 0, formId || undefined, props.event.userSub]);
 
         await asyncForEach(Object.values(tiers).sort((a, b) => a.order - b.order), async t => {
           const serviceTier = (await props.db.query<IServiceTier>(`
-            WITH input_rows(name, service_id, multiplier, form_version_id, created_sub) as (VALUES ($1, $2::uuid, $3::decimal, $4::uuid, $5::uuid)), ins AS (
-              INSERT INTO dbtable_schema.service_tiers (name, service_id, multiplier, form_version_id, created_sub)
+            WITH input_rows(name, service_id, multiplier, form_id, created_sub) as (VALUES ($1, $2::uuid, $3::decimal, $4::uuid, $5::uuid)), ins AS (
+              INSERT INTO dbtable_schema.service_tiers (name, service_id, multiplier, form_id, created_sub)
               SELECT * FROM input_rows
               ON CONFLICT (name, service_id) DO NOTHING
               RETURNING id
@@ -31,7 +31,7 @@ const services: ApiModule = [
             SELECT st.id
             FROM input_rows
             JOIN dbtable_schema.service_tiers st USING (name, service_id);
-          `, [t.name, service.id, t.multiplier, t.formVersionId || undefined, props.event.userSub])).rows[0];
+          `, [t.name, service.id, t.multiplier, t.formId || undefined, props.event.userSub])).rows[0];
 
           await asyncForEach(Object.values(t.addons).sort((a, b) => a.order - b.order), async a => {
             await props.db.query(`

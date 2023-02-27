@@ -75,7 +75,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     id,
     name,
     cost,
-    form_version_id as "formVersionId",
+    form_id as "formId",
     created_on as "createdOn",
     row_number() OVER () as row
   FROM
@@ -126,7 +126,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
   SELECT
     id,
     service_id as "serviceId",
-    form_version_id as "formVersionId",
+    form_id as "formId",
     name,
     multiplier,
     created_on as "createdOn",

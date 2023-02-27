@@ -86,7 +86,6 @@ const Layout = (props: IProps): JSX.Element => {
             <Route path="/profile"  element={<Profile {...props} />} />
             <Route path="/service" element={<ServiceHome {...props} />} />
             <Route path="/schedule" element={<ScheduleHome {...props} />} />
-            <Route path="/booking" element={<BookingHome {...props} />} />
             <Route path="/group/:groupName/*" element={<GroupPaths {...props} />} />
           </Routes>
         </Suspense>
