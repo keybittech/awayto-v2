@@ -1,15 +1,13 @@
 import React, { CSSProperties, useCallback, useMemo, useState, useEffect, useRef } from 'react';
-import Grid from '@mui/material/Grid';
-import Box from '@mui/material/Box';
-import Chip from '@mui/material/Chip';
-import Card from '@mui/material/Card';
-import CardActionArea from '@mui/material/CardActionArea';
-import Typography from '@mui/material/Typography';
+import { Duration } from '@js-joda/core';
 import { FixedSizeGrid } from 'react-window';
 
-import { chronoTimeUnits, getContextFormattedDuration, getRelativeDuration, ISchedule, IScheduleBracket, IScheduleBracketSlot, ITimeUnitNames, TimeUnit, timeUnitOrder } from 'awayto';
-import { LocalDate, DateTimeFormatter, Duration, LocalDateTime, TemporalAdjuster, TemporalAdjusters, ZoneOffset, Period } from '@js-joda/core';
-import { Locale, WeekFields } from '@js-joda/locale_en-us';
+import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
+import CardActionArea from '@mui/material/CardActionArea';
+import Typography from '@mui/material/Typography';
+
+import { chronoTimeUnits, getContextFormattedDuration, getRelativeDuration, ISchedule, IScheduleBracket, IScheduleBracketSlot, TimeUnit, timeUnitOrder } from 'awayto';
 
 export type ScheduleDisplayProps = {
   schedule?: ISchedule;
@@ -26,7 +24,7 @@ declare global {
 
 const bracketColors = ['cadetblue', 'brown', 'chocolate', 'forestgreen', 'darkslateblue', 'goldenrod', 'indianred', 'teal'];
 
-export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Required<ScheduleDisplayProps>) {
+export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Required<ScheduleDisplayProps>): JSX.Element {
   
   const columnWidth = 150;
   
@@ -47,18 +45,12 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
 
 
   // The number of x axis divions
-  const divisions = useMemo(() => {
-    return getRelativeDuration(1, scheduleTimeUnitName, xAxisTypeName);
-  }, [scheduleTimeUnitName, xAxisTypeName]);
+  const divisions = useMemo(() => getRelativeDuration(1, scheduleTimeUnitName, xAxisTypeName), [scheduleTimeUnitName, xAxisTypeName]);
 
   // The number of divided bracket duration elements per column
-  const selections = useMemo(() => {
-    return getRelativeDuration(1, xAxisTypeName, yAxisTypeName) / slotDuration;
-  }, [xAxisTypeName, yAxisTypeName, slotDuration]);
+  const selections = useMemo(() => getRelativeDuration(1, xAxisTypeName, yAxisTypeName) / slotDuration, [xAxisTypeName, yAxisTypeName, slotDuration]);
 
   const scheduleBracketsValues = useMemo(() => Object.values(schedule.brackets), [schedule.brackets]);
-
-  const testDur = Duration.parse('PT03H');
 
   const Cell = useCallback((gridCell: GridCell) => {
 

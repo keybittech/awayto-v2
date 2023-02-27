@@ -1,5 +1,3 @@
-import { Merge } from '../util';
-
 declare global {
   /**
    * @category Awayto Redux

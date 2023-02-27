@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import { useRedux } from './useRedux';
 import { SiteRoles, hasRole } from 'awayto';
 

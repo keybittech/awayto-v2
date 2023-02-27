@@ -1,4 +1,4 @@
-import { ITimeUnit, PayloadAction } from '.';
+import { PayloadAction } from '.';
 import { Merge } from '../util';
 
 declare global {

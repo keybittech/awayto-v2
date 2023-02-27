@@ -1,7 +1,5 @@
-import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import Grid from '@mui/material/Grid';
-import Card from '@mui/material/Card';
-import CardActionArea from '@mui/material/CardActionArea';
 import Switch from '@mui/material/Switch';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
@@ -21,7 +19,7 @@ declare global {
   interface IProps extends FormBuilderProps { }
 }
 
-export default function FormBuilder({ version, setVersion, editable = true }: IProps & Required<FormBuilderProps>) {
+export default function FormBuilder({ version, setVersion, editable = true }: IProps & Required<FormBuilderProps>): JSX.Element {
 
   const [rows, setRows] = useState({} as Record<string, IField[]>);
   const [cell, setCell] = useState({} as IField);
@@ -39,10 +37,10 @@ export default function FormBuilder({ version, setVersion, editable = true }: IP
 
   const addRow = useCallback(() => setRows({ ...rows, [`${Object.keys(rows).length + 1}`]: [makeField()] }), [rows]);
 
-  const delRow = useCallback((row: string) => {
-    delete rows[row];
-    setRows({ ...rows });
-  }, [rows]);
+  // const delRow = useCallback((row: string) => {
+  //   delete rows[row];
+  //   setRows({ ...rows });
+  // }, [rows]);
 
   const addCol = useCallback((row: string) => setRows({ ...rows, [row]: Array.prototype.concat(rows[row], [makeField()]) }), [rows]);
 
@@ -147,7 +145,7 @@ export default function FormBuilder({ version, setVersion, editable = true }: IP
         </Grid>
         <Grid item xs={6}>
           <Typography variant="body1">Required</Typography>
-          <Switch value={cell.r} checked={cell.r} onChange={e => {
+          <Switch value={cell.r} checked={cell.r} onChange={() => {
             rows[position.row][position.col].r = !cell.r;
             setRows({ ...rows })
           }} />

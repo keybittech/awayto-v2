@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import { useParams } from 'react-router';
 import { useRedux } from './useRedux';
 import { SiteRoles, hasGroupRole } from 'awayto';

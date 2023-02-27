@@ -1,6 +1,5 @@
 import { Reducer } from 'redux';
 import {
-  IRole, 
   IGetManageRolesAction, 
   IManageRolesActionTypes, 
   IManageRolesState, 

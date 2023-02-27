@@ -4,7 +4,7 @@ import { Route, Routes } from 'react-router';
 
 export function GroupPaths (props: IProps): JSX.Element {
   
-  const { ManageGroup, ServiceHome, ScheduleHome, BookingHome } = useComponents();
+  const { ManageGroup } = useComponents();
 
   return <Routes>
     <Route path="manage/:component" element={<ManageGroup {...props} />} />

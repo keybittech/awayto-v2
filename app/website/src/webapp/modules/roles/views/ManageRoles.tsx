@@ -12,7 +12,7 @@ import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import { IRole, IActionTypes } from 'awayto';
-import { useRedux, useApi, useGroupSecure } from 'awayto-hooks';
+import { useRedux, useApi } from 'awayto-hooks';
 
 import ManageRoleModal from './ManageRoleModal';
 
@@ -31,7 +31,6 @@ declare global {
 export function ManageRoles(props: IProps): JSX.Element {
   const { roles, getRolesAction, deleteRolesAction } = props as IProps & Required<ManageRolesActions>;
 
-  const hasGroupRole = useGroupSecure();
   const api = useApi();
   const util = useRedux(state => state.util);
   const [role, setRole] = useState<IRole>();

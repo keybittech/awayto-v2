@@ -16,7 +16,7 @@ import { useRedux, useApi } from 'awayto-hooks';
 
 import ManageUserModal from './ManageUserModal';
 
-const { LOCK_MANAGE_USERS, UNLOCK_MANAGE_USERS, GET_MANAGE_USERS } = IManageUsersActionTypes;
+const { LOCK_MANAGE_USERS, UNLOCK_MANAGE_USERS } = IManageUsersActionTypes;
 
 export type ManageUsersProps = {
   getAction?: IActionTypes;

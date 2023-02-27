@@ -1,28 +1,12 @@
-import React, { Suspense, useCallback, useRef, useEffect, useMemo, useState } from 'react';
-import Grid from '@mui/material/Grid';
-import Typography from '@mui/material/Typography';
-import Box from '@mui/material/Box';
-import Alert from '@mui/material/Alert';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import CardActionArea from '@mui/material/CardActionArea';
-import CardHeader from '@mui/material/CardHeader';
-import TextField from '@mui/material/TextField';
-import Switch from '@mui/material/Switch';
-import Chip from '@mui/material/Chip';
-import Button from '@mui/material/Button';
-import Slider from '@mui/material/Slider';
-import MenuItem from '@mui/material/MenuItem';
+import React from 'react';
 
-import { IScheduleActionTypes, IUtilActionTypes, ISchedule, IScheduleBracket, IGroupServiceActionTypes, IGroupScheduleActionTypes, IGroup, BookingModes, timeUnitOrder, TimeUnit, ITimeUnitNames, IService, ITimeUnit } from 'awayto';
-import { useApi, useRedux, useComponents, useAct } from 'awayto-hooks';
-import { Mark } from '@mui/base';
+import { IScheduleActionTypes, IGroupServiceActionTypes, IGroupScheduleActionTypes } from 'awayto';
+import { useRedux, useComponents } from 'awayto-hooks';
 
 const { GET_GROUP_SERVICES } = IGroupServiceActionTypes;
 const { GET_GROUP_SCHEDULES } = IGroupScheduleActionTypes;
 
-const { GET_SCHEDULES, GET_SCHEDULE_BY_ID, POST_SCEHDULE_BRACKETS, POST_SCHEDULE, PUT_SCHEDULE, POST_SCHEDULE_PARENT, DISABLE_SCHEDULE, DELETE_SCHEDULE } = IScheduleActionTypes;
-const { SET_SNACK } = IUtilActionTypes;
+const { GET_SCHEDULES, GET_SCHEDULE_BY_ID, POST_SCEHDULE_BRACKETS, POST_SCHEDULE, POST_SCHEDULE_PARENT } = IScheduleActionTypes;
 
 export const scheduleSchema = {
   id: '',
@@ -44,8 +28,7 @@ export const bracketSchema = {
   multiplier: '1.00'
 };
 
-export function ScheduleHome(props: IProps): JSX.Element {
-  const api = useApi();
+export function ScheduleHome(): JSX.Element {
 
   const { ManageScheduleBrackets } = useComponents();
   const { schedules } = useRedux(state => state.schedule);

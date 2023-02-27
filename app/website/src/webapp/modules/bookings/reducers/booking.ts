@@ -1,6 +1,5 @@
 import { Reducer } from 'redux';
 import {
-  IBooking,
   IBookingState,
   IBookingActions,
   IBookingActionTypes,

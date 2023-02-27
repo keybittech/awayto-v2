@@ -1,4 +1,3 @@
-import { ApiResponse } from 'awayto';
 import Keycloak from 'keycloak-js';
 
 const {

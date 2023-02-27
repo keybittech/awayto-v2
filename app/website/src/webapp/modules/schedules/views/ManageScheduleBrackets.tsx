@@ -5,22 +5,17 @@ import IconButton from '@mui/material/IconButton';
 import Dialog from '@mui/material/Dialog';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import Alert from '@mui/material/Alert';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardActionArea from '@mui/material/CardActionArea';
-import CardHeader from '@mui/material/CardHeader';
 import TextField from '@mui/material/TextField';
-import Switch from '@mui/material/Switch';
 import Grid from '@mui/material/Grid';
-import Button from '@mui/material/Button';
-import Slider from '@mui/material/Slider';
 import MenuItem from '@mui/material/MenuItem';
 
 import CreateIcon from '@mui/icons-material/Create';
 
 import { IService, ISchedule, IActionTypes, IGroupSchedule, IGroup } from 'awayto';
-import { useRedux, useApi, useAct } from 'awayto-hooks';
+import { useRedux, useApi } from 'awayto-hooks';
 
 import ManageScheduleBracketsModal from './ManageScheduleBracketsModal';
 
@@ -46,7 +41,6 @@ declare global {
 export function ManageScheduleBrackets(props: IProps): JSX.Element {
   const { getGroupServicesAction, getGroupSchedulesAction, schedules, getScheduleBracketsAction } = props as IProps & Required<ManageScheduleBracketsActions>;
 
-  const act = useAct();
   const api = useApi();
   const util = useRedux(state => state.util);
   const [schedule, setSchedule] = useState<ISchedule>();

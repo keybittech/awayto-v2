@@ -12,14 +12,14 @@ import CardHeader from '@mui/material/CardHeader';
 import Grid from '@mui/material/Grid';
 import Chip from '@mui/material/Chip';
 
-import { IService, IServiceActionTypes, IServiceTier, IGroupServiceAddonActionTypes, IServiceAddonActionTypes, IGroupServiceActionTypes, IUtilActionTypes, IServiceState, IGroup, IServiceAddon } from 'awayto';
+import { IService, IServiceActionTypes, IServiceTier, IGroupServiceAddonActionTypes, IServiceAddonActionTypes, IGroupServiceActionTypes, IUtilActionTypes, IGroup } from 'awayto';
 import { useApi, useRedux, useComponents, useAct, useStyles } from 'awayto-hooks';
 
-const { DELETE_SERVICE, POST_SERVICE } = IServiceActionTypes;
+const { POST_SERVICE } = IServiceActionTypes;
 const { POST_SERVICE_ADDON } = IServiceAddonActionTypes;
-const { GET_GROUP_SERVICES, POST_GROUP_SERVICE, DELETE_GROUP_SERVICE } = IGroupServiceActionTypes;
+const { GET_GROUP_SERVICES, POST_GROUP_SERVICE } = IGroupServiceActionTypes;
 const { GET_GROUP_SERVICE_ADDONS, POST_GROUP_SERVICE_ADDON, DELETE_GROUP_SERVICE_ADDON } = IGroupServiceAddonActionTypes;
-const { SET_SNACK, OPEN_CONFIRM } = IUtilActionTypes;
+const { SET_SNACK } = IUtilActionTypes;
 
 const serviceSchema = {
   name: '',
@@ -46,7 +46,6 @@ export function ServiceHome(props: IProps): JSX.Element {
   const [newService, setNewService] = useState({ ...serviceSchema, tiers: {} } as IService);
   const [newServiceTier, setNewServiceTier] = useState({ ...serviceTierSchema, addons: {} } as IServiceTier);
   const [serviceTierAddonIds, setServiceTierAddonIds] = useState<string[]>([]);
-  const { groupServices } = useRedux(state => state.groupService);
   const { groupServiceAddons } = useRedux(state => state.groupServiceAddon);
   const { groups } = useRedux(state => state.profile);
   const [group, setGroup] = useState({} as IGroup);

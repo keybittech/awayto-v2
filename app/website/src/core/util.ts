@@ -70,40 +70,40 @@ type MergeNonUnionObjects<T, U> = Expand<
     }
 >;
 
-type MergeNonUnionArrays<T extends readonly any[], U extends readonly any[]> = Array<Expand<Merge<T[number], U[number]>>>
+type MergeNonUnionArrays<T extends readonly unknown[], U extends readonly unknown[]> = Array<Expand<Merge<T[number], U[number]>>>
 
-type MergeArrays<T extends readonly any[], U extends readonly any[]> = [T] extends [never]
-    ? U extends any
+type MergeArrays<T extends readonly unknown[], U extends readonly unknown[]> = [T] extends [never]
+    ? U extends unknown
         ? MergeNonUnionArrays<T, U>
         : never
     : [U] extends [never]
-    ? T extends any
+    ? T extends unknown
         ? MergeNonUnionArrays<T, U>
         : never
-    : T extends any
-    ? U extends any
+    : T extends unknown
+    ? U extends unknown
         ? MergeNonUnionArrays<T, U>
         : never
     : never;
 
 type MergeObjects<T, U> = [T] extends [never]
-    ? U extends any
+    ? U extends unknown
         ? MergeNonUnionObjects<T, U>
         : never
     : [U] extends [never]
-    ? T extends any
+    ? T extends unknown
         ? MergeNonUnionObjects<T, U>
         : never
-    : T extends any
-    ? U extends any
+    : T extends unknown
+    ? U extends unknown
         ? MergeNonUnionObjects<T, U>
         : never
     : never;
 
 export type Merge<T, U> =
     | Extract<T | U, Primitive>
-    | MergeArrays<Extract<T, readonly any[]>, Extract<U, readonly any[]>>
-    | MergeObjects<Exclude<T, Primitive | readonly any[]>, Exclude<U, Primitive | readonly any[]>>;
+    | MergeArrays<Extract<T, readonly unknown[]>, Extract<U, readonly unknown[]>>
+    | MergeObjects<Exclude<T, Primitive | readonly unknown[]>, Exclude<U, Primitive | readonly unknown[]>>;
 
 
 // ------------------------

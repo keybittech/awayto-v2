@@ -1,6 +1,5 @@
 import { Reducer } from 'redux';
 import {
-  IGroup,
   IGroupState,
   IGroupActions,
   IGroupActionTypes,

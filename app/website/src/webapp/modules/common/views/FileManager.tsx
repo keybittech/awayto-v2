@@ -1,13 +1,11 @@
-import React, { useRef, useMemo, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useMemo, useState, useCallback } from 'react';
 import DataTable, { TableColumn } from 'react-data-table-component';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 
-import { IFile, IFileActionTypes, FileStoreStrategies } from 'awayto';
-import { useApi, useRedux, useFileStore } from 'awayto-hooks';
-
-const { POST_FILE, DELETE_FILE } = IFileActionTypes;
+import { IFile } from 'awayto';
+import { useRedux, } from 'awayto-hooks';
 
 declare global {
   interface IProps {
@@ -16,13 +14,13 @@ declare global {
 }
 
 export function FileManager(): JSX.Element {
-  const api = useApi();
+  // const api = useApi();
   const fileSelectRef = useRef<HTMLInputElement>(null);
   const { files } = useRedux(state => state.file);
   const util = useRedux(state => state.util);
-  const fileStore = useFileStore();
+  // const fileStore = useFileStore();
   const [toggle, setToggle] = useState(false);
-  const [newFiles, setNewFiles] = useState<File[]>([]);
+  // const [newFiles, setNewFiles] = useState<File[]>([]);
   const [selected, setSelected] = useState<IFile[]>([]);
   const updateSelection = useCallback((state: { selectedRows: IFile[] }) => setSelected(state.selectedRows), [setSelected]);
 
@@ -65,7 +63,7 @@ export function FileManager(): JSX.Element {
   }, [selected])
 
   return <>
-    <input type="file" multiple id="new-file" onChange={e => e.target.files && setNewFiles(Array.from(e.target.files))} ref={fileSelectRef} style={{ display: 'none' }} />
+    {/* <input type="file" multiple id="new-file" onChange={e => e.target.files && setNewFiles(Array.from(e.target.files))} ref={fileSelectRef} style={{ display: 'none' }} /> */}
 
     <Card>
       <CardContent>

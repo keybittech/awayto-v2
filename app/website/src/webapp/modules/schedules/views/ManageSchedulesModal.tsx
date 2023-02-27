@@ -46,25 +46,25 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
   }, [timeUnits]);
 
   const setDefault = useCallback((type: string) => {
-    const weekId = timeUnits.find(s => s.name === TimeUnit.WEEK)!.id;
-    const hourId = timeUnits.find(s => s.name === TimeUnit.HOUR)!.id;
-    const dayId = timeUnits.find(s => s.name === TimeUnit.DAY)!.id;
-    const minuteId = timeUnits.find(s => s.name === TimeUnit.MINUTE)!.id;
-    const monthId = timeUnits.find(s => s.name === TimeUnit.MONTH)!.id;
+    const weekId = timeUnits.find(s => s.name === TimeUnit.WEEK)?.id;
+    const hourId = timeUnits.find(s => s.name === TimeUnit.HOUR)?.id;
+    const dayId = timeUnits.find(s => s.name === TimeUnit.DAY)?.id;
+    const minuteId = timeUnits.find(s => s.name === TimeUnit.MINUTE)?.id;
+    const monthId = timeUnits.find(s => s.name === TimeUnit.MONTH)?.id;
     if ('40hoursweekly30minsessions' === type) {
       setSchedule(attachScheduleUnits({
         ...schedule,
-        scheduleTimeUnitId: weekId,
-        bracketTimeUnitId: hourId,
-        slotTimeUnitId: minuteId,
+        scheduleTimeUnitId: weekId as string,
+        bracketTimeUnitId: hourId as string,
+        slotTimeUnitId: minuteId as string,
         slotDuration: 30
       }));
     } else if ('dailybookingpermonth') {
       setSchedule(attachScheduleUnits({
         ...schedule,
-        scheduleTimeUnitId: monthId,
-        bracketTimeUnitId: weekId,
-        slotTimeUnitId: dayId,
+        scheduleTimeUnitId: monthId as string,
+        bracketTimeUnitId: weekId as string,
+        slotTimeUnitId: dayId as string,
         slotDuration: 1
       }));
     }

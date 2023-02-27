@@ -1,4 +1,4 @@
-import { ChronoUnit, Duration, LocalDate, nativeJs, TemporalAdjusters, ZoneId, DateTimeFormatter } from "@js-joda/core";
+import { ChronoUnit, Duration, LocalDate, nativeJs, TemporalAdjusters, ZoneId, DateTimeFormatter, ZonedDateTime } from "@js-joda/core";
 import { Locale, WeekFields } from "@js-joda/locale_en-us";
 
 export type ITimeUnitNames  = 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year';
@@ -50,11 +50,11 @@ export function getRelativeDuration(amount: number, fromUnit: ITimeUnitNames, to
   return (amount * fromDuration) / toDuration;
 }
 
-export function utcNow() {
+export function utcNow(): ZonedDateTime {
   return nativeJs(new Date(), ZoneId.UTC);
 }
 
-export function utcNowString() {
+export function utcNowString(): string {
   return nativeJs(new Date(), ZoneId.UTC).toString();
 }
 

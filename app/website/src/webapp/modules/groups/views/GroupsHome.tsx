@@ -1,14 +1,12 @@
-import React, { useEffect } from 'react';
-import { IUserProfileActionTypes, IRoleActionTypes, IGroupActionTypes, IAssistActionTypes } from 'awayto';
-import { useApi, useComponents, useRedux } from 'awayto-hooks';
+import React from 'react';
+import { IUserProfileActionTypes, IRoleActionTypes, IGroupActionTypes } from 'awayto';
+import { useComponents, useRedux } from 'awayto-hooks';
 
 const { GET_USER_PROFILE_DETAILS } = IUserProfileActionTypes;
 const { POST_ROLES, DELETE_ROLES } = IRoleActionTypes;
 const { CHECK_GROUPS_NAME, PUT_GROUPS, POST_GROUPS, DELETE_GROUPS } = IGroupActionTypes;
-const { POST_ASSIST } = IAssistActionTypes;
 
 export function GroupsHome (props: IProps): JSX.Element {
-  const api = useApi();
   const { ManageGroups } = useComponents()
   const user = useRedux(state => state.profile);
 

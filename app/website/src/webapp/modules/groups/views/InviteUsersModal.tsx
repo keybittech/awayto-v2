@@ -5,20 +5,15 @@ import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardActions from '@mui/material/CardActions';
-import InputAdornment from '@mui/material/InputAdornment';
-import IconButton from '@mui/material/IconButton';
-import useTheme from '@mui/material/styles/useTheme';
-
-import SendIcon from '@mui/icons-material/Send';
 
 import { IUserProfile, IGroupActionTypes, IUtilActionTypes } from 'awayto';
-import { useAct, useApi, useRedux, useComponents } from 'awayto-hooks';
+import { useAct, useApi } from 'awayto-hooks';
 import { TextField } from '@mui/material';
 
 const { SET_SNACK } = IUtilActionTypes;
 const { POST_GROUPS_USERS_INVITE } = IGroupActionTypes;
 
-export function InviteUsersModal({ closeModal, ...props }: IProps): JSX.Element {
+export function InviteUsersModal({ closeModal }: IProps): JSX.Element {
 
   const api = useApi();
   const act = useAct();

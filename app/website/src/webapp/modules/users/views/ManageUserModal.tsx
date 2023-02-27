@@ -16,12 +16,11 @@ import MenuItem from '@mui/material/MenuItem';
 import CircularProgress from '@mui/material/CircularProgress';
 import InputAdornment from '@mui/material/InputAdornment';
 
-import { IGroup, IUserProfile, IManageUsersActionTypes, IManageGroupsActionTypes, IUtilActionTypes, passwordGen } from "awayto";
-import { useApi, useAct, useRedux } from 'awayto-hooks';
+import { IGroup, IUserProfile, IManageUsersActionTypes, IManageGroupsActionTypes, passwordGen } from "awayto";
+import { useApi, useRedux } from 'awayto-hooks';
 
-const { PUT_MANAGE_USERS, POST_MANAGE_USERS, GET_MANAGE_USERS_BY_ID, POST_MANAGE_USERS_SUB, POST_MANAGE_USERS_APP_ACCT } = IManageUsersActionTypes;
+const { GET_MANAGE_USERS_BY_ID } = IManageUsersActionTypes;
 const { GET_MANAGE_GROUPS } = IManageGroupsActionTypes;
-const { SET_SNACK } = IUtilActionTypes;
 
 declare global {
   interface IProps {
@@ -31,7 +30,6 @@ declare global {
 
 export function ManageUserModal({ editUser, closeModal }: IProps): JSX.Element {
   const api = useApi();
-  const act = useAct();
   const { groups } = useRedux(state => state.manageGroups);
   const [password, setPassword] = useState('');
   const [groupIds, setGroupIds] = useState<string[]>([]);
@@ -52,7 +50,7 @@ export function ManageUserModal({ editUser, closeModal }: IProps): JSX.Element {
     return () => abort();
   }, []);
 
-  useEffect(() =>{
+  useEffect(() => {
     if (editUser?.id) {
       const [abort, res] = api(GET_MANAGE_USERS_BY_ID, { id: editUser.id });
       res?.catch(console.warn);
@@ -109,7 +107,7 @@ export function ManageUserModal({ editUser, closeModal }: IProps): JSX.Element {
     //   // Add user to application db if needed no user.id
     //   if (!id)
     //     user = await api(sub ? POST_MANAGE_USERS_APP_ACCT : POST_MANAGE_USERS, true, user) as IUserProfile;
-      
+
     //   if (closeModal)
     //     closeModal();
     // }
@@ -158,29 +156,30 @@ export function ManageUserModal({ editUser, closeModal }: IProps): JSX.Element {
           {userGroups.map((g, i) => {
             const roleValues = Object.values(g.roles);
             return <Grid key={i} item xs={12}>
-            <FormControl fullWidth variant="outlined">
-              <InputLabel id="role-selection-label">{g.name} roles</InputLabel>
-              <Select
-                labelId={`${g.id}-role-selection-label`}
-                id={`${g.id}-role-selection`}
-                name={`${g.id}-roleIds`}
-                value={userGroupRoles[g.name] || []}
-                onChange={e => {
-                  const rolesChangeValue = e.target.value as string[];
-                  if (rolesChangeValue.length) {
-                    setUserGroupRoles({ ...userGroupRoles, [g.name]: rolesChangeValue })
-                  } else {
-                    const { [g.name]: _, ...ugr } = userGroupRoles;
-                    setUserGroupRoles(ugr || {});
-                  }
-                }}
-                label="Roles"
-                multiple
-              >
-                {roleValues.length ? roleValues.map((r, i) => <MenuItem key={i} value={r.name}>{r.name}</MenuItem>) : <MenuItem />}
-              </Select>
-            </FormControl>
-          </Grid>
+              <FormControl fullWidth variant="outlined">
+                <InputLabel id="role-selection-label">{g.name} roles</InputLabel>
+                <Select
+                  labelId={`${g.id}-role-selection-label`}
+                  id={`${g.id}-role-selection`}
+                  name={`${g.id}-roleIds`}
+                  value={userGroupRoles[g.name] || []}
+                  onChange={e => {
+                    const rolesChangeValue = e.target.value as string[];
+                    if (rolesChangeValue.length) {
+                      setUserGroupRoles({ ...userGroupRoles, [g.name]: rolesChangeValue })
+                    } else {
+                      const ugr = { ...userGroupRoles };
+                      delete ugr[g.name];
+                      setUserGroupRoles(ugr || {});
+                    }
+                  }}
+                  label="Roles"
+                  multiple
+                >
+                  {roleValues.length ? roleValues.map((r, i) => <MenuItem key={i} value={r.name}>{r.name}</MenuItem>) : <MenuItem />}
+                </Select>
+              </FormControl>
+            </Grid>
           })}
         </Grid>
       </Grid>

@@ -13,11 +13,10 @@ import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import CheckIcon from '@mui/icons-material/Check';
 
-import { IServiceActionTypes, ILookupActionTypes, IScheduleActionTypes, ISchedule, IService, IServiceAddon, IServiceTier, IQuote, IContact } from 'awayto';
+import { ILookupActionTypes, IScheduleActionTypes, ISchedule, IService, IServiceAddon, IServiceTier, IQuote, IContact } from 'awayto';
 import { useApi, useRedux, useComponents, useStyles } from 'awayto-hooks';
 
 const { GET_SCHEDULES, GET_SCHEDULE_BY_ID } = IScheduleActionTypes;
-const { GET_SERVICE_BY_ID } = IServiceActionTypes;
 const { GET_LOOKUPS } = ILookupActionTypes;
 
 export function BookingHome(props: IProps): JSX.Element {
@@ -26,7 +25,7 @@ export function BookingHome(props: IProps): JSX.Element {
   const { FileManager } = useComponents();
   const util = useRedux(state => state.util);
   const { schedules } = useRedux(state => state.schedule);
-  const { budgets, timelines, timeUnits } = useRedux(state => state.lookup);
+  const { budgets, timelines } = useRedux(state => state.lookup);
 
   const [schedule, setSchedule] = useState({ } as ISchedule);
   const [services, setServices] = useState<Record<string, IService>>({});
@@ -51,7 +50,7 @@ export function BookingHome(props: IProps): JSX.Element {
     if (!service || !tier || !serviceTierAddons.length) return [];
     return [
       { name: '', selector: row => row.name } as TableColumn<Partial<IServiceAddon>>,
-      ...Object.values(service.tiers).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime()).reduce((memo, { id, name, addons }) => {
+      ...Object.values(service.tiers).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime()).reduce((memo, { name, addons }) => {
         memo.push({
           name: `${name}`,
           cell: row => {

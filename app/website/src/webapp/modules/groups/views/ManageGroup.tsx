@@ -5,7 +5,7 @@ import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 
-import { IRoleActionTypes, IUserActionTypes, IUserProfileActionTypes, IGroupServiceActionTypes, IGroupScheduleActionTypes, IServiceActionTypes, IFormActionTypes, SiteRoles, IGroupFormActionTypes } from 'awayto';
+import { IRoleActionTypes, IUserActionTypes, IUserProfileActionTypes, IGroupServiceActionTypes, IGroupScheduleActionTypes, IServiceActionTypes, SiteRoles, IGroupFormActionTypes } from 'awayto';
 import { useComponents, useRedux } from 'awayto-hooks';
 
 const { GET_USER_PROFILE_DETAILS } = IUserProfileActionTypes;

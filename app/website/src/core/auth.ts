@@ -15,7 +15,7 @@ export type StrategyUser = {
 /**
  * @category Authorization
  */
-export const hasRole = function (availableUserGroupRoles?: UserGroupRoles, targetRoles?: SiteRoles[]) {
+export const hasRole = function (availableUserGroupRoles?: UserGroupRoles, targetRoles?: SiteRoles[]): boolean {
   if (!targetRoles) return false;
   if (!availableUserGroupRoles) return false;
   return Object.values(Object.values(availableUserGroupRoles).flatMap(gr => Object.values(gr as Record<string, string[]>))).some(gr => gr.some(r => targetRoles.includes(SiteRoles[r as SiteRoles])));
@@ -24,7 +24,7 @@ export const hasRole = function (availableUserGroupRoles?: UserGroupRoles, targe
 /**
  * @category Authorization
  */
-export const hasGroupRole = function (groupName: string, availableUserGroupRoles?: UserGroupRoles, targetRoles?: SiteRoles[]) {
+export const hasGroupRole = function (groupName: string, availableUserGroupRoles?: UserGroupRoles, targetRoles?: SiteRoles[]): boolean {
   if (!targetRoles) return false;
   if (!availableUserGroupRoles) return false;
   if (!availableUserGroupRoles[groupName]) return false;
