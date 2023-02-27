@@ -12,6 +12,7 @@
     "@js-joda/timezone": "^2.17.2",
     "@mui/icons-material": "^5.11.0",
     "@mui/material": "^5.11.7",
+    "@mui/material-next": "^6.0.0-alpha.75",
     "@mui/styles": "^5.11.7",
     "@mui/x-date-pickers": "^5.0.20",
     "@react-keycloak/web": "^3.4.0",

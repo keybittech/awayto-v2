@@ -359,6 +359,7 @@ export type IGroupServiceActions = IPostGroupServiceAction
    */
   export enum IGroupFormActionTypes {
     POST_GROUP_FORM = "POST/group/:groupName/forms",
+    POST_GROUP_FORM_VERSION = "POST/group/:groupName/forms/:formId",
     PUT_GROUP_FORM = "PUT/group/:groupName/forms",
     GET_GROUP_FORMS = "GET/group/:groupName/forms",
     GET_GROUP_FORM_BY_ID = "GET/group/:groupName/forms/:formId",
@@ -370,6 +371,10 @@ export type IGroupServiceActions = IPostGroupServiceAction
    */
   export type IPostGroupFormAction = PayloadAction<IGroupFormActionTypes.POST_GROUP_FORM, IGroupForm[]>;
   
+  /**
+   * @category Group
+   */
+  export type IPostGroupFormVersionAction = PayloadAction<IGroupFormActionTypes.POST_GROUP_FORM_VERSION, IGroupForm[]>;
 
   /**
    * @category Group
@@ -395,6 +400,7 @@ export type IGroupServiceActions = IPostGroupServiceAction
    * @category Group
    */
   export type IGroupFormActions = IPostGroupFormAction
+    | IPostGroupFormVersionAction
     | IPutGroupFormAction
     | IGetGroupFormsAction
     | IGetGroupFormByIdAction

@@ -28,22 +28,20 @@ declare global {
 /**
  * @category Form
  */
-export type IField = {
-  id: string;
-  name: string;
-  value: string;
-  helperText: string;
-  type: string;
-  defaultValue: string;
-  required: boolean;
+export type IField = Record<string, string | boolean> & {
+  i?: string; // id
+  l: string; // label
+  v?: string; // value
+  h?: string; // helperText
+  t?: string; // type
+  d?: string; // defaultValue
+  r?: boolean; // required
 };
 
 /**
  * @category Form
  */
-export type IFormTemplate = {
-  fields: Record<string, IField>;
-};
+export type IFormTemplate = Record<string, IField[]>;
 
 /**
  * @category Form
@@ -71,7 +69,8 @@ export type IFormVersion = {
 export type IForm = {
   id: string;
   name: string;
-  versions: IFormVersion[];
+  version?: IFormVersion;
+  versions?: IFormVersion[];
   createdOn: string;
   createdSub: string;
 }
@@ -88,17 +87,23 @@ export type IFormState = Partial<IForm> & {
  */
 export enum IFormActionTypes {
   POST_FORM = "POST/forms",
+  POST_FORM_VERSION = "POST/forms/:formId",
   PUT_FORM = "PUT/forms",
   GET_FORMS = "GET/forms",
-  GET_FORM_BY_ID = "GET/forms/:id",
-  DELETE_FORM = "DELETE/forms/:id",
-  DISABLE_FORM = "PUT/forms/:id/disable"
+  GET_FORM_BY_ID = "GET/forms/:formId",
+  DELETE_FORM = "DELETE/forms/:formId",
+  DISABLE_FORM = "PUT/forms/:formId/disable"
 }
 
 /**
  * @category Form
  */
 export type IPostFormAction = PayloadAction<IFormActionTypes.POST_FORM, IForm[]>;
+
+/**
+ * @category Form
+ */
+export type IPostFormVersionAction = PayloadAction<IFormActionTypes.POST_FORM_VERSION, IForm[]>;
 
 /**
  * @category Form
@@ -129,6 +134,7 @@ export type IDisableFormAction = PayloadAction<IFormActionTypes.DISABLE_FORM, IF
  * @category Form
  */
 export type IFormActions = IPostFormAction
+  | IPostFormVersionAction
   | IPutFormAction
   | IGetFormsAction
   | IGetFormByIdAction

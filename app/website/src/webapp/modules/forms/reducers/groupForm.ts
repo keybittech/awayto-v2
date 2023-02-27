@@ -7,6 +7,7 @@ import {
   IGetGroupFormByIdAction,
   IDeleteGroupFormAction,
   IPostGroupFormAction,
+  IPostGroupFormVersionAction,
   IPutGroupFormAction
 } from 'awayto';
 
@@ -23,7 +24,7 @@ function reduceDeleteGroupForm(state: IGroupFormState, action: IDeleteGroupFormA
   return { ...state };
 }
 
-function reducePostGroupForms(state: IGroupFormState, action: IPostGroupFormAction | IGetGroupFormByIdAction | IPutGroupFormAction): IGroupFormState {
+function reducePostGroupForms(state: IGroupFormState, action: IPostGroupFormAction | IPostGroupFormVersionAction | IGetGroupFormByIdAction | IPutGroupFormAction): IGroupFormState {
   const groupForms = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id}`]: b } }), {});
   state.groupForms = { ...state.groupForms, ...groupForms };
   return { ...state };
@@ -39,6 +40,7 @@ const groupFormsReducer: Reducer<IGroupFormState, IGroupFormActions> = (state = 
     case IGroupFormActionTypes.DELETE_GROUP_FORM:
       return reduceDeleteGroupForm(state, action);
     case IGroupFormActionTypes.POST_GROUP_FORM:
+    case IGroupFormActionTypes.POST_GROUP_FORM_VERSION:
     case IGroupFormActionTypes.PUT_GROUP_FORM:
     case IGroupFormActionTypes.GET_GROUP_FORM_BY_ID:
       return reducePostGroupForms(state, action);

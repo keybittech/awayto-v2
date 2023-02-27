@@ -2,6 +2,7 @@
 import Public from './public';
 import Lookups from './lookups';
 import Files from './files';
+import Forms from './forms';
 import Profiles from './profiles';
 import UuidFiles from './uuid_files';
 import UuidNotes from './uuid_notes';
@@ -32,6 +33,7 @@ export default  {
   protected: [
     // ...Tests,
     ...Files,
+    ...Forms,
     ...Lookups,
     ...Profiles,
     ...UuidFiles,

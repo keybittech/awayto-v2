@@ -5,7 +5,7 @@ import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 
-import { IRoleActionTypes, IUserActionTypes, IUserProfileActionTypes, IGroupServiceActionTypes, IGroupScheduleActionTypes, IServiceActionTypes, IScheduleActionTypes, SiteRoles, IGroupFormActionTypes } from 'awayto';
+import { IRoleActionTypes, IUserActionTypes, IUserProfileActionTypes, IGroupServiceActionTypes, IGroupScheduleActionTypes, IServiceActionTypes, IFormActionTypes, SiteRoles, IGroupFormActionTypes } from 'awayto';
 import { useComponents, useRedux } from 'awayto-hooks';
 
 const { GET_USER_PROFILE_DETAILS } = IUserProfileActionTypes;
@@ -14,7 +14,7 @@ const { PUT_ROLES, POST_ROLES, DELETE_ROLES } = IRoleActionTypes;
 const { POST_SERVICE, PUT_SERVICE, DELETE_SERVICE, DISABLE_SERVICE } = IServiceActionTypes;
 const { GET_GROUP_SERVICES, POST_GROUP_SERVICE, DELETE_GROUP_SERVICE } = IGroupServiceActionTypes;
 const { GET_GROUP_SCHEDULES, GET_GROUP_SCHEDULE_MASTER_BY_ID, POST_GROUP_SCHEDULE, PUT_GROUP_SCHEDULE, DELETE_GROUP_SCHEDULE } = IGroupScheduleActionTypes;
-const { GET_GROUP_FORMS, GET_GROUP_FORM_BY_ID, POST_GROUP_FORM, PUT_GROUP_FORM, DELETE_GROUP_FORM } = IGroupFormActionTypes;
+const { GET_GROUP_FORMS, GET_GROUP_FORM_BY_ID, POST_GROUP_FORM, POST_GROUP_FORM_VERSION, PUT_GROUP_FORM, DELETE_GROUP_FORM } = IGroupFormActionTypes;
 
 declare global {
   interface IProps {
@@ -74,6 +74,7 @@ export function ManageGroup(props: IProps): JSX.Element {
           groupForms={groupForms}
           getGroupFormsAction={GET_GROUP_FORMS}
           postGroupFormsAction={POST_GROUP_FORM}
+          postFormVersionAction={POST_GROUP_FORM_VERSION}
           getGroupFormByIdAction={GET_GROUP_FORM_BY_ID}
           putGroupFormsAction={PUT_GROUP_FORM}
           deleteGroupFormsAction={DELETE_GROUP_FORM}
@@ -102,7 +103,7 @@ export function ManageGroup(props: IProps): JSX.Element {
       default:
         return;
     }
-  }, [users, groupServices, groupSchedules, user.groups, user.roles, component])
+  }, [users, groupServices, groupSchedules, groupForms, user.groups, user.roles, component])
 
   return <>
 

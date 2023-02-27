@@ -10,20 +10,58 @@ const forms: ApiModule = [
     action: IFormActionTypes.POST_FORM,
     cmnd : async (props) => {
       try {
-        const newUuid = uuid();
-        const { name } = props.event.body;
+        const form = props.event.body;
 
-        const response = await props.db.query<{ id: string }>(`
+        const { rows: [{ id: formId }]} = await props.db.query<{ id: string }>(`
           INSERT INTO dbtable_schema.forms (name, created_on, created_sub)
           VALUES ($1, $2, $3::uuid)
           RETURNING id
-        `, [name, utcNowString(), props.event.userSub]);
+        `, [form.name, utcNowString(), props.event.userSub]);
         
-        return { id: response.rows[0].id, newUuid };
+        form.id = formId;
+
+        return [form];
 
       } catch (error) {
         throw error;
       }
+    }
+  },
+
+  {
+    action: IFormActionTypes.POST_FORM_VERSION,
+    cmnd : async (props) => {
+      try {
+        const { version } = props.event.body;
+        const { formId } = props.event.pathParameters;
+
+        const { rows: [{ id: versionId }]} = await props.db.query<{ id: string }>(`
+          INSERT INTO dbtable_schema.form_versions (form_id, form, created_on, created_sub)
+          VALUES ($1::uuid, $2::jsonb, $3, $4::uuid)
+          RETURNING id
+        `, [formId, version.form, utcNowString(), props.event.userSub]);
+
+        const updateProps = buildUpdate({
+          id: formId,
+          updated_on: utcNowString(),
+          updated_sub: props.event.userSub
+        });
+
+        await props.db.query(`
+          UPDATE dbtable_schema.forms
+          SET ${updateProps.string}
+          WHERE id = $1
+        `, updateProps.array);
+
+        version.id = versionId;
+        version.formId = formId;
+
+        return [version];
+        
+      } catch (error) {
+        throw error;
+      }
+
     }
   },
 

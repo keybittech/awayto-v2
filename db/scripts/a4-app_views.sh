@@ -493,4 +493,32 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
         ) bbs
     ) as eess ON true;
 
+  CREATE
+  OR REPLACE VIEW dbview_schema.enabled_group_forms_ext AS
+  SELECT
+    ef.*,
+    egf."formId",
+    egf."groupId",
+    eefv.* as version
+  FROM
+    dbview_schema.enabled_group_forms egf
+  LEFT JOIN dbview_schema.enabled_forms ef ON ef.id = egf."formId"
+  LEFT JOIN LATERAL (
+    SELECT
+      TO_JSONB(vers) as version
+    FROM
+    (
+      SELECT
+        efv.*
+      FROM
+        dbview_schema.enabled_form_versions efv
+      WHERE
+        efv."formId" = egf."formId"
+      ORDER BY
+        efv."createdOn" DESC
+      LIMIT
+        1
+    ) vers
+  ) as eefv ON true;
+
 EOSQL

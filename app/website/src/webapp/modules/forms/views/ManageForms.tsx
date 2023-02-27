@@ -20,8 +20,10 @@ import ManageFormModal from './ManageFormModal';
 export type ManageFormsActions = {
   groupForms?: Record<string, IGroupForm>;
   getGroupFormsAction?: IActionTypes;
+  getGroupFormByIdAction?: IActionTypes;
   putGroupFormsAction?: IActionTypes;
   postGroupFormsAction?: IActionTypes;
+  postFormVersionAction?: IActionTypes;
   deleteGroupFormsAction?: IActionTypes;
 };
 
@@ -63,10 +65,10 @@ export function ManageForms(props: IProps): JSX.Element {
     return [
       ...acts,
       <Tooltip key={'delete_group'} title="Delete"><IconButton onClick={() => {
-        const [, res] = api(deleteGroupFormsAction, { ids: selected.map(s => s.id).join(',') }, { load: true })
+        const [, res] = api(deleteGroupFormsAction, { groupName, ids: selected.map(s => s.id).join(',') }, { load: true })
         res?.then(() => {
           setToggle(!toggle);
-          api(getGroupFormsAction);
+          api(getGroupFormsAction, { groupName });
         }).catch(console.warn);
       }}>
         <DeleteIcon />
@@ -83,7 +85,7 @@ export function ManageForms(props: IProps): JSX.Element {
   }, [groupName]);
 
   return <>
-    <Dialog open={dialog === 'manage_form'} fullWidth maxWidth="sm">
+    <Dialog fullScreen open={dialog === 'manage_form'} fullWidth maxWidth="sm">
       <ManageFormModal {...props} editForm={form} closeModal={() => {
         setDialog('')
         api(getGroupFormsAction, { groupName });
