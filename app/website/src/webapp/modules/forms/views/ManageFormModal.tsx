@@ -35,8 +35,6 @@ export function ManageFormModal({ editForm, closeModal, ...props }: IProps): JSX
   const handleSubmit = useCallback(() => {
     const { id, name } = form;
 
-    console.log({ version })
-
     if (!name || !Object.keys(version.form.fields).length) {
       act(SET_SNACK, { snackType: 'error', snackOn: 'Forms must have a name, and at least 1 field.' });
       return;
