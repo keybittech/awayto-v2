@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import TextField from '@mui/material/TextField';
 import Slider from '@mui/material/Slider';
@@ -12,23 +12,28 @@ import CardHeader from '@mui/material/CardHeader';
 import Grid from '@mui/material/Grid';
 import Chip from '@mui/material/Chip';
 
-import { IService, IServiceActionTypes, IServiceTier, IGroupServiceAddonActionTypes, IServiceAddonActionTypes, IGroupServiceActionTypes, IUtilActionTypes, IGroup } from 'awayto';
+import { IService, IServiceActionTypes, IServiceTier, IGroupFormActionTypes, IGroupServiceAddonActionTypes, IServiceAddonActionTypes, IGroupServiceActionTypes, IUtilActionTypes, IGroup, IFormVersion, IForm } from 'awayto';
 import { useApi, useRedux, useComponents, useAct, useStyles } from 'awayto-hooks';
 
 const { POST_SERVICE } = IServiceActionTypes;
 const { POST_SERVICE_ADDON } = IServiceAddonActionTypes;
+const { GET_GROUP_FORMS, GET_GROUP_FORM_BY_ID } = IGroupFormActionTypes;
 const { GET_GROUP_SERVICES, POST_GROUP_SERVICE } = IGroupServiceActionTypes;
 const { GET_GROUP_SERVICE_ADDONS, POST_GROUP_SERVICE_ADDON, DELETE_GROUP_SERVICE_ADDON } = IGroupServiceAddonActionTypes;
 const { SET_SNACK } = IUtilActionTypes;
 
 const serviceSchema = {
   name: '',
-  cost: ''
+  cost: '',
+  formId: '',
+  formVersionId: ''
 };
 
 const serviceTierSchema = {
   name: '',
-  multiplier: '1.00'
+  multiplier: '1.00',
+  formId: '',
+  formVersionId: ''
 };
 
 const validCost = function (cost: string): boolean {
@@ -48,7 +53,9 @@ export function ServiceHome(props: IProps): JSX.Element {
   const [serviceTierAddonIds, setServiceTierAddonIds] = useState<string[]>([]);
   const { groupServiceAddons } = useRedux(state => state.groupServiceAddon);
   const { groups } = useRedux(state => state.profile);
+  const { groupForms } = useRedux(state => state.groupForm);
   const [group, setGroup] = useState({} as IGroup);
+  const [formDetailsId, setFormDetailsId] = useState();
 
   useEffect(() => {
     if (groups) {
@@ -62,13 +69,24 @@ export function ServiceHome(props: IProps): JSX.Element {
   useEffect(() => {
     if (!group.name) return;
     const [abort1] = api(GET_GROUP_SERVICES, { groupName: group.name });
-    const [abort2, rez] = api(GET_GROUP_SERVICE_ADDONS, { groupName: group.name });
+    const [abort2] = api(GET_GROUP_FORMS, { groupName: group.name });
+    const [abort3, rez] = api(GET_GROUP_SERVICE_ADDONS, { groupName: group.name });
     rez?.then(() => setServiceTierAddonIds([]));
     return () => {
       abort1();
       abort2();
+      abort3();
     }
   }, [group]);
+
+  const getGroupFormById = useCallback(async (formId: string): Promise<IForm | undefined> => {
+    const [, res] = api(GET_GROUP_FORM_BY_ID, { groupName: group.name, formId });
+    return await res?.then(forms => {
+      const [form] = forms as IForm[];
+      console.log({ form });
+      return form;
+    });
+  }, [group])
 
   return <Grid container spacing={2}>
 
@@ -76,7 +94,7 @@ export function ServiceHome(props: IProps): JSX.Element {
       <Card style={{ display: 'flex', flexDirection: 'column' }}>
         <CardHeader
           title="Create Service"
-          subheader="Services are the functions of your organization. Each service has a set of tiers and features. As well, a cost may be associated with the service. If there is a cost, tiers can be used to provide a higher level of service at a higher cost, using the multiplier. Features can be added to each tier as necessary." 
+          subheader="Services are the functions of your organization. Each service has a set of tiers and features. As well, a cost may be associated with the service. If there is a cost, tiers can be used to provide a higher level of service at a higher cost, using the multiplier. Features can be added to each tier as necessary."
           action={
             groups && group.id && <TextField
               select
@@ -96,8 +114,24 @@ export function ServiceHome(props: IProps): JSX.Element {
                 <TextField fullWidth label="Name" value={newService.name} onChange={e => setNewService({ ...newService, name: e.target.value })} helperText="Ex: Website Hosting, Yard Maintenance, Automotive Repair" />
               </Box>
 
+              <Box mb={4}>
+                <TextField fullWidth label="Cost" helperText="Optional." value={newService.cost || ''} onChange={e => validCost(e.target.value) && setNewService({ ...newService, cost: /\.\d\d/.test(e.target.value) ? parseFloat(e.target.value).toFixed(2) : e.target.value })} />
+              </Box>
+
               <Box>
-                <TextField fullWidth label="Cost" value={newService.cost || ''} onChange={e => validCost(e.target.value) && setNewService({ ...newService, cost: /\.\d\d/.test(e.target.value) ? parseFloat(e.target.value).toFixed(2) : e.target.value })} />
+                <TextField
+                  select
+                  fullWidth
+                  value={newService.formId}
+                  label="Form"
+                  helperText="Optional."
+                  onChange={async e => {
+                    const form = await getGroupFormById(e.target.value);
+                    setNewService({ ...newService, formId: form?.id, formVersionId: form?.version?.id })
+                  }}
+                >
+                  {Object.values(groupForms).map(form => <MenuItem key={`form-version-select${form.id}`} value={form.id}>{form.name}</MenuItem>)}
+                </TextField>
               </Box>
             </Grid>
           </Grid>
@@ -137,6 +171,22 @@ export function ServiceHome(props: IProps): JSX.Element {
                   {...props}
                 />
               </Box>}
+
+              <Box mb={4}>
+                <TextField
+                  select
+                  fullWidth
+                  value={newServiceTier.formId}
+                  label="Form"
+                  helperText="Optional."
+                  onChange={async e => {
+                    const form = await getGroupFormById(e.target.value);
+                    setNewServiceTier({ ...newServiceTier, formId: form?.id, formVersionId: form?.version?.id })
+                  }}
+                >
+                  {Object.values(groupForms).map(form => <MenuItem key={`form-version-select${form.id}`} value={form.id}>{form.name}</MenuItem>)}
+                </TextField>
+              </Box>
 
               <Box>
                 <Typography variant="h6">Multiplier</Typography>
