@@ -12,7 +12,7 @@ import CardHeader from '@mui/material/CardHeader';
 import Grid from '@mui/material/Grid';
 import Chip from '@mui/material/Chip';
 
-import { IService, IServiceActionTypes, IServiceTier, IGroupFormActionTypes, IGroupServiceAddonActionTypes, IServiceAddonActionTypes, IGroupServiceActionTypes, IUtilActionTypes, IGroup, IFormVersion, IForm } from 'awayto';
+import { IService, IServiceActionTypes, IServiceTier, IGroupFormActionTypes, IGroupServiceAddonActionTypes, IServiceAddonActionTypes, IGroupServiceActionTypes, IUtilActionTypes, IGroup, IForm } from 'awayto';
 import { useApi, useRedux, useComponents, useAct, useStyles } from 'awayto-hooks';
 
 const { POST_SERVICE } = IServiceActionTypes;
@@ -53,7 +53,6 @@ export function ServiceHome(props: IProps): JSX.Element {
   const { groups } = useRedux(state => state.profile);
   const { groupForms } = useRedux(state => state.groupForm);
   const [group, setGroup] = useState({} as IGroup);
-  const [formDetailsId, setFormDetailsId] = useState();
 
   useEffect(() => {
     if (groups) {
@@ -104,7 +103,7 @@ export function ServiceHome(props: IProps): JSX.Element {
             </TextField>
           }
         />
-        <CardContent sx={{ padding: '0 15px' }}>
+        <CardContent>
 
           <Grid container>
             <Grid item xs={12} md={6}>
@@ -266,7 +265,7 @@ export function ServiceHome(props: IProps): JSX.Element {
             void act(SET_SNACK, { snackOn: 'Provide the service name, cost and at least 1 tier.', snackType: 'info' });
           }
         }}>
-          <Box mx={2} sx={{ display: 'flex' }}>
+          <Box m={2} sx={{ display: 'flex' }}>
             <Typography color="secondary" variant="button">Create Service</Typography>
           </Box>
         </CardActionArea>

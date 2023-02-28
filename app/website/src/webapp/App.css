@@ -111,6 +111,7 @@ pre {
 
 
 .rdt_Table,
+.rdt_Table > div,
 .rdt_TableHeader,
 .rdt_TableHeadRow,
 .rdt_TableRow,

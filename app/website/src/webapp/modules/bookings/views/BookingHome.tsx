@@ -2,6 +2,9 @@ import React, { useEffect, useState, useMemo } from 'react';
 import DataTable, { TableColumn } from 'react-data-table-component';
 import { useParams } from 'react-router';
 
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
 import Avatar from '@mui/material/Avatar';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
@@ -10,8 +13,11 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
 import CardContent from '@mui/material/CardContent';
+import CardActionArea from '@mui/material/CardActionArea';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
+
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckIcon from '@mui/icons-material/Check';
 
 import { ILookupActionTypes, IScheduleActionTypes, IGroupFormActionTypes, ISchedule, IService, IServiceAddon, IServiceTier, IQuote, IContact, IForm } from 'awayto';
@@ -26,12 +32,11 @@ export function BookingHome(props: IProps): JSX.Element {
   const { groupName } = useParams();
 
   const api = useApi();
-  const { FileManager } = useComponents();
+  const { FileManager, FormDisplay } = useComponents();
   const util = useRedux(state => state.util);
   const { schedules } = useRedux(state => state.schedule);
-  const { budgets, timelines } = useRedux(state => state.lookup);
 
-  const [schedule, setSchedule] = useState({ } as ISchedule);
+  const [schedule, setSchedule] = useState({} as ISchedule);
   const [services, setServices] = useState<Record<string, IService>>({});
   const [service, setService] = useState({} as IService);
   const [tier, setTier] = useState({} as IServiceTier);
@@ -42,8 +47,10 @@ export function BookingHome(props: IProps): JSX.Element {
   const [tierForm, setTierForm] = useState({} as IForm);
 
   useEffect(() => {
-    const [abort1] = api(GET_SCHEDULES)
-    const [abort2] = api(GET_LOOKUPS);
+    const [abort1, res] = api(GET_SCHEDULES)
+    res?.catch(console.warn);
+    const [abort2, rez] = api(GET_LOOKUPS);
+    rez?.catch(console.warn);
     return () => {
       abort1();
       abort2();
@@ -52,9 +59,25 @@ export function BookingHome(props: IProps): JSX.Element {
 
   useEffect(() => {
     if (service.formId && service.formId != serviceForm.id) {
-      const [, res] = api(GET_GROUP_FORM_BY_ID, { groupName, formId: service.formId });
+      const [abort, res] = api(GET_GROUP_FORM_BY_ID, { groupName, formId: service.formId });
+      res?.then(forms => {
+        const [form] = forms as IForm[];
+        setServiceForm(form);
+      }).catch(console.warn);
+      return () => abort();
     }
-  }, [service, tier])
+  }, [service]);
+
+  useEffect(() => {
+    if (tier.formId && tier.formId != tierForm.id) {
+      const [abort, res] = api(GET_GROUP_FORM_BY_ID, { groupName, formId: tier.formId });
+      res?.then(forms => {
+        const [form] = forms as IForm[];
+        setTierForm(form);
+      }).catch(console.warn);
+      return () => abort();
+    }
+  }, [tier]);
 
   const serviceTiers = useMemo(() => Object.values(service?.tiers || {}), [service?.tiers]);
 
@@ -73,8 +96,6 @@ export function BookingHome(props: IProps): JSX.Element {
       }, [] as TableColumn<Partial<IServiceAddon>>[])
     ]
   }, [serviceTierAddons, service, tier]);
-
-
 
   useEffect(() => {
     const [id] = Object.keys(schedules);
@@ -118,140 +139,112 @@ export function BookingHome(props: IProps): JSX.Element {
 
   return <>
     {schedule.brackets && <Grid container spacing={2}>
+
       <Grid item xs={12}>
         <Card>
-          <CardHeader title="Request a Quote" />
+          <CardHeader title="Service Booking" />
           <CardContent>
 
-            <Box m={4}>
-              <Grid container direction="row" spacing={8}>
-                <Grid item xs={12}>
-                  <Grid container direction="column" spacing={6}>
-                    <Grid item>
-                      <TextField fullWidth label="Project Name" value={quote.name} onChange={e => setQuote({ ...quote, name: e.target.value })} />
-                    </Grid>
-                    <Grid item>
-                      <Box mt={-4}>
-                        <TextField fullWidth multiline minRows={4} InputProps={{ style: { minHeight: '100px' } }} label="Description" value={quote.description} onChange={e => setQuote({ ...quote, description: e.target.value })} />
-                      </Box>
-                    </Grid>
-
-                    <Grid item>
-                      <FileManager {...props} />
-                    </Grid>
-
-                    <Grid item>
-                      <Grid container spacing={2}>
-                        <Grid item xs={4}>
-                          <TextField style={{ flex: '1' }} select label="Schedules" fullWidth value={schedule.id} onChange={e => {
-                            void api(GET_SCHEDULE_BY_ID, { id: e.target.value })
-                            // .then(res => {
-                            //   if (res) {
-                            //     setSchedule(res)
-                            //     setService(res.services[0])
-                            //     setTier(res.services[0].tiers[0])
-                            //   }
-                            // });
-                          }}>
-                            {Object.values(schedules)?.map((schedule, i) => {
-                              return <MenuItem key={i} value={schedule.id}>{schedule.name}</MenuItem>
-                            })}
-                          </TextField>
-                        </Grid>
-                        <Grid item xs={4}>
-                          <TextField style={{ flex: '1' }} select label="Service" fullWidth value={service.id} onChange={e => {
-                            const serv = services[e.target.value];
-                            setService(serv);
-                            setTier(serv.tiers[0]);
-                          }}>
-                            {Object.values(services).map((service, i) => {
-                              return <MenuItem key={`booking_service_selection_${i}`} value={service.id}>{service.name}</MenuItem>
-                            })}
-                          </TextField>
-                        </Grid>
-                        <Grid item xs={4}>
-                          <TextField style={{ flex: '1' }} select label="Tier" fullWidth value={tier.id} onChange={e => {
-                            setTier(serviceTiers.find(t => t.id === e.target.value) as IServiceTier);
-                          }}>
-                            {serviceTiers.sort((a, b) => new Date(b.createdOn).getTime() - new Date(a.createdOn).getTime()).map((tier, i) => {
-                              return <MenuItem key={i} value={tier.id}>{tier.name}</MenuItem>
-                            })}
-                          </TextField>
-                        </Grid>
-                      </Grid>
-                      <Box mt={6}>
-                        <Card>
-                          <CardContent>
-                            {tierColumns.length > 0 && <DataTable title="Tier Addon Comparison" theme={util.theme} data={serviceTierAddons.map(name => ({ name }))} columns={tierColumns} />}
-                          </CardContent>
-                        </Card>
-                      </Box>
-                    </Grid>
-                  </Grid>
-                </Grid>
-
-                <Grid item xs={12}>
-                  <Grid container direction="column" spacing={6}>
-
-                    <Grid item>
-                      <TextField fullWidth label="Contact Name" value={contact.name} onChange={e => setContact({ ...contact, name: e.target.value })} />
-                    </Grid>
-
-                    <Grid item>
-                      <Grid container spacing={4}>
-                        <Grid item style={{ flex: '2' }}>
-                          <TextField fullWidth label="Email" value={contact.email} onChange={e => setContact({ ...contact, email: e.target.value })} />
-                        </Grid>
-
-                        <Grid item style={{ flex: '1' }}>
-                          <TextField fullWidth label="Phone" value={contact.phone} onChange={e => setContact({ ...contact, phone: e.target.value })} />
-                        </Grid>
-                      </Grid>
-                    </Grid>
-                    <Grid item>
-                      <Box sx={{ display: 'flex' }}>
-                        <TextField select label="Budget" fullWidth value={quote.budgetId} onChange={e => { setQuote({ ...quote, budgetId: e.target.value }) }}>
-                          <MenuItem value="">No selection</MenuItem>
-                          {budgets?.map((budget, i) => {
-                            return <MenuItem key={i} value={budget.id}>{budget.name}</MenuItem>
-                          })}
-                        </TextField>
-                        &nbsp;&nbsp;&nbsp;&nbsp;
-                        <TextField select label="Timeline" fullWidth value={quote.timelineId} onChange={e => { setQuote({ ...quote, timelineId: e.target.value }) }}>
-                          <MenuItem value="">No selection</MenuItem>
-                          {timelines?.map((timeline, i) => {
-                            return <MenuItem key={i} value={timeline.id}>{timeline.name}</MenuItem>
-                          })}
-                        </TextField>
-                      </Box>
-                    </Grid>
-                    <Grid item>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <Box sx={{ display: 'flex' }}>
-                          <TextField label="Desired Duration" value={quote.desiredDuration} onChange={e => setQuote({ ...quote, desiredDuration: parseInt(e.target.value) })} type="number" />
-                          <Typography>{schedule.bracketTimeUnitName}</Typography>
-                        </Box>
-                        {/* <Box>
-                          Estimated Cost:
-                          <Typography variant="h6">{parseFloat(service.cost) * quote.desiredDuration * parseFloat(tier.multiplier) * parseFloat(Object.values(schedule.brackets)[0].multiplier)}</Typography>
-                        </Box> */}
-                      </Box>
-                    </Grid>
-                    {quote.desiredDuration > 0 && <Box mt={8} m={4}>
-
-                    </Box>}
-                  </Grid>
-                </Grid>
+            <Grid container spacing={2}>
+              <Grid item xs={4}>
+                <TextField style={{ flex: '1' }} select label="Schedules" fullWidth value={schedule.id} onChange={e => {
+                  void api(GET_SCHEDULE_BY_ID, { id: e.target.value })
+                  // .then(res => {
+                  //   if (res) {
+                  //     setSchedule(res)
+                  //     setService(res.services[0])
+                  //     setTier(res.services[0].tiers[0])
+                  //   }
+                  // });
+                }}>
+                  {Object.values(schedules)?.map((schedule, i) => {
+                    return <MenuItem key={i} value={schedule.id}>{schedule.name}</MenuItem>
+                  })}
+                </TextField>
               </Grid>
-            </Box>
+              <Grid item xs={4}>
+                <TextField style={{ flex: '1' }} select label="Service" fullWidth value={service.id} onChange={e => {
+                  const serv = services[e.target.value];
+                  setService(serv);
+                  setTier(serv.tiers[0]);
+                }}>
+                  {Object.values(services).map((service, i) => {
+                    return <MenuItem key={`booking_service_selection_${i}`} value={service.id}>{service.name}</MenuItem>
+                  })}
+                </TextField>
+              </Grid>
+              <Grid item xs={4}>
+                <TextField style={{ flex: '1' }} select label="Tier" fullWidth value={tier.id} onChange={e => {
+                  setTier(serviceTiers.find(t => t.id === e.target.value) as IServiceTier);
+                }}>
+                  {serviceTiers.sort((a, b) => new Date(b.createdOn).getTime() - new Date(a.createdOn).getTime()).map((tier, i) => {
+                    return <MenuItem key={i} value={tier.id}>{tier.name}</MenuItem>
+                  })}
+                </TextField>
+              </Grid>
+            </Grid>
 
-            <Box m={5} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <Button sx={{ alignSelf: 'flex-end' }} variant="text" color="primary">Submit</Button>
-            </Box>
           </CardContent>
-        </Card >
+        </Card>
 
+        <Accordion>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            aria-controls="tiers-and-features-content"
+            id="tiers-and-features-header"
+          >
+            <Typography>Tiers & Features</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <DataTable
+              theme={util.theme}
+              columns={tierColumns}
+              data={serviceTierAddons.map(name => ({ name }))}
+            />
+          </AccordionDetails>
+        </Accordion>
+        
+        {serviceForm.version && <Accordion>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            aria-controls="service-booking-section-service-questionnaire-content"
+            id="service-booking-section-service-questionnaire-header"
+          >
+            <Typography>Service Questionnaire</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <FormDisplay form={serviceForm} setForm={setServiceForm} />
+          </AccordionDetails>
+        </Accordion>}
+
+        {tierForm.version && <Accordion>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            aria-controls="service-booking-section-tier-questionnaire-content"
+            id="service-booking-section-tier-questionnaire-header"
+          >
+            <Typography>Tier Questionnaire</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <FormDisplay form={tierForm} setForm={setTierForm} />
+          </AccordionDetails>
+        </Accordion>}
+
+        <FileManager {...props} />
       </Grid>
+
+      <Grid item xs={12}>
+        <Card>
+          <CardActionArea onClick={() => {
+            console.log({ booking: true })
+          }}>
+            <Box m={2} sx={{ display: 'flex' }}>
+              <Typography color="secondary" variant="button">Submit Booking</Typography>
+            </Box>
+          </CardActionArea>
+        </Card>
+      </Grid>
+
     </Grid>}
   </>
 

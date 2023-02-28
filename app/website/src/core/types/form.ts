@@ -59,6 +59,7 @@ export type IFormVersion = {
   id: string;
   formId: string;
   form: IFormTemplate;
+  submission: IFormTemplate;
   createdOn: string;
   createdSub: string;
 }
@@ -69,8 +70,7 @@ export type IFormVersion = {
 export type IForm = {
   id: string;
   name: string;
-  version?: IFormVersion;
-  versions?: IFormVersion[];
+  version: IFormVersion;
   createdOn: string;
   createdSub: string;
 }
