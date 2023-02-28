@@ -16,6 +16,7 @@ declare global {
 export default function FormDisplay({ form, setForm }: IProps & Required<FormDisplayProps>): JSX.Element {
 
   const [rows, setRows] = useState({} as IFormTemplate);
+  const [formId, setFormId] = useState('');
 
   useEffect(() => {
     if (Object.keys(rows).length) {
@@ -26,10 +27,15 @@ export default function FormDisplay({ form, setForm }: IProps & Required<FormDis
           submission: rows
         }
       });
-    } else if (Object.keys(form.version.form).length) {
-      setRows({ ...form.version.form });
     }
-  }, [form, rows]);
+  }, [rows]);
+
+  useEffect(() => {
+    if (form.id !== formId && Object.keys(form.version.form).length) {
+      setRows({ ...form.version.form });
+      setFormId(form.id)
+    }
+  }, [form, formId]);
 
   const rowKeys = useMemo(() => Object.keys(rows), [rows]);
 

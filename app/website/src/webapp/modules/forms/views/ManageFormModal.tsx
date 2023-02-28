@@ -70,15 +70,16 @@ export function ManageFormModal({ editForm, closeModal, ...props }: IProps): JSX
     const { id, name } = form;
 
     if (!name || !Object.keys(version.form).length || Object.values(version.form).some(v => v.some(f => !f.l))) {
-      act(SET_SNACK, { snackType: 'error', snackOn: 'Forms must have a name, and at least 1 field. All fields must have a label.' });
+      act(SET_SNACK, { snackType: 'error', snackOn: 'Forms must have a name, and at least 1 field. All fields mus have a label.' });
+      setEditable(true);
       return;
     }
 
-    const newForm = Object.keys(version.form).reduce((m, k) => {
+    const newForm = Object.keys(version.form).reduce((m, k, i) => {
       const fields = [...version.form[k]] as IField[];
       return {
         ...m,
-        [k]: fields.map(f => {
+        [i]: fields.map(f => {
           if ('' === f.t) delete f.t;
           if ('' === f.h) delete f.h;
           if (false === f.r) delete f.r;

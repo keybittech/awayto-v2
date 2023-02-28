@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import DataTable, { TableColumn } from 'react-data-table-component';
 import { useParams } from 'react-router';
 
@@ -8,7 +8,6 @@ import AccordionDetails from '@mui/material/AccordionDetails';
 import Avatar from '@mui/material/Avatar';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
@@ -20,7 +19,7 @@ import MenuItem from '@mui/material/MenuItem';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckIcon from '@mui/icons-material/Check';
 
-import { ILookupActionTypes, IScheduleActionTypes, IGroupFormActionTypes, ISchedule, IService, IServiceAddon, IServiceTier, IQuote, IContact, IForm } from 'awayto';
+import { ILookupActionTypes, IScheduleActionTypes, IGroupFormActionTypes, ISchedule, IService, IServiceAddon, IServiceTier, IForm, IGroup } from 'awayto';
 import { useApi, useRedux, useComponents, useStyles } from 'awayto-hooks';
 
 const { GET_GROUP_FORM_BY_ID } = IGroupFormActionTypes;
@@ -40,11 +39,22 @@ export function BookingHome(props: IProps): JSX.Element {
   const [services, setServices] = useState<Record<string, IService>>({});
   const [service, setService] = useState({} as IService);
   const [tier, setTier] = useState({} as IServiceTier);
-  const [contact, setContact] = useState({} as IContact);
-  const [quote, setQuote] = useState({} as IQuote);
+  // const [contact, setContact] = useState({} as IContact);
+  // const [quote, setQuote] = useState({} as IQuote);
   const [serviceTierAddons, setServiceTierAddons] = useState<string[]>([]);
   const [serviceForm, setServiceForm] = useState({} as IForm);
   const [tierForm, setTierForm] = useState({} as IForm);
+  const { groups } = useRedux(state => state.profile);
+  const [group, setGroup] = useState({ id: '' } as IGroup);
+
+  useEffect(() => {
+    if (groups) {
+      for (const g in groups) {
+        setGroup(groups[g]);
+        break;
+      }
+    }
+  }, [groups]);
 
   useEffect(() => {
     const [abort1, res] = api(GET_SCHEDULES)
@@ -103,18 +113,7 @@ export function BookingHome(props: IProps): JSX.Element {
       const [abort, res] = api<ISchedule, ISchedule[]>(GET_SCHEDULE_BY_ID, { id }, { load: true })
       res?.then(data => {
         const [sched] = data;
-        setSchedule(sched);
-
-        for (const b in sched.brackets) {
-          const bracketServices = sched.brackets[b].services;
-          setServices(bracketServices);
-          for (const s in bracketServices) {
-            setService(bracketServices[s]);
-            setTier(Object.values(bracketServices[s].tiers).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime())[0]);
-            break;
-          }
-          break;
-        }
+        loadSchedule(sched);
       }).catch(console.warn);
       return () => abort();
     }
@@ -137,25 +136,49 @@ export function BookingHome(props: IProps): JSX.Element {
     }
   }, [service]);
 
+  const loadSchedule = useCallback((sched: ISchedule) => {
+    setSchedule(sched);
+    for (const b in sched.brackets) {
+      const bracketServices = sched.brackets[b].services;
+      setServices(bracketServices);
+      for (const s in bracketServices) {
+        setService(bracketServices[s]);
+        setTier(Object.values(bracketServices[s].tiers).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime())[0]);
+        break;
+      }
+      break;
+    }
+  }, [])
+
   return <>
     {schedule.brackets && <Grid container spacing={2}>
 
       <Grid item xs={12}>
         <Card>
-          <CardHeader title="Service Booking" />
+          <CardHeader
+            title="Service Booking"
+            subheader="Request services from a group. Different services may have required information to submit the request, so be sure to check."
+            action={
+              <TextField
+                select
+                value={group.id}
+                label="Group"
+                onChange={e => setGroup(Object.values(groups).filter(g => g.id === e.target.value)[0])}
+              >
+                {Object.values(groups).map(group => <MenuItem key={`group-select${group.id}`} value={group.id}>{group.name}</MenuItem>)}
+              </TextField>
+            }
+          />
           <CardContent>
 
             <Grid container spacing={2}>
               <Grid item xs={4}>
                 <TextField style={{ flex: '1' }} select label="Schedules" fullWidth value={schedule.id} onChange={e => {
-                  void api(GET_SCHEDULE_BY_ID, { id: e.target.value })
-                  // .then(res => {
-                  //   if (res) {
-                  //     setSchedule(res)
-                  //     setService(res.services[0])
-                  //     setTier(res.services[0].tiers[0])
-                  //   }
-                  // });
+                  const [, res] = api(GET_SCHEDULE_BY_ID, { id: e.target.value })
+                  res?.then(res => {
+                    const [sched] = res as ISchedule[];
+                    loadSchedule(sched);
+                  });
                 }}>
                   {Object.values(schedules)?.map((schedule, i) => {
                     return <MenuItem key={i} value={schedule.id}>{schedule.name}</MenuItem>

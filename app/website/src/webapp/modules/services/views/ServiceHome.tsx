@@ -50,9 +50,9 @@ export function ServiceHome(props: IProps): JSX.Element {
   const [newServiceTier, setNewServiceTier] = useState({ ...serviceTierSchema, addons: {} } as IServiceTier);
   const [serviceTierAddonIds, setServiceTierAddonIds] = useState<string[]>([]);
   const { groupServiceAddons } = useRedux(state => state.groupServiceAddon);
-  const { groups } = useRedux(state => state.profile);
   const { groupForms } = useRedux(state => state.groupForm);
-  const [group, setGroup] = useState({} as IGroup);
+  const { groups } = useRedux(state => state.profile);
+  const [group, setGroup] = useState({ id: '' } as IGroup);
 
   useEffect(() => {
     if (groups) {
@@ -80,7 +80,6 @@ export function ServiceHome(props: IProps): JSX.Element {
     const [, res] = api(GET_GROUP_FORM_BY_ID, { groupName: group.name, formId });
     return await res?.then(forms => {
       const [form] = forms as IForm[];
-      console.log({ form });
       return form;
     });
   }, [group])
@@ -93,7 +92,7 @@ export function ServiceHome(props: IProps): JSX.Element {
           title="Create Service"
           subheader="Services are the functions of your organization. Each service has a set of tiers and features. As well, a cost may be associated with the service. If there is a cost, tiers can be used to provide a higher level of service at a higher cost, using the multiplier. Features can be added to each tier as necessary."
           action={
-            groups && group.id && <TextField
+            <TextField
               select
               value={group.id}
               label="Group"

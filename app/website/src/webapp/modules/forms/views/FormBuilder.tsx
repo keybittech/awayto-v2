@@ -28,14 +28,18 @@ export default function FormBuilder({ version, setVersion, editable = true }: IP
   useEffect(() => {
     if (Object.keys(rows).length) {
       setVersion({ ...version, form: rows });
-    } else if (Object.keys(version.form).length) {
+    }
+  }, [rows]);
+
+  useEffect(() => {
+    if (Object.keys(version.form).length) {
       setRows({ ...version.form });
     }
-  }, [version, rows]);
+  }, [version]);
 
   const rowKeys = useMemo(() => Object.keys(rows), [rows]);
 
-  const addRow = useCallback(() => setRows({ ...rows, [`${Object.keys(rows).length + 1}`]: [makeField()] }), [rows]);
+  const addRow = useCallback(() => setRows({ ...rows, [(new Date()).getTime().toString()]: [makeField()] }), [rows]);
 
   // const delRow = useCallback((row: string) => {
   //   delete rows[row];
@@ -50,12 +54,48 @@ export default function FormBuilder({ version, setVersion, editable = true }: IP
     setRows({ ...rows });
   }, [rows]);
 
-  const makeField = useCallback((): IField => ({ l: '', t: '', h: '', r: false }), []);
+  const makeField = useCallback((): IField => ({ l: '', t: 'text', h: '', r: false }), []);
 
   const setCellAttr = useCallback((value: string, attr: string) => {
     rows[position.row][position.col][attr] = value;
     setRows({ ...rows })
   }, [rows, position]);
+
+  const buildField = useCallback((field: IField, row: string, col: number) => {
+    switch (field.t) {
+      case 'text':
+      case 'date':
+      case 'time':
+        return <TextField
+          fullWidth
+          label={field.l || 'Click to edit.'}
+          type={field.t}
+          helperText={`${field.r ? 'Required. ' : ''}${field.h || ''}`}
+          onFocus={() => {
+            setCell(field);
+            setPosition({ row, col });
+          }}
+          InputProps={{
+            endAdornment: <Button variant="text" onClick={() => {
+              delCol(row, col);
+              setCell({} as IField);
+            }}>x</Button>
+          }}
+        />
+      case 'labelntext':
+        return <>
+          <Typography variant="h6">Label</Typography>
+          <Typography variant="caption">Text</Typography>
+          <Button variant="text" onClick={() => {
+              delCol(row, col);
+              setCell({} as IField);
+            }}>x</Button>
+        </>
+      default:
+        return <></>
+    }
+  }, [rows])
+
 
   return <Grid container spacing={2}>
 
@@ -71,22 +111,7 @@ export default function FormBuilder({ version, setVersion, editable = true }: IP
               <Grid container spacing={2}>
                 {rows[rowId].map((cell, j) => {
                   return <Grid key={`form_fields_cell_${i + 1}_${j}`} item xs={12 / rows[rowId].length}>
-                    <TextField
-                      fullWidth
-                      label={cell.l || 'Click to edit.'}
-                      type={cell.t || 'text'}
-                      helperText={`${cell.r ? 'Required. ' : ''}${cell.h || ''}`}
-                      onFocus={() => {
-                        setCell(cell);
-                        setPosition({ row: rowId, col: j });
-                      }}
-                      InputProps={{
-                        endAdornment: <Button variant="text" onClick={() => {
-                          delCol(rowId, j);
-                          setCell({} as IField);
-                        }}>x</Button>
-                      }}
-                    />
+                    {buildField(cell, rowId, j)}
                   </Grid>
                 })}
               </Grid>
@@ -131,9 +156,9 @@ export default function FormBuilder({ version, setVersion, editable = true }: IP
             onChange={e => setCellAttr(e.target.value, 't')}
           >
             <MenuItem key={1111} value={'text'}>Text</MenuItem>
-            <MenuItem key={1234} value={'email'}>E-Mail</MenuItem>
             <MenuItem key={23432423} value={'date'}>Date</MenuItem>
             <MenuItem key={235325} value={'time'}>Time</MenuItem>
+            <MenuItem key={235324325} value={'labelntext'}>Label and Text</MenuItem>
           </TextField>
         </Grid>
 
