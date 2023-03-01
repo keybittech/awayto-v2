@@ -95,7 +95,19 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
 
     return <CardActionArea
       style={gridCell.style}
-      sx={{ position: 'relative', '&:hover': { opacity: '1', boxShadow: '2' }, border: exists ? `1px solid ${bracketColors[scheduleBracketsValues.findIndex(b => b.id === exists.scheduleBracketId)]}` : undefined, backgroundColor: '#444', opacity: !exists ? '.33' : '1', textAlign: 'center', boxShadow: exists ? '2' : undefined }}
+      sx={{
+        backgroundColor: '#444',
+        textAlign: 'center',
+        position: 'relative',
+        '&:hover': {
+          backgroundColor: '#aaa',
+          opacity: '1',
+          boxShadow: '2'
+        },
+        border: exists ? `1px solid ${bracketColors[scheduleBracketsValues.findIndex(b => b.id === exists.scheduleBracketId)]}` : undefined,
+        opacity: !exists ? '.33' : '1',
+        boxShadow: exists ? '2' : undefined
+      }}
       onMouseLeave={() => buttonDown && setValue()}
       onMouseDown={() => setButtonDown(true)}
       onMouseUp={() => {

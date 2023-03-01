@@ -2,12 +2,15 @@ import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import Grid from '@mui/material/Grid';
 import Switch from '@mui/material/Switch';
 import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
+import ButtonBase from '@mui/material/ButtonBase';
 import Divider from '@mui/material/Divider';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 
 import { IField, IFormVersion } from 'awayto';
-import { Typography } from '@mui/material';
+
+import Field from './Field';
 
 export type FormBuilderProps = {
   version?: IFormVersion;
@@ -54,74 +57,52 @@ export default function FormBuilder({ version, setVersion, editable = true }: IP
     setRows({ ...rows });
   }, [rows]);
 
-  const makeField = useCallback((): IField => ({ l: '', t: 'text', h: '', r: false }), []);
+  const makeField = useCallback((): IField => ({ l: '', t: 'text', h: '', r: false, v: '', x: '' }), []);
 
   const setCellAttr = useCallback((value: string, attr: string) => {
     rows[position.row][position.col][attr] = value;
     setRows({ ...rows })
   }, [rows, position]);
 
-  const buildField = useCallback((field: IField, row: string, col: number) => {
-    switch (field.t) {
-      case 'text':
-      case 'date':
-      case 'time':
-        return <TextField
-          fullWidth
-          label={field.l || 'Click to edit.'}
-          type={field.t}
-          helperText={`${field.r ? 'Required. ' : ''}${field.h || ''}`}
-          onFocus={() => {
-            setCell(field);
-            setPosition({ row, col });
-          }}
-          InputProps={{
-            endAdornment: <Button variant="text" onClick={() => {
-              delCol(row, col);
-              setCell({} as IField);
-            }}>x</Button>
-          }}
-        />
-      case 'labelntext':
-        return <>
-          <Typography variant="h6">Label</Typography>
-          <Typography variant="caption">Text</Typography>
-          <Button variant="text" onClick={() => {
-              delCol(row, col);
-              setCell({} as IField);
-            }}>x</Button>
-        </>
-      default:
-        return <></>
-    }
-  }, [rows])
-
-
   return <Grid container spacing={2}>
 
-    <Grid item sx={{ display: 'flex', flex: 1 }}>
+    <Grid item sx={{ display: 'flex', flex: 1, alignItems: 'start' }}>
       <Grid container spacing={2}>
-        <Grid item xs={12}>
-          {Object.keys(rows).length < 3 && <Button fullWidth onClick={addRow}>add row</Button>}
-          {Object.keys(rows).length > 0 && <Typography variant="caption">Click on a field to edit it. All fields must have a label.</Typography>}
-        </Grid>
+        {Object.keys(rows).length < 3 && <Grid item xs={12}>
+          <Button variant="outlined" fullWidth onClick={addRow}>add row</Button>
+        </Grid>}
+        {Object.keys(rows).length > 0 && <Grid item xs={12}>
+          <Typography variant="subtitle1">Start by editing the field and adding a label.</Typography>
+        </Grid>}
         {rowKeys.map((rowId, i) => <Grid key={`form_fields_row_${i}`} item xs={12}>
           <Grid container spacing={2}>
-            <Grid item xs={rows[rowId].length < 3 ? 10 : 12}>
+            {rows[rowId].length < 3 && <Grid item xs={12} md={2}>
+              <Grid container direction="column" sx={{ placeItems: 'center', height: '100%' }}>
+                <Button fullWidth variant="outlined" color="warning" sx={{ display: 'flex', flex: 1 }} onClick={() => addCol(rowId)}>add column</Button>
+                {/* <ButtonBase sx={{ display: 'flex', padding: '2px', backgroundColor: 'rgba(255, 0, 0, .1)' }} onClick={() => delRow(rowId)}>- row</ButtonBase> */}
+              </Grid>
+            </Grid>}
+            <Grid item xs={12} md={rows[rowId].length < 3 ? 10 : 12}>
               <Grid container spacing={2}>
-                {rows[rowId].map((cell, j) => {
-                  return <Grid key={`form_fields_cell_${i + 1}_${j}`} item xs={12 / rows[rowId].length}>
-                    {buildField(cell, rowId, j)}
+                {rows[rowId].map((field, j) => {
+                  return <Grid item xs={12 / rows[rowId].length} key={`form_fields_cell_${i + 1}_${j}`}>
+                    <ButtonBase
+                      sx={{
+                        width: '100%',
+                        backgroundColor: position.row === rowId && position.col === j ? 'rgba(0, 150, 200, .1)' : 'rgba(0, 0, 0, .1)',
+                        cursor: 'pointer !important'
+                      }}
+                      onClick={() => {
+                        setCell(field);
+                        setPosition({ row: rowId, col: j })
+                      }}
+                    >
+                      <Field field={field} />
+                    </ButtonBase>
                   </Grid>
                 })}
               </Grid>
             </Grid>
-            {rows[rowId].length < 3 && <Grid item xs={2}>
-              <Grid container direction="column" sx={{ placeItems: 'center', height: '100%' }}>
-                <Button fullWidth variant="contained" color="secondary" sx={{ display: 'flex', flex: 1 }} onClick={() => addCol(rowId)}>add column</Button>
-                {/* <CardActionArea sx={{ display: 'flex', padding: '2px', backgroundColor: 'rgba(255, 0, 0, .1)' }} onClick={() => delRow(rowId)}>- row</CardActionArea> */}
-              </Grid>
-            </Grid>}
           </Grid>
         </Grid>)}
       </Grid>
@@ -133,6 +114,7 @@ export default function FormBuilder({ version, setVersion, editable = true }: IP
 
     {editable && Object.hasOwn(cell, 'l') && <Grid item xs={4}>
       <Grid container spacing={2} direction="column">
+
         <Grid item>
           <Grid container alignItems="center">
             <Grid item sx={{ display: 'flex', flex: 1 }}>
@@ -140,14 +122,30 @@ export default function FormBuilder({ version, setVersion, editable = true }: IP
             </Grid>
             <Grid item>
               <Button variant="text" onClick={() => {
+                setPosition({ row: '', col: 0 })
                 setCell({} as IField);
               }}>X</Button>
             </Grid>
           </Grid>
-
-
         </Grid>
-        <Grid item xs={6}>
+
+        <Grid item>
+          <Button fullWidth color="error" onClick={() => {
+            setPosition({ row: '', col: 0 })
+            delCol(position.row, position.col);
+            setCell({} as IField);
+          }}>Delete</Button>
+        </Grid>
+
+        <Grid item>
+          <TextField fullWidth label="Label" type="text" helperText="Required." value={cell.l} onChange={e => setCellAttr(e.target.value, 'l')} />
+        </Grid>
+
+        {'labelntext' === cell.t && <Grid item>
+          <TextField fullWidth label="Text" type="text" value={cell.x} onChange={e => setCellAttr(e.target.value, 'x')} />
+        </Grid>}
+
+        <Grid item>
           <TextField
             fullWidth
             select
@@ -155,20 +153,18 @@ export default function FormBuilder({ version, setVersion, editable = true }: IP
             value={cell.t}
             onChange={e => setCellAttr(e.target.value, 't')}
           >
-            <MenuItem key={1111} value={'text'}>Text</MenuItem>
+            <MenuItem key={1111} value={'text'}>Textfield</MenuItem>
             <MenuItem key={23432423} value={'date'}>Date</MenuItem>
             <MenuItem key={235325} value={'time'}>Time</MenuItem>
             <MenuItem key={235324325} value={'labelntext'}>Label and Text</MenuItem>
           </TextField>
         </Grid>
 
-        <Grid item xs={6}>
-          <TextField fullWidth label="Label" type="text" value={cell.l} onChange={e => setCellAttr(e.target.value, 'l')} />
-        </Grid>
-        <Grid item xs={6}>
+        <Grid item>
           <TextField fullWidth label="Helper Text" type="text" value={cell.h} onChange={e => setCellAttr(e.target.value, 'h')} />
         </Grid>
-        <Grid item xs={6}>
+
+        <Grid item>
           <Typography variant="body1">Required</Typography>
           <Switch value={cell.r} checked={cell.r} onChange={() => {
             rows[position.row][position.col].r = !cell.r;

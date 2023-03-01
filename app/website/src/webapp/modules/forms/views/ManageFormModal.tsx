@@ -80,8 +80,10 @@ export function ManageFormModal({ editForm, closeModal, ...props }: IProps): JSX
       return {
         ...m,
         [i]: fields.map(f => {
+          delete f.v;
           if ('' === f.t) delete f.t;
           if ('' === f.h) delete f.h;
+          if ('' === f.x) delete f.x;
           if (false === f.r) delete f.r;
           return f;
         })
