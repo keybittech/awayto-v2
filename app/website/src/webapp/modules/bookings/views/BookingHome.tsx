@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import DataTable, { TableColumn } from 'react-data-table-component';
-import { useParams } from 'react-router';
 
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
@@ -15,25 +14,57 @@ import CardContent from '@mui/material/CardContent';
 import CardActionArea from '@mui/material/CardActionArea';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckIcon from '@mui/icons-material/Check';
 
-import { ILookupActionTypes, IScheduleActionTypes, IGroupFormActionTypes, ISchedule, IService, IServiceAddon, IServiceTier, IForm, IGroup } from 'awayto';
-import { useApi, useRedux, useComponents, useStyles } from 'awayto-hooks';
+import {
+  ILookupActionTypes,
+  IScheduleActionTypes,
+  IGroupFormActionTypes,
+  IGroupScheduleActionTypes,
+  ISchedule,
+  IScheduleBracket,
+  IService,
+  IServiceAddon,
+  IServiceTier,
+  IForm,
+  IGroup,
+  IUtilActionTypes,
+  IQuote,
+  IQuoteActionTypes,
+  ITimeUnitNames,
+  TimeUnit,
+  timeUnitOrder,
+  weekFields,
+  IGroupSchedule,
+  IGroupUserScheduleActionTypes,
+  IGroupUserSchedule
+} from 'awayto';
+import { useApi, useRedux, useComponents, useStyles, useAct } from 'awayto-hooks';
+import { ChronoUnit, DateTimeFormatter, LocalDate, Temporal, TemporalAdjusters, TemporalUnit, Duration } from '@js-joda/core';
+import { abort } from 'process';
 
 const { GET_GROUP_FORM_BY_ID } = IGroupFormActionTypes;
-const { GET_SCHEDULES, GET_SCHEDULE_BY_ID } = IScheduleActionTypes;
+const { POST_QUOTE } = IQuoteActionTypes;
 const { GET_LOOKUPS } = ILookupActionTypes;
+const { SET_SNACK } = IUtilActionTypes;
+const { GET_GROUP_SCHEDULES, GET_GROUP_SCHEDULE_MASTER_BY_ID } = IGroupScheduleActionTypes;
+const { GET_GROUP_USER_SCHEDULES } = IGroupUserScheduleActionTypes;
 
 export function BookingHome(props: IProps): JSX.Element {
   const classes = useStyles();
-  const { groupName } = useParams();
 
   const api = useApi();
+  const act = useAct();
   const { FileManager, FormDisplay } = useComponents();
   const util = useRedux(state => state.util);
-  const { schedules } = useRedux(state => state.schedule);
+  const { groupSchedules } = useRedux(state => state.groupSchedule);
+  const { groupUserSchedules } = useRedux(state => state.groupUserSchedule);
+  const { groups } = useRedux(state => state.profile);
+  const { timeUnits } = useRedux(state => state.lookup);
 
   const [schedule, setSchedule] = useState({} as ISchedule);
   const [services, setServices] = useState<Record<string, IService>>({});
@@ -44,50 +75,98 @@ export function BookingHome(props: IProps): JSX.Element {
   const [serviceTierAddons, setServiceTierAddons] = useState<string[]>([]);
   const [serviceForm, setServiceForm] = useState({} as IForm);
   const [tierForm, setTierForm] = useState({} as IForm);
-  const { groups } = useRedux(state => state.profile);
   const [group, setGroup] = useState({ id: '' } as IGroup);
+  const [quote, setQuote] = useState({} as IQuote);
+
+  const temporalAdjuster = TemporalAdjusters.previousOrSame(weekFields.firstDayOfWeek());
 
   useEffect(() => {
     if (groups) {
       for (const g in groups) {
-        setGroup(groups[g]);
-        break;
+        const [abort, res] = api(GET_GROUP_SCHEDULES, { groupName: groups[g].name })
+        res?.then(data => {
+          const scheds = data as IGroupSchedule[];
+          const [, rez] = api(GET_GROUP_SCHEDULE_MASTER_BY_ID, { groupName: groups[g].name, scheduleId: scheds[0].id })
+          rez?.then(data => {
+            const [sched] = data as IGroupSchedule[];
+            loadSchedule(sched);
+            setGroup(groups[g]);
+          }).catch(console.warn);
+        }).catch(console.warn);
+        return () => abort();
       }
     }
   }, [groups]);
 
-  useEffect(() => {
-    const [abort1, res] = api(GET_SCHEDULES)
-    res?.catch(console.warn);
-    const [abort2, rez] = api(GET_LOOKUPS);
-    rez?.catch(console.warn);
-    return () => {
-      abort1();
-      abort2();
-    }
-  }, []);
+  const loadSchedule = useCallback((sched: ISchedule) => {
+    sched.scheduleTimeUnitName = timeUnits.find(u => u.id === sched.scheduleTimeUnitId)?.name as ITimeUnitNames;
+    sched.bracketTimeUnitName = timeUnits.find(u => u.id === sched.bracketTimeUnitId)?.name as ITimeUnitNames;
+    sched.slotTimeUnitName = timeUnits.find(u => u.id === sched.slotTimeUnitId)?.name as ITimeUnitNames;
+    setSchedule(sched);
+  }, [timeUnits]);
 
   useEffect(() => {
-    if (service.formId && service.formId != serviceForm.id) {
-      const [abort, res] = api(GET_GROUP_FORM_BY_ID, { groupName, formId: service.formId });
+    if (Object.keys(groupSchedules).length) {
+      for (const gs in groupSchedules) {
+        loadSchedule(groupSchedules[gs]);
+        break;
+      }
+    }
+  }, [groupSchedules]);
+
+  useEffect(() => {
+    if (group.name && schedule.id) {
+      const [abort] = api(GET_GROUP_USER_SCHEDULES, { groupName: group.name, groupScheduleId: schedule.id });
+      return () => abort();
+    }
+  }, [group, schedule]);
+
+  const bracketsValues = useMemo(() => {
+    if (Object.keys(groupUserSchedules).length) {
+      const brackets = Object.keys(groupUserSchedules).flatMap(s => Object.values(groupUserSchedules[s].brackets));
+  
+      const newServices = {} as Record<string, IService>;
+      let someService = {} as IService;
+  
+      brackets.forEach(bracket => {
+        for (const s in bracket.services) {
+          newServices[s] = bracket.services[s];
+          someService = bracket.services[s];
+        }
+      });
+  
+      setService(someService);
+      setServices(newServices);
+      setTier(Object.values(someService.tiers).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime())[0]);
+      
+      console.log({ brackets })
+
+      return brackets;
+    }
+    return [];
+  }, [groupUserSchedules]);
+
+  useEffect(() => {
+    if (group.name && service.formId && service.formId != serviceForm.id) {
+      const [abort, res] = api(GET_GROUP_FORM_BY_ID, { groupName: group.name, formId: service.formId });
       res?.then(forms => {
         const [form] = forms as IForm[];
         setServiceForm(form);
       }).catch(console.warn);
       return () => abort();
     }
-  }, [service]);
+  }, [service, group]);
 
   useEffect(() => {
-    if (tier.formId && tier.formId != tierForm.id) {
-      const [abort, res] = api(GET_GROUP_FORM_BY_ID, { groupName, formId: tier.formId });
+    if (group.name && tier.formId && tier.formId != tierForm.id) {
+      const [abort, res] = api(GET_GROUP_FORM_BY_ID, { groupName: group.name, formId: tier.formId });
       res?.then(forms => {
         const [form] = forms as IForm[];
         setTierForm(form);
       }).catch(console.warn);
       return () => abort();
     }
-  }, [tier]);
+  }, [tier, group]);
 
   const serviceTiers = useMemo(() => Object.values(service?.tiers || {}), [service?.tiers]);
 
@@ -108,18 +187,6 @@ export function BookingHome(props: IProps): JSX.Element {
   }, [serviceTierAddons, service, tier]);
 
   useEffect(() => {
-    const [id] = Object.keys(schedules);
-    if (id && !schedules[id].brackets) {
-      const [abort, res] = api<ISchedule, ISchedule[]>(GET_SCHEDULE_BY_ID, { id }, { load: true })
-      res?.then(data => {
-        const [sched] = data;
-        loadSchedule(sched);
-      }).catch(console.warn);
-      return () => abort();
-    }
-  }, [schedules]);
-
-  useEffect(() => {
     if (serviceTiers.length) {
       const newAddons = serviceTiers.sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime()).reduce<string[]>((memo, { addons }) => {
         const serviceAddons = Object.values(addons);
@@ -136,22 +203,8 @@ export function BookingHome(props: IProps): JSX.Element {
     }
   }, [service]);
 
-  const loadSchedule = useCallback((sched: ISchedule) => {
-    setSchedule(sched);
-    for (const b in sched.brackets) {
-      const bracketServices = sched.brackets[b].services;
-      setServices(bracketServices);
-      for (const s in bracketServices) {
-        setService(bracketServices[s]);
-        setTier(Object.values(bracketServices[s].tiers).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime())[0]);
-        break;
-      }
-      break;
-    }
-  }, [])
-
   return <>
-    {schedule.brackets && <Grid container spacing={2}>
+    {!!bracketsValues.length && group.name && <Grid container spacing={2}>
 
       <Grid item xs={12}>
         <Card>
@@ -173,33 +226,49 @@ export function BookingHome(props: IProps): JSX.Element {
 
             <Grid container spacing={2}>
               <Grid item xs={4}>
-                <TextField style={{ flex: '1' }} select label="Schedules" fullWidth value={schedule.id} onChange={e => {
-                  const [, res] = api(GET_SCHEDULE_BY_ID, { id: e.target.value })
-                  res?.then(res => {
-                    const [sched] = res as ISchedule[];
-                    loadSchedule(sched);
-                  });
-                }}>
-                  {Object.values(schedules)?.map((schedule, i) => {
-                    return <MenuItem key={i} value={schedule.id}>{schedule.name}</MenuItem>
+                <TextField
+                  select
+                  label="Schedules"
+                  fullWidth
+                  value={schedule.id}
+                  onChange={e => {
+                    if (e.target.value !== schedule.id) {
+                      loadSchedule(groupSchedules[e.target.value]);
+                    }
+                  }}
+                >
+                  {Object.values(groupSchedules)?.map((sched, i) => {
+                    return <MenuItem key={i} value={sched.id}>{sched.name}</MenuItem>
                   })}
                 </TextField>
               </Grid>
               <Grid item xs={4}>
-                <TextField style={{ flex: '1' }} select label="Service" fullWidth value={service.id} onChange={e => {
-                  const serv = services[e.target.value];
-                  setService(serv);
-                  setTier(serv.tiers[0]);
-                }}>
+                <TextField
+                  select
+                  label="Service"
+                  fullWidth
+                  value={service.id}
+                  onChange={e => {
+                    const serv = services[e.target.value];
+                    setService(serv);
+                    setTier(serv.tiers[0]);
+                  }}
+                >
                   {Object.values(services).map((service, i) => {
                     return <MenuItem key={`booking_service_selection_${i}`} value={service.id}>{service.name}</MenuItem>
                   })}
                 </TextField>
               </Grid>
               <Grid item xs={4}>
-                <TextField style={{ flex: '1' }} select label="Tier" fullWidth value={tier.id} onChange={e => {
-                  setTier(serviceTiers.find(t => t.id === e.target.value) as IServiceTier);
-                }}>
+                <TextField
+                  select
+                  label="Tier"
+                  fullWidth
+                  value={tier.id}
+                  onChange={e => {
+                    setTier(serviceTiers.find(t => t.id === e.target.value) as IServiceTier);
+                  }}
+                >
                   {serviceTiers.sort((a, b) => new Date(b.createdOn).getTime() - new Date(a.createdOn).getTime()).map((tier, i) => {
                     return <MenuItem key={i} value={tier.id}>{tier.name}</MenuItem>
                   })}
@@ -226,7 +295,7 @@ export function BookingHome(props: IProps): JSX.Element {
             />
           </AccordionDetails>
         </Accordion>
-        
+
         {serviceForm.version && <Accordion>
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
@@ -253,13 +322,104 @@ export function BookingHome(props: IProps): JSX.Element {
           </AccordionDetails>
         </Accordion>}
 
+        {tierForm.version && <Accordion>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            aria-controls="service-booking-section-time-selection-content"
+            id="service-booking-section-time-selection-header"
+          >
+            <Typography>Time Selection</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Grid container spacing={2}>
+              <Grid item xs={4}>
+                <DatePicker
+                  label="Date"
+                  onChange={value => {
+                    if (value) {
+                      setQuote({ ...quote, jodaDate: value, slotDate: value.format(DateTimeFormatter.ofPattern('yyyy-MM-dd')) });
+                    }
+                  }}
+                  shouldDisableDate={date => {
+                    const bracketsHasDate = bracketsValues.some(b => {
+                      let found = false;
+                      for (const s in b.slots) {
+                        const slot = b.slots[s];
+                        const check = date.with(temporalAdjuster).plus(Duration.parse(slot.startTime).toDays(), ChronoUnit.DAYS);
+                        if (0 === date.compareTo(check)) {
+                          found = true;
+                          break;
+                        }
+                      }
+                      return found;
+                    });
+                    return !bracketsHasDate;
+                  }}
+                  value={quote.jodaDate}
+                  renderInput={params => <TextField {...params} />}
+                />
+              </Grid>
+              {timeUnitOrder.indexOf(schedule.slotTimeUnitName) <= timeUnitOrder.indexOf(TimeUnit.HOUR) && <Grid item xs={4}>
+                <TimePicker
+                  label="Time"
+                  views={TimeUnit.HOUR === schedule.slotTimeUnitName ? ['hours'] : ['hours', 'minutes']}
+                  minutesStep={TimeUnit.MINUTE === schedule.slotTimeUnitName ? schedule.slotDuration : 1}
+                  onChange={value => {
+                    if (value) {
+                      setQuote({ ...quote, jodaTime: value });
+                    }
+                  }}
+                  shouldDisableTime={(time, clockType) => {
+                    return false;
+                  }}
+                  value={quote.jodaTime}
+                  renderInput={params => <TextField {...params} />}
+                />
+              </Grid>}
+
+              {/* can add person here */}
+            </Grid>
+          </AccordionDetails>
+        </Accordion>}
+
         <FileManager {...props} />
       </Grid>
 
       <Grid item xs={12}>
         <Card>
           <CardActionArea onClick={() => {
-            console.log({ booking: true })
+            quote.serviceTierId = tier.id;
+
+            if (serviceForm) {
+              const missingValues = Object.keys(serviceForm.version.form).some(rowId => serviceForm.version.form[rowId].some((field, i) => field.r && [undefined, ''].includes(serviceForm.version.submission[rowId][i])));
+              if (missingValues) {
+                act(SET_SNACK, { snackType: 'error', snackOn: 'The Service Questionnaire is missing required fields!' });
+                return;
+              }
+              quote.serviceForm = {
+                formVersionId: serviceForm.version.id,
+                submission: serviceForm.version.submission
+              }
+            }
+
+            if (tierForm) {
+              const missingValues = Object.keys(tierForm.version.form).some(rowId => tierForm.version.form[rowId].some((field, i) => field.r && [undefined, ''].includes(tierForm.version.submission[rowId][i])));
+              if (missingValues) {
+                act(SET_SNACK, { snackType: 'error', snackOn: 'The Tier Questionnaire is missing required fields!' });
+                return;
+              }
+              quote.tierForm = {
+                formVersionId: tierForm.version.id,
+                submission: tierForm.version.submission
+              }
+            }
+
+            const [, res] = api(POST_QUOTE, quote);
+            res?.then(quotes => {
+              const [savedQuote] = quotes as IQuote[];
+
+              console.log({ QUOTEID: savedQuote.id, SERVICEFORMSUBMISSIONID: savedQuote.serviceForm?.id, TIERFORMSUBMISSIONID: savedQuote.tierForm?.id })
+            })
           }}>
             <Box m={2} sx={{ display: 'flex' }}>
               <Typography color="secondary" variant="button">Submit Booking</Typography>

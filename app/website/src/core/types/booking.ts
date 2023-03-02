@@ -1,4 +1,4 @@
-import { IScheduleBracket } from 'awayto';
+import { IFormSubmission, IScheduleBracket } from 'awayto';
 import { PayloadAction } from '.';
 import { Merge } from '../util';
 
@@ -38,12 +38,11 @@ export type IBookingScheduleBracket = {
  */
 export type IBooking = {
   id: string;
-  serviceTierId: string;
-  bookingScheduleBrackets: Record<string, IBookingScheduleBracket>;
-  contactId: string;
-  description: string;
-  paymentId: string;
-  agreement: boolean;
+  quoteId: string;
+  slotDate: string;
+  scheduleBracketSlotId: string;
+  createdOn: string;
+  createdSub: string;
 };
 
 /**

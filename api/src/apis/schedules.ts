@@ -34,20 +34,6 @@ const schedules: ApiModule = [
       }
     }
   },
-  {
-    action: IScheduleActionTypes.POST_SCHEDULE_PARENT,
-    cmnd: async (props) => {
-      const { parentUuid, scheduleId } = props.event.body;
-
-      await props.db.query(`
-        INSERT INTO dbtable_schema.uuid_schedules (parent_uuid, schedule_id, created_sub)
-        VALUES ($1, $2, $3::uuid)
-        ON CONFLICT (parent_uuid, schedule_id) DO NOTHING
-      `, [parentUuid, scheduleId, props.event.userSub])
-
-      return true;
-    }
-  },
 
   {
     action: IScheduleActionTypes.POST_SCEHDULE_BRACKETS,
@@ -97,8 +83,9 @@ const schedules: ApiModule = [
               ON CONFLICT (schedule_bracket_id, start_time) DO NOTHING
               RETURNING id
             `, [bracketId, s.startTime, props.event.userSub])).rows;
-  
+            
             s.id = slotId;
+            s.scheduleBracketId = bracketId;
           });
   
           newBrackets[b.id] = b;

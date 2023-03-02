@@ -1,4 +1,4 @@
-import { PayloadAction, IRole, IUserProfile, IService, IServiceAddon, ISchedule, IForm } from '.';
+import { PayloadAction, IRole, IUserProfile, IService, IServiceAddon, ISchedule, IForm, IScheduleBracket } from '.';
 import { Merge } from '../util';
 
 declare global {
@@ -11,15 +11,16 @@ declare global {
     groupServiceAddon: IGroupServiceAddonState;
     groupSchedule: IGroupScheduleState;
     groupForm: IGroupFormState;
+    groupUserSchedule: IGroupUserScheduleState;
   }
 
 
-  interface IMergedState extends Merge<Merge<Merge<Merge<Merge<Merge<unknown, IGroupRoleActionState>, IGroupState>, IGroupServiceState>, IGroupServiceAddonState>, IGroupScheduleState>, IGroupFormState> {}
+  interface IMergedState extends Merge<Merge<Merge<Merge<Merge<Merge<Merge<unknown, IGroupRoleActionState>, IGroupState>, IGroupServiceState>, IGroupServiceAddonState>, IGroupScheduleState>, IGroupFormState>, IGroupUserScheduleState> { }
 
   /**
    * @category Awayto Redux
    */
-  type IGroupModuleActions = IGroupActions | IGroupServiceActions | IGroupServiceAddonActions | IGroupScheduleActions | IGroupFormActions;
+  type IGroupModuleActions = IGroupActions | IGroupServiceActions | IGroupServiceAddonActions | IGroupScheduleActions | IGroupFormActions | IGroupUserSchedule;
 
   /**
    * @category Awayto Redux
@@ -30,6 +31,7 @@ declare global {
     groupServiceAddon: IGroupServiceAddonActionTypes;
     groupSchedule: IGroupScheduleActionTypes;
     groupForm: IGroupFormActionTypes;
+    groupUserSchedule: IGroupUserScheduleActionTypes;
   }
 }
 
@@ -262,146 +264,211 @@ export type IGroupServiceActions = IPostGroupServiceAction
 
 
 
-  /**
-   * @category Group
-   */
-  export type IGroupSchedule = ISchedule & {
-    groupId: string;
-    parentScheduleId: string;
-  };
-  
-  /**
-   * @category Group
-   */
-  export type IGroupScheduleState = IGroupSchedule & {
-    groupSchedules: Record<string, IGroupSchedule>;
-  };
-  
-  /**
-   * @category Action Types
-   */
-  export enum IGroupScheduleActionTypes {
-    POST_GROUP_SCHEDULE = "POST/group/:groupName/schedules",
-    PUT_GROUP_SCHEDULE = "PUT/group/:groupName/schedules",
-    GET_GROUP_SCHEDULES = "GET/group/:groupName/schedules",
-    GET_GROUP_SCHEDULE_BY_ID = "GET/group/:groupName/schedules/:scheduleId",
-    GET_GROUP_SCHEDULE_MASTER_BY_ID = "GET/group/:groupName/schedulemaster/:scheduleId",
-    DELETE_GROUP_SCHEDULE = "DELETE/group/:groupName/schedules/:ids"
-  }
-  
-  /**
-   * @category Group
-   */
-  export type IPostGroupScheduleAction = PayloadAction<IGroupScheduleActionTypes.POST_GROUP_SCHEDULE, IGroupSchedule[]>;
-  
+/**
+ * @category Group
+ */
+export type IGroupSchedule = ISchedule & {
+  master: true;
+  groupId: string;
+};
 
-  /**
-   * @category Group
-   */
-  export type IPutGroupScheduleAction = PayloadAction<IGroupScheduleActionTypes.PUT_GROUP_SCHEDULE, IGroupSchedule[]>;
-  
-  /**
-   * @category Group
-   */
-  export type IGetGroupSchedulesAction = PayloadAction<IGroupScheduleActionTypes.GET_GROUP_SCHEDULES, IGroupSchedule[]>;
-  
-  /**
-   * @category Group
-   */
-  export type IGetGroupScheduleByIdAction = PayloadAction<IGroupScheduleActionTypes.GET_GROUP_SCHEDULE_BY_ID, IGroupSchedule[]>;
-  
-  /**
-   * @category Group
-   */
-  export type IGetGroupScheduleMasterByIdAction = PayloadAction<IGroupScheduleActionTypes.GET_GROUP_SCHEDULE_MASTER_BY_ID, IGroupSchedule[]>;
-  
-  /**
-   * @category Group
-   */
-  export type IDeleteGroupScheduleAction = PayloadAction<IGroupScheduleActionTypes.DELETE_GROUP_SCHEDULE, IGroupSchedule[]>;
-  
-  /**
-   * @category Group
-   */
-  export type IGroupScheduleActions = IPostGroupScheduleAction
-    | IPutGroupScheduleAction
-    | IGetGroupSchedulesAction
-    | IGetGroupScheduleByIdAction
-    | IGetGroupScheduleMasterByIdAction
-    | IDeleteGroupScheduleAction;
+/**
+ * @category Group
+ */
+export type IGroupScheduleState = IGroupSchedule & {
+  groupSchedules: Record<string, IGroupSchedule>;
+};
+
+/**
+ * @category Action Types
+ */
+export enum IGroupScheduleActionTypes {
+  POST_GROUP_SCHEDULE = "POST/group/:groupName/schedules",
+  PUT_GROUP_SCHEDULE = "PUT/group/:groupName/schedules",
+  GET_GROUP_SCHEDULES = "GET/group/:groupName/schedules",
+  GET_GROUP_SCHEDULE_MASTER_BY_ID = "GET/group/:groupName/schedulemaster/:scheduleId",
+  DELETE_GROUP_SCHEDULE = "DELETE/group/:groupName/schedules/:ids"
+}
+
+/**
+ * @category Group
+ */
+export type IPostGroupScheduleAction = PayloadAction<IGroupScheduleActionTypes.POST_GROUP_SCHEDULE, IGroupSchedule[]>;
+
+
+/**
+ * @category Group
+ */
+export type IPutGroupScheduleAction = PayloadAction<IGroupScheduleActionTypes.PUT_GROUP_SCHEDULE, IGroupSchedule[]>;
+
+/**
+ * @category Group
+ */
+export type IGetGroupSchedulesAction = PayloadAction<IGroupScheduleActionTypes.GET_GROUP_SCHEDULES, IGroupSchedule[]>;
+
+/**
+ * @category Group
+ */
+export type IGetGroupScheduleMasterByIdAction = PayloadAction<IGroupScheduleActionTypes.GET_GROUP_SCHEDULE_MASTER_BY_ID, IGroupSchedule[]>;
+
+/**
+ * @category Group
+ */
+export type IDeleteGroupScheduleAction = PayloadAction<IGroupScheduleActionTypes.DELETE_GROUP_SCHEDULE, IGroupSchedule[]>;
+
+/**
+ * @category Group
+ */
+export type IGroupScheduleActions = IPostGroupScheduleAction
+  | IPutGroupScheduleAction
+  | IGetGroupSchedulesAction
+  | IGetGroupScheduleMasterByIdAction
+  | IDeleteGroupScheduleAction;
 
 
 
-    
-  /**
-   * @category Group
-   */
-  export type IGroupForm = IForm & {
-    id: string;
-    groupId: string;
-    formId: string;
-  };
-  
-  /**
-   * @category Group
-   */
-  export type IGroupForms = Record<string, IGroupForm>;
-  
-  /**
-   * @category Group
-   */
-  export type IGroupFormState = IGroupForm & {
-    groupForms: Record<string, IGroupForm>;
-  };
-  
-  /**
-   * @category Action Types
-   */
-  export enum IGroupFormActionTypes {
-    POST_GROUP_FORM = "POST/group/:groupName/forms",
-    POST_GROUP_FORM_VERSION = "POST/group/:groupName/forms/:formId",
-    PUT_GROUP_FORM = "PUT/group/:groupName/forms",
-    GET_GROUP_FORMS = "GET/group/:groupName/forms",
-    GET_GROUP_FORM_BY_ID = "GET/group/:groupName/forms/:formId",
-    DELETE_GROUP_FORM = "DELETE/group/:groupName/forms/:ids"
-  }
-  
-  /**
-   * @category Group
-   */
-  export type IPostGroupFormAction = PayloadAction<IGroupFormActionTypes.POST_GROUP_FORM, IGroupForm[]>;
-  
-  /**
-   * @category Group
-   */
-  export type IPostGroupFormVersionAction = PayloadAction<IGroupFormActionTypes.POST_GROUP_FORM_VERSION, IGroupForm[]>;
 
-  /**
-   * @category Group
-   */
-  export type IPutGroupFormAction = PayloadAction<IGroupFormActionTypes.PUT_GROUP_FORM, IGroupForm[]>;
-  
-  /**
-   * @category Group
-   */
-  export type IGetGroupFormsAction = PayloadAction<IGroupFormActionTypes.GET_GROUP_FORMS, IGroupForm[]>;
-  
-  /**
-   * @category Group
-   */
-  export type IGetGroupFormByIdAction = PayloadAction<IGroupFormActionTypes.GET_GROUP_FORM_BY_ID, IGroupForm[]>;
-  
-  /**
-   * @category Group
-   */
-  export type IDeleteGroupFormAction = PayloadAction<IGroupFormActionTypes.DELETE_GROUP_FORM, IGroupForm[]>;
-  
-  /**
-   * @category Group
-   */
-  export type IGroupFormActions = IPostGroupFormAction
-    | IPostGroupFormVersionAction
-    | IPutGroupFormAction
-    | IGetGroupFormsAction
-    | IGetGroupFormByIdAction
-    | IDeleteGroupFormAction;
+/**
+ * @category Group
+ */
+export type IGroupForm = IForm & {
+  id: string;
+  groupId: string;
+  formId: string;
+};
+
+/**
+ * @category Group
+ */
+export type IGroupForms = Record<string, IGroupForm>;
+
+/**
+ * @category Group
+ */
+export type IGroupFormState = IGroupForm & {
+  groupForms: Record<string, IGroupForm>;
+};
+
+/**
+ * @category Action Types
+ */
+export enum IGroupFormActionTypes {
+  POST_GROUP_FORM = "POST/group/:groupName/forms",
+  POST_GROUP_FORM_VERSION = "POST/group/:groupName/forms/:formId",
+  PUT_GROUP_FORM = "PUT/group/:groupName/forms",
+  GET_GROUP_FORMS = "GET/group/:groupName/forms",
+  GET_GROUP_FORM_BY_ID = "GET/group/:groupName/forms/:formId",
+  DELETE_GROUP_FORM = "DELETE/group/:groupName/forms/:ids"
+}
+
+/**
+ * @category Group
+ */
+export type IPostGroupFormAction = PayloadAction<IGroupFormActionTypes.POST_GROUP_FORM, IGroupForm[]>;
+
+/**
+ * @category Group
+ */
+export type IPostGroupFormVersionAction = PayloadAction<IGroupFormActionTypes.POST_GROUP_FORM_VERSION, IGroupForm[]>;
+
+/**
+ * @category Group
+ */
+export type IPutGroupFormAction = PayloadAction<IGroupFormActionTypes.PUT_GROUP_FORM, IGroupForm[]>;
+
+/**
+ * @category Group
+ */
+export type IGetGroupFormsAction = PayloadAction<IGroupFormActionTypes.GET_GROUP_FORMS, IGroupForm[]>;
+
+/**
+ * @category Group
+ */
+export type IGetGroupFormByIdAction = PayloadAction<IGroupFormActionTypes.GET_GROUP_FORM_BY_ID, IGroupForm[]>;
+
+/**
+ * @category Group
+ */
+export type IDeleteGroupFormAction = PayloadAction<IGroupFormActionTypes.DELETE_GROUP_FORM, IGroupForm[]>;
+
+/**
+ * @category Group
+ */
+export type IGroupFormActions = IPostGroupFormAction
+  | IPostGroupFormVersionAction
+  | IPutGroupFormAction
+  | IGetGroupFormsAction
+  | IGetGroupFormByIdAction
+  | IDeleteGroupFormAction;
+
+
+
+
+
+/**
+ * @category Group
+ */
+export type IGroupUserSchedule = {
+  id: string;
+  groupScheduleId: string;
+  userScheduleId: string;
+  name: string;
+  brackets: Record<string, IScheduleBracket>;
+}
+
+/**
+ * @category Group
+ */
+export type IGroupUserSchedules = Record<string, IGroupUserSchedule>;
+
+/**
+ * @category Group
+ */
+export type IGroupUserScheduleState = IGroupUserSchedule & {
+  groupUserSchedules: Record<string, IGroupUserSchedule>;
+};
+
+/**
+ * @category Action Types
+ */
+export enum IGroupUserScheduleActionTypes {
+  POST_GROUP_USER_SCHEDULE = "POST/group/:groupName/schedules/:groupScheduleId/user/:userScheduleId",
+  PUT_GROUP_USER_SCHEDULE = "PUT/group/:groupName/schedules/:groupScheduleId/user",
+  GET_GROUP_USER_SCHEDULES = "GET/group/:groupName/schedules/:groupScheduleId/user",
+  GET_GROUP_USER_SCHEDULE_BY_ID = "GET/group/:groupName/schedules/:groupScheduleId/user/:userScheduleId",
+  DELETE_GROUP_USER_SCHEDULE = "DELETE/group/:groupName/schedules/:groupScheduleId/user/:ids"
+}
+
+/**
+ * @category Group
+ */
+export type IPostGroupUserScheduleAction = PayloadAction<IGroupUserScheduleActionTypes.POST_GROUP_USER_SCHEDULE, IGroupUserSchedule[]>;
+
+/**
+ * @category Group
+ */
+export type IPutGroupUserScheduleAction = PayloadAction<IGroupUserScheduleActionTypes.PUT_GROUP_USER_SCHEDULE, IGroupUserSchedule[]>;
+
+/**
+ * @category Group
+ */
+export type IGetGroupUserSchedulesAction = PayloadAction<IGroupUserScheduleActionTypes.GET_GROUP_USER_SCHEDULES, IGroupUserSchedule[]>;
+
+/**
+ * @category Group
+ */
+export type IGetGroupUserScheduleByIdAction = PayloadAction<IGroupUserScheduleActionTypes.GET_GROUP_USER_SCHEDULE_BY_ID, IGroupUserSchedule[]>;
+
+/**
+ * @category Group
+ */
+export type IDeleteGroupUserScheduleAction = PayloadAction<IGroupUserScheduleActionTypes.DELETE_GROUP_USER_SCHEDULE, IGroupUserSchedule[]>;
+
+/**
+ * @category Group
+ */
+export type IGroupUserScheduleActions = IPostGroupUserScheduleAction
+  | IPutGroupUserScheduleAction
+  | IGetGroupUserSchedulesAction
+  | IGetGroupUserScheduleByIdAction
+  | IDeleteGroupUserScheduleAction;

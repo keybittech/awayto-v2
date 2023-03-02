@@ -18,9 +18,9 @@ const groupServices: ApiModule = [
 
         // Attach service to group
         await props.db.query(`
-          INSERT INTO dbtable_schema.uuid_services (parent_uuid, service_id, created_sub)
+          INSERT INTO dbtable_schema.group_services (group_id, service_id, created_sub)
           VALUES ($1, $2, $3::uuid)
-          ON CONFLICT (parent_uuid, service_id) DO NOTHING
+          ON CONFLICT (group_id, service_id) DO NOTHING
           RETURNING id
         `, [groupId, serviceId, props.event.userSub]);
 
@@ -47,10 +47,10 @@ const groupServices: ApiModule = [
         `, [groupName])).rows
 
         const response = await props.db.query<IGroupService>(`
-          SELECT es.*, eus."parentUuid" as "groupId"
-          FROM dbview_schema.enabled_uuid_services eus
-          LEFT JOIN dbview_schema.enabled_services es ON es.id = eus."serviceId"
-          WHERE eus."parentUuid" = $1
+          SELECT es.*, egs."groupId"
+          FROM dbview_schema.enabled_group_services egs
+          LEFT JOIN dbview_schema.enabled_services es ON es.id = egs."serviceId"
+          WHERE egs."groupId" = $1
         `, [groupId]);
 
         return response.rows;
@@ -79,8 +79,8 @@ const groupServices: ApiModule = [
         await asyncForEach(idsSplit, async serviceId => {
           // Detach service from group
           await props.db.query<IGroupService>(`
-            DELETE FROM dbtable_schema.uuid_services
-            WHERE parent_uuid = $1 AND service_id = $2
+            DELETE FROM dbtable_schema.group_services
+            WHERE group_id = $1 AND service_id = $2
             RETURNING id
           `, [groupId, serviceId]);
         })

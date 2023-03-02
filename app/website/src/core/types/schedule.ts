@@ -90,7 +90,6 @@ export type IScheduleState = ISchedule & {
  */
 export enum IScheduleActionTypes {
   POST_SCHEDULE = "POST/schedules",
-  POST_SCHEDULE_PARENT = "POST/schedule/:scheduleId/parent/:parentUuid",
   POST_SCEHDULE_BRACKETS = "POST/schedule/brackets",
   PUT_SCHEDULE = "PUT/schedules",
   GET_SCHEDULES = "GET/schedules",

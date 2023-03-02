@@ -25,6 +25,7 @@ import Groups from './groups';
 import GroupServices from './group_services';
 import GroupServiceAddons from './group_service_addons';
 import GroupSchedules from './group_schedules';
+import GroupUserSchedules from './group_user_schedules';
 import GroupForms from './group_forms';
 
 
@@ -55,6 +56,7 @@ export default  {
     ...GroupServices,
     ...GroupServiceAddons,
     ...GroupSchedules,
+    ...GroupUserSchedules,
     ...GroupForms
   ],
   public: [

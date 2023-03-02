@@ -1,12 +1,13 @@
 import React from 'react';
 
-import { IScheduleActionTypes, IGroupServiceActionTypes, IGroupScheduleActionTypes } from 'awayto';
+import { IScheduleActionTypes, IGroupServiceActionTypes, IGroupScheduleActionTypes, IGroupUserScheduleActionTypes } from 'awayto';
 import { useRedux, useComponents } from 'awayto-hooks';
 
 const { GET_GROUP_SERVICES } = IGroupServiceActionTypes;
 const { GET_GROUP_SCHEDULES } = IGroupScheduleActionTypes;
+const { POST_GROUP_USER_SCHEDULE } = IGroupUserScheduleActionTypes;
 
-const { GET_SCHEDULES, GET_SCHEDULE_BY_ID, POST_SCEHDULE_BRACKETS, POST_SCHEDULE, POST_SCHEDULE_PARENT } = IScheduleActionTypes;
+const { GET_SCHEDULES, GET_SCHEDULE_BY_ID, POST_SCEHDULE_BRACKETS, POST_SCHEDULE } = IScheduleActionTypes;
 
 export const scheduleSchema = {
   id: '',
@@ -45,7 +46,7 @@ export function ScheduleHome(): JSX.Element {
       getGroupServicesAction={GET_GROUP_SERVICES}
       getGroupSchedulesAction={GET_GROUP_SCHEDULES}
       postScheduleAction={POST_SCHEDULE}
-      postScheduleParentAction={POST_SCHEDULE_PARENT}
+      postGroupUserScheduleAction={POST_GROUP_USER_SCHEDULE}
       getScheduleBracketsAction={GET_SCHEDULES}
       postScheduleBracketsAction={POST_SCEHDULE_BRACKETS}
     />

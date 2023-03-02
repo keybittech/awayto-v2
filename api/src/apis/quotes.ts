@@ -1,4 +1,4 @@
-import { IQuote, IQuoteActionTypes, utcNowString } from 'awayto';
+import { asyncForEach, IFormVersionSubmission, IQuote, IQuoteActionTypes, utcNowString } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
 
@@ -9,13 +9,29 @@ const quotes: ApiModule = [
     cmnd : async (props) => {
       try {
 
-        const { name, desiredDuration, budgetId, timelineId, serviceTierId, contactId, respondBy, description } = props.event.body;
+        const { serviceForm, tierForm, slotDate, scheduleBracketSlotId, serviceTierId } = props.event.body;
+        
+        
 
+        await asyncForEach([serviceForm, tierForm], async form => {
+          if (form) {
+            const { rows: [{ id: formId }] } = await props.db.query<IFormVersionSubmission>(`
+              INSERT INTO dbtable_schema.form_version_submissions (form_version_id, submission, created_sub)
+              VALUES ($1, $2::jsonb, $2::uuid)
+              RETURNING id
+            `, [form.formVersionId, form.submission, props.event.userSub]);
+
+            form.id = formId;
+          }
+        })
+        
+        
+        
         const response = await props.db.query<IQuote>(`
-          INSERT INTO dbtable_schema.quotes (name, desired_duration, budget_id, timeline_id, service_tier_id, contact_id, respond_by, description, created_sub)
-          VALUES ($1, $2, $3, $4, $5, $6, $7::uuid)
+          INSERT INTO dbtable_schema.quotes (slot_date, schedule_bracket_slot_id, service_tier_id, service_form_version_submission_id, tier_form_version_submission_id, created_sub)
+          VALUES ($1::date, $2::uuid, $3::uuid, $4::uuid, $5::uuid, $6::uuid)
           RETURNING id, name, desired_duration as "desiredDuration", budget_id as "budgetId", timeline_id as "timelineId", service__tier_id as "serviceTierId", contact_id as "contactId", respond_by as "respondBy", description
-        `, [name, desiredDuration, budgetId, timelineId, serviceTierId, contactId, respondBy, description, props.event.userSub]);
+        `, [slotDate, scheduleBracketSlotId, serviceTierId, serviceForm.id, tierForm.id, props.event.userSub]);
         
         return response.rows[0];
 
@@ -30,20 +46,11 @@ const quotes: ApiModule = [
     cmnd : async (props) => {
       try {
 
-        const {  } = props.event.body;
-
-        const { id, budgetId, timelineId, serviceTierId, contactId, respondBy, description } = props.event.body;
-        
-        if (!id || !budgetId || !timelineId || !serviceTierId || !contactId) throw new Error('Must provide ids for budget, timeline, and service tier');
+        const { id, serviceTierId, } = props.event.body;
 
         const updateProps = buildUpdate({
           id,
-          budget_id: budgetId,
-          timeline_id: timelineId,
           service_tier_id: serviceTierId,
-          contact_id: contactId,
-          respond_by: respondBy,
-          description,
           updated_sub: props.event.userSub,
           updated_on: utcNowString()
         });

@@ -1,4 +1,5 @@
-import { IContact, PayloadAction, IService, IServiceTier } from '.';
+import { ZonedDateTime } from '@js-joda/core';
+import { IContact, PayloadAction, IService, IServiceTier, IFormSubmission, IFormVersionSubmission } from '.';
 import { Merge } from '../util';
 
 declare global {
@@ -30,17 +31,17 @@ declare global {
  */
 export type IQuote = {
   id: string;
-  budgetId: string;
-  timelineId: string;
+  slotDate: string;
+  jodaDate: ZonedDateTime;
+  jodaTime: ZonedDateTime;
   serviceTierId: string;
-  contactId: string;
-  name: string;
-  respondBy: string;
-  description: string;
-  desiredDuration: number;
-  service: IService;
-  serviceTier: IServiceTier;
-  contact: IContact;
+  scheduleBracketSlotId: string;
+  serviceFormVersionSubmissionId: string;
+  tierFormVersionSubmissionId: string;
+  serviceForm?: IFormVersionSubmission;
+  tierForm?: IFormVersionSubmission;
+  createdSub: string;
+  createdOn: string;
 };
 
 /**

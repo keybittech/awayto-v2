@@ -59,9 +59,8 @@ export function utcNowString(): string {
 }
 
 export const formatter = DateTimeFormatter.ofPattern('eee, hh:mm a').withLocale(Locale.US);
-const weekFields = WeekFields.of(Locale.US);
-const firstDay = weekFields.firstDayOfWeek();
-export const startOfWeek = LocalDate.now().with(TemporalAdjusters.previous(firstDay)).atStartOfDay();
+export const weekFields = WeekFields.of(Locale.US);
+export const startOfWeek = LocalDate.now().with(TemporalAdjusters.previous(weekFields.firstDayOfWeek())).atStartOfDay();
 
 export function getContextFormattedDuration(contextUnit: ITimeUnitNames, duration: string): string {
   let formatted = 'No format!';

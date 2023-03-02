@@ -24,7 +24,12 @@ export default function FormDisplay({ form, setForm }: IProps & Required<FormDis
         ...form,
         version: {
           ...form.version,
-          submission: rows
+          submission: Object.keys(rows).reduce((m, rowId) => {
+            return {
+              ...m,
+              [rowId]: rows[rowId].map(r => r.v)
+            }
+          }, {})
         }
       });
     }

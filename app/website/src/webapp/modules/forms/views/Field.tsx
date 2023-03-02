@@ -5,7 +5,7 @@ import Typography from '@mui/material/Typography';
 import { DateTimeFormatter, LocalDate, LocalTime } from '@js-joda/core';
 
 type FieldProps = {
-  field: IField;
+  field?: IField;
   editable?: boolean;
 };
 
@@ -14,6 +14,7 @@ declare global {
 }
 
 function Field ({ field, editable = false }: IProps): JSX.Element {
+  if (!field) return <></>;
   let FieldElement: (props: TextFieldProps) => JSX.Element;
   let value = String(field.v || '');
 

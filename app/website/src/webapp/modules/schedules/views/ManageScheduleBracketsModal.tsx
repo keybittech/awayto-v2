@@ -37,7 +37,7 @@ declare global {
 
 export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, ...props }: IProps): JSX.Element {
 
-  const { getScheduleByIdAction, groupServices, groupSchedules, getGroupServicesAction, getGroupSchedulesAction, postScheduleAction, postScheduleBracketsAction, postScheduleParentAction } = props as IProps & Required<ManageScheduleBracketsActions>;
+  const { getScheduleByIdAction, groupServices, groupSchedules, getGroupServicesAction, getGroupSchedulesAction, postScheduleAction, postScheduleBracketsAction, postGroupUserScheduleAction } = props as IProps & Required<ManageScheduleBracketsActions>;
 
   const api = useApi();
   const act = useAct();
@@ -119,19 +119,19 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
 
           const [, rex] = api(postScheduleBracketsAction, { scheduleId: sched.id, brackets })
           const [, rez] = !editSchedule ?
-            api(postScheduleParentAction, { scheduleId: sched.id, parentUuid: schedule.id }) :
+            api(postGroupUserScheduleAction, { groupName: group?.name, userScheduleId: sched.id, groupScheduleId: schedule.id }) :
             [undefined, new Promise(res => res(true))];
           void Promise.all([rex, rez]).then(() => {
             act(SET_SNACK, { snackOn: 'Successfully added ' + name, snackType: 'info' });
             if (closeModal) closeModal();
           }).catch(console.warn);
-        })
+        });
 
       } else {
         act(SET_SNACK, { snackOn: 'A schedule should have a name, a duration, and at least 1 bracket.', snackType: 'info' });
       }
     }
-  }, [schedule, scheduleBracketsValues]);
+  }, [group, schedule, scheduleBracketsValues]);
 
   return <>
     <DialogTitle>{!editSchedule?.id ? 'Create' : 'Manage'} Schedule Bracket</DialogTitle>

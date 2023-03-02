@@ -43,13 +43,15 @@ export type IField = Record<string, string | boolean> & {
  */
 export type IFormTemplate = Record<string, IField[]>;
 
+export type IFormSubmission = Record<string, string[]>;
+
 /**
  * @category Form
  */
 export type IFormVersionSubmission = {
-  id: string;
+  id?: string;
   formVersionId: string;
-  submission: IFormTemplate;
+  submission: IFormSubmission;
 }
 
 /**
@@ -59,7 +61,7 @@ export type IFormVersion = {
   id: string;
   formId: string;
   form: IFormTemplate;
-  submission: IFormTemplate;
+  submission: IFormSubmission;
   createdOn: string;
   createdSub: string;
 }

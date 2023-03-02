@@ -27,7 +27,7 @@ export type ManageScheduleBracketsActions = {
   getGroupServicesAction?: IActionTypes;
   getGroupSchedulesAction?: IActionTypes;
   postScheduleAction?: IActionTypes;
-  postScheduleParentAction?: IActionTypes;
+  postGroupUserScheduleAction?: IActionTypes;
   getScheduleBracketsAction?: IActionTypes;
   postScheduleBracketsAction?: IActionTypes;
 };
@@ -125,7 +125,7 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
 
   return <>
     <Dialog open={dialog === 'manage_schedule'} fullWidth maxWidth="sm">
-      <ManageScheduleBracketsModal {...props} editSchedule={schedule} closeModal={() => {
+      <ManageScheduleBracketsModal {...props} group={group} editSchedule={schedule} closeModal={() => {
         setDialog('')
         // api(getScheduleBracketsAction);
       }} />
@@ -138,7 +138,7 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
             setSchedule(undefined);
             setDialog('manage_schedule');
           }}>
-            <Box mx={2} sx={{ display: 'flex' }}>
+            <Box m={2} sx={{ display: 'flex' }}>
               <Typography color="secondary" variant="button">
                 Create Schedule
               </Typography>

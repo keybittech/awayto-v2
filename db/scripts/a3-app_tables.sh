@@ -74,7 +74,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
   CREATE TABLE dbtable_schema.form_version_submissions (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     form_version_id uuid NOT NULL REFERENCES dbtable_schema.form_versions (id),
-    submissions JSONB NOT NULL,
+    submission JSONB NOT NULL,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
     created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
@@ -95,16 +95,16 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     UNIQUE (name, created_sub)
   );
 
-  CREATE TABLE dbtable_schema.uuid_services (
+  CREATE TABLE dbtable_schema.group_services (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    parent_uuid uuid NOT NULL,
+    group_id uuid NOT NULL REFERENCES dbtable_schema.groups (id) ON DELETE CASCADE,
     service_id uuid NOT NULL REFERENCES dbtable_schema.services (id) ON DELETE CASCADE,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
     created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
     updated_sub uuid REFERENCES dbtable_schema.users (sub),
     enabled BOOLEAN NOT NULL DEFAULT true,
-    UNIQUE (parent_uuid, service_id)
+    UNIQUE (group_id, service_id)
   );
 
   CREATE TABLE dbtable_schema.service_addons (
@@ -203,16 +203,28 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     UNIQUE (name, created_sub)
   );
 
-  CREATE TABLE dbtable_schema.uuid_schedules (
+  CREATE TABLE dbtable_schema.group_schedules (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    parent_uuid uuid NOT NULL,
+    group_id uuid NOT NULL REFERENCES dbtable_schema.groups (id) ON DELETE CASCADE,
     schedule_id uuid NOT NULL REFERENCES dbtable_schema.schedules (id) ON DELETE CASCADE,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
     created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
     updated_sub uuid REFERENCES dbtable_schema.users (sub),
     enabled BOOLEAN NOT NULL DEFAULT true,
-    UNIQUE (parent_uuid, schedule_id)
+    UNIQUE (group_id, schedule_id)
+  );
+
+  CREATE TABLE dbtable_schema.group_user_schedules (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    group_schedule_id uuid NOT NULL REFERENCES dbtable_schema.schedules (id) ON DELETE CASCADE,
+    user_schedule_id uuid NOT NULL REFERENCES dbtable_schema.schedules (id) ON DELETE CASCADE,
+    created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
+    updated_on TIMESTAMP,
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
+    enabled BOOLEAN NOT NULL DEFAULT true,
+    UNIQUE (group_schedule_id, user_schedule_id)
   );
 
   CREATE TABLE dbtable_schema.schedule_brackets (
@@ -253,14 +265,11 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
 
   CREATE TABLE dbtable_schema.quotes (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name VARCHAR (250) NOT NULL,
-    description VARCHAR (5000) NOT NULL,
-    budget_id uuid NOT NULL REFERENCES dbtable_schema.budgets (id) ON DELETE CASCADE,
-    timeline_id uuid NOT NULL REFERENCES dbtable_schema.timelines (id) ON DELETE CASCADE,
-    service_tier_id uuid NOT NULL REFERENCES dbtable_schema.service_tiers (id) ON DELETE CASCADE,
-    desired_duration INTEGER NOT NULL,
-    contact_id uuid NOT NULL REFERENCES dbtable_schema.contacts (id) ON DELETE CASCADE,
-    respond_by TIMESTAMP NOT NULL,
+    slot_date DATE NOT NULL,
+    schedule_bracket_slot_id uuid NOT NULL REFERENCES dbtable_schema.schedule_bracket_slots (id),
+    service_tier_id uuid NOT NULL REFERENCES dbtable_schema.service_tiers (id),
+    service_form_version_submission_id uuid REFERENCES dbtable_schema.form_version_submissions (id),
+    tier_form_version_submission_id uuid REFERENCES dbtable_schema.form_version_submissions (id),
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
     created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
@@ -268,16 +277,17 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     enabled BOOLEAN NOT NULL DEFAULT true
   );
 
-  CREATE TABLE dbtable_schema.uuid_quotes (
+  CREATE TABLE dbtable_schema.bookings (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    parent_uuid uuid NOT NULL,
-    quote_id uuid NOT NULL REFERENCES dbtable_schema.quotes (id) ON DELETE CASCADE,
+    quote_id uuid NOT NULL REFERENCES dbtable_schema.quotes (id),
+    slot_date DATE NOT NULL,
+    schedule_bracket_slot_id uuid NOT NULL REFERENCES dbtable_schema.schedule_bracket_slots (id),
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
     created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
     updated_sub uuid REFERENCES dbtable_schema.users (sub),
     enabled BOOLEAN NOT NULL DEFAULT true,
-    UNIQUE (parent_uuid, quote_id)
+    UNIQUE (slot_date, schedule_bracket_slot_id)
   );
 
   CREATE TABLE dbtable_schema.payments (
@@ -289,57 +299,6 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     updated_on TIMESTAMP,
     updated_sub uuid REFERENCES dbtable_schema.users (sub),
     enabled BOOLEAN NOT NULL DEFAULT true
-  );
-
-  CREATE TABLE dbtable_schema.uuid_payments (
-    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    parent_uuid uuid NOT NULL,
-    payment_id uuid NOT NULL REFERENCES dbtable_schema.payments (id) ON DELETE CASCADE,
-    created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
-    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
-    updated_on TIMESTAMP,
-    updated_sub uuid REFERENCES dbtable_schema.users (sub),
-    enabled BOOLEAN NOT NULL DEFAULT true,
-    UNIQUE (parent_uuid, payment_id)
-  );
-
-  CREATE TABLE dbtable_schema.bookings (
-    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    service_tier_id uuid NOT NULL REFERENCES dbtable_schema.service_tiers (id) ON DELETE CASCADE,
-    contact_id uuid NOT NULL REFERENCES dbtable_schema.contacts (id) ON DELETE CASCADE,
-    payment_id uuid NOT NULL REFERENCES dbtable_schema.payments (id) ON DELETE CASCADE,
-    agreement BOOLEAN NOT NULL,
-    description VARCHAR (5000) NOT NULL,
-    created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
-    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
-    updated_on TIMESTAMP,
-    updated_sub uuid REFERENCES dbtable_schema.users (sub),
-    enabled BOOLEAN NOT NULL DEFAULT true
-  );
-
-  CREATE TABLE dbtable_schema.uuid_bookings (
-    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    parent_uuid uuid NOT NULL,
-    booking_id uuid NOT NULL REFERENCES dbtable_schema.bookings (id) ON DELETE CASCADE,
-    created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
-    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
-    updated_on TIMESTAMP,
-    updated_sub uuid REFERENCES dbtable_schema.users (sub),
-    enabled BOOLEAN NOT NULL DEFAULT true,
-    UNIQUE (parent_uuid, booking_id)
-  );
-
-  CREATE TABLE dbtable_schema.booking_schedule_brackets (
-    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    booking_id uuid NOT NULL REFERENCES dbtable_schema.bookings (id) ON DELETE CASCADE,
-    schedule_bracket_id uuid NOT NULL REFERENCES dbtable_schema.schedule_brackets (id) ON DELETE CASCADE,
-    duration INTEGER NOT NULL,
-    created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
-    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
-    updated_on TIMESTAMP,
-    updated_sub uuid REFERENCES dbtable_schema.users (sub),
-    enabled BOOLEAN NOT NULL DEFAULT true,
-    UNIQUE (booking_id, schedule_bracket_id)
   );
 
 EOSQL
