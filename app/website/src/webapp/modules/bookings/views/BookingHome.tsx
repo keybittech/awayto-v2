@@ -21,12 +21,9 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckIcon from '@mui/icons-material/Check';
 
 import {
-  ILookupActionTypes,
-  IScheduleActionTypes,
   IGroupFormActionTypes,
   IGroupScheduleActionTypes,
   ISchedule,
-  IScheduleBracket,
   IService,
   IServiceAddon,
   IServiceTier,
@@ -41,15 +38,13 @@ import {
   weekFields,
   IGroupSchedule,
   IGroupUserScheduleActionTypes,
-  IGroupUserSchedule
+  chronoTimeUnits
 } from 'awayto';
 import { useApi, useRedux, useComponents, useStyles, useAct } from 'awayto-hooks';
-import { ChronoUnit, DateTimeFormatter, LocalDate, Temporal, TemporalAdjusters, TemporalUnit, Duration } from '@js-joda/core';
-import { abort } from 'process';
+import { ChronoUnit, DateTimeFormatter, TemporalAdjusters, Duration, ChronoField } from '@js-joda/core';
 
 const { GET_GROUP_FORM_BY_ID } = IGroupFormActionTypes;
 const { POST_QUOTE } = IQuoteActionTypes;
-const { GET_LOOKUPS } = ILookupActionTypes;
 const { SET_SNACK } = IUtilActionTypes;
 const { GET_GROUP_SCHEDULES, GET_GROUP_SCHEDULE_MASTER_BY_ID } = IGroupScheduleActionTypes;
 const { GET_GROUP_USER_SCHEDULES } = IGroupUserScheduleActionTypes;
@@ -60,18 +55,16 @@ export function BookingHome(props: IProps): JSX.Element {
   const api = useApi();
   const act = useAct();
   const { FileManager, FormDisplay } = useComponents();
-  const util = useRedux(state => state.util);
   const { groupSchedules } = useRedux(state => state.groupSchedule);
   const { groupUserSchedules } = useRedux(state => state.groupUserSchedule);
   const { groups } = useRedux(state => state.profile);
   const { timeUnits } = useRedux(state => state.lookup);
+  const util = useRedux(state => state.util);
 
   const [schedule, setSchedule] = useState({} as ISchedule);
   const [services, setServices] = useState<Record<string, IService>>({});
   const [service, setService] = useState({} as IService);
   const [tier, setTier] = useState({} as IServiceTier);
-  // const [contact, setContact] = useState({} as IContact);
-  // const [quote, setQuote] = useState({} as IQuote);
   const [serviceTierAddons, setServiceTierAddons] = useState<string[]>([]);
   const [serviceForm, setServiceForm] = useState({} as IForm);
   const [tierForm, setTierForm] = useState({} as IForm);
@@ -124,22 +117,20 @@ export function BookingHome(props: IProps): JSX.Element {
   const bracketsValues = useMemo(() => {
     if (Object.keys(groupUserSchedules).length) {
       const brackets = Object.keys(groupUserSchedules).flatMap(s => Object.values(groupUserSchedules[s].brackets));
-  
+
       const newServices = {} as Record<string, IService>;
       let someService = {} as IService;
-  
+
       brackets.forEach(bracket => {
         for (const s in bracket.services) {
           newServices[s] = bracket.services[s];
           someService = bracket.services[s];
         }
       });
-  
+
       setService(someService);
       setServices(newServices);
       setTier(Object.values(someService.tiers).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime())[0]);
-      
-      console.log({ brackets })
 
       return brackets;
     }
@@ -279,7 +270,7 @@ export function BookingHome(props: IProps): JSX.Element {
           </CardContent>
         </Card>
 
-        <Accordion>
+        <Accordion defaultExpanded={true}>
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
             aria-controls="tiers-and-features-content"
@@ -296,7 +287,7 @@ export function BookingHome(props: IProps): JSX.Element {
           </AccordionDetails>
         </Accordion>
 
-        {serviceForm.version && <Accordion>
+        {serviceForm.version && <Accordion defaultExpanded={true}>
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
             aria-controls="service-booking-section-service-questionnaire-content"
@@ -309,7 +300,7 @@ export function BookingHome(props: IProps): JSX.Element {
           </AccordionDetails>
         </Accordion>}
 
-        {tierForm.version && <Accordion>
+        {tierForm.version && <Accordion defaultExpanded={true}>
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
             aria-controls="service-booking-section-tier-questionnaire-content"
@@ -322,7 +313,7 @@ export function BookingHome(props: IProps): JSX.Element {
           </AccordionDetails>
         </Accordion>}
 
-        {tierForm.version && <Accordion>
+        {tierForm.version && <Accordion defaultExpanded={true}>
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
             aria-controls="service-booking-section-time-selection-content"
@@ -335,6 +326,7 @@ export function BookingHome(props: IProps): JSX.Element {
               <Grid item xs={4}>
                 <DatePicker
                   label="Date"
+                  value={quote.jodaDate}
                   onChange={value => {
                     if (value) {
                       setQuote({ ...quote, jodaDate: value, slotDate: value.format(DateTimeFormatter.ofPattern('yyyy-MM-dd')) });
@@ -344,8 +336,7 @@ export function BookingHome(props: IProps): JSX.Element {
                     const bracketsHasDate = bracketsValues.some(b => {
                       let found = false;
                       for (const s in b.slots) {
-                        const slot = b.slots[s];
-                        const check = date.with(temporalAdjuster).plus(Duration.parse(slot.startTime).toDays(), ChronoUnit.DAYS);
+                        const check = date.with(temporalAdjuster).plus(Duration.parse(b.slots[s].startTime).toDays(), ChronoUnit.DAYS);
                         if (0 === date.compareTo(check)) {
                           found = true;
                           break;
@@ -355,24 +346,47 @@ export function BookingHome(props: IProps): JSX.Element {
                     });
                     return !bracketsHasDate;
                   }}
-                  value={quote.jodaDate}
                   renderInput={params => <TextField {...params} />}
                 />
               </Grid>
-              {timeUnitOrder.indexOf(schedule.slotTimeUnitName) <= timeUnitOrder.indexOf(TimeUnit.HOUR) && <Grid item xs={4}>
+              {quote.jodaDate && timeUnitOrder.indexOf(schedule.slotTimeUnitName) <= timeUnitOrder.indexOf(TimeUnit.HOUR) && <Grid item xs={4}>
                 <TimePicker
                   label="Time"
-                  views={TimeUnit.HOUR === schedule.slotTimeUnitName ? ['hours'] : ['hours', 'minutes']}
-                  minutesStep={TimeUnit.MINUTE === schedule.slotTimeUnitName ? schedule.slotDuration : 1}
+                  value={quote.jodaTime}
+                  ignoreInvalidInputs={true}
                   onChange={value => {
                     if (value) {
-                      setQuote({ ...quote, jodaTime: value });
+                      setQuote({ ...quote, jodaTime: quote.jodaDate.truncatedTo(ChronoUnit.DAYS).plusHours(value.get(ChronoField.HOUR_OF_DAY)).plusMinutes(value.get(ChronoField.MINUTE_OF_HOUR)) });
                     }
                   }}
                   shouldDisableTime={(time, clockType) => {
+                    if (quote.jodaDate) {
+                      const chronoUnit = chronoTimeUnits[clockType.slice(0, clockType.length - 1) as ITimeUnitNames];
+                      
+                      if (ChronoUnit.SECONDS === chronoUnit) return false;
+
+                      const truncatedJodaDate = quote.jodaDate.truncatedTo(ChronoUnit.DAYS);
+                      let date = truncatedJodaDate.plus(time, chronoUnit);
+
+                      if (ChronoUnit.MINUTES === chronoUnit) {
+                        date = date.plusHours(quote.jodaTime.get(ChronoField.HOUR_OF_DAY))
+                      }
+
+                      const bracketsHasTime = bracketsValues.some(b => {
+                        let found = false;
+                        for (const s in b.slots) {
+                          const check = truncatedJodaDate.with(temporalAdjuster).plus(Duration.parse(b.slots[s].startTime));
+                          if (date.equals(check)) {
+                            found = true;
+                            break;
+                          }
+                        }
+                        return found;
+                      });
+                      return !bracketsHasTime;
+                    }
                     return false;
                   }}
-                  value={quote.jodaTime}
                   renderInput={params => <TextField {...params} />}
                 />
               </Grid>}

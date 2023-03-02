@@ -1,9 +1,10 @@
 import { ChronoUnit, Duration, LocalDate, nativeJs, TemporalAdjusters, ZoneId, DateTimeFormatter, ZonedDateTime } from "@js-joda/core";
 import { Locale, WeekFields } from "@js-joda/locale_en-us";
 
-export type ITimeUnitNames  = 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year';
+export type ITimeUnitNames  = 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year';
 
 export enum TimeUnit {
+  SECONDS = 'second',
   MINUTE = 'minute',
   HOUR = 'hour',
   DAY = 'day',
@@ -32,7 +33,8 @@ export const chronoTimeUnits: Record<ITimeUnitNames, ChronoUnit> = {
   [TimeUnit.WEEK]: ChronoUnit.WEEKS,
   [TimeUnit.DAY]: ChronoUnit.DAYS,
   [TimeUnit.HOUR]: ChronoUnit.HOURS,
-  [TimeUnit.MINUTE]: ChronoUnit.MINUTES
+  [TimeUnit.MINUTE]: ChronoUnit.MINUTES,
+  [TimeUnit.SECONDS]: ChronoUnit.SECONDS
 };
 
 export const millisTimeUnits: Record<ITimeUnitNames, number> = {
@@ -41,7 +43,8 @@ export const millisTimeUnits: Record<ITimeUnitNames, number> = {
   [TimeUnit.WEEK]: 604800000,
   [TimeUnit.DAY]: 86400000,
   [TimeUnit.HOUR]: 3600000,
-  [TimeUnit.MINUTE]: 60000
+  [TimeUnit.MINUTE]: 60000,
+  [TimeUnit.SECONDS]: 1000
 }
 
 export function getRelativeDuration(amount: number, fromUnit: ITimeUnitNames, toUnit: ITimeUnitNames): number {

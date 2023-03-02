@@ -450,6 +450,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
   CREATE
   OR REPLACE VIEW dbview_schema.enabled_group_user_schedules_ext AS
   SELECT
+    egus.id,
     egus."groupScheduleId",
     egus."userScheduleId",
     eesbe.* as brackets,
