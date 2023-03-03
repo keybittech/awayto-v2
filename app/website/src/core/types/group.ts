@@ -412,7 +412,6 @@ export type IGroupUserSchedule = {
   id: string;
   groupScheduleId: string;
   userScheduleId: string;
-  name: string;
   brackets: Record<string, IScheduleBracket>;
 }
 

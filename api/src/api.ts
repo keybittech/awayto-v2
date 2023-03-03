@@ -25,6 +25,15 @@ import redis, { RedisClient } from './util/redis';
 import logger from './util/logger';
 import { db, connected as dbConnected } from './util/db';
 
+import dayjs from 'dayjs';
+import duration from 'dayjs/plugin/duration';
+dayjs.extend(duration);
+
+import utc from 'dayjs/plugin/utc';
+dayjs.extend(utc);
+
+import 'dayjs/locale/en';
+
 // import './util/twitch';
 
 export type ApiEvent = {

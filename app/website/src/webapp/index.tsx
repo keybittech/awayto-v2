@@ -22,7 +22,15 @@ import reportWebVitals from './reportWebVitals';
 import { initKeycloak } from './keycloak';
 import { BrowserRouter } from 'react-router-dom';
 
-import '@js-joda/timezone'
+import dayjs from 'dayjs';
+
+import duration from 'dayjs/plugin/duration';
+dayjs.extend(duration);
+
+import utc from 'dayjs/plugin/utc';
+dayjs.extend(utc);
+
+import 'dayjs/locale/en';
 
 import './index.css';
 import './App.css';

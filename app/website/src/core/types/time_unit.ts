@@ -1,10 +1,8 @@
-import { ChronoUnit, Duration, LocalDate, nativeJs, TemporalAdjusters, ZoneId, DateTimeFormatter, ZonedDateTime } from "@js-joda/core";
-import { Locale, WeekFields } from "@js-joda/locale_en-us";
+import dayjs from "dayjs";
 
-export type ITimeUnitNames  = 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year';
+export type ITimeUnitNames = string | ('minute' | 'hour' | 'day' | 'week' | 'month' | 'year');
 
 export enum TimeUnit {
-  SECONDS = 'second',
   MINUTE = 'minute',
   HOUR = 'hour',
   DAY = 'day',
@@ -19,23 +17,13 @@ export type ITimeUnit = {
 };
 
 export const timeUnitOrder = [
-  TimeUnit.MINUTE,
-  TimeUnit.HOUR,
-  TimeUnit.DAY,
-  TimeUnit.WEEK,
-  TimeUnit.MONTH,
-  TimeUnit.YEAR
+  'minute',
+  'hour',
+  'day',
+  'week',
+  'month',
+  'year'
 ] as ITimeUnitNames[];
-
-export const chronoTimeUnits: Record<ITimeUnitNames, ChronoUnit> = {
-  [TimeUnit.YEAR]: ChronoUnit.YEARS,
-  [TimeUnit.MONTH]: ChronoUnit.MONTHS,
-  [TimeUnit.WEEK]: ChronoUnit.WEEKS,
-  [TimeUnit.DAY]: ChronoUnit.DAYS,
-  [TimeUnit.HOUR]: ChronoUnit.HOURS,
-  [TimeUnit.MINUTE]: ChronoUnit.MINUTES,
-  [TimeUnit.SECONDS]: ChronoUnit.SECONDS
-};
 
 export const millisTimeUnits: Record<ITimeUnitNames, number> = {
   [TimeUnit.YEAR]: 31536000000,
@@ -43,8 +31,7 @@ export const millisTimeUnits: Record<ITimeUnitNames, number> = {
   [TimeUnit.WEEK]: 604800000,
   [TimeUnit.DAY]: 86400000,
   [TimeUnit.HOUR]: 3600000,
-  [TimeUnit.MINUTE]: 60000,
-  [TimeUnit.SECONDS]: 1000
+  [TimeUnit.MINUTE]: 60000
 }
 
 export function getRelativeDuration(amount: number, fromUnit: ITimeUnitNames, toUnit: ITimeUnitNames): number {
@@ -53,25 +40,24 @@ export function getRelativeDuration(amount: number, fromUnit: ITimeUnitNames, to
   return (amount * fromDuration) / toDuration;
 }
 
-export function utcNow(): ZonedDateTime {
-  return nativeJs(new Date(), ZoneId.UTC);
+export function utcNow(): dayjs.Dayjs {
+  return dayjs().utc();
 }
 
 export function utcNowString(): string {
-  return nativeJs(new Date(), ZoneId.UTC).toString();
+  return dayjs().utc().toString();
 }
 
-export const formatter = DateTimeFormatter.ofPattern('eee, hh:mm a').withLocale(Locale.US);
-export const weekFields = WeekFields.of(Locale.US);
-export const startOfWeek = LocalDate.now().with(TemporalAdjusters.previous(weekFields.firstDayOfWeek())).atStartOfDay();
+export const compactDateTimeFormat = 'ddd, hh:mm a';
+export const currentStartOfWeek = dayjs().startOf('week').startOf('day');
 
-export function getContextFormattedDuration(contextUnit: ITimeUnitNames, duration: string): string {
+export function getContextFormattedDuration(contextUnit: ITimeUnitNames | string, duration: string, relativeDate: dayjs.Dayjs = currentStartOfWeek): string {
   let formatted = 'No format!';
 
   if (TimeUnit.DAY === contextUnit) {
-    formatted = startOfWeek.plus(Duration.parse(duration)).format(formatter);
+    formatted = relativeDate.add(dayjs.duration(duration)).format(compactDateTimeFormat);
   } else if (TimeUnit.WEEK === contextUnit) {
-    formatted = startOfWeek.plus(Duration.parse(duration)).format(formatter);
+    formatted = relativeDate.add(dayjs.duration(duration)).format(compactDateTimeFormat);
   }
 
   return formatted;

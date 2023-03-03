@@ -1,4 +1,4 @@
-import { ZonedDateTime } from '@js-joda/core';
+import { Dayjs } from 'dayjs';
 import { PayloadAction, IFormVersionSubmission } from '.';
 import { Merge } from '../util';
 
@@ -31,9 +31,8 @@ declare global {
  */
 export type IQuote = {
   id: string;
-  slotDate: string;
-  jodaDate: ZonedDateTime;
-  jodaTime: ZonedDateTime;
+  bracketSlotDate: Dayjs | null;
+  bracketSlotTime: Dayjs | null;
   serviceTierId: string;
   scheduleBracketSlotId: string;
   serviceFormVersionSubmissionId: string;

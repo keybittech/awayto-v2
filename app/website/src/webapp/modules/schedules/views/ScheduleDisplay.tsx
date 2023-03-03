@@ -1,5 +1,4 @@
 import React, { CSSProperties, useCallback, useMemo, useState, useEffect, useRef } from 'react';
-import { Duration } from '@js-joda/core';
 import { FixedSizeGrid } from 'react-window';
 
 import Box from '@mui/material/Box';
@@ -7,7 +6,8 @@ import Chip from '@mui/material/Chip';
 import CardActionArea from '@mui/material/CardActionArea';
 import Typography from '@mui/material/Typography';
 
-import { chronoTimeUnits, getContextFormattedDuration, getRelativeDuration, ISchedule, IScheduleBracket, IScheduleBracketSlot, TimeUnit, timeUnitOrder } from 'awayto';
+import { getRelativeDuration, ISchedule, IScheduleBracket, IScheduleBracketSlot } from 'awayto';
+import { useSchedule } from 'awayto-hooks';
 
 export type ScheduleDisplayProps = {
   schedule?: ISchedule;
@@ -25,73 +25,56 @@ declare global {
 const bracketColors = ['cadetblue', 'brown', 'chocolate', 'forestgreen', 'darkslateblue', 'goldenrod', 'indianred', 'teal'];
 
 export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Required<ScheduleDisplayProps>): JSX.Element {
-  
+  console.log({ schedule })
   const columnWidth = 150;
   
+  const getScheduleData = useSchedule();
   const parentRef = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState({} as Record<string, IScheduleBracketSlot>);
   const [selectedBracket, setSelectedBracket] = useState<IScheduleBracket>();
   const [buttonDown, setButtonDown] = useState(false);
   const [width, setWidth] = useState(1);
-  
+
   const { scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName, slotDuration } = schedule;
-
-  const xAxisTypeName = timeUnitOrder[timeUnitOrder.indexOf(scheduleTimeUnitName) - 1];
-  const yAxisTypeName = slotTimeUnitName == bracketTimeUnitName ? bracketTimeUnitName : slotTimeUnitName;
-  
-  
-  const chronoXAxisUnit = chronoTimeUnits[xAxisTypeName];
-  const chronoYAxisUnit = chronoTimeUnits[yAxisTypeName];
-
-
-  // The number of x axis divions
-  const divisions = useMemo(() => getRelativeDuration(1, scheduleTimeUnitName, xAxisTypeName), [scheduleTimeUnitName, xAxisTypeName]);
-
-  // The number of divided bracket duration elements per column
-  const selections = useMemo(() => getRelativeDuration(1, xAxisTypeName, yAxisTypeName) / slotDuration, [xAxisTypeName, yAxisTypeName, slotDuration]);
+  const { divisions, durations, selections, xAxisTypeName } = useMemo(() => {
+    return getScheduleData({ scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName, slotDuration });
+  }, [scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName, slotDuration])
 
   const scheduleBracketsValues = useMemo(() => Object.values(schedule.brackets), [schedule.brackets]);
 
-  const Cell = useCallback((gridCell: GridCell) => {
+  const setValue = useCallback((startTime: string) => {
+    if (selectedBracket) {
+      const bracket = schedule.brackets[selectedBracket.id];
+      if (!bracket.slots) bracket.slots = {};
+      const target = `schedule_bracket_slot_selection_${startTime}`;    
+      const exists = selected[target];
 
-    let cellDuration = Duration.ZERO;
-    
-    if (TimeUnit.WEEK === xAxisTypeName) {
-      cellDuration = cellDuration.plus(gridCell.columnIndex*7, chronoTimeUnits[TimeUnit.DAY]);
-    } else {
-      cellDuration = cellDuration.plus(gridCell.columnIndex, chronoXAxisUnit);
-    }
+      const slot = {
+        id: (new Date()).getTime().toString(),
+        startTime,
+        scheduleBracketId: selectedBracket.id
+      } as IScheduleBracketSlot;
 
-    cellDuration = cellDuration.plus(slotDuration * gridCell.rowIndex, chronoYAxisUnit);
-    
-    const cellTime = cellDuration.toString();
-    const target = `schedule_bracket_slot_selection_${cellTime}`;    
-    const exists = selected[target];
-
-    const setValue = useCallback(function () {
-      if (selectedBracket) {
-        const bracket = schedule.brackets[selectedBracket.id];
-
-        const slot = {
-          id: (new Date()).getTime().toString(),
-          startTime: cellTime,
-          scheduleBracketId: selectedBracket.id
-        } as IScheduleBracketSlot;
-
-        if (exists) {
-          delete bracket.slots[exists.id];
-          delete selected[target];
-        } else if ((Object.keys(bracket.slots).length * schedule.slotDuration) < getRelativeDuration(selectedBracket.duration, schedule.bracketTimeUnitName, schedule.slotTimeUnitName)) {
-          bracket.slots[slot.id] = slot;
-          selected[target] = slot;
-        } else {
-          alert('you went over your allottment');
-        }
-
-        setSchedule({ ...schedule, brackets: { ...schedule.brackets } });
-        setSelected({ ...selected });
+      if (exists) {
+        delete bracket.slots[exists.id];
+        delete selected[target];
+      } else if ((Object.keys(bracket.slots).length * schedule.slotDuration) < getRelativeDuration(selectedBracket.duration, schedule.bracketTimeUnitName, schedule.slotTimeUnitName)) {
+        bracket.slots[slot.id] = slot;
+        selected[target] = slot;
+      } else {
+        alert('you went over your allottment');
       }
-    }, [schedule.brackets, selectedBracket, scheduleBracketsValues, selected]);
+
+      setSchedule({ ...schedule, brackets: { ...schedule.brackets } });
+      setSelected({ ...selected });
+    }
+  }, [schedule, selectedBracket, scheduleBracketsValues, selected]);
+
+  const Cell = useCallback((gridCell: GridCell) => {
+    const { startTime, contextFormat } = durations[gridCell.columnIndex][gridCell.rowIndex];
+
+    const target = `schedule_bracket_slot_selection_${startTime}`;    
+    const exists = selected[target];
 
     return <CardActionArea
       style={gridCell.style}
@@ -108,16 +91,16 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
         opacity: !exists ? '.33' : '1',
         boxShadow: exists ? '2' : undefined
       }}
-      onMouseLeave={() => buttonDown && setValue()}
+      onMouseLeave={() => buttonDown && setValue(startTime)}
       onMouseDown={() => setButtonDown(true)}
       onMouseUp={() => {
         setButtonDown(false);
-        setValue();
+        setValue(startTime);
       }}
     >
-      {getContextFormattedDuration(xAxisTypeName, cellTime)}
+      {contextFormat}
     </CardActionArea>
-  }, [selected, buttonDown, selectedBracket, slotTimeUnitName, slotDuration, xAxisTypeName]);
+  }, [selected, buttonDown, selectedBracket, xAxisTypeName]);
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver(([event]) => {
@@ -146,6 +129,7 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
     <Box ref={parentRef}>
       <Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
         {scheduleBracketsValues.map((bracket, i) => {
+          if (!bracket.slots) bracket.slots = {};
           return <Box key={`bracket-chip${i + 1}new`} m={1}>
             <Chip
               label={`#${i + 1} ${getRelativeDuration(bracket.duration, schedule.bracketTimeUnitName, schedule.slotTimeUnitName) - (Object.keys(bracket.slots).length * schedule.slotDuration)} ${schedule.slotTimeUnitName}s (${bracket.multiplier}x)`}

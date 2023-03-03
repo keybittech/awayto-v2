@@ -322,7 +322,12 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
       FROM
         (
           SELECT
-            este.*
+            este.id,
+            este.name,
+            este.multiplier,
+            este."formId",
+            este."createdOn",
+            este.addons
           FROM
             dbview_schema.enabled_service_tiers_ext este
           WHERE
@@ -338,18 +343,22 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     eesl.* as slots
   FROM
     dbview_schema.enabled_schedule_brackets esb
+    LEFT JOIN dbtable_schema.schedule_bracket_services sbs ON sbs.schedule_bracket_id = esb.id
     LEFT JOIN LATERAL (
       SELECT
         JSONB_OBJECT_AGG(servs.id, TO_JSONB(servs)) as services
       FROM
         (
           SELECT
-            ese.*
+            ese.id,
+            ese.name,
+            ese.cost,
+            ese.tiers,
+            ese."formId"
           FROM
-            dbtable_schema.schedule_bracket_services sbs
-            LEFT JOIN dbview_schema.enabled_services_ext ese ON ese.id = sbs.service_id
+            dbview_schema.enabled_services_ext ese
           WHERE
-            sbs.schedule_bracket_id = esb.id
+            ese.id = sbs.service_id
         ) servs
     ) as eess ON true
     LEFT JOIN LATERAL (
@@ -358,7 +367,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
       FROM
         (
           SELECT
-            esbs.*
+            esbs.id,
+            esbs."startTime",
+            esbs."scheduleBracketId"
           FROM
             dbview_schema.enabled_schedule_bracket_slots esbs
           WHERE
@@ -453,23 +464,26 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     egus.id,
     egus."groupScheduleId",
     egus."userScheduleId",
-    eesbe.* as brackets,
-    CONCAT(eu."firstName", ' ', LEFT(eu."lastName", 1)) as name
+    eesb.* as brackets
   FROM
     dbview_schema.enabled_group_user_schedules egus
-  JOIN dbview_schema.enabled_users eu ON eu.sub = egus."createdSub"
   LEFT JOIN LATERAL (
     SELECT
       JSONB_OBJECT_AGG(sbss.id, TO_JSONB(sbss)) as brackets
     FROM
       (
         SELECT 
-          esbe.*
+          esbe.id,
+          esbe.duration,
+          esbe.automatic,
+          esbe.multiplier,
+          esbe.slots,
+          esbe.services
         FROM
           dbview_schema.enabled_schedule_brackets_ext esbe
         WHERE
           esbe."scheduleId" = egus."userScheduleId"
       ) sbss
-  ) as eesbe ON true;
+  ) as eesb ON true;
 
 EOSQL

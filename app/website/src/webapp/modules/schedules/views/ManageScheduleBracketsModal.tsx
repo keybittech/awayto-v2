@@ -100,7 +100,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
       const scheduleUnitChildUnit = timeUnitOrder[timeUnitOrder.indexOf(schedule.scheduleTimeUnitName) - 1];
       const scheduleChildDuration = getRelativeDuration(1, schedule.scheduleTimeUnitName, scheduleUnitChildUnit); // 7
       const usedDuration = scheduleBracketsValues.reduce((m, d) => m + d.duration, 0);
-      const totalDuration = getRelativeDuration(Math.floor(scheduleChildDuration), scheduleUnitChildUnit, schedule.bracketTimeUnitName);    
+      const totalDuration = getRelativeDuration(Math.floor(scheduleChildDuration), scheduleUnitChildUnit, schedule.bracketTimeUnitName);
       return Math.floor(totalDuration - usedDuration);
     }
     return 0;
@@ -108,16 +108,32 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
 
   const handleSubmit = useCallback(() => {
     if (schedule) {
-      const { name, scheduleTimeUnitName, brackets } = schedule;
+      const { name, scheduleTimeUnitName } = schedule;
       if (name && scheduleTimeUnitName && scheduleBracketsValues.length) {
 
-        const [, res] = !editSchedule ? 
+        const [, res] = !editSchedule ?
           api(postScheduleAction, schedule, { load: true }) :
           [undefined, new Promise<ISchedule[]>(res => res([schedule]))];
         res?.then(resSchedules => {
           const [sched] = resSchedules as ISchedule[];
 
-          const [, rex] = api(postScheduleBracketsAction, { scheduleId: sched.id, brackets })
+          const newBrackets = scheduleBracketsValues.reduce(
+            (m, { id, duration, automatic, multiplier, slots, services }) => {
+              return {
+                ...m,
+                [id]: {
+                  id,
+                  duration,
+                  automatic,
+                  multiplier,
+                  slots: Object.values(slots).reduce((m, { startTime }, i) => ({ ...m, [i] : { startTime } }), {}),
+                  services: Object.values(services).reduce((m, { id }, i) => ({ ...m, [i] : { id } }), {})
+                }
+              }
+            }, {}
+          );
+
+          const [, rex] = api(postScheduleBracketsAction, { scheduleId: sched.id, brackets: newBrackets })
           const [, rez] = !editSchedule ?
             api(postGroupUserScheduleAction, { groupName: group?.name, userScheduleId: sched.id, groupScheduleId: schedule.id }) :
             [undefined, new Promise(res => res(true))];

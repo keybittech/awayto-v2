@@ -23,13 +23,13 @@ function reduceDeleteGroupUserSchedule(state: IGroupUserScheduleState, action: I
 }
 
 function reducePostGroupUserSchedules(state: IGroupUserScheduleState, action: IPostGroupUserScheduleAction | IPutGroupUserScheduleAction): IGroupUserScheduleState {
-  const groupUserSchedules = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id}`]: b } }), {});
+  const groupUserSchedules = action.payload.reduce((a, b) => ({ ...a, ...{ [b.id]: b } }), {});
   state.groupUserSchedules = { ...state.groupUserSchedules, ...groupUserSchedules };
   return { ...state };
 }
 
 function reduceGetGroupUserSchedules(state: IGroupUserScheduleState, action: IGetGroupUserSchedulesAction): IGroupUserScheduleState {
-  state.groupUserSchedules = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id}`]: b } }), {});
+  state.groupUserSchedules = action.payload.reduce((a, b) => ({ ...a, ...{ [b.id]: b } }), {});
   return { ...state };
 }
 

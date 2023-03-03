@@ -14,7 +14,7 @@ const service_tiers: ApiModule = [
         const response = await props.db.query<IServiceTier>(`
           INSERT INTO dbtable_schema.service_tiers (name, serviceId, multiplier, created_sub)
           VALUES ($1, $2, $3, $4::uuid)
-          RETURNING id, name, serviceId, multiplier
+          RETURNING id
         `, [name, serviceId, multiplier, props.event.userSub]);
         
         return response.rows[0];
@@ -45,7 +45,7 @@ const service_tiers: ApiModule = [
           UPDATE dbtable_schema.service_tiers
           SET ${updateProps.string}
           WHERE id = $1
-          RETURNING id, name, serviceId, multiplier
+          RETURNING id
         `, updateProps.array);
 
         return response.rows[0];

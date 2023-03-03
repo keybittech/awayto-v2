@@ -1,4 +1,4 @@
-import { IFormSubmission, IScheduleBracket } from 'awayto';
+import { IScheduleBracket } from 'awayto';
 import { PayloadAction } from '.';
 import { Merge } from '../util';
 

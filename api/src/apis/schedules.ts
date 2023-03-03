@@ -53,7 +53,7 @@ const schedules: ApiModule = [
             VALUES ($1, $2, $3, $4, $5::uuid)
             RETURNING id
           `, [scheduleId, b.duration, b.multiplier, b.automatic, props.event.userSub])).rows[0];
-  
+
           if (isNaN(parseInt(b.id))) {
             await props.db.query(`
               DELETE FROM dbtable_schema.schedule_bracket_services
@@ -72,7 +72,6 @@ const schedules: ApiModule = [
             await props.db.query(`
               INSERT INTO dbtable_schema.schedule_bracket_services (schedule_bracket_id, service_id, created_sub)
               VALUES ($1, $2, $3::uuid)
-              ON CONFLICT (schedule_bracket_id, service_id) DO NOTHING
             `, [bracketId, s.id, props.event.userSub])
           });
   
@@ -80,7 +79,6 @@ const schedules: ApiModule = [
             const [{ id: slotId }] = (await props.db.query(`
               INSERT INTO dbtable_schema.schedule_bracket_slots (schedule_bracket_id, start_time, created_sub)
               VALUES ($1, $2::interval, $3::uuid)
-              ON CONFLICT (schedule_bracket_id, start_time) DO NOTHING
               RETURNING id
             `, [bracketId, s.startTime, props.event.userSub])).rows;
             
@@ -88,7 +86,7 @@ const schedules: ApiModule = [
             s.scheduleBracketId = bracketId;
           });
   
-          newBrackets[b.id] = b;
+          newBrackets[bracketId] = b;
         });
 
         await props.redis.del(props.event.userSub + 'schedules/' + scheduleId);

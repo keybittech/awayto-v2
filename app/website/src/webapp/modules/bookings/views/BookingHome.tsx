@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useMemo, useCallback, HtmlHTMLAttributes } from 'react';
 import DataTable, { TableColumn } from 'react-data-table-component';
+import dayjs from 'dayjs';
 
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
@@ -15,7 +16,9 @@ import CardActionArea from '@mui/material/CardActionArea';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
+import { PickersDay } from '@mui/x-date-pickers';
 
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckIcon from '@mui/icons-material/Check';
@@ -33,15 +36,11 @@ import {
   IQuote,
   IQuoteActionTypes,
   ITimeUnitNames,
-  TimeUnit,
-  timeUnitOrder,
-  weekFields,
   IGroupSchedule,
   IGroupUserScheduleActionTypes,
-  chronoTimeUnits
+  TimeUnit
 } from 'awayto';
-import { useApi, useRedux, useComponents, useStyles, useAct } from 'awayto-hooks';
-import { ChronoUnit, DateTimeFormatter, TemporalAdjusters, Duration, ChronoField } from '@js-joda/core';
+import { useApi, useRedux, useComponents, useStyles, useAct, useSchedule } from 'awayto-hooks';
 
 const { GET_GROUP_FORM_BY_ID } = IGroupFormActionTypes;
 const { POST_QUOTE } = IQuoteActionTypes;
@@ -54,6 +53,7 @@ export function BookingHome(props: IProps): JSX.Element {
 
   const api = useApi();
   const act = useAct();
+  const getScheduleData = useSchedule();
   const { FileManager, FormDisplay } = useComponents();
   const { groupSchedules } = useRedux(state => state.groupSchedule);
   const { groupUserSchedules } = useRedux(state => state.groupUserSchedule);
@@ -69,9 +69,9 @@ export function BookingHome(props: IProps): JSX.Element {
   const [serviceForm, setServiceForm] = useState({} as IForm);
   const [tierForm, setTierForm] = useState({} as IForm);
   const [group, setGroup] = useState({ id: '' } as IGroup);
-  const [quote, setQuote] = useState({} as IQuote);
-
-  const temporalAdjuster = TemporalAdjusters.previousOrSame(weekFields.firstDayOfWeek());
+  const [quote, setQuote] = useState({ bracketSlotDate: dayjs() } as IQuote);
+  
+  const [monthSeekDate, setMonthSeekDate] = useState(dayjs().startOf(TimeUnit.MONTH));
 
   useEffect(() => {
     if (groups) {
@@ -89,7 +89,7 @@ export function BookingHome(props: IProps): JSX.Element {
         return () => abort();
       }
     }
-  }, [groups]);
+  }, [groups, timeUnits]);
 
   const loadSchedule = useCallback((sched: ISchedule) => {
     sched.scheduleTimeUnitName = timeUnits.find(u => u.id === sched.scheduleTimeUnitId)?.name as ITimeUnitNames;
@@ -105,14 +105,56 @@ export function BookingHome(props: IProps): JSX.Element {
         break;
       }
     }
-  }, [groupSchedules]);
+  }, [groupSchedules, timeUnits]);
 
   useEffect(() => {
     if (group.name && schedule.id) {
-      const [abort] = api(GET_GROUP_USER_SCHEDULES, { groupName: group.name, groupScheduleId: schedule.id });
+      const [abort, res] = api(GET_GROUP_USER_SCHEDULES, { groupName: group.name, groupScheduleId: schedule.id });
+      res?.catch(console.warn);
       return () => abort();
     }
   }, [group, schedule]);
+
+  useEffect(() => {
+    if (group.name && service.formId && service.formId != serviceForm.id) {
+      const [abort, res] = api(GET_GROUP_FORM_BY_ID, { groupName: group.name, formId: service.formId });
+      res?.then(forms => {
+        const [form] = forms as IForm[];
+        setServiceForm(form);
+      }).catch(console.warn);
+      return () => abort();
+    }
+  }, [service, group]);
+
+  useEffect(() => {
+    if (group.name && tier.formId && tier.formId != tierForm.id) {
+      const [abort, res] = api(GET_GROUP_FORM_BY_ID, { groupName: group.name, formId: tier.formId });
+      res?.then(forms => {
+        const [form] = forms as IForm[];
+        setTierForm(form);
+      }).catch(console.warn);
+      return () => abort();
+    }
+  }, [tier, group]);
+
+  useEffect(() => {
+    if (serviceTiers.length) {
+      const newAddons = serviceTiers
+        .sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime())
+        .reduce<string[]>((memo, { addons }) => {
+          const serviceAddons = Object.values(addons);
+          if (serviceAddons) {
+            for (let i = 0, v = serviceAddons.length; i < v; i++) {
+              const { name } = serviceAddons[i];
+              if (memo.indexOf(name) < 0) memo.push(name);
+            }
+          }
+          return memo;
+        }, []);
+
+      setServiceTierAddons(newAddons);
+    }
+  }, [service]);
 
   const bracketsValues = useMemo(() => {
     if (Object.keys(groupUserSchedules).length) {
@@ -137,28 +179,8 @@ export function BookingHome(props: IProps): JSX.Element {
     return [];
   }, [groupUserSchedules]);
 
-  useEffect(() => {
-    if (group.name && service.formId && service.formId != serviceForm.id) {
-      const [abort, res] = api(GET_GROUP_FORM_BY_ID, { groupName: group.name, formId: service.formId });
-      res?.then(forms => {
-        const [form] = forms as IForm[];
-        setServiceForm(form);
-      }).catch(console.warn);
-      return () => abort();
-    }
-  }, [service, group]);
-
-  useEffect(() => {
-    if (group.name && tier.formId && tier.formId != tierForm.id) {
-      const [abort, res] = api(GET_GROUP_FORM_BY_ID, { groupName: group.name, formId: tier.formId });
-      res?.then(forms => {
-        const [form] = forms as IForm[];
-        setTierForm(form);
-      }).catch(console.warn);
-      return () => abort();
-    }
-  }, [tier, group]);
-
+  const bracketSlots = useMemo(() => bracketsValues.flatMap(bv => Object.values(bv.slots)),[bracketsValues])
+  console.log({ BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBSLOTS: bracketSlots })
   const serviceTiers = useMemo(() => Object.values(service?.tiers || {}), [service?.tiers]);
 
   const tierColumns = useMemo(() => {
@@ -177,25 +199,15 @@ export function BookingHome(props: IProps): JSX.Element {
     ]
   }, [serviceTierAddons, service, tier]);
 
-  useEffect(() => {
-    if (serviceTiers.length) {
-      const newAddons = serviceTiers.sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime()).reduce<string[]>((memo, { addons }) => {
-        const serviceAddons = Object.values(addons);
-        if (serviceAddons) {
-          for (let i = 0, v = serviceAddons.length; i < v; i++) {
-            const { name } = serviceAddons[i];
-            if (memo.indexOf(name) < 0) memo.push(name);
-          }
-        }
-        return memo;
-      }, []);
+  const { divisions, selections, durations, xAxisTypeName, yAxisTypeName } = useMemo(() => {
+    const { scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName, slotDuration } = schedule;
+    return getScheduleData({ scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName, slotDuration, beginningOfMonth: monthSeekDate, bracketSlots });
+  }, [schedule.scheduleTimeUnitName, schedule.bracketTimeUnitName, schedule.slotTimeUnitName, schedule.slotDuration, monthSeekDate, bracketSlots])
 
-      setServiceTierAddons(newAddons);
-    }
-  }, [service]);
+  console.log({ divisions, selections, durations, xAxisTypeName, yAxisTypeName })
 
   return <>
-    {!!bracketsValues.length && group.name && <Grid container spacing={2}>
+    <Grid container spacing={2}>
 
       <Grid item xs={12}>
         <Card>
@@ -318,80 +330,86 @@ export function BookingHome(props: IProps): JSX.Element {
             expandIcon={<ExpandMoreIcon />}
             aria-controls="service-booking-section-time-selection-content"
             id="service-booking-section-time-selection-header"
-          >
+            >
             <Typography>Time Selection</Typography>
           </AccordionSummary>
           <AccordionDetails>
             <Grid container spacing={2}>
               <Grid item xs={4}>
-                <DatePicker
+                <DesktopDatePicker
                   label="Date"
-                  value={quote.jodaDate}
-                  onChange={value => {
-                    if (value) {
-                      setQuote({ ...quote, jodaDate: value, slotDate: value.format(DateTimeFormatter.ofPattern('yyyy-MM-dd')) });
-                    }
-                  }}
-                  shouldDisableDate={date => {
-                    const bracketsHasDate = bracketsValues.some(b => {
-                      let found = false;
-                      for (const s in b.slots) {
-                        const check = date.with(temporalAdjuster).plus(Duration.parse(b.slots[s].startTime).toDays(), ChronoUnit.DAYS);
-                        if (0 === date.compareTo(check)) {
-                          found = true;
-                          break;
-                        }
-                      }
-                      return found;
-                    });
-                    return !bracketsHasDate;
-                  }}
-                  renderInput={params => <TextField {...params} />}
+                  inputFormat="MM/DD/YYYY"
+                  value={quote.bracketSlotDate}
+                  onMonthChange={month => setMonthSeekDate(month)}
+                  onChange={(bracketSlotDate: dayjs.Dayjs | null) => setQuote({ ...quote, bracketSlotDate })}
+                  renderInput={(params) => <TextField {...params} />}
+                  minDate={dayjs()}
                 />
               </Grid>
-              {quote.jodaDate && timeUnitOrder.indexOf(schedule.slotTimeUnitName) <= timeUnitOrder.indexOf(TimeUnit.HOUR) && <Grid item xs={4}>
+              {/* {!!quote.bracketSlotDate && timeUnitOrder.indexOf(schedule.slotTimeUnitName) <= timeUnitOrder.indexOf(TimeUnit.HOUR) && <Grid item xs={4}>
                 <TimePicker
                   label="Time"
-                  value={quote.jodaTime}
+                  value={quote.bracketSlotTime}
                   ignoreInvalidInputs={true}
                   onChange={value => {
-                    if (value) {
-                      setQuote({ ...quote, jodaTime: quote.jodaDate.truncatedTo(ChronoUnit.DAYS).plusHours(value.get(ChronoField.HOUR_OF_DAY)).plusMinutes(value.get(ChronoField.MINUTE_OF_HOUR)) });
+                    console.log({ timevalue: value })
+                    if (value && isLocalDate(quote.bracketSlotDate)) {
+                      const bracketSlotTime = quote.bracketSlotDate.query(TemporalQueries.localTime())?.plusHours(value.get(ChronoField.HOUR_OF_DAY)).plusMinutes(value.get(ChronoField.MINUTE_OF_HOUR));
+                      setQuote({ ...quote, slotTime: Duration.of(bracketSlotTime?.toSecondOfDay() || 0, ChronoUnit.SECONDS).toString(), bracketSlotTime  });
                     }
                   }}
                   shouldDisableTime={(time, clockType) => {
-                    if (quote.jodaDate) {
-                      const chronoUnit = chronoTimeUnits[clockType.slice(0, clockType.length - 1) as ITimeUnitNames];
-                      
-                      if (ChronoUnit.SECONDS === chronoUnit) return false;
 
-                      const truncatedJodaDate = quote.jodaDate.truncatedTo(ChronoUnit.DAYS);
-                      let date = truncatedJodaDate.plus(time, chronoUnit);
+                    const timeUnit = clockType.slice(0, clockType.length - 1) as ITimeUnitNames;
 
-                      if (ChronoUnit.MINUTES === chronoUnit) {
-                        date = date.plusHours(quote.jodaTime.get(ChronoField.HOUR_OF_DAY))
+                    // Ignore seconds because mui will attempt to check seconds during validation, causing a validation error
+                    if (TimeUnit.SECOND === timeUnit) return false;
+                    
+                    // Everytime quote.bracketSlotDate changes, we calc days since start of whatever week bracketSlotDate falls within
+                    if (daysSinceStartOfWeek) {
+
+                      console.log({ daysSinceStartOfWeek })
+
+                      // Convert this time check to a duration
+                      let currentDuration: Duration = Duration.of(time, chronoTimeUnits[timeUnit]).plusDays(daysSinceStartOfWeek);
+
+                      // Submitting a new time a two step process, an hour is selected, and then a minute. Upon hour selection, bracketSlotTime is first set, and then when the user selects a minute, that will cause this block to run, so we should add the existing hour from bracketSlotTime such that "hour + minute" will give us the total duration, i.e. 4:30 AM = PT4H30M
+                      if (TimeUnit.MINUTE === timeUnit && quote.bracketSlotTime) {
+                        currentDuration = currentDuration.plusHours(quote.bracketSlotTime.get(ChronoField.HOUR_OF_DAY));
                       }
 
-                      const bracketsHasTime = bracketsValues.some(b => {
-                        let found = false;
-                        for (const s in b.slots) {
-                          const check = truncatedJodaDate.with(temporalAdjuster).plus(Duration.parse(b.slots[s].startTime));
-                          if (date.equals(check)) {
-                            found = true;
-                            break;
-                          }
-                        }
-                        return found;
-                      });
-                      return !bracketsHasTime;
+                      console.log(currentDuration.toString(), bracketSlots);
+
+                      return !bracketSlots.includes(currentDuration.toString());
                     }
                     return false;
                   }}
                   renderInput={params => <TextField {...params} />}
                 />
-              </Grid>}
+              </Grid>} */}
 
-              {/* can add person here */}
+
+
+              {/*
+              TODO LATER SHOULD ONLY SHOW USER SELECTION BASED ON AUTO/ROUND-ROBIN/DIRECT-SELECT
+              {quote.slotTime && <Grid item xs={4}>
+                <TextField
+                  select
+                  fullWidth
+                  label="User"
+                  value={quote.scheduleBracketSlotId}
+                  onChange={e => {
+                    setQuote({ ...quote, scheduleBracketSlotId: e.target.value })
+                  }}
+                >
+                  {bracketsValues
+                    .filter(bv => Object.values(bv.slots).findIndex(s => s.startTime === quote.slotTime) === -1)
+                    .map((bv, i) => {
+                      const { name } = Object.values(groupUserSchedules).find(gus => gus.userScheduleId === bv.scheduleId) || {};
+                      return <MenuItem key={`schedule-slot-selection-${i}`} value={bv.id}>{name}</MenuItem>
+                    })}
+                </TextField>
+              </Grid>} */}
             </Grid>
           </AccordionDetails>
         </Accordion>}
@@ -404,6 +422,8 @@ export function BookingHome(props: IProps): JSX.Element {
           <CardActionArea onClick={() => {
             quote.serviceTierId = tier.id;
 
+            console.log({ quote, bracketsValues })
+            return false;
             if (serviceForm) {
               const missingValues = Object.keys(serviceForm.version.form).some(rowId => serviceForm.version.form[rowId].some((field, i) => field.r && [undefined, ''].includes(serviceForm.version.submission[rowId][i])));
               if (missingValues) {
@@ -442,7 +462,7 @@ export function BookingHome(props: IProps): JSX.Element {
         </Card>
       </Grid>
 
-    </Grid>}
+    </Grid>
   </>
 
 }

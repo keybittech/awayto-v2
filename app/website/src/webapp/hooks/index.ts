@@ -6,3 +6,4 @@ export { useRedux } from './useRedux';
 export { useStyles } from './useStyles';
 export { useSecure } from './useSecure';
 export { useGroupSecure } from './useGroupSecure';
+export { useSchedule } from './useSchedule';

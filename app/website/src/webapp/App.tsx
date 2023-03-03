@@ -1,11 +1,12 @@
 import React, { Suspense, useEffect, useState } from 'react';
+import keycloak from './keycloak';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+
 import ThemeProvider from '@mui/material/styles/ThemeProvider';
 import deepmerge from '@mui/utils/deepmerge';
 import createTheme from '@mui/material/styles/createTheme';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import JsJodaAdapter from '@date-io/js-joda';
-import keycloak from './keycloak';
 
 import { getBaseComponents, getDesignTokens, getThemedComponents } from './hooks/useStyles';
 import { IUserProfileActionTypes, ILookupActionTypes, SiteRoles } from 'awayto';
@@ -19,6 +20,7 @@ const {
 
 const { GET_USER_PROFILE_DETAILS } = IUserProfileActionTypes;
 const { GET_LOOKUPS } = ILookupActionTypes;
+
 
 const App = (props: IProps): JSX.Element => {
   const api = useApi();
@@ -57,7 +59,7 @@ const App = (props: IProps): JSX.Element => {
 
   return <>
     {ready && <Suspense>
-      <LocalizationProvider dateAdapter={JsJodaAdapter}>
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
         <ThemeProvider theme={currentTheme}>
           <Layout {...props} />
         </ThemeProvider>

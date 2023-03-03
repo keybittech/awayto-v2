@@ -49,7 +49,7 @@ export default function FormDisplay({ form, setForm }: IProps & Required<FormDis
     setRows({ ...rows })
   }, [rows]);
 
-  return <>
+  return <Grid container spacing={2}>
 
     {rowKeys.map((rowId, i) => <Grid key={`form_fields_row_${i}`} item xs={12}>
       <Grid container spacing={2}>
@@ -67,5 +67,5 @@ export default function FormDisplay({ form, setForm }: IProps & Required<FormDis
       </Grid>
     </Grid>)}
 
-  </>
+  </Grid>
 }
