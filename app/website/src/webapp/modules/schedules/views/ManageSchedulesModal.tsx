@@ -91,6 +91,7 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
     const { id, name, startTime, endTime } = schedule;
     if (!id) {
       if (name && startTime) {
+        schedule.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
         const [, res] = api(postGroupSchedulesAction, { ...schedule, groupName });
         res?.then(() => {
           api(getGroupSchedulesAction, { groupName });

@@ -243,7 +243,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
   OR REPLACE VIEW dbview_schema.enabled_quotes AS
   SELECT
     id,
-    slot_date as "slotDate",
+    slot_time as "slotTime",
     schedule_bracket_slot_id as "scheduleBracketSlotId",
     service_tier_id as "serviceTierId",
     service_form_version_submission_id as "serviceFormVersionSubmissionId",
@@ -260,7 +260,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
   OR REPLACE VIEW dbview_schema.enabled_bookings AS
   SELECT
     id,
-    slot_date as "slotDate",
+    slot_time as "slotTime",
     quote_id as "quoteId",
     schedule_bracket_slot_id as "scheduleBracketSlotId",
     created_on as "createdOn",
@@ -402,7 +402,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
   OR REPLACE VIEW dbview_schema.enabled_quotes_ext AS
   SELECT
     eq.id,
-    eq."slotDate",
+    eq."slotTime",
     row_to_json(esbs.*) as "scheduleBracketSlot",
     row_to_json(est.*) as "serviceTier",
     row_to_json(sform.*) as "serviceFormVersionSubmission",
@@ -420,7 +420,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
   OR REPLACE VIEW dbview_schema.enabled_bookings_ext AS
   SELECT
     eb.id,
-    eb."slotDate",
+    eb."slotTime",
     row_to_json(eqe.*) as quote,
     row_to_json(esbs.*) as "scheduleBracketSlot",
     eb."createdOn",

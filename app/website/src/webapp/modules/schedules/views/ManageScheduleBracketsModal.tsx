@@ -110,7 +110,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
     if (schedule) {
       const { name, scheduleTimeUnitName } = schedule;
       if (name && scheduleTimeUnitName && scheduleBracketsValues.length) {
-
+        schedule.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
         const [, res] = !editSchedule ?
           api(postScheduleAction, schedule, { load: true }) :
           [undefined, new Promise<ISchedule[]>(res => res([schedule]))];

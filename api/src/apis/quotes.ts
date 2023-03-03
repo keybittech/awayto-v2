@@ -9,7 +9,8 @@ const quotes: ApiModule = [
     cmnd : async (props) => {
       try {
 
-        const { serviceForm, tierForm, slotDate, scheduleBracketSlotId, serviceTierId } = props.event.body;
+        const quote = props.event.body;
+        const { serviceForm, tierForm, slotTime, scheduleBracketSlotId, serviceTierId } = quote;
         
         
 
@@ -17,7 +18,7 @@ const quotes: ApiModule = [
           if (form) {
             const { rows: [{ id: formId }] } = await props.db.query<IFormVersionSubmission>(`
               INSERT INTO dbtable_schema.form_version_submissions (form_version_id, submission, created_sub)
-              VALUES ($1, $2::jsonb, $2::uuid)
+              VALUES ($1, $2::jsonb, $3::uuid)
               RETURNING id
             `, [form.formVersionId, form.submission, props.event.userSub]);
 
@@ -27,13 +28,23 @@ const quotes: ApiModule = [
         
         
         
-        const response = await props.db.query<IQuote>(`
-          INSERT INTO dbtable_schema.quotes (slot_date, schedule_bracket_slot_id, service_tier_id, service_form_version_submission_id, tier_form_version_submission_id, created_sub)
-          VALUES ($1::date, $2::uuid, $3::uuid, $4::uuid, $5::uuid, $6::uuid)
-          RETURNING id, name, desired_duration as "desiredDuration", budget_id as "budgetId", timeline_id as "timelineId", service__tier_id as "serviceTierId", contact_id as "contactId", respond_by as "respondBy", description
-        `, [slotDate, scheduleBracketSlotId, serviceTierId, serviceForm.id, tierForm.id, props.event.userSub]);
+        const { rows: [{ id: quoteId }]} = await props.db.query<IQuote>(`
+          INSERT INTO dbtable_schema.quotes (slot_time, schedule_bracket_slot_id, service_tier_id, service_form_version_submission_id, tier_form_version_submission_id, created_sub)
+          VALUES ($1::timestamptz, $2::uuid, $3::uuid, $4::uuid, $5::uuid, $6::uuid)
+          RETURNING id
+        `, [slotTime, scheduleBracketSlotId, serviceTierId, serviceForm?.id, tierForm?.id, props.event.userSub]);
         
-        return response.rows[0];
+        if (serviceForm?.id) {
+          quote.serviceFormVersionSubmissionId = serviceForm.id;
+        }
+
+        if (tierForm?.id) {
+          quote.tierFormVersionSubmissionId = tierForm.id;
+        }
+
+        quote.id = quoteId;
+
+        return [quote];
 
       } catch (error) {
         throw error;

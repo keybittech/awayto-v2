@@ -19,7 +19,7 @@ type CellDuration = {
   startTime: string;
   contextFormat: string;
   active: boolean;
-  scheduleBracketIds: string[];
+  scheduleBracketSlotIds: string[];
 }
 
 type UseScheduleResult = {
@@ -63,15 +63,15 @@ export function useSchedule(): (schedule: UseScheduleProps) => UseScheduleResult
 
       for (let y = 0; y < selections; y++) {
 
-        let scheduleBracketIds: string[] = [];
+        let scheduleBracketSlotIds: string[] = [];
         if (beginningOfMonth) {
-          scheduleBracketIds = bracketSlots.filter(b => b.startTime === startDuration.toISOString() ).map(b => b.scheduleBracketId);
+          scheduleBracketSlotIds = bracketSlots.filter(b => b.startTime === startDuration.toISOString() ).map(b => b.id);
         }
         
         const cell = {
-          scheduleBracketIds,
+          scheduleBracketSlotIds,
           startTime: startDuration.toISOString(),
-          active: !!scheduleBracketIds.length,
+          active: !!scheduleBracketSlotIds.length,
           contextFormat: getContextFormattedDuration(xAxisTypeName, startDuration.toISOString(), beginningOfMonth),
           x, y
         };

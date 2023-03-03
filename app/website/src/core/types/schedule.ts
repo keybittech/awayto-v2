@@ -66,6 +66,7 @@ export type ISchedule = {
   name: string;
   startTime: string;
   endTime: string;
+  timezone: string;
   scheduleTimeUnitId: string;
   scheduleTimeUnitName: ITimeUnitNames;
   bracketTimeUnitId: string;
