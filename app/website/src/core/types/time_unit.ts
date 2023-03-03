@@ -48,16 +48,16 @@ export function utcNowString(): string {
   return dayjs().utc().toString();
 }
 
+export const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 export const compactDateTimeFormat = 'ddd, hh:mm a';
-export const currentStartOfWeek = dayjs().startOf('week').startOf('day');
 
-export function getContextFormattedDuration(contextUnit: ITimeUnitNames | string, duration: string, relativeDate: dayjs.Dayjs = currentStartOfWeek): string {
+export function getContextFormattedDuration(contextUnit: ITimeUnitNames | string, duration: string, relativeDate: dayjs.Dayjs = dayjs()): string {
   let formatted = 'No format!';
 
   if (TimeUnit.DAY === contextUnit) {
-    formatted = relativeDate.add(dayjs.duration(duration)).format(compactDateTimeFormat);
+    formatted = relativeDate.startOf('week').startOf('day').add(dayjs.duration(duration)).format(compactDateTimeFormat);
   } else if (TimeUnit.WEEK === contextUnit) {
-    formatted = relativeDate.add(dayjs.duration(duration)).format(compactDateTimeFormat);
+    formatted = relativeDate.startOf('week').startOf('day').add(dayjs.duration(duration)).format(compactDateTimeFormat);
   }
 
   return formatted;

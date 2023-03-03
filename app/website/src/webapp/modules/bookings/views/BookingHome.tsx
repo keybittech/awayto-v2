@@ -38,9 +38,11 @@ import {
   ITimeUnitNames,
   IGroupSchedule,
   IGroupUserScheduleActionTypes,
-  TimeUnit
+  TimeUnit,
+  timeUnitOrder
 } from 'awayto';
 import { useApi, useRedux, useComponents, useStyles, useAct, useSchedule } from 'awayto-hooks';
+import { Duration } from 'dayjs/plugin/duration';
 
 const { GET_GROUP_FORM_BY_ID } = IGroupFormActionTypes;
 const { POST_QUOTE } = IQuoteActionTypes;
@@ -69,9 +71,77 @@ export function BookingHome(props: IProps): JSX.Element {
   const [serviceForm, setServiceForm] = useState({} as IForm);
   const [tierForm, setTierForm] = useState({} as IForm);
   const [group, setGroup] = useState({ id: '' } as IGroup);
-  const [quote, setQuote] = useState({ bracketSlotDate: dayjs() } as IQuote);
-  
+  const [quote, setQuote] = useState({} as IQuote);
+
   const [monthSeekDate, setMonthSeekDate] = useState(dayjs().startOf(TimeUnit.MONTH));
+
+  const bracketsValues = useMemo(() => {
+    if (Object.keys(groupUserSchedules).length) {
+      const brackets = Object.keys(groupUserSchedules).flatMap(s => Object.values(groupUserSchedules[s].brackets));
+
+      const newServices = {} as Record<string, IService>;
+      let someService = {} as IService;
+
+      brackets.forEach(bracket => {
+        for (const s in bracket.services) {
+          newServices[s] = bracket.services[s];
+          someService = bracket.services[s];
+        }
+      });
+
+      setService(someService);
+      setServices(newServices);
+      setTier(Object.values(someService.tiers).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime())[0]);
+
+      return brackets;
+    }
+    return [];
+  }, [groupUserSchedules]);
+
+  const bracketSlots = useMemo(() => bracketsValues.flatMap(bv => Object.values(bv.slots)), [bracketsValues])
+
+  const serviceTiers = useMemo(() => Object.values(service?.tiers || {}), [service?.tiers]);
+
+  const tierColumns = useMemo(() => {
+    if (!service || !tier || !serviceTierAddons.length) return [];
+    return [
+      { name: '', selector: row => row.name } as TableColumn<Partial<IServiceAddon>>,
+      ...Object.values(service.tiers).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime()).reduce((memo, { name, addons }) => {
+        memo.push({
+          name: `${name}`,
+          cell: row => {
+            return Object.values(addons).map(ad => ad.name).indexOf(row.name as string) > -1 ? <Avatar sx={{ width: 24, height: 24, backgroundColor: 'white' }}><CheckIcon className={classes.green} /></Avatar> : '--';
+          }
+        });
+        return memo;
+      }, [] as TableColumn<Partial<IServiceAddon>>[])
+    ]
+  }, [serviceTierAddons, service, tier]);
+
+  const { durations } = useMemo(() => {
+    const { scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName, slotDuration } = schedule;
+    return getScheduleData({ scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName, slotDuration, beginningOfMonth: monthSeekDate, bracketSlots });
+  }, [schedule.scheduleTimeUnitName, schedule.bracketTimeUnitName, schedule.slotTimeUnitName, schedule.slotDuration, monthSeekDate, bracketSlots])
+
+  const monthStartDiffDay = useMemo(() => {
+    const monthStart = monthSeekDate.startOf(TimeUnit.MONTH);
+    const monthWeekStart = monthStart.startOf(TimeUnit.WEEK);
+    return monthStart.diff(monthWeekStart, TimeUnit.DAY);
+  }, [monthSeekDate]);
+
+  const bracketSlotDateDayDiff = useMemo(() => {
+    if (quote.bracketSlotDate) {
+      return quote.bracketSlotDate.diff(quote.bracketSlotDate.day(0), TimeUnit.DAY);
+    }
+    return 0;
+  }, [quote.bracketSlotDate]);
+
+  const loadSchedule = useCallback((sched: ISchedule) => {
+    sched.scheduleTimeUnitName = timeUnits.find(u => u.id === sched.scheduleTimeUnitId)?.name as ITimeUnitNames;
+    sched.bracketTimeUnitName = timeUnits.find(u => u.id === sched.bracketTimeUnitId)?.name as ITimeUnitNames;
+    sched.slotTimeUnitName = timeUnits.find(u => u.id === sched.slotTimeUnitId)?.name as ITimeUnitNames;
+    setSchedule(sched);
+  }, [timeUnits]);
 
   useEffect(() => {
     if (groups) {
@@ -90,13 +160,6 @@ export function BookingHome(props: IProps): JSX.Element {
       }
     }
   }, [groups, timeUnits]);
-
-  const loadSchedule = useCallback((sched: ISchedule) => {
-    sched.scheduleTimeUnitName = timeUnits.find(u => u.id === sched.scheduleTimeUnitId)?.name as ITimeUnitNames;
-    sched.bracketTimeUnitName = timeUnits.find(u => u.id === sched.bracketTimeUnitId)?.name as ITimeUnitNames;
-    sched.slotTimeUnitName = timeUnits.find(u => u.id === sched.slotTimeUnitId)?.name as ITimeUnitNames;
-    setSchedule(sched);
-  }, [timeUnits]);
 
   useEffect(() => {
     if (Object.keys(groupSchedules).length) {
@@ -155,56 +218,6 @@ export function BookingHome(props: IProps): JSX.Element {
       setServiceTierAddons(newAddons);
     }
   }, [service]);
-
-  const bracketsValues = useMemo(() => {
-    if (Object.keys(groupUserSchedules).length) {
-      const brackets = Object.keys(groupUserSchedules).flatMap(s => Object.values(groupUserSchedules[s].brackets));
-
-      const newServices = {} as Record<string, IService>;
-      let someService = {} as IService;
-
-      brackets.forEach(bracket => {
-        for (const s in bracket.services) {
-          newServices[s] = bracket.services[s];
-          someService = bracket.services[s];
-        }
-      });
-
-      setService(someService);
-      setServices(newServices);
-      setTier(Object.values(someService.tiers).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime())[0]);
-
-      return brackets;
-    }
-    return [];
-  }, [groupUserSchedules]);
-
-  const bracketSlots = useMemo(() => bracketsValues.flatMap(bv => Object.values(bv.slots)),[bracketsValues])
-  console.log({ BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBSLOTS: bracketSlots })
-  const serviceTiers = useMemo(() => Object.values(service?.tiers || {}), [service?.tiers]);
-
-  const tierColumns = useMemo(() => {
-    if (!service || !tier || !serviceTierAddons.length) return [];
-    return [
-      { name: '', selector: row => row.name } as TableColumn<Partial<IServiceAddon>>,
-      ...Object.values(service.tiers).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime()).reduce((memo, { name, addons }) => {
-        memo.push({
-          name: `${name}`,
-          cell: row => {
-            return Object.values(addons).map(ad => ad.name).indexOf(row.name as string) > -1 ? <Avatar sx={{ width: 24, height: 24, backgroundColor: 'white' }}><CheckIcon className={classes.green} /></Avatar> : '--';
-          }
-        });
-        return memo;
-      }, [] as TableColumn<Partial<IServiceAddon>>[])
-    ]
-  }, [serviceTierAddons, service, tier]);
-
-  const { divisions, selections, durations, xAxisTypeName, yAxisTypeName } = useMemo(() => {
-    const { scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName, slotDuration } = schedule;
-    return getScheduleData({ scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName, slotDuration, beginningOfMonth: monthSeekDate, bracketSlots });
-  }, [schedule.scheduleTimeUnitName, schedule.bracketTimeUnitName, schedule.slotTimeUnitName, schedule.slotDuration, monthSeekDate, bracketSlots])
-
-  console.log({ divisions, selections, durations, xAxisTypeName, yAxisTypeName })
 
   return <>
     <Grid container spacing={2}>
@@ -330,7 +343,7 @@ export function BookingHome(props: IProps): JSX.Element {
             expandIcon={<ExpandMoreIcon />}
             aria-controls="service-booking-section-time-selection-content"
             id="service-booking-section-time-selection-header"
-            >
+          >
             <Typography>Time Selection</Typography>
           </AccordionSummary>
           <AccordionDetails>
@@ -340,53 +353,48 @@ export function BookingHome(props: IProps): JSX.Element {
                   label="Date"
                   inputFormat="MM/DD/YYYY"
                   value={quote.bracketSlotDate}
-                  onMonthChange={month => setMonthSeekDate(month)}
-                  onChange={(bracketSlotDate: dayjs.Dayjs | null) => setQuote({ ...quote, bracketSlotDate })}
+                  onMonthChange={date => setMonthSeekDate(date)}
+                  onYearChange={date => setMonthSeekDate(date)}
+                  onChange={bracketSlotDate => setQuote({ ...quote, bracketSlotDate: bracketSlotDate })}
                   renderInput={(params) => <TextField {...params} />}
                   minDate={dayjs()}
+                  disableHighlightToday={true}
+                  shouldDisableDate={date => {
+                    const dateDurations = durations[date.date() - 1 + monthStartDiffDay];
+                    return dateDurations ? !dateDurations.some(d => d.active) : true;
+                  }}
                 />
               </Grid>
-              {/* {!!quote.bracketSlotDate && timeUnitOrder.indexOf(schedule.slotTimeUnitName) <= timeUnitOrder.indexOf(TimeUnit.HOUR) && <Grid item xs={4}>
+              {!!quote.bracketSlotDate && timeUnitOrder.indexOf(schedule.slotTimeUnitName) <= timeUnitOrder.indexOf(TimeUnit.HOUR) && <Grid item xs={4}>
                 <TimePicker
                   label="Time"
                   value={quote.bracketSlotTime}
                   ignoreInvalidInputs={true}
-                  onChange={value => {
-                    console.log({ timevalue: value })
-                    if (value && isLocalDate(quote.bracketSlotDate)) {
-                      const bracketSlotTime = quote.bracketSlotDate.query(TemporalQueries.localTime())?.plusHours(value.get(ChronoField.HOUR_OF_DAY)).plusMinutes(value.get(ChronoField.MINUTE_OF_HOUR));
-                      setQuote({ ...quote, slotTime: Duration.of(bracketSlotTime?.toSecondOfDay() || 0, ChronoUnit.SECONDS).toString(), bracketSlotTime  });
-                    }
-                  }}
+                  onChange={bracketSlotTime => setQuote({ ...quote, bracketSlotTime: bracketSlotTime })}
                   shouldDisableTime={(time, clockType) => {
+                    if (quote.bracketSlotDate) {
+                      // Ignore seconds check because final time doesn't need seconds, so this will cause invalidity
+                      if ('seconds' === clockType) return false;
 
-                    const timeUnit = clockType.slice(0, clockType.length - 1) as ITimeUnitNames;
+                      // Get the date of the month # + the offset from the beginning of the month, as all schedule durations are Sunday based
+                      const currentDaySlots = durations[quote.bracketSlotDate.date() + monthStartDiffDay - 1];
 
-                    // Ignore seconds because mui will attempt to check seconds during validation, causing a validation error
-                    if (TimeUnit.SECOND === timeUnit) return false;
-                    
-                    // Everytime quote.bracketSlotDate changes, we calc days since start of whatever week bracketSlotDate falls within
-                    if (daysSinceStartOfWeek) {
-
-                      console.log({ daysSinceStartOfWeek })
-
-                      // Convert this time check to a duration
-                      let currentDuration: Duration = Duration.of(time, chronoTimeUnits[timeUnit]).plusDays(daysSinceStartOfWeek);
+                      // Create a duration based on the current clock validation check and the days from start of current week
+                      let duration: Duration = dayjs.duration(time, clockType).add(bracketSlotDateDayDiff, TimeUnit.DAY);
 
                       // Submitting a new time a two step process, an hour is selected, and then a minute. Upon hour selection, bracketSlotTime is first set, and then when the user selects a minute, that will cause this block to run, so we should add the existing hour from bracketSlotTime such that "hour + minute" will give us the total duration, i.e. 4:30 AM = PT4H30M
-                      if (TimeUnit.MINUTE === timeUnit && quote.bracketSlotTime) {
-                        currentDuration = currentDuration.plusHours(quote.bracketSlotTime.get(ChronoField.HOUR_OF_DAY));
+                      if ('minutes' === clockType && quote.bracketSlotTime) {
+                        duration = duration.add(quote.bracketSlotTime.hour(), TimeUnit.HOUR);
                       }
 
-                      console.log(currentDuration.toString(), bracketSlots);
-
-                      return !bracketSlots.includes(currentDuration.toString());
+                      // Checks that have no existing slots are invalid
+                      return !currentDaySlots.filter(s => s.active && s.startTime === duration.toISOString()).length;
                     }
-                    return false;
+                    return true;
                   }}
                   renderInput={params => <TextField {...params} />}
                 />
-              </Grid>} */}
+              </Grid>}
 
 
 
