@@ -136,6 +136,7 @@ const groupSchedules: ApiModule = [
 
   {
     action: IGroupScheduleActionTypes.GET_GROUP_SCHEDULE_BY_DATE,
+    cache: 15,
     cmnd: async (props) => {
 
       const { scheduleId, date, } = props.event.pathParameters;
@@ -143,52 +144,7 @@ const groupSchedules: ApiModule = [
       const timezone = Buffer.from(props.event.pathParameters.timezone, 'base64');
 
       const response = await props.db.query(`
-        WITH slots AS (
-          SELECT
-            generate_series(
-              date_trunc('week', $1::DATE) - INTERVAL '1 day',
-              date_trunc('week', $1::DATE) - INTERVAL '1 day' + INTERVAL '1 month',
-              INTERVAL '1 WEEK'
-            ) AT TIME ZONE 'UTC' AT TIME ZONE s.timezone week_start,
-            sbs.start_time,
-            sbs.id AS schedule_bracket_slot_id,
-            s.timezone
-          FROM dbtable_schema.schedule_bracket_slots sbs
-          JOIN dbtable_schema.schedule_brackets sb ON sbs.schedule_bracket_id = sb.id
-          JOIN dbtable_schema.group_user_schedules gus ON gus.user_schedule_id = sb.schedule_id
-          JOIN dbtable_schema.schedules s ON s.id = gus.group_schedule_id
-          WHERE s.id = $2
-        )
-        SELECT
-          slts.week_start::DATE as "weekStart",
-          (
-            (
-              TO_TIMESTAMP((slts.week_start + slts.start_time)::TEXT, 'YYYY-MM-DD HH24:MI') AT TIME ZONE $3 - 
-              TO_TIMESTAMP((slts.week_start + slts.start_time)::TEXT, 'YYYY-MM-DD HH24:MI') AT TIME ZONE slts.timezone
-            )::INTERVAL + slts.start_time::INTERVAL + slts.week_start::DATE
-          )::DATE as "startDate",
-          (
-            (
-              TO_TIMESTAMP((slts.week_start + slts.start_time)::TEXT, 'YYYY-MM-DD HH24:MI') AT TIME ZONE $3 - 
-              TO_TIMESTAMP((slts.week_start + slts.start_time)::TEXT, 'YYYY-MM-DD HH24:MI') AT TIME ZONE slts.timezone
-            )::INTERVAL + slts.start_time
-          )::TEXT as "startTime",
-          slts.schedule_bracket_slot_id as "scheduleBracketSlotId"
-        FROM 
-          slots slts
-        LEFT JOIN
-          dbtable_schema.quotes q ON q.schedule_bracket_slot_id = slts.schedule_bracket_slot_id
-          AND (
-            q.slot_date AT TIME ZONE 'UTC' AT TIME ZONE slts.timezone AT TIME ZONE $3 AT TIME ZONE 'UTC' + slts.start_time
-          ) BETWEEN
-            slts.week_start
-            AND slts.week_start + INTERVAL '1 week'
-        WHERE 
-          q.id IS NULL
-          AND slts.week_start > (date_trunc('day', NOW()) - INTERVAL '1 day')
-        ORDER BY
-          "weekStart",
-          (slts.week_start + slts.start_time);
+        SELECT * FROM dbfunc_schema.get_group_schedules($1, $2, $3);
       `, [date, scheduleId, timezone]);
 
       return response.rows;
