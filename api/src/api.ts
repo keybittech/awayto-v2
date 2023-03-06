@@ -82,6 +82,7 @@ export type ApiResponseBody = ILoadedState | ILoadedState[] | boolean;
 export type ApiModulet = {
   roles?: string;
   inclusive?: boolean;
+  cache?: 'skip' | number;
   action: IActionTypes;
   cmnd(props: ApiProps, meta?: string): Promise<ApiResponseBody>;
 }
@@ -347,7 +348,7 @@ async function go() {
     // });
 
     // Define protected routes
-    APIs.protected.forEach(({ action, cmnd }) => {
+    APIs.protected.forEach(({ action, cmnd, cache }) => {
       const [method, path] = getActionParts(action);
 
       // Here we make use of the extra /api from the reverse proxy
@@ -398,12 +399,16 @@ async function go() {
             // Handle request
             logger.log('App API Request', event);
             response = await cmnd({ event, db, redis });
-            if ('get' === method.toLowerCase()) {
-              await redis.setEx(cacheKey, 180, JSON.stringify(response));
-              res.header('x-in-cache', 'true');
-            } else {
-              await redis.del(cacheKey);
+
+            if ('skip' !== cache) {
+              if ('get' === method.toLowerCase()) {
+                await redis.setEx(cacheKey, cache || 180, JSON.stringify(response));
+                res.header('x-in-cache', 'true');
+              } else {
+                await redis.del(cacheKey);
+              }
             }
+
           } catch (error) {
             const err = error as Error & { reason: string };
 
