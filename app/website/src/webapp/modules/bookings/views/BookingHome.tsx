@@ -99,7 +99,8 @@ export function BookingHome(props: IProps): JSX.Element {
 
   const bracketSlotDateDayDiff = useMemo(() => {
     if (bracketSlotDate) {
-      return bracketSlotDate.diff(bracketSlotDate.day(0), TimeUnit.DAY);
+      const startOfDay = bracketSlotDate.startOf('day');
+      return startOfDay.diff(startOfDay.day(0), TimeUnit.DAY);
     }
     return 0;
   }, [bracketSlotDate]);

@@ -1,6 +1,6 @@
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 
-import { getContextFormattedDuration, getRelativeDuration, ISchedule, IScheduleBracketSlot, TimeUnit, timeUnitOrder } from "awayto";
+import { getContextFormattedDuration, getRelativeDuration, IScheduleBracketSlot, TimeUnit, timeUnitOrder } from "awayto";
 import dayjs from "dayjs";
 import { DurationUnitType } from "dayjs/plugin/duration";
 
