@@ -39,10 +39,11 @@ import {
   TimeUnit,
   timeUnitOrder,
   IGroupScheduleDateSlots,
-  userTimezone
+  userTimezone,
+  getRelativeDuration
 } from 'awayto';
 import { useApi, useRedux, useComponents, useStyles, useAct, useSchedule } from 'awayto-hooks';
-import { Duration } from 'dayjs/plugin/duration';
+import { Duration, DurationUnitType } from 'dayjs/plugin/duration';
 
 const { GET_GROUP_FORM_BY_ID } = IGroupFormActionTypes;
 const { POST_QUOTE } = IQuoteActionTypes;
@@ -107,6 +108,15 @@ export function BookingHome(props: IProps): JSX.Element {
     sched.scheduleTimeUnitName = timeUnits.find(u => u.id === sched.scheduleTimeUnitId)?.name as ITimeUnitNames;
     sched.bracketTimeUnitName = timeUnits.find(u => u.id === sched.bracketTimeUnitId)?.name as ITimeUnitNames;
     sched.slotTimeUnitName = timeUnits.find(u => u.id === sched.slotTimeUnitId)?.name as ITimeUnitNames;
+    
+    const sessionDuration = Math.round(getRelativeDuration(1, sched.bracketTimeUnitName, sched.slotTimeUnitName));
+    sched.slotFactors = [];
+    for (let value = 1; value < sessionDuration; value++) {
+      if (sessionDuration % value === 0) {
+        sched.slotFactors.push(value);
+      }
+    }
+    
     setSchedule(sched);
   }, [timeUnits]);
 
@@ -383,14 +393,17 @@ export function BookingHome(props: IProps): JSX.Element {
                         .add(bracketSlotDateDayDiff, TimeUnit.DAY)
                         .add(timeHour, TimeUnit.HOUR)
                         .add(timeMins, TimeUnit.MINUTE);
-                      const [{ scheduleBracketSlotId }] = groupScheduleDateSlots
+                      const [slot] = groupScheduleDateSlots
                         .filter(s => s.startDate === bracketSlotDate.format("YYYY-MM-DD") && s.startTime === duration.toISOString());
 
-                      setQuote({
-                        ...quote,
-                        slotDate: bracketSlotDate.format('YYYY-MM-DD'),
-                        scheduleBracketSlotId
-                      });
+                      if (slot) {
+                        setQuote({
+                          ...quote,
+                          slotDate: bracketSlotDate.format('YYYY-MM-DD'),
+                          scheduleBracketSlotId: slot.scheduleBracketSlotId
+                        });
+                      }
+
                     }
                   }}
                   onChange={bracketSlotTime => setBracketSlotTime(bracketSlotTime)}
@@ -407,8 +420,16 @@ export function BookingHome(props: IProps): JSX.Element {
                         duration = duration.add(bracketSlotTime.hour(), TimeUnit.HOUR);
                       }
 
+                      // When checking hours, we need to also check the hour + next session time, because shouldDisableTime checks atomic parts of the clock, either hour or minute, but no both. So instead of keeping track of some ongoing clock, we can just check both durations here
+                      const checkDurations: Duration[] = [duration];
+                      if ('hours' === clockType) {
+                        for (const factor of schedule.slotFactors) { 
+                          checkDurations.push(duration.add(factor, schedule.slotTimeUnitName as DurationUnitType));
+                        }
+                      }
+
                       // Checks that have no existing slots are invalid
-                      return !groupScheduleDateSlots.filter(s => s.startDate === bracketSlotDate.format("YYYY-MM-DD") && s.startTime === duration.toISOString()).length;
+                      return !groupScheduleDateSlots.filter(s => s.startDate === bracketSlotDate.format("YYYY-MM-DD") && checkDurations.filter(d => d.toISOString() === s.startTime).length > 0).length;
                     }
                     return true;
                   }}
