@@ -73,6 +73,38 @@ export const useStyles = makeStyles(({ mixins, spacing }: Theme) => ({
 
 export const getBaseComponents: () => ThemeOptions = () => ({
   components: {
+    MuiPickersDay: {
+      styleOverrides: {
+        root: {
+          '&:not(.Mui-disabled)': {
+            backgroundColor: 'rgb(64 64 64)',
+            color: 'rgb(0 191 255)'
+          },
+          '&.Mui-selected': {
+            backgroundColor: 'rgb(128 128 128) !important'
+          },
+          '&:hover': {
+            backgroundColor: '#aaa'
+          }
+        }
+      }
+    },
+    MuiClockPointer: {
+      styleOverrides: {
+        thumb: {
+          backgroundColor: 'inherit'
+        }
+      }
+    },
+    MuiClockNumber: {
+      styleOverrides: {
+        root: {
+          '&:not(.Mui-disabled)': {
+            color: 'rgb(0 191 255)'
+          }
+        }
+      }
+    },
     MuiDrawer: {
       styleOverrides: {
         paper: {
@@ -209,6 +241,34 @@ export const getThemedComponents: (mode: PaletteMode) => ThemeOptions = (mode) =
     ...(
       mode === 'light' ? {
         // Light theme components
+        MuiPickersDay: {
+          styleOverrides: {
+            root: {
+              '&.Mui-selected': {
+                backgroundColor: '#333 !important'
+              }
+            }
+          }
+        },
+        MuiClock: {
+          styleOverrides: {
+            pmButton: {
+              color: '#aaa'
+            },
+            amButton: {
+              color: '#aaa'
+            }
+          }
+        },
+        MuiClockNumber: {
+          styleOverrides: {
+            root: {
+              '&.Mui-selected': {
+                backgroundColor: '#ccc'
+              }
+            }
+          }
+        }
       } : mode === 'dark' ? {
         // Dark theme components
         MuiInput: {

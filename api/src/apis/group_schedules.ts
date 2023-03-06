@@ -136,7 +136,7 @@ const groupSchedules: ApiModule = [
 
   {
     action: IGroupScheduleActionTypes.GET_GROUP_SCHEDULE_BY_DATE,
-    cache: 15,
+    cache: 'skip',
     cmnd: async (props) => {
 
       const { scheduleId, date, } = props.event.pathParameters;

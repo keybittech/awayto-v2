@@ -44,6 +44,7 @@ import {
 } from 'awayto';
 import { useApi, useRedux, useComponents, useStyles, useAct, useSchedule } from 'awayto-hooks';
 import { Duration, DurationUnitType } from 'dayjs/plugin/duration';
+import { useNavigate } from 'react-router';
 
 const { GET_GROUP_FORM_BY_ID } = IGroupFormActionTypes;
 const { POST_QUOTE } = IQuoteActionTypes;
@@ -56,6 +57,7 @@ export function BookingHome(props: IProps): JSX.Element {
 
   const api = useApi();
   const act = useAct();
+  const navigate = useNavigate();
   const { FileManager, FormDisplay } = useComponents();
   const { groupSchedules } = useRedux(state => state.groupSchedule);
   const { groupUserSchedules } = useRedux(state => state.groupUserSchedule);
@@ -143,7 +145,12 @@ export function BookingHome(props: IProps): JSX.Element {
 
   useEffect(() => {
     if (group.name) {
-      const [abort, res] = api(GET_GROUP_SCHEDULE_BY_DATE, { groupName: group.name, scheduleId: schedule.id, date: monthSeekDate.format("YYYY-MM-DD"), timezone: btoa(userTimezone) });
+      const [abort, res] = api(GET_GROUP_SCHEDULE_BY_DATE, {
+        groupName: group.name,
+        scheduleId: schedule.id,
+        date: monthSeekDate.format("YYYY-MM-DD"),
+        timezone: btoa(userTimezone)
+      });
       res?.then(data => {
         const dateSlots = data as IGroupScheduleDateSlots[];
         setGroupScheduleDateSlots(dateSlots);
@@ -372,7 +379,9 @@ export function BookingHome(props: IProps): JSX.Element {
                   value={bracketSlotDate}
                   onMonthChange={date => setMonthSeekDate(date)}
                   onYearChange={date => setMonthSeekDate(date)}
-                  onChange={date => setBracketSlotDate(date)}
+                  onChange={date => {
+                    setBracketSlotDate(date);
+                  }}
                   renderInput={(params) => <TextField {...params} />}
                   minDate={dayjs()}
                   disableHighlightToday={true}
@@ -385,6 +394,7 @@ export function BookingHome(props: IProps): JSX.Element {
                 <TimePicker
                   label="Time"
                   value={bracketSlotTime}
+                  ampmInClock={true}
                   ignoreInvalidInputs={true}
                   onAccept={time => {
                     if (time && bracketSlotDate) {
@@ -497,10 +507,9 @@ export function BookingHome(props: IProps): JSX.Element {
             }
 
             const [, res] = api(POST_QUOTE, quote);
-            res?.then(quotes => {
-              const [savedQuote] = quotes as IQuote[];
-
-              console.log({ QUOTEID: savedQuote.id, SERVICEFORMSUBMISSIONID: savedQuote.serviceForm?.id, TIERFORMSUBMISSIONID: savedQuote.tierForm?.id })
+            res?.then(() => {
+              act(SET_SNACK, { snackOn: 'Your request has been made successfully!' });
+              navigate('/');
             })
           }}>
             <Box m={2} sx={{ display: 'flex' }}>
