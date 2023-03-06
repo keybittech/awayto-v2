@@ -279,6 +279,13 @@ export type IGroupScheduleState = IGroupSchedule & {
   groupSchedules: Record<string, IGroupSchedule>;
 };
 
+export type IGroupScheduleDateSlots = {
+  weekStart: string;
+  startTime: string;
+  startDate: string;
+  scheduleBracketSlotId: string;
+}
+
 /**
  * @category Action Types
  */
@@ -286,6 +293,7 @@ export enum IGroupScheduleActionTypes {
   POST_GROUP_SCHEDULE = "POST/group/:groupName/schedules",
   PUT_GROUP_SCHEDULE = "PUT/group/:groupName/schedules",
   GET_GROUP_SCHEDULES = "GET/group/:groupName/schedules",
+  GET_GROUP_SCHEDULE_BY_DATE = "GET/group/:groupName/schedules/:scheduleId/date/:date/timezone/:timezone",
   GET_GROUP_SCHEDULE_MASTER_BY_ID = "GET/group/:groupName/schedulemaster/:scheduleId",
   DELETE_GROUP_SCHEDULE = "DELETE/group/:groupName/schedules/:ids"
 }

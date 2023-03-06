@@ -63,7 +63,7 @@ services:
       - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
       - KC_REALM=devel
   db: # postgres
-    image: postgres:13.0
+    image: postgres:15.0
     ports:
       - 8082:5432
     environment:
@@ -72,7 +72,7 @@ services:
       - POSTGRES_PASSWORD=postgres #SECRET
     volumes: 
       - ./db/scripts:/docker-entrypoint-initdb.d
-      - pgstore:/var/lib/postgresql/data
+      - pg15store:/var/lib/postgresql/data
     # volumes:
     #   - pgvol:/var/lib/postgresql/data
   api: # express passport for keycloak auth
@@ -177,7 +177,7 @@ services:
     network_mode: host
 
 volumes:
-  pgstore:
+  pg15store:
     external: true
   graylogdata:
     external: true

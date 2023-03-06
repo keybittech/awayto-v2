@@ -10,9 +10,7 @@ const quotes: ApiModule = [
       try {
 
         const quote = props.event.body;
-        const { serviceForm, tierForm, slotTime, scheduleBracketSlotId, serviceTierId } = quote;
-        
-        
+        const { serviceForm, tierForm, slotDate, scheduleBracketSlotId, serviceTierId } = quote;
 
         await asyncForEach([serviceForm, tierForm], async form => {
           if (form) {
@@ -24,15 +22,13 @@ const quotes: ApiModule = [
 
             form.id = formId;
           }
-        })
-        
-        
+        });
         
         const { rows: [{ id: quoteId }]} = await props.db.query<IQuote>(`
-          INSERT INTO dbtable_schema.quotes (slot_time, schedule_bracket_slot_id, service_tier_id, service_form_version_submission_id, tier_form_version_submission_id, created_sub)
-          VALUES ($1::timestamptz, $2::uuid, $3::uuid, $4::uuid, $5::uuid, $6::uuid)
+          INSERT INTO dbtable_schema.quotes (slot_date, schedule_bracket_slot_id, service_tier_id, service_form_version_submission_id, tier_form_version_submission_id, created_sub)
+          VALUES ($1::date, $2::uuid, $3::uuid, $4::uuid, $5::uuid, $6::uuid)
           RETURNING id
-        `, [slotTime, scheduleBracketSlotId, serviceTierId, serviceForm?.id, tierForm?.id, props.event.userSub]);
+        `, [slotDate, scheduleBracketSlotId, serviceTierId, serviceForm?.id, tierForm?.id, props.event.userSub]);
         
         if (serviceForm?.id) {
           quote.serviceFormVersionSubmissionId = serviceForm.id;

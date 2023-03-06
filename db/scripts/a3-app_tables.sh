@@ -266,7 +266,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
 
   CREATE TABLE dbtable_schema.quotes (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    slot_time TIMESTAMPTZ NOT NULL,
+    slot_date DATE NOT NULL,
     schedule_bracket_slot_id uuid NOT NULL REFERENCES dbtable_schema.schedule_bracket_slots (id),
     service_tier_id uuid NOT NULL REFERENCES dbtable_schema.service_tiers (id),
     service_form_version_submission_id uuid REFERENCES dbtable_schema.form_version_submissions (id),
@@ -281,8 +281,19 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
   CREATE TABLE dbtable_schema.bookings (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     quote_id uuid NOT NULL REFERENCES dbtable_schema.quotes (id),
-    slot_time TIMESTAMPTZ NOT NULL,
+    slot_date DATE NOT NULL,
     schedule_bracket_slot_id uuid NOT NULL REFERENCES dbtable_schema.schedule_bracket_slots (id),
+    created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
+    updated_on TIMESTAMP,
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
+    enabled BOOLEAN NOT NULL DEFAULT true
+  );
+
+  CREATE TABLE dbtable_schema.schedule_bracket_slot_exclusions (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    exclusion_date DATE NOT NULL,
+    schedule_bracket_slot_id uuid REFERENCES dbtable_schema.schedule_bracket_slots (id),
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
     created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,

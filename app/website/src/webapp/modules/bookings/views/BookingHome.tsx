@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback, HtmlHTMLAttributes } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import DataTable, { TableColumn } from 'react-data-table-component';
 import dayjs from 'dayjs';
 
@@ -15,10 +15,8 @@ import CardContent from '@mui/material/CardContent';
 import CardActionArea from '@mui/material/CardActionArea';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
-import { PickersDay } from '@mui/x-date-pickers';
 
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckIcon from '@mui/icons-material/Check';
@@ -39,7 +37,9 @@ import {
   IGroupSchedule,
   IGroupUserScheduleActionTypes,
   TimeUnit,
-  timeUnitOrder
+  timeUnitOrder,
+  IGroupScheduleDateSlots,
+  userTimezone
 } from 'awayto';
 import { useApi, useRedux, useComponents, useStyles, useAct, useSchedule } from 'awayto-hooks';
 import { Duration } from 'dayjs/plugin/duration';
@@ -47,7 +47,7 @@ import { Duration } from 'dayjs/plugin/duration';
 const { GET_GROUP_FORM_BY_ID } = IGroupFormActionTypes;
 const { POST_QUOTE } = IQuoteActionTypes;
 const { SET_SNACK } = IUtilActionTypes;
-const { GET_GROUP_SCHEDULES, GET_GROUP_SCHEDULE_MASTER_BY_ID } = IGroupScheduleActionTypes;
+const { GET_GROUP_SCHEDULES, GET_GROUP_SCHEDULE_MASTER_BY_ID, GET_GROUP_SCHEDULE_BY_DATE } = IGroupScheduleActionTypes;
 const { GET_GROUP_USER_SCHEDULES } = IGroupUserScheduleActionTypes;
 
 export function BookingHome(props: IProps): JSX.Element {
@@ -55,7 +55,6 @@ export function BookingHome(props: IProps): JSX.Element {
 
   const api = useApi();
   const act = useAct();
-  const getScheduleData = useSchedule();
   const { FileManager, FormDisplay } = useComponents();
   const { groupSchedules } = useRedux(state => state.groupSchedule);
   const { groupUserSchedules } = useRedux(state => state.groupUserSchedule);
@@ -72,36 +71,12 @@ export function BookingHome(props: IProps): JSX.Element {
   const [tierForm, setTierForm] = useState({} as IForm);
   const [group, setGroup] = useState({ id: '' } as IGroup);
   const [quote, setQuote] = useState({} as IQuote);
+  const [groupScheduleDateSlots, setGroupScheduleDateSlots] = useState([] as IGroupScheduleDateSlots[]);
 
   const [bracketSlotDate, setBracketSlotDate] = useState<dayjs.Dayjs | null>();
   const [bracketSlotTime, setBracketSlotTime] = useState<dayjs.Dayjs | null>();
 
   const [monthSeekDate, setMonthSeekDate] = useState(dayjs().startOf(TimeUnit.MONTH));
-
-  const bracketsValues = useMemo(() => {
-    if (Object.keys(groupUserSchedules).length) {
-      const brackets = Object.keys(groupUserSchedules).flatMap(s => Object.values(groupUserSchedules[s].brackets));
-
-      const newServices = {} as Record<string, IService>;
-      let someService = {} as IService;
-
-      brackets.forEach(bracket => {
-        for (const s in bracket.services) {
-          newServices[s] = bracket.services[s];
-          someService = bracket.services[s];
-        }
-      });
-
-      setService(someService);
-      setServices(newServices);
-      setTier(Object.values(someService.tiers).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime())[0]);
-
-      return brackets;
-    }
-    return [];
-  }, [groupUserSchedules]);
-
-  const bracketSlots = useMemo(() => bracketsValues.flatMap(bv => Object.values(bv.slots)), [bracketsValues])
 
   const serviceTiers = useMemo(() => Object.values(service.tiers || {}), [service.tiers]);
 
@@ -121,17 +96,6 @@ export function BookingHome(props: IProps): JSX.Element {
     ]
   }, [serviceTierAddons, service, tier]);
 
-  const { durations } = useMemo(() => {
-    const { scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName, slotDuration } = schedule;
-    return getScheduleData({ scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName, slotDuration, beginningOfMonth: monthSeekDate, bracketSlots });
-  }, [schedule.scheduleTimeUnitName, schedule.bracketTimeUnitName, schedule.slotTimeUnitName, schedule.slotDuration, monthSeekDate, bracketSlots])
-
-  const monthStartDiffDay = useMemo(() => {
-    const monthStart = monthSeekDate.startOf(TimeUnit.MONTH);
-    const monthWeekStart = monthStart.startOf(TimeUnit.WEEK);
-    return monthStart.diff(monthWeekStart, TimeUnit.DAY);
-  }, [monthSeekDate]);
-
   const bracketSlotDateDayDiff = useMemo(() => {
     if (bracketSlotDate) {
       return bracketSlotDate.diff(bracketSlotDate.day(0), TimeUnit.DAY);
@@ -145,6 +109,45 @@ export function BookingHome(props: IProps): JSX.Element {
     sched.slotTimeUnitName = timeUnits.find(u => u.id === sched.slotTimeUnitId)?.name as ITimeUnitNames;
     setSchedule(sched);
   }, [timeUnits]);
+
+  useEffect(()  => {
+    if (Object.keys(groupUserSchedules).length) {
+      const brackets = Object.keys(groupUserSchedules).flatMap(s => Object.values(groupUserSchedules[s].brackets));
+
+      const newServices = {} as Record<string, IService>;
+      let someService = {} as IService;
+
+      brackets.forEach(bracket => {
+        for (const s in bracket.services) {
+          newServices[s] = bracket.services[s];
+          someService = bracket.services[s];
+        }
+      });
+
+      setService(someService);
+      setServices(newServices);
+      setTier(Object.values(someService.tiers).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime())[0]);
+    } 
+  }, [groupUserSchedules]);
+
+  useEffect(() => {
+    if (group.name) {
+      const [abort, res] = api(GET_GROUP_SCHEDULE_BY_DATE, { groupName: group.name, scheduleId: schedule.id, date: monthSeekDate.format("YYYY-MM-DD"), timezone: btoa(userTimezone) });
+      res?.then(data => {
+        const dateSlots = data as IGroupScheduleDateSlots[];
+        setGroupScheduleDateSlots(dateSlots);
+        if (!bracketSlotDate) {
+          const [{ weekStart, startTime }] = dateSlots;
+          const firstAvailableSlot = dayjs(weekStart).add(dayjs.duration(startTime));
+          setBracketSlotDate(firstAvailableSlot);
+          setBracketSlotTime(firstAvailableSlot);
+        }
+      });
+      return () => abort();
+    }
+  }, [group, schedule, monthSeekDate]);
+
+
 
   useEffect(() => {
     if (groups) {
@@ -341,7 +344,7 @@ export function BookingHome(props: IProps): JSX.Element {
           </AccordionDetails>
         </Accordion>}
 
-        {tierForm.version && <Accordion defaultExpanded={true}>
+        {!!groupScheduleDateSlots.length && <Accordion defaultExpanded={true}>
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
             aria-controls="service-booking-section-time-selection-content"
@@ -363,8 +366,7 @@ export function BookingHome(props: IProps): JSX.Element {
                   minDate={dayjs()}
                   disableHighlightToday={true}
                   shouldDisableDate={date => {
-                    const dateDurations = durations[date.date() - 1 + monthStartDiffDay];
-                    return dateDurations ? !dateDurations.some(d => d.active) : true;
+                    return !groupScheduleDateSlots.filter(s => s.startDate === date.format("YYYY-MM-DD")).length;
                   }}
                 />
               </Grid>
@@ -381,13 +383,12 @@ export function BookingHome(props: IProps): JSX.Element {
                         .add(bracketSlotDateDayDiff, TimeUnit.DAY)
                         .add(timeHour, TimeUnit.HOUR)
                         .add(timeMins, TimeUnit.MINUTE);
-                      const [scheduleBracketSlotId] = durations[bracketSlotDate.date() + monthStartDiffDay - 1]
-                        .filter(s => s.active && s.startTime === duration.toISOString())
-                        .flatMap(cell => cell.scheduleBracketSlotIds);
+                      const [{ scheduleBracketSlotId }] = groupScheduleDateSlots
+                        .filter(s => s.startDate === bracketSlotDate.format("YYYY-MM-DD") && s.startTime === duration.toISOString());
 
                       setQuote({
                         ...quote,
-                        slotTime: bracketSlotDate.hour(timeHour).minute(timeMins).second(0).millisecond(0).toISOString(),
+                        slotDate: bracketSlotDate.format('YYYY-MM-DD'),
                         scheduleBracketSlotId
                       });
                     }
@@ -398,9 +399,6 @@ export function BookingHome(props: IProps): JSX.Element {
                       // Ignore seconds check because final time doesn't need seconds, so this will cause invalidity
                       if ('seconds' === clockType) return false;
 
-                      // Get the date of the month # + the offset from the beginning of the month, as all schedule durations are Sunday based
-                      const currentDaySlots = durations[bracketSlotDate.date() + monthStartDiffDay - 1];
-
                       // Create a duration based on the current clock validation check and the days from start of current week
                       let duration: Duration = dayjs.duration(time, clockType).add(bracketSlotDateDayDiff, TimeUnit.DAY);
 
@@ -410,7 +408,7 @@ export function BookingHome(props: IProps): JSX.Element {
                       }
 
                       // Checks that have no existing slots are invalid
-                      return !currentDaySlots.filter(s => s.active && s.startTime === duration.toISOString()).length;
+                      return !groupScheduleDateSlots.filter(s => s.startDate === bracketSlotDate.format("YYYY-MM-DD") && s.startTime === duration.toISOString()).length;
                     }
                     return true;
                   }}
@@ -422,7 +420,7 @@ export function BookingHome(props: IProps): JSX.Element {
 
               {/*
               TODO LATER SHOULD ONLY SHOW USER SELECTION BASED ON AUTO/ROUND-ROBIN/DIRECT-SELECT
-              {quote.slotTime && <Grid item xs={4}>
+              {quote.scheduleBracketSlotId && <Grid item xs={4}>
                 <TextField
                   select
                   fullWidth
