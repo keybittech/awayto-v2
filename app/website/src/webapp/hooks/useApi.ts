@@ -74,7 +74,12 @@ type ApiMeta = {
   noRedis: boolean;
   debounce: {
     time: number;
-  }
+  };
+  api: {
+    method: string;
+    path: string;
+    params?: Partial<StatePayloadValues>;
+  };
 }
 
 /**
@@ -155,7 +160,7 @@ export function useApi(): <T extends { [prop: string]: unknown}, R = IMergedStat
         return res.json()
       })
       .then((data: R) => {
-        act(actionType || API_SUCCESS, data as IMergedState, meta);
+        act(actionType || API_SUCCESS, data as IMergedState, { ...meta, method, path, params: body && body as Partial<StatePayloadValues> });
         if (load) act(SET_LOADING, { isLoading: false });
         return data;
       })
