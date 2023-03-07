@@ -169,6 +169,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
   SELECT
     id,
     name,
+    timezone,
     start_time as "startTime",
     end_time as "endTime",
     schedule_time_unit_id as "scheduleTimeUnitId",

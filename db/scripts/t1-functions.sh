@@ -19,64 +19,51 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
 	)	AS $$
 	BEGIN
 		RETURN QUERY
-		WITH slots AS (
+		WITH series AS (
 			SELECT
-				generate_series(
-					date_trunc('week', p_month_start_date::DATE) - INTERVAL '1 day',
-					date_trunc('week', p_month_start_date::DATE) - INTERVAL '1 day' + INTERVAL '1 month',
-					INTERVAL '1 WEEK'
-				) AT TIME ZONE 'UTC' AT TIME ZONE s.timezone week_start,
-				sbs.start_time,
-				sbs.id AS schedule_bracket_slot_id,
-				s.timezone,
-				gus.created_sub
+				week_start::DATE,
+				slot.start_time,
+				slot.id as schedule_bracket_slot_id,
+				schedule.timezone as schedule_timezone
+			FROM generate_series(
+				DATE_TRUNC('week', p_month_start_date::DATE) - INTERVAL '1 day',
+				DATE_TRUNC('week', p_month_start_date::DATE) - INTERVAL '1 day' + INTERVAL '1 month',
+				interval '1 week'
+			) AS week_start
+			CROSS JOIN dbtable_schema.schedule_bracket_slots slot
+			JOIN dbtable_schema.schedule_brackets bracket ON bracket.id = slot.schedule_bracket_id
+			JOIN dbtable_schema.group_user_schedules gus ON gus.user_schedule_id = bracket.schedule_id
+			JOIN dbtable_schema.schedules schedule ON schedule.id = gus.group_schedule_id
+			WHERE schedule.id = p_schedule_id
+		), timers AS (
+			SELECT
+				series.*,
+				TIMEZONE(p_client_timezone, NOW()) - TIMEZONE(schedule_timezone, NOW()) as client_offset,
+				(DATE_TRUNC('day', week_start::timestamp) + start_time)::TIMESTAMP AT TIME ZONE schedule_timezone AS scheduler_start_time,
+				(DATE_TRUNC('day', week_start::timestamp) + start_time + interval '1 hour')::TIMESTAMP AT TIME ZONE schedule_timezone AS scheduler_start_time_dst_check
 			FROM
-				dbtable_schema.schedule_bracket_slots sbs
-				JOIN dbtable_schema.schedule_brackets sb ON sbs.schedule_bracket_id = sb.id
-				JOIN dbtable_schema.group_user_schedules gus ON gus.user_schedule_id = sb.schedule_id
-				JOIN dbtable_schema.schedules s ON s.id = gus.group_schedule_id
-			WHERE
-				s.id = p_schedule_id
+				series
 		)
-		SELECT
-			slts.week_start::DATE as "weekStart",
-			(
-				(
-					TO_TIMESTAMP(
-						(slts.week_start + slts.start_time)::TEXT,
-						'YYYY-MM-DD HH24:MI'
-					) AT TIME ZONE p_client_timezone - TO_TIMESTAMP(
-						(slts.week_start + slts.start_time)::TEXT,
-						'YYYY-MM-DD HH24:MI'
-					) AT TIME ZONE slts.timezone
-				)::INTERVAL + slts.start_time::INTERVAL + slts.week_start::DATE
-			)::DATE as "startDate",
-			(
-				(
-					TO_TIMESTAMP(
-						(slts.week_start + slts.start_time)::TEXT,
-						'YYYY-MM-DD HH24:MI'
-					) AT TIME ZONE p_client_timezone - TO_TIMESTAMP(
-						(slts.week_start + slts.start_time)::TEXT,
-						'YYYY-MM-DD HH24:MI'
-					) AT TIME ZONE slts.timezone
-				)::INTERVAL + slts.start_time
-			)::TEXT as "startTime",
-			slts.schedule_bracket_slot_id as "scheduleBracketSlotId"
-		FROM
-			slots slts
-			LEFT JOIN dbtable_schema.quotes q ON q.schedule_bracket_slot_id = slts.schedule_bracket_slot_id
-			AND (
-				date_trunc('week', q.slot_date AT TIME ZONE 'UTC' AT TIME ZONE slts.timezone AT TIME ZONE p_client_timezone) - INTERVAL '1 day' + slts.start_time
-			) = slts.week_start AT TIME ZONE p_client_timezone + slts.start_time
-			LEFT JOIN dbtable_schema.schedule_bracket_slots qsbs ON qsbs.id = q.schedule_bracket_slot_id
-			AND qsbs.created_sub = slts.created_sub
-		WHERE
-			q.id IS NULL
-			AND (slts.week_start + slts.start_time) > date_trunc('day', NOW())
-		ORDER BY
-			"weekStart",
-			(slts.week_start + slts.start_time);
+		SELECT 
+			CASE
+				WHEN start_time + client_offset < INTERVAL '0 days'
+				THEN week_start - INTERVAL '1 week'
+				ELSE week_start
+			END::DATE as "weekStart",
+			CASE
+				WHEN start_time + client_offset < INTERVAL '0 days'
+				THEN start_time + client_offset + INTERVAL '1 week'
+				ELSE start_time + client_offset
+			END as "startTime",
+			CASE
+				WHEN start_time + client_offset < INTERVAL '0 days'
+				THEN week_start - INTERVAL '1 week' + start_time + client_offset + INTERVAL '1 week'
+				ELSE week_start + start_time + client_offset
+			END::DATE as "startDate",
+			schedule_bracket_slot_id as "scheduleBracketSlotId"
+		FROM timers
+		WHERE scheduler_start_time <> scheduler_start_time_dst_check
+		ORDER BY week_start, start_time;
 	END;
 	$$ LANGUAGE PLPGSQL;
 

@@ -153,6 +153,11 @@ export function BookingHome(props: IProps): JSX.Element {
       });
       res?.then(data => {
         const dateSlots = data as IGroupScheduleDateSlots[];
+        dateSlots.forEach(slot => {
+          const slotDay = dayjs(slot.weekStart).add(dayjs.duration(slot.startTime));
+          slot.hour = slotDay.hour();
+          slot.minute = slotDay.minute();
+        });
         setGroupScheduleDateSlots(dateSlots);
         if (!bracketSlotDate) {
           const [{ weekStart, startTime }] = dateSlots;
@@ -164,8 +169,6 @@ export function BookingHome(props: IProps): JSX.Element {
       return () => abort();
     }
   }, [group, schedule, monthSeekDate]);
-
-
 
   useEffect(() => {
     if (groups) {
@@ -204,7 +207,7 @@ export function BookingHome(props: IProps): JSX.Element {
 
   useEffect(() => {
     if (group.name && service.formId && service.formId != serviceForm.id) {
-      const [abort, res] = api(GET_GROUP_FORM_BY_ID, { groupName: group.name, formId: service.formId });
+      const [abort, res] = api(GET_GROUP_FORM_BY_ID, { groupName: group.name, formId: service.formId }, { load: true });
       res?.then(forms => {
         const [form] = forms as IForm[];
         setServiceForm(form);
@@ -215,7 +218,7 @@ export function BookingHome(props: IProps): JSX.Element {
 
   useEffect(() => {
     if (group.name && tier.formId && tier.formId != tierForm.id) {
-      const [abort, res] = api(GET_GROUP_FORM_BY_ID, { groupName: group.name, formId: tier.formId });
+      const [abort, res] = api(GET_GROUP_FORM_BY_ID, { groupName: group.name, formId: tier.formId }, { load: true });
       res?.then(forms => {
         const [form] = forms as IForm[];
         setTierForm(form);
@@ -377,16 +380,16 @@ export function BookingHome(props: IProps): JSX.Element {
                   label="Date"
                   inputFormat="MM/DD/YYYY"
                   value={bracketSlotDate}
-                  onMonthChange={date => setMonthSeekDate(date)}
-                  onYearChange={date => setMonthSeekDate(date)}
-                  onChange={date => {
-                    setBracketSlotDate(date);
-                  }}
+                  onMonthChange={date => date && setMonthSeekDate(date)}
+                  onYearChange={date => date && setMonthSeekDate(date)}
+                  onChange={date => setBracketSlotDate(date)}
                   renderInput={(params) => <TextField {...params} />}
-                  minDate={dayjs()}
                   disableHighlightToday={true}
                   shouldDisableDate={date => {
-                    return !groupScheduleDateSlots.filter(s => s.startDate === date.format("YYYY-MM-DD")).length;
+                    if (date) {
+                      return !groupScheduleDateSlots.filter(s => s.startDate === date.format("YYYY-MM-DD")).length;
+                    }
+                    return true;
                   }}
                 />
               </Grid>
@@ -439,8 +442,9 @@ export function BookingHome(props: IProps): JSX.Element {
                         }
                       }
 
+                      const matches = groupScheduleDateSlots.filter(s => s.startDate === bracketSlotDate.format("YYYY-MM-DD") && checkDurations.filter(d => 'hours' === clockType ? d.hours() === s.hour : d.minutes() === s.minute).length > 0);
                       // Checks that have no existing slots are invalid
-                      return !groupScheduleDateSlots.filter(s => s.startDate === bracketSlotDate.format("YYYY-MM-DD") && checkDurations.filter(d => d.toISOString() === s.startTime).length > 0).length;
+                      return !matches.length;
                     }
                     return true;
                   }}

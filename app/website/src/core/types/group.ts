@@ -284,6 +284,8 @@ export type IGroupScheduleDateSlots = {
   startTime: string;
   startDate: string;
   scheduleBracketSlotId: string;
+  hour: number;
+  minute: number;
 }
 
 /**
