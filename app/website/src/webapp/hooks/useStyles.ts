@@ -22,7 +22,7 @@ export const useStyles = makeStyles(({ mixins, spacing }: Theme) => ({
 
   backdrop: { zIndex: 99999, color: '#fff', },
 
-  siteTitle: { fontSize: '1.5rem', fontFamily: 'roboto', textAlign: 'center' },
+  siteTitle: { fontSize: '1.5rem', textAlign: 'center' },
 
   menuText: { fontSize: '.75rem', margin: '0' },
 
@@ -199,13 +199,13 @@ export const lightTheme: ThemeOptions = {
 export const darkTheme: ThemeOptions = {
   palette: {
     mode: 'dark',
-  },
-  components: {
-
   }
 };
 
 export const getDesignTokens: (mode: PaletteMode) => ThemeOptions = (mode) => ({
+  typography: {
+    fontFamily: ['Roboto', 'sans-serif'].join(',')
+  },
   palette: {
     mode,
     ...(

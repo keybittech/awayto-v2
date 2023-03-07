@@ -80,6 +80,7 @@ export function BookingHome(props: IProps): JSX.Element {
   const [bracketSlotTime, setBracketSlotTime] = useState<dayjs.Dayjs | null>();
 
   const [monthSeekDate, setMonthSeekDate] = useState(dayjs().startOf(TimeUnit.MONTH));
+  const [firstAvailable, setFirstAvailable] = useState<dayjs.Dayjs | null>();
 
   const serviceTiers = useMemo(() => Object.values(service.tiers || {}), [service.tiers]);
 
@@ -159,11 +160,11 @@ export function BookingHome(props: IProps): JSX.Element {
           slot.minute = slotDay.minute();
         });
         setGroupScheduleDateSlots(dateSlots);
-        if (!bracketSlotDate) {
-          const [{ weekStart, startTime }] = dateSlots;
+        const [{ weekStart, startTime }] = dateSlots;
+        if (!bracketSlotDate || dayjs(weekStart).startOf('day') === bracketSlotDate.startOf('week')) {
           const firstAvailableSlot = dayjs(weekStart).add(dayjs.duration(startTime));
+          setFirstAvailable(firstAvailableSlot);
           setBracketSlotDate(firstAvailableSlot);
-          setBracketSlotTime(firstAvailableSlot);
         }
       });
       return () => abort();
@@ -379,10 +380,12 @@ export function BookingHome(props: IProps): JSX.Element {
                 <DesktopDatePicker
                   label="Date"
                   inputFormat="MM/DD/YYYY"
-                  value={bracketSlotDate}
+                  value={bracketSlotDate || firstAvailable}
+                  minDate={firstAvailable || dayjs().startOf('day')}
+                  onOpen={() => bracketSlotDate && setMonthSeekDate(bracketSlotDate)}
                   onMonthChange={date => date && setMonthSeekDate(date)}
                   onYearChange={date => date && setMonthSeekDate(date)}
-                  onChange={date => setBracketSlotDate(date)}
+                  onChange={date => setBracketSlotDate(date ? date.isBefore(firstAvailable) ? firstAvailable : date  : null)}
                   renderInput={(params) => <TextField {...params} />}
                   disableHighlightToday={true}
                   shouldDisableDate={date => {
@@ -396,7 +399,7 @@ export function BookingHome(props: IProps): JSX.Element {
               {!!bracketSlotDate && timeUnitOrder.indexOf(schedule.slotTimeUnitName) <= timeUnitOrder.indexOf(TimeUnit.HOUR) && <Grid item xs={4}>
                 <TimePicker
                   label="Time"
-                  value={bracketSlotTime}
+                  value={bracketSlotTime || firstAvailable}
                   ampmInClock={true}
                   ignoreInvalidInputs={true}
                   onAccept={time => {
@@ -408,7 +411,7 @@ export function BookingHome(props: IProps): JSX.Element {
                         .add(timeHour, TimeUnit.HOUR)
                         .add(timeMins, TimeUnit.MINUTE);
                       const [slot] = groupScheduleDateSlots
-                        .filter(s => s.startDate === bracketSlotDate.format("YYYY-MM-DD") && s.startTime === duration.toISOString());
+                        .filter(s => s.startDate === bracketSlotDate.format("YYYY-MM-DD") && duration.hours() === s.hour && duration.minutes() === s.minute);
 
                       if (slot) {
                         setQuote({
@@ -442,7 +445,7 @@ export function BookingHome(props: IProps): JSX.Element {
                         }
                       }
 
-                      const matches = groupScheduleDateSlots.filter(s => s.startDate === bracketSlotDate.format("YYYY-MM-DD") && checkDurations.filter(d => 'hours' === clockType ? d.hours() === s.hour : d.minutes() === s.minute).length > 0);
+                      const matches = groupScheduleDateSlots.filter(s => s.startDate === bracketSlotDate.format("YYYY-MM-DD") && checkDurations.filter(d => d.hours() === s.hour && d.minutes() === s.minute).length > 0);
                       // Checks that have no existing slots are invalid
                       return !matches.length;
                     }

@@ -1,5 +1,5 @@
 // React imports
-// import 'typeface-roboto';
+import 'typeface-roboto';
 // import 'typeface-courgette';
 import React, { ComponentType, FunctionComponent, ReactNode, LazyExoticComponent } from 'react';
 import { createRoot } from 'react-dom/client';
