@@ -29,17 +29,22 @@ declare global {
   }
 }
 
+type ConfirmActionProps = [
+  approval?: boolean,
+]
+
 /**
  * @category Awayto
  */
 export type IUtil = {
-  action(): void | Promise<void>;
+  confirmAction(...props: ConfirmActionProps): void | Promise<void>;
   isConfirming: boolean;
+  confirmEffect: string;
+  confirmRequest?: string;
   isLoading: boolean;
   loadingMessage: string;
   error: Error | string;
   canSubmitAssignments: boolean;
-  message: string;
   snackType: 'success' | 'info' | 'warning' | 'error';
   snackOn: string;
   snackRequestId: string;
