@@ -6,7 +6,7 @@ declare global {
    * @category Awayto Redux
    */
   interface ISharedState { 
-    quotes: IQuoteState
+    quote: IQuoteState
   }
 
   interface IMergedState extends Merge<unknown, IQuoteState> {}
@@ -20,7 +20,7 @@ declare global {
    * @category Awayto Redux
    */
   interface ISharedActionTypes {
-    quotes: IQuoteActionTypes;
+    quote: IQuoteActionTypes;
   }
 }
 
@@ -44,7 +44,9 @@ export type IQuote = {
 /**
  * @category Quote
  */
-export type IQuoteState = IQuote;
+export type IQuoteState = IQuote & {
+  quotes: Record<string, IQuote>;
+};
 
 /**
  * @category Action Types

@@ -6,7 +6,7 @@ const { GET_USER_PROFILE_DETAILS } = IUserProfileActionTypes;
 const { POST_ROLES, DELETE_ROLES } = IRoleActionTypes;
 const { CHECK_GROUPS_NAME, PUT_GROUPS, POST_GROUPS, DELETE_GROUPS } = IGroupActionTypes;
 
-export function GroupsHome (props: IProps): JSX.Element {
+export function GroupHome (props: IProps): JSX.Element {
   const { ManageGroups } = useComponents()
   const user = useRedux(state => state.profile);
 
@@ -26,4 +26,4 @@ export function GroupsHome (props: IProps): JSX.Element {
   </>
 }
 
-export default GroupsHome;
+export default GroupHome;

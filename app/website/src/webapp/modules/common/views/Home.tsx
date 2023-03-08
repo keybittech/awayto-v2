@@ -1,11 +1,11 @@
 import React from "react";
 import { useComponents } from "awayto-hooks";
 
-
 export function Home(props: IProps) {
-  const { GroupsHome } = useComponents();
+  const { GroupHome, QuoteHome } = useComponents();
   return <>
-    <GroupsHome {...props} />
+    <GroupHome {...props} />
+    <QuoteHome {...props} />
   </>
 }
 
