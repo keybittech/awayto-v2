@@ -75,12 +75,13 @@ export function BookingHome(props: IProps): JSX.Element {
   const [group, setGroup] = useState({ id: '' } as IGroup);
   const [quote, setQuote] = useState({} as IQuote);
   const [groupScheduleDateSlots, setGroupScheduleDateSlots] = useState([] as IGroupScheduleDateSlots[]);
+  const [firstAvailable, setFirstAvailable] = useState({ time: dayjs().startOf('day') } as IGroupScheduleDateSlots & { time: dayjs.Dayjs });
 
   const [bracketSlotDate, setBracketSlotDate] = useState<dayjs.Dayjs | null>();
   const [bracketSlotTime, setBracketSlotTime] = useState<dayjs.Dayjs | null>();
 
   const [monthSeekDate, setMonthSeekDate] = useState(dayjs().startOf(TimeUnit.MONTH));
-  const [firstAvailable, setFirstAvailable] = useState<dayjs.Dayjs | null>();
+  const [activeSchedule, setActiveSchedule] = useState('');
 
   const serviceTiers = useMemo(() => Object.values(service.tiers || {}), [service.tiers]);
 
@@ -160,11 +161,10 @@ export function BookingHome(props: IProps): JSX.Element {
           slot.minute = slotDay.minute();
         });
         setGroupScheduleDateSlots(dateSlots);
-        const [{ weekStart, startTime }] = dateSlots;
-        if (!bracketSlotDate || dayjs(weekStart).startOf('day') === bracketSlotDate.startOf('week')) {
-          const firstAvailableSlot = dayjs(weekStart).add(dayjs.duration(startTime));
-          setFirstAvailable(firstAvailableSlot);
-          setBracketSlotDate(firstAvailableSlot);
+        if (activeSchedule !== schedule.id) {
+          const [slot] = dateSlots;
+          setFirstAvailable({ ...slot, time: dayjs(slot.weekStart).add(dayjs.duration(slot.startTime)) });
+          setActiveSchedule(schedule.id);
         }
       });
       return () => abort();
@@ -366,7 +366,7 @@ export function BookingHome(props: IProps): JSX.Element {
           </AccordionDetails>
         </Accordion>}
 
-        {!!groupScheduleDateSlots.length && <Accordion defaultExpanded={true}>
+        {!!groupScheduleDateSlots.length && firstAvailable && <Accordion defaultExpanded={true}>
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
             aria-controls="service-booking-section-time-selection-content"
@@ -380,12 +380,12 @@ export function BookingHome(props: IProps): JSX.Element {
                 <DesktopDatePicker
                   label="Date"
                   inputFormat="MM/DD/YYYY"
-                  value={bracketSlotDate || firstAvailable}
-                  minDate={firstAvailable || dayjs().startOf('day')}
-                  onOpen={() => bracketSlotDate && setMonthSeekDate(bracketSlotDate)}
+                  value={bracketSlotDate || firstAvailable.time}
+                  minDate={firstAvailable.time}
+                  onOpen={() => setMonthSeekDate(firstAvailable.time)}
                   onMonthChange={date => date && setMonthSeekDate(date)}
                   onYearChange={date => date && setMonthSeekDate(date)}
-                  onChange={date => setBracketSlotDate(date ? date.isBefore(firstAvailable) ? firstAvailable : date  : null)}
+                  onChange={date => setBracketSlotDate(date ? date.isBefore(firstAvailable.time) ? firstAvailable.time : date  : null)}
                   renderInput={(params) => <TextField {...params} />}
                   disableHighlightToday={true}
                   shouldDisableDate={date => {
@@ -396,10 +396,10 @@ export function BookingHome(props: IProps): JSX.Element {
                   }}
                 />
               </Grid>
-              {!!bracketSlotDate && timeUnitOrder.indexOf(schedule.slotTimeUnitName) <= timeUnitOrder.indexOf(TimeUnit.HOUR) && <Grid item xs={4}>
+              {timeUnitOrder.indexOf(schedule.slotTimeUnitName) <= timeUnitOrder.indexOf(TimeUnit.HOUR) && <Grid item xs={4}>
                 <TimePicker
                   label="Time"
-                  value={bracketSlotTime || firstAvailable}
+                  value={bracketSlotTime || firstAvailable.time}
                   ampmInClock={true}
                   ignoreInvalidInputs={true}
                   onAccept={time => {
@@ -425,31 +425,30 @@ export function BookingHome(props: IProps): JSX.Element {
                   }}
                   onChange={bracketSlotTime => setBracketSlotTime(bracketSlotTime)}
                   shouldDisableTime={(time, clockType) => {
-                    if (bracketSlotDate) {
-                      // Ignore seconds check because final time doesn't need seconds, so this will cause invalidity
-                      if ('seconds' === clockType) return false;
+                    const currentSlotTime = bracketSlotTime || firstAvailable.time;
+                    const currentSlotDate = bracketSlotDate || firstAvailable.time;
+                    // Ignore seconds check because final time doesn't need seconds, so this will cause invalidity
+                    if ('seconds' === clockType) return false;
 
-                      // Create a duration based on the current clock validation check and the days from start of current week
-                      let duration: Duration = dayjs.duration(time, clockType).add(bracketSlotDateDayDiff, TimeUnit.DAY);
+                    // Create a duration based on the current clock validation check and the days from start of current week
+                    let duration: Duration = dayjs.duration(time, clockType).add(bracketSlotDateDayDiff, TimeUnit.DAY);
 
-                      // Submitting a new time a two step process, an hour is selected, and then a minute. Upon hour selection, bracketSlotTime is first set, and then when the user selects a minute, that will cause this block to run, so we should add the existing hour from bracketSlotTime such that "hour + minute" will give us the total duration, i.e. 4:30 AM = PT4H30M
-                      if ('minutes' === clockType && bracketSlotTime) {
-                        duration = duration.add(bracketSlotTime.hour(), TimeUnit.HOUR);
-                      }
-
-                      // When checking hours, we need to also check the hour + next session time, because shouldDisableTime checks atomic parts of the clock, either hour or minute, but no both. So instead of keeping track of some ongoing clock, we can just check both durations here
-                      const checkDurations: Duration[] = [duration];
-                      if ('hours' === clockType) {
-                        for (const factor of schedule.slotFactors) { 
-                          checkDurations.push(duration.add(factor, schedule.slotTimeUnitName as DurationUnitType));
-                        }
-                      }
-
-                      const matches = groupScheduleDateSlots.filter(s => s.startDate === bracketSlotDate.format("YYYY-MM-DD") && checkDurations.filter(d => d.hours() === s.hour && d.minutes() === s.minute).length > 0);
-                      // Checks that have no existing slots are invalid
-                      return !matches.length;
+                    // Submitting a new time a two step process, an hour is selected, and then a minute. Upon hour selection, bracketSlotTime is first set, and then when the user selects a minute, that will cause this block to run, so we should add the existing hour from bracketSlotTime such that "hour + minute" will give us the total duration, i.e. 4:30 AM = PT4H30M
+                    if ('minutes' === clockType && currentSlotTime) {
+                      duration = duration.add(currentSlotTime.hour(), TimeUnit.HOUR);
                     }
-                    return true;
+
+                    // When checking hours, we need to also check the hour + next session time, because shouldDisableTime checks atomic parts of the clock, either hour or minute, but no both. So instead of keeping track of some ongoing clock, we can just check both durations here
+                    const checkDurations: Duration[] = [duration];
+                    if ('hours' === clockType) {
+                      for (const factor of schedule.slotFactors) { 
+                        checkDurations.push(duration.add(factor, schedule.slotTimeUnitName as DurationUnitType));
+                      }
+                    }
+
+                    const matches = groupScheduleDateSlots.filter(s => s.startDate === currentSlotDate.format("YYYY-MM-DD") && checkDurations.filter(d => d.hours() === s.hour && d.minutes() === s.minute).length > 0);
+                    // Checks that have no existing slots are invalid
+                    return !matches.length;
                   }}
                   renderInput={params => <TextField {...params} />}
                 />
@@ -488,6 +487,12 @@ export function BookingHome(props: IProps): JSX.Element {
         <Card>
           <CardActionArea onClick={() => {
             quote.serviceTierId = tier.id;
+
+            if (!quote.scheduleBracketSlotId) {
+              const { scheduleBracketSlotId, startDate } = firstAvailable;
+              quote.scheduleBracketSlotId = scheduleBracketSlotId;
+              quote.slotDate = startDate;
+            }
 
             if (serviceForm) {
               const missingValues = Object.keys(serviceForm.version.form).some(rowId => serviceForm.version.form[rowId].some((field, i) => field.r && [undefined, ''].includes(serviceForm.version.submission[rowId][i])));
