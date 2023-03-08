@@ -61,32 +61,32 @@ export enum IQuoteActionTypes {
 /**
  * @category Quote
  */
-export type IPostQuoteAction = PayloadAction<IQuoteActionTypes.POST_QUOTE, IQuote>;
+export type IPostQuoteAction = PayloadAction<IQuoteActionTypes.POST_QUOTE, IQuote[]>;
 
 /**
  * @category Quote
  */
-export type IPutQuoteAction = PayloadAction<IQuoteActionTypes.PUT_QUOTE, IQuote>;
+export type IPutQuoteAction = PayloadAction<IQuoteActionTypes.PUT_QUOTE, IQuote[]>;
 
 /**
  * @category Quote
  */
-export type IGetQuotesAction = PayloadAction<IQuoteActionTypes.GET_QUOTES, IQuote>;
+export type IGetQuotesAction = PayloadAction<IQuoteActionTypes.GET_QUOTES, IQuote[]>;
 
 /**
  * @category Quote
  */
-export type IGetQuoteByIdAction = PayloadAction<IQuoteActionTypes.GET_QUOTE_BY_ID, IQuote>;
+export type IGetQuoteByIdAction = PayloadAction<IQuoteActionTypes.GET_QUOTE_BY_ID, IQuote[]>;
 
 /**
  * @category Quote
  */
-export type IDeleteQuoteAction = PayloadAction<IQuoteActionTypes.DELETE_QUOTE, IQuoteState>;
+export type IDeleteQuoteAction = PayloadAction<IQuoteActionTypes.DELETE_QUOTE, IQuote[]>;
 
 /**
  * @category Quote
  */
-export type IDisableQuoteAction = PayloadAction<IQuoteActionTypes.DISABLE_QUOTE, IQuoteState>;
+export type IDisableQuoteAction = PayloadAction<IQuoteActionTypes.DISABLE_QUOTE, IQuote[]>;
 
 /**
  * @category Quote

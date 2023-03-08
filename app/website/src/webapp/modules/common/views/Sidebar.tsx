@@ -46,7 +46,7 @@ export function Sidebar(): JSX.Element {
           <List component="nav">
             <ListItem className={classes.menuIcon} onClick={() => navigate('/')} button key={'home'}>
               <ListItemIcon><GroupIcon color={location.pathname === '/' ? "secondary" : "primary"} /></ListItemIcon>
-              <ListItemText classes={{ primary: classes.menuText }}>Groups</ListItemText>
+              <ListItemText classes={{ primary: classes.menuText }}>Home</ListItemText>
             </ListItem>
             {hasRole([SiteRoles.APP_GROUP_SERVICES]) && <ListItem className={classes.menuIcon} onClick={() => navigate('/service')} button key={'service'}>
                 <ListItemIcon><BusinessIcon color={location.pathname === '/service' ? "secondary" : "primary"} /></ListItemIcon>
@@ -56,8 +56,8 @@ export function Sidebar(): JSX.Element {
               <ListItemIcon><EventNoteIcon color={location.pathname === '/schedule' ? "secondary" : "primary"} /></ListItemIcon>
               <ListItemText classes={{ primary: classes.menuText }}>Schedule</ListItemText>
             </ListItem>}
-            {hasRole([SiteRoles.APP_GROUP_BOOKINGS]) && <ListItem className={classes.menuIcon} onClick={() => navigate('/service/request')} button key={'service/request'}>
-              <ListItemIcon><MoreTimeIcon color={location.pathname === '/service/request' ? "secondary" : "primary"} /></ListItemIcon>
+            {hasRole([SiteRoles.APP_GROUP_BOOKINGS]) && <ListItem className={classes.menuIcon} onClick={() => navigate('/quote/request')} button key={'quote/request'}>
+              <ListItemIcon><MoreTimeIcon color={location.pathname === '/quote/request' ? "secondary" : "primary"} /></ListItemIcon>
               <ListItemText classes={{ primary: classes.menuText }}>Request</ListItemText>
             </ListItem>}
           </List>

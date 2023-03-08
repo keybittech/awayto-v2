@@ -18,6 +18,8 @@ import { IUtilActionTypes } from 'awayto';
 import { useRedux, useAct, useComponents, useStyles } from 'awayto-hooks';
 import { Typography } from '@mui/material';
 
+import Home from './Home';
+
 const { SET_SNACK } = IUtilActionTypes;
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
@@ -33,7 +35,7 @@ const Layout = (props: IProps): JSX.Element => {
 
   const act = useAct();
 
-  const { Sidebar, ConfirmAction, GroupsHome, Profile, GroupPaths, ServiceHome, ScheduleHome, ServiceRequestHome } = useComponents();
+  const { Sidebar, ConfirmAction, GroupsHome, Profile, GroupPaths, ServiceHome, ScheduleHome, RequestQuote } = useComponents();
   const { snackOn, snackType, snackRequestId, isLoading, loadingMessage } = useRedux(state => state.util);
 
   const hideSnack = (): void => {
@@ -82,10 +84,10 @@ const Layout = (props: IProps): JSX.Element => {
           </Grid >
         }>
           <Routes>
-            <Route path="/" element={<GroupsHome {...props} />} />
+            <Route path="/" element={<Home {...props} />} />
             <Route path="/profile"  element={<Profile {...props} />} />
             <Route path="/service" element={<ServiceHome {...props} />} />
-            <Route path="/service/request" element={<ServiceRequestHome {...props} />} />
+            <Route path="/quote/request" element={<RequestQuote {...props} />} />
             <Route path="/schedule" element={<ScheduleHome {...props} />} />
             <Route path="/group/:groupName/*" element={<GroupPaths {...props} />} />
           </Routes>

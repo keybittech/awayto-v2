@@ -52,7 +52,7 @@ const { SET_SNACK } = IUtilActionTypes;
 const { GET_GROUP_SCHEDULES, GET_GROUP_SCHEDULE_MASTER_BY_ID, GET_GROUP_SCHEDULE_BY_DATE } = IGroupScheduleActionTypes;
 const { GET_GROUP_USER_SCHEDULES } = IGroupUserScheduleActionTypes;
 
-export function ServiceRequestHome(props: IProps): JSX.Element {
+export function RequestQuote(props: IProps): JSX.Element {
   const classes = useStyles();
 
   const api = useApi();
@@ -253,8 +253,8 @@ export function ServiceRequestHome(props: IProps): JSX.Element {
       <Grid item xs={12}>
         <Card>
           <CardHeader
-            title="Service Request"
-            subheader="Request services from a group. Different services may have required information to submit the request, so be sure to check."
+            title="Create Request"
+            subheader="Request services from a group. Some fields may be required depending on the service."
             action={
               <TextField
                 select
@@ -306,7 +306,7 @@ export function ServiceRequestHome(props: IProps): JSX.Element {
               <Grid item xs={4}>
                 <TextField
                   select
-                  label="Tier"
+                  label="Level"
                   fullWidth
                   value={tier.id}
                   onChange={e => {
@@ -329,7 +329,7 @@ export function ServiceRequestHome(props: IProps): JSX.Element {
             aria-controls="tiers-and-features-content"
             id="tiers-and-features-header"
           >
-            <Typography>Tiers & Features</Typography>
+            <Typography>Features</Typography>
           </AccordionSummary>
           <AccordionDetails>
             <DataTable
@@ -346,7 +346,7 @@ export function ServiceRequestHome(props: IProps): JSX.Element {
             aria-controls="service-request-section-service-questionnaire-content"
             id="service-request-section-service-questionnaire-header"
           >
-            <Typography>Service Questionnaire</Typography>
+            <Typography>{service.name} Questionnaire</Typography>
           </AccordionSummary>
           <AccordionDetails>
             <FormDisplay form={serviceForm} setForm={setServiceForm} />
@@ -359,7 +359,7 @@ export function ServiceRequestHome(props: IProps): JSX.Element {
             aria-controls="service-request-section-tier-questionnaire-content"
             id="service-request-section-tier-questionnaire-header"
           >
-            <Typography>Tier Questionnaire</Typography>
+            <Typography>{tier.name} Questionnaire</Typography>
           </AccordionSummary>
           <AccordionDetails>
             <FormDisplay form={tierForm} setForm={setTierForm} />
@@ -372,7 +372,7 @@ export function ServiceRequestHome(props: IProps): JSX.Element {
             aria-controls="service-request-section-time-selection-content"
             id="service-request-section-time-selection-header"
           >
-            <Typography>Time Selection</Typography>
+            <Typography>Schedule</Typography>
           </AccordionSummary>
           <AccordionDetails>
             <Grid container spacing={2}>
@@ -536,4 +536,4 @@ export function ServiceRequestHome(props: IProps): JSX.Element {
 
 }
 
-export default ServiceRequestHome;
+export default RequestQuote;
