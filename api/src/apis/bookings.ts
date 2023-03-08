@@ -21,7 +21,7 @@ const bookings: ApiModule = [
 
         booking.id = bookingId;
 
-        return booking;
+        return [booking];
 
       } catch (error) {
         throw error;

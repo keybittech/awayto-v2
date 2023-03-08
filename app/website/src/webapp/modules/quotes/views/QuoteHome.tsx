@@ -1,25 +1,27 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import DataTable, { TableColumn } from 'react-data-table-component';
+import dayjs from "dayjs";
 
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import IconButton from '@mui/material/IconButton';
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 
-import CreateIcon from '@mui/icons-material/Create';
-import DeleteIcon from '@mui/icons-material/Delete';
+import ApprovalIcon from '@mui/icons-material/Approval';
+import DoNotDisturbIcon from '@mui/icons-material/DoNotDisturb';
 
-import { IQuoteActionTypes, IQuote, userTimezone } from "awayto";
-import { useRedux, useApi } from "awayto-hooks";
-import dayjs from "dayjs";
+import { IQuoteActionTypes, IQuote, IBookingActionTypes, IUtilActionTypes } from "awayto";
+import { useRedux, useApi, useAct } from "awayto-hooks";
 
-const { GET_QUOTES, DELETE_QUOTE } = IQuoteActionTypes;
+const { POST_BOOKING } = IBookingActionTypes;
+const { GET_QUOTES, DISABLE_QUOTE } = IQuoteActionTypes;
+const { OPEN_CONFIRM } = IUtilActionTypes;
 
 function QuoteHome(props: IProps) {
 
   const api = useApi();
+  const act = useAct();
   const util = useRedux(state => state.util);
   const [selected, setSelected] = useState<IQuote[]>([]);
   const [toggle, setToggle] = useState(false);
@@ -37,20 +39,47 @@ function QuoteHome(props: IProps) {
   const actions = useMemo(() => {
     const { length } = selected;
     const acts = length == 1 ? [
+      <Tooltip key={'approve_quote'} title="Approve">
+        <IconButton onClick={() => {
+          const { id, slotDate, scheduleBracketSlotId } = selected[0];
 
+          const copies = Object.values(quotes).filter(q => q.id !== id && q.slotDate === slotDate && q.scheduleBracketSlotId === scheduleBracketSlotId)
+
+          void act(OPEN_CONFIRM, {
+            isConfirming: true,
+            confirmEffect: 'Approve a request and create a booking.',
+            confirmRequest: !copies.length ? undefined : 'Would you also like to automatically deny all other requests for this same date and time (this cannot be undone)? ',
+            confirmAction: approval => {
+              const [, res] = api(POST_BOOKING, { quoteId: id, slotDate, scheduleBracketSlotId }, { load: true });
+              res?.then(() => {
+                const [, rez] = api(DISABLE_QUOTE, { ids: selected.concat(approval ? copies : []).map(s => s.id).join(',') });
+                rez?.then(() => {
+                  setToggle(!toggle);
+                  api(GET_QUOTES);
+                }).catch(console.warn);
+              });
+            }
+          });
+
+        }}>
+          <ApprovalIcon />
+        </IconButton>
+      </Tooltip>
     ] : [];
 
     return [
       ...acts,
-      <Tooltip key={'delete_group'} title="Delete"><IconButton onClick={() => {
-        const [, res] = api(DELETE_QUOTE, { ids: selected.map(s => s.id).join(',') }, { load: true })
-        res?.then(() => {
-          setToggle(!toggle);
-          api(GET_QUOTES);
-        }).catch(console.warn);
-      }}>
-        <DeleteIcon />
-      </IconButton></Tooltip>
+      <Tooltip key={'deny_quote'} title="Deny">
+        <IconButton onClick={() => {
+          const [, res] = api(DISABLE_QUOTE, { ids: selected.map(s => s.id).join(',') }, { load: true })
+          res?.then(() => {
+            setToggle(!toggle);
+            api(GET_QUOTES);
+          }).catch(console.warn);
+        }}>
+          <DoNotDisturbIcon />
+        </IconButton>
+      </Tooltip>
     ]
   }, [selected]);
 

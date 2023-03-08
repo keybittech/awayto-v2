@@ -1,4 +1,15 @@
-import dayjs from "dayjs";
+import dayjs from 'dayjs';
+
+import duration from 'dayjs/plugin/duration';
+dayjs.extend(duration);
+
+import utc from 'dayjs/plugin/utc';
+dayjs.extend(utc);
+
+import timezone from 'dayjs/plugin/timezone';
+dayjs.extend(timezone);
+
+import 'dayjs/locale/en';
 
 export type ITimeUnitNames = string | ('minute' | 'hour' | 'day' | 'week' | 'month' | 'year');
 
@@ -41,11 +52,11 @@ export function getRelativeDuration(amount: number, fromUnit: ITimeUnitNames, to
 }
 
 export function utcNow(): dayjs.Dayjs {
-  return dayjs().utc();
+  return dayjs.utc(new Date());
 }
 
 export function utcNowString(): string {
-  return dayjs().utc().toString();
+  return dayjs.utc(new Date()).toISOString();
 }
 
 export const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;

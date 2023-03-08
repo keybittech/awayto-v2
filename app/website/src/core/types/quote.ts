@@ -58,7 +58,7 @@ export enum IQuoteActionTypes {
   GET_QUOTES = "GET/quotes",
   GET_QUOTE_BY_ID = "GET/quotes/:id",
   DELETE_QUOTE = "DELETE/quotes/:id",
-  DISABLE_QUOTE = "PUT/quotes/:id/disable"
+  DISABLE_QUOTE = "PUT/quotes/disable/:ids"
 }
 
 /**

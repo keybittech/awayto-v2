@@ -140,15 +140,19 @@ const quotes: ApiModule = [
     action: IQuoteActionTypes.DISABLE_QUOTE,
     cmnd : async (props) => {
       try {
-        const { id } = props.event.pathParameters;
+        const { ids } = props.event.pathParameters;
 
-        await props.db.query(`
-          UPDATE dbtable_schema.quotes
-          SET enabled = false, updated_on = $2, updated_sub = $3
-          WHERE id = $1
-        `, [id, utcNowString(), props.event.userSub]);
+        await asyncForEach(ids.split(','), async id => {
+          await props.db.query(`
+            UPDATE dbtable_schema.quotes
+            SET enabled = false, updated_on = $2, updated_sub = $3
+            WHERE id = $1
+          `, [id, utcNowString(), props.event.userSub]);
+        });
 
-        return { id };
+        await props.redis.del(`${props.event.userSub}quotes`);
+  
+        return ids.split(',').map(id => ({ id }));
         
       } catch (error) {
         throw error;
@@ -156,7 +160,6 @@ const quotes: ApiModule = [
 
     }
   }
-
 ]
 
 export default quotes;
