@@ -243,19 +243,21 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
   CREATE
   OR REPLACE VIEW dbview_schema.enabled_quotes AS
   SELECT
-    id,
-    slot_date as "slotDate",
-    schedule_bracket_slot_id as "scheduleBracketSlotId",
-    service_tier_id as "serviceTierId",
-    service_form_version_submission_id as "serviceFormVersionSubmissionId",
-    tier_form_version_submission_id as "tierFormVersionSubmissionId",
-    created_sub as "createdSub",
-    created_on as "createdOn",
+    q.id,
+    q.slot_date as "slotDate",
+    q.schedule_bracket_slot_id as "scheduleBracketSlotId",
+    q.service_tier_id as "serviceTierId",
+    q.service_form_version_submission_id as "serviceFormVersionSubmissionId",
+    q.tier_form_version_submission_id as "tierFormVersionSubmissionId",
+    sbs.start_time as "startTime",
+    q.created_sub as "createdSub",
+    q.created_on as "createdOn",
     row_number() OVER () as row
   FROM
-    dbtable_schema.quotes
+    dbtable_schema.quotes q
+  JOIN dbtable_schema.schedule_bracket_slots sbs ON sbs.id = q.schedule_bracket_slot_id
   WHERE
-    enabled = true;
+    q.enabled = true;
 
   CREATE
   OR REPLACE VIEW dbview_schema.enabled_bookings AS

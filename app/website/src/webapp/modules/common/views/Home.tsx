@@ -4,8 +4,8 @@ import { useComponents } from "awayto-hooks";
 export function Home(props: IProps) {
   const { GroupHome, QuoteHome } = useComponents();
   return <>
-    <GroupHome {...props} />
     <QuoteHome {...props} />
+    <GroupHome {...props} />
   </>
 }
 

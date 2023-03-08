@@ -31,6 +31,7 @@ declare global {
 export type IQuote = {
   id: string;
   slotDate: string;
+  startTime: string;
   serviceTierId: string;
   scheduleBracketSlotId: string;
   serviceFormVersionSubmissionId: string;

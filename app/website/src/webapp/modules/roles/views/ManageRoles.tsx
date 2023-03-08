@@ -44,7 +44,7 @@ export function ManageRoles(props: IProps): JSX.Element {
     { id: 'createdOn', selector: row => row.createdOn, omit: true },
     { name: 'Name', selector: row => row.name },
     { name: 'Created', selector: row => row.createdOn }
-  ] as TableColumn<IRole>[], [])
+  ] as TableColumn<IRole>[], []);
 
   const actions = useMemo(() => {
     const { length } = selected;
@@ -70,7 +70,7 @@ export function ManageRoles(props: IProps): JSX.Element {
         <DeleteIcon />
       </IconButton></Tooltip>
     ]
-  }, [selected])
+  }, [selected]);
 
   useEffect(() => {
     const [abort, res] = api(getRolesAction);

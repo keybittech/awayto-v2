@@ -1,4 +1,7 @@
 import React from 'react';
+
+import Box from '@mui/material/Box';
+
 import { IUserProfileActionTypes, IRoleActionTypes, IGroupActionTypes } from 'awayto';
 import { useComponents, useRedux } from 'awayto-hooks';
 
@@ -10,7 +13,7 @@ export function GroupHome (props: IProps): JSX.Element {
   const { ManageGroups } = useComponents()
   const user = useRedux(state => state.profile);
 
-  return <>
+  return <Box mb={4}>
     <ManageGroups {...props}
       groups={user.groups}
       roles={user.roles}
@@ -23,7 +26,7 @@ export function GroupHome (props: IProps): JSX.Element {
       deleteRolesAction={DELETE_ROLES}
       postRolesAction={POST_ROLES}
     />
-  </>
+  </Box>
 }
 
 export default GroupHome;
