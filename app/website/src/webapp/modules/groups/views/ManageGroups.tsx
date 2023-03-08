@@ -59,8 +59,7 @@ export function ManageGroups(props: IProps): JSX.Element {
 
   const columns = useMemo(() => [
     { id: 'createdOn', selector: row => row.createdOn, omit: true },
-    hasRole([SiteRoles.APP_GROUP_BOOKINGS]) && { cell: row => <Button key={`group_manage_selection_${row.name}`} onClick={() => navigate(`/group/${row.name}/manage/users`)} >Manage</Button> },
-    { cell: row => <Button key={`group_booking_selection_${row.name}`} onClick={() => navigate(`/group/${row.name}/booking`)} >Booking</Button> },
+    hasRole([SiteRoles.APP_GROUP_ADMIN]) && { cell: row => <Button key={`group_manage_selection_${row.name}`} onClick={() => navigate(`/group/${row.name}/manage/users`)} >Manage</Button> },
     { name: 'Name', selector: row => row.name },
     { name: 'Code', selector: row => row.code },
     { name: 'Users', cell: (group: IGroup) => group.usersCount || 0 },

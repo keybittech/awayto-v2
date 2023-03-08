@@ -33,7 +33,7 @@ const Layout = (props: IProps): JSX.Element => {
 
   const act = useAct();
 
-  const { Sidebar, ConfirmAction, GroupsHome, Profile, GroupPaths, ServiceHome, ScheduleHome, BookingHome } = useComponents();
+  const { Sidebar, ConfirmAction, GroupsHome, Profile, GroupPaths, ServiceHome, ScheduleHome, ServiceRequestHome } = useComponents();
   const { snackOn, snackType, snackRequestId, isLoading, loadingMessage } = useRedux(state => state.util);
 
   const hideSnack = (): void => {
@@ -85,8 +85,8 @@ const Layout = (props: IProps): JSX.Element => {
             <Route path="/" element={<GroupsHome {...props} />} />
             <Route path="/profile"  element={<Profile {...props} />} />
             <Route path="/service" element={<ServiceHome {...props} />} />
+            <Route path="/service/request" element={<ServiceRequestHome {...props} />} />
             <Route path="/schedule" element={<ScheduleHome {...props} />} />
-            <Route path="/booking" element={<BookingHome {...props} />} />
             <Route path="/group/:groupName/*" element={<GroupPaths {...props} />} />
           </Routes>
         </Suspense>

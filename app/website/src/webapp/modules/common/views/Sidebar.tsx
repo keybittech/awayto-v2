@@ -11,7 +11,7 @@ import Button from '@mui/material/Button';
 import GroupIcon from '@mui/icons-material/Group';
 import AccountBoxIcon from '@mui/icons-material/AccountBox';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
-import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
+import MoreTimeIcon from '@mui/icons-material/MoreTime';
 import BusinessIcon from '@mui/icons-material/Business';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -56,9 +56,9 @@ export function Sidebar(): JSX.Element {
               <ListItemIcon><EventNoteIcon color={location.pathname === '/schedule' ? "secondary" : "primary"} /></ListItemIcon>
               <ListItemText classes={{ primary: classes.menuText }}>Schedule</ListItemText>
             </ListItem>}
-            {hasRole([SiteRoles.APP_GROUP_BOOKINGS]) && <ListItem className={classes.menuIcon} onClick={() => navigate('/booking')} button key={'booking'}>
-              <ListItemIcon><LibraryBooksIcon color={location.pathname === '/booking' ? "secondary" : "primary"} /></ListItemIcon>
-              <ListItemText classes={{ primary: classes.menuText }}>Booking</ListItemText>
+            {hasRole([SiteRoles.APP_GROUP_BOOKINGS]) && <ListItem className={classes.menuIcon} onClick={() => navigate('/service/request')} button key={'service/request'}>
+              <ListItemIcon><MoreTimeIcon color={location.pathname === '/service/request' ? "secondary" : "primary"} /></ListItemIcon>
+              <ListItemText classes={{ primary: classes.menuText }}>Request</ListItemText>
             </ListItem>}
           </List>
         </Grid>

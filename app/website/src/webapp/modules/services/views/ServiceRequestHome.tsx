@@ -52,7 +52,7 @@ const { SET_SNACK } = IUtilActionTypes;
 const { GET_GROUP_SCHEDULES, GET_GROUP_SCHEDULE_MASTER_BY_ID, GET_GROUP_SCHEDULE_BY_DATE } = IGroupScheduleActionTypes;
 const { GET_GROUP_USER_SCHEDULES } = IGroupUserScheduleActionTypes;
 
-export function BookingHome(props: IProps): JSX.Element {
+export function ServiceRequestHome(props: IProps): JSX.Element {
   const classes = useStyles();
 
   const api = useApi();
@@ -253,7 +253,7 @@ export function BookingHome(props: IProps): JSX.Element {
       <Grid item xs={12}>
         <Card>
           <CardHeader
-            title="Service Booking"
+            title="Service Request"
             subheader="Request services from a group. Different services may have required information to submit the request, so be sure to check."
             action={
               <TextField
@@ -299,7 +299,7 @@ export function BookingHome(props: IProps): JSX.Element {
                   }}
                 >
                   {Object.values(services).map((service, i) => {
-                    return <MenuItem key={`booking_service_selection_${i}`} value={service.id}>{service.name}</MenuItem>
+                    return <MenuItem key={`service_request_selection_${i}`} value={service.id}>{service.name}</MenuItem>
                   })}
                 </TextField>
               </Grid>
@@ -343,8 +343,8 @@ export function BookingHome(props: IProps): JSX.Element {
         {serviceForm.version && <Accordion defaultExpanded={true}>
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
-            aria-controls="service-booking-section-service-questionnaire-content"
-            id="service-booking-section-service-questionnaire-header"
+            aria-controls="service-request-section-service-questionnaire-content"
+            id="service-request-section-service-questionnaire-header"
           >
             <Typography>Service Questionnaire</Typography>
           </AccordionSummary>
@@ -356,8 +356,8 @@ export function BookingHome(props: IProps): JSX.Element {
         {tierForm.version && <Accordion defaultExpanded={true}>
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
-            aria-controls="service-booking-section-tier-questionnaire-content"
-            id="service-booking-section-tier-questionnaire-header"
+            aria-controls="service-request-section-tier-questionnaire-content"
+            id="service-request-section-tier-questionnaire-header"
           >
             <Typography>Tier Questionnaire</Typography>
           </AccordionSummary>
@@ -369,8 +369,8 @@ export function BookingHome(props: IProps): JSX.Element {
         {!!groupScheduleDateSlots.length && firstAvailable && <Accordion defaultExpanded={true}>
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
-            aria-controls="service-booking-section-time-selection-content"
-            id="service-booking-section-time-selection-header"
+            aria-controls="service-request-section-time-selection-content"
+            id="service-request-section-time-selection-header"
           >
             <Typography>Time Selection</Typography>
           </AccordionSummary>
@@ -525,7 +525,7 @@ export function BookingHome(props: IProps): JSX.Element {
             })
           }}>
             <Box m={2} sx={{ display: 'flex' }}>
-              <Typography color="secondary" variant="button">Submit Booking</Typography>
+              <Typography color="secondary" variant="button">Submit Request</Typography>
             </Box>
           </CardActionArea>
         </Card>
@@ -536,4 +536,4 @@ export function BookingHome(props: IProps): JSX.Element {
 
 }
 
-export default BookingHome;
+export default ServiceRequestHome;
