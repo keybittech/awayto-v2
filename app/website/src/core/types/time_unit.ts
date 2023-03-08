@@ -51,6 +51,22 @@ export function getRelativeDuration(amount: number, fromUnit: ITimeUnitNames, to
   return (amount * fromDuration) / toDuration;
 }
 
+export function plural(n: number, singular: string, plural: string) {
+  return n.toString() + ' ' + (n === 1 ? singular: plural);
+}
+
+export function scheduleTime(slotDate: string, startTime: string): string {
+  return dayjs(slotDate).startOf('week').add(dayjs.duration(startTime)).format("hh:mm a");
+}
+
+export function shortNSweet(slotDate: string, startTime: string) {
+  return `${dayjs(slotDate).format("ddd, MMM D")} at ${scheduleTime(slotDate, startTime)}`;
+}
+
+export function utcDTLocal(utc: string): string {
+  return dayjs.utc(utc).local().format("YYYY-MM-DD hh:mm a");
+}
+
 export function utcNow(): dayjs.Dayjs {
   return dayjs.utc(new Date());
 }

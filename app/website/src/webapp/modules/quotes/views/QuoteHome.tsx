@@ -11,12 +11,12 @@ import Tooltip from '@mui/material/Tooltip';
 import ApprovalIcon from '@mui/icons-material/Approval';
 import DoNotDisturbIcon from '@mui/icons-material/DoNotDisturb';
 
-import { IQuoteActionTypes, IQuote, IBookingActionTypes, IUtilActionTypes } from "awayto";
+import { IQuoteActionTypes, IQuote, IBookingActionTypes, IUtilActionTypes, IBooking, utcDTLocal, scheduleTime, plural, shortNSweet } from "awayto";
 import { useRedux, useApi, useAct } from "awayto-hooks";
 
 const { POST_BOOKING } = IBookingActionTypes;
 const { GET_QUOTES, DISABLE_QUOTE } = IQuoteActionTypes;
-const { OPEN_CONFIRM } = IUtilActionTypes;
+const { SET_SNACK, OPEN_CONFIRM } = IUtilActionTypes;
 
 function QuoteHome(props: IProps) {
 
@@ -31,26 +31,39 @@ function QuoteHome(props: IProps) {
 
   const columns = useMemo(() => [
     { id: 'createdOn', selector: row => row.createdOn, omit: true },
-    { name: 'Requested Date', selector: row => row.slotDate },
-    { name: 'Requested Time', selector: row => dayjs(row.slotDate).startOf('week').add(dayjs.duration(row.startTime)).format("hh:mm a") },
-    { name: 'Requested On', selector: row => dayjs.utc(row.createdOn).local().format("YYYY-MM-DD hh:mm a") }
+    { name: 'Requested Time', selector: row => shortNSweet(row.slotDate, row.startTime) },
+    { name: 'Requested On', selector: row => utcDTLocal(row.createdOn) }
   ] as TableColumn<IQuote>[], []);
 
   const actions = useMemo(() => {
     const { length } = selected;
     const acts = length == 1 ? [
+    ] : [];
+
+    return [
+      ...acts,
       <Tooltip key={'approve_quote'} title="Approve">
         <IconButton onClick={() => {
-          const { id, slotDate, scheduleBracketSlotId } = selected[0];
+          if (!selected.every(s => s.slotDate === selected[0].slotDate && s.scheduleBracketSlotId === selected[0].scheduleBracketSlotId)) {
+            act(SET_SNACK, { snackType: 'error', snackOn: 'Only appointments of the same date and time can be mass approved.' });
+            return;
+          }
 
-          const copies = Object.values(quotes).filter(q => q.id !== id && q.slotDate === slotDate && q.scheduleBracketSlotId === scheduleBracketSlotId)
+          const { slotDate, startTime, scheduleBracketSlotId } = selected[0];
+
+          const copies = Object.values(quotes).filter(q => !selected.some(s => s.id === q.id)).filter(q => q.slotDate === slotDate && q.scheduleBracketSlotId === scheduleBracketSlotId);
 
           void act(OPEN_CONFIRM, {
             isConfirming: true,
-            confirmEffect: 'Approve a request and create a booking.',
-            confirmRequest: !copies.length ? undefined : 'Would you also like to automatically deny all other requests for this same date and time (this cannot be undone)? ',
+            confirmEffect: `Approve ${plural(selected.length, 'request', 'requests')}, creating ${plural(selected.length, 'booking', 'bookings')}, for ${shortNSweet(slotDate, startTime)}.`,
+            confirmSideEffect: !copies.length ? undefined : {
+              approvalAction: 'Auto-Deny Remaining',
+              approvalEffect: `Automatically deny all other requests for ${shortNSweet(slotDate, startTime)} (this cannot be undone).`,
+              rejectionAction: 'Confirm Request/Booking Only',
+              rejectionEffect: 'Just submit the approvals.',
+            },
             confirmAction: approval => {
-              const [, res] = api(POST_BOOKING, { quoteId: id, slotDate, scheduleBracketSlotId }, { load: true });
+              const [, res] = api(POST_BOOKING, { bookings: selected.map(s => ({ quoteId: s.id, slotDate: s.slotDate, scheduleBracketSlotId: s.scheduleBracketSlotId }) as IBooking) }, { load: true });
               res?.then(() => {
                 const [, rez] = api(DISABLE_QUOTE, { ids: selected.concat(approval ? copies : []).map(s => s.id).join(',') });
                 rez?.then(() => {
@@ -64,11 +77,7 @@ function QuoteHome(props: IProps) {
         }}>
           <ApprovalIcon />
         </IconButton>
-      </Tooltip>
-    ] : [];
-
-    return [
-      ...acts,
+      </Tooltip>,
       <Tooltip key={'deny_quote'} title="Deny">
         <IconButton onClick={() => {
           const [, res] = api(DISABLE_QUOTE, { ids: selected.map(s => s.id).join(',') }, { load: true })

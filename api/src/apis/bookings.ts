@@ -10,18 +10,21 @@ const bookings: ApiModule = [
     cmnd : async (props) => {
       try {
 
-        const booking = props.event.body;
-        const { quoteId, slotDate, scheduleBracketSlotId } = booking;
+        const bookings = Object.values(props.event.body.bookings);
 
-        const { rows: [{ id: bookingId }]} = await props.db.query<IBooking>(`
-          INSERT INTO dbtable_schema.bookings (quote_id, slot_date, schedule_bracket_slot_id, created_sub)
-          VALUES ($1::uuid, $2::date, $3::uuid, $4::uuid)
-          RETURNING id
-        `, [quoteId, slotDate, scheduleBracketSlotId, props.event.userSub]);
+        await asyncForEach(bookings, async booking => {
+          const { quoteId, slotDate, scheduleBracketSlotId } = booking;
 
-        booking.id = bookingId;
+          const { rows: [{ id: bookingId }]} = await props.db.query<IBooking>(`
+            INSERT INTO dbtable_schema.bookings (quote_id, slot_date, schedule_bracket_slot_id, created_sub)
+            VALUES ($1::uuid, $2::date, $3::uuid, $4::uuid)
+            RETURNING id
+          `, [quoteId, slotDate, scheduleBracketSlotId, props.event.userSub]);
+  
+          booking.id = bookingId;
+        });
 
-        return [booking];
+        return bookings;
 
       } catch (error) {
         throw error;

@@ -31,10 +31,15 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
 				interval '1 week'
 			) AS week_start
 			CROSS JOIN dbtable_schema.schedule_bracket_slots slot
+			LEFT JOIN dbtable_schema.schedule_bracket_slot_exclusions exclusion ON exclusion.schedule_bracket_slot_id = slot.id
+			LEFT JOIN dbtable_schema.bookings booking ON booking.schedule_bracket_slot_id = slot.id
 			JOIN dbtable_schema.schedule_brackets bracket ON bracket.id = slot.schedule_bracket_id
 			JOIN dbtable_schema.group_user_schedules gus ON gus.user_schedule_id = bracket.schedule_id
 			JOIN dbtable_schema.schedules schedule ON schedule.id = gus.group_schedule_id
-			WHERE schedule.id = p_schedule_id
+			WHERE
+				exclusion.id IS NULL AND
+				booking.id IS NULL AND
+				schedule.id = p_schedule_id
 		), timers AS (
 			SELECT
 				series.*,
@@ -52,17 +57,19 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
 			END::DATE as "weekStart",
 			CASE
 				WHEN start_time + client_offset < INTERVAL '0 days'
-				THEN start_time + client_offset + INTERVAL '1 week'
-				ELSE start_time + client_offset
-			END as "startTime",
-			CASE
-				WHEN start_time + client_offset < INTERVAL '0 days'
 				THEN week_start - INTERVAL '1 week' + start_time + client_offset + INTERVAL '1 week'
 				ELSE week_start + start_time + client_offset
 			END::DATE as "startDate",
+			CASE
+				WHEN start_time + client_offset < INTERVAL '0 days'
+				THEN start_time + client_offset + INTERVAL '1 week'
+				ELSE start_time + client_offset
+			END::TEXT as "startTime",
 			schedule_bracket_slot_id as "scheduleBracketSlotId"
 		FROM timers
-		WHERE scheduler_start_time <> scheduler_start_time_dst_check
+		WHERE 
+			scheduler_start_time >= TIMEZONE(schedule_timezone, NOW()) AND
+			scheduler_start_time <> scheduler_start_time_dst_check
 		ORDER BY week_start, start_time;
 	END;
 	$$ LANGUAGE PLPGSQL;

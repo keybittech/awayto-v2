@@ -40,7 +40,12 @@ export type IUtil = {
   confirmAction(...props: ConfirmActionProps): void | Promise<void>;
   isConfirming: boolean;
   confirmEffect: string;
-  confirmRequest?: string;
+  confirmSideEffect?: {
+    approvalAction: string;
+    approvalEffect: string;
+    rejectionAction: string;
+    rejectionEffect: string;
+  };
   isLoading: boolean;
   loadingMessage: string;
   error: Error | string;

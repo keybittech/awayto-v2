@@ -233,7 +233,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
   SELECT
     id,
     schedule_bracket_id as "scheduleBracketId",
-    start_time as "startTime",
+    start_time::TEXT as "startTime",
     row_number() OVER () as row
   FROM
     dbtable_schema.schedule_bracket_slots
@@ -249,13 +249,13 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     q.service_tier_id as "serviceTierId",
     q.service_form_version_submission_id as "serviceFormVersionSubmissionId",
     q.tier_form_version_submission_id as "tierFormVersionSubmissionId",
-    sbs.start_time as "startTime",
+    esbs."startTime",
     q.created_sub as "createdSub",
     q.created_on as "createdOn",
     row_number() OVER () as row
   FROM
     dbtable_schema.quotes q
-  JOIN dbtable_schema.schedule_bracket_slots sbs ON sbs.id = q.schedule_bracket_slot_id
+  JOIN dbview_schema.enabled_schedule_bracket_slots esbs ON esbs.id = q.schedule_bracket_slot_id
   WHERE
     q.enabled = true;
 

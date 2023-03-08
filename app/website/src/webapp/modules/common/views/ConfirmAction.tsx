@@ -23,42 +23,35 @@ export function ConfirmAction(): JSX.Element {
 
   return <>
     {util && (
-      <Dialog open={!!util.isConfirming} fullWidth={true} maxWidth="xs">
+      <Dialog open={!!util.isConfirming} fullWidth={true} maxWidth="sm">
         <Card>
-          <CardHeader title="Confirm Action" subheader={
-            <>
-              {util.confirmEffect && <Box my={2}>
-                <Typography variant="button">Action:</Typography> <Typography fontSize={16} variant="caption">{util.confirmEffect}</Typography>
-              </Box>}
-              {util.confirmRequest && <Box my={2}>
-                <Typography variant="body1">{util.confirmRequest}</Typography>
-              </Box>}
-            </>
-          } />
-          <Grid container>
-            <Grid item xs={util.confirmRequest ? 6 : 12}>
-              <CardActionArea onClick={async () => {
+          <CardHeader title="Confirm Action" subheader={`Action: ${util.confirmEffect}`} />
+          <Grid container sx={{ minHeight: '25vh' }}>
+            <Grid item xs={util.confirmSideEffect ? 6 : 12}>
+              <CardActionArea sx={{ height: '100%', padding: '50px' }} onClick={async () => {
                 await util.confirmAction(true);
                 act(CLOSE_CONFIRM, { isConfirming: false });
               }}>
-                <CardContent>
-                  <Grid container direction="column" alignItems="center" justifyContent="space-evenly">
-                    <Typography variant="subtitle1">{util.confirmRequest ? 'YES' : 'Click here to confirm approval.'}</Typography>
+                <Grid container textAlign="center" justifyContent="center">
+                  <Grid item>
+                    {util.confirmSideEffect && <Typography variant="button" fontSize={16}>{util.confirmSideEffect?.approvalAction}</Typography>}
                   </Grid>
-                </CardContent>
+                  <Grid item>
+                    <Typography variant="caption">{util.confirmSideEffect?.approvalEffect ? 'Click here to: ' + util.confirmSideEffect.approvalEffect : 'Click here to confirm approval.'}</Typography>
+                  </Grid>
+                </Grid>
               </CardActionArea>
             </Grid>
-            {util.confirmRequest && <Grid item xs={6}>
+            {util.confirmSideEffect && <Grid item xs={6}>
 
-              <CardActionArea onClick={async () => {
+              <CardActionArea sx={{ height: '100%', padding: '50px' }} onClick={async () => {
                 await util.confirmAction(false);
                 act(CLOSE_CONFIRM, { isConfirming: false });
               }}>
-                <CardContent>
-                  <Grid container direction="column" alignItems="center" justifyContent="space-evenly">
-                    <Typography variant="subtitle1">NO</Typography>
-                  </Grid>
-                </CardContent>
+                <Grid container textAlign="center" justifyContent="center">
+                  <Typography variant="button" fontSize={16}>{util.confirmSideEffect.rejectionAction}</Typography>
+                  <Typography variant="caption">Click here to: {util.confirmSideEffect.rejectionEffect}</Typography>
+                </Grid>
               </CardActionArea>
             </Grid>}
           </Grid>
