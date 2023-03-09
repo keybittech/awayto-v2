@@ -30,6 +30,7 @@ export function Sidebar(): JSX.Element {
 
   return (
     <Drawer
+      sx={{ display: { xs: 'none', md: 'flex' } }}
       className={classes.drawer}
       variant="permanent"
       classes={{

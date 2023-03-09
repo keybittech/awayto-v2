@@ -1,6 +1,7 @@
 import { asyncForEach, IFormVersionSubmission, IQuote, IQuoteActionTypes, utcNowString } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
+import { keycloak, appClient, roleCall } from '../util/keycloak';
 
 const quotes: ApiModule = [
 
@@ -39,6 +40,22 @@ const quotes: ApiModule = [
         }
 
         quote.id = quoteId;
+
+        const { rows: [{ staffSub }] } = await props.db.query(`
+          SELECT created_sub as "staffSub"
+          FROM dbtable_schema.schedule_bracket_slots
+          WHERE id = $1
+        `, [scheduleBracketSlotId]);
+
+        try {
+          await keycloak.users.addClientRoleMappings({
+            id: staffSub,
+            clientUniqueId: appClient.id!,
+            roles: roleCall
+          });
+          await props.redis.del(`${staffSub}quotes`);
+          await props.redis.del(`${staffSub}profile/details`);
+        } catch (error) { }
 
         return [quote];
 
@@ -84,8 +101,11 @@ const quotes: ApiModule = [
       try {
 
         const response = await props.db.query<IQuote>(`
-          SELECT * FROM dbview_schema.enabled_quotes
-        `);
+          SELECT q.*
+          FROM dbview_schema.enabled_quotes q
+          JOIN dbtable_schema.schedule_bracket_slots sbs ON sbs.id = q."scheduleBracketSlotId"
+          WHERE sbs.created_sub = $1
+        `, [props.event.userSub]);
         
         return response.rows;
         
@@ -151,6 +171,7 @@ const quotes: ApiModule = [
         });
 
         await props.redis.del(`${props.event.userSub}quotes`);
+        await props.redis.del(`${props.event.userSub}profile/details`);
   
         return ids.split(',').map(id => ({ id }));
         

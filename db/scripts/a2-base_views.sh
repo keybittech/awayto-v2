@@ -172,41 +172,4 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
         eug."groupId"
     ) ug ON ug."groupId" = eg.id;
 
-  CREATE
-  OR REPLACE VIEW dbview_schema.enabled_users_ext AS
-  SELECT
-    u.*,
-    grps.* as groups,
-    rols.* as roles
-  FROM
-    dbview_schema.enabled_users u
-    LEFT JOIN LATERAL (
-      SELECT
-        JSONB_OBJECT_AGG(r.id, TO_JSONB(r)) as roles
-      FROM
-        (
-          SELECT
-            er.*
-          FROM
-            dbview_schema.enabled_uuid_roles eur
-            JOIN dbview_schema.enabled_roles er ON eur."roleId" = er.id
-          WHERE
-            eur."parentUuid" = u.id
-        ) r
-    ) as rols ON true
-    LEFT JOIN LATERAL (
-      SELECT
-        JSONB_OBJECT_AGG(g.id, TO_JSONB(g)) as groups
-      FROM
-        (
-          SELECT
-            ege.*
-          FROM
-            dbview_schema.enabled_uuid_groups eug
-            JOIN dbview_schema.enabled_groups_ext ege ON eug."groupId" = ege.id
-          WHERE
-            eug."parentUuid" = u.id
-        ) g
-    ) as grps ON true;
-
 EOSQL

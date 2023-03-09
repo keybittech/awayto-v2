@@ -1,11 +1,9 @@
 import React from 'react';
 
-import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 import CardActions from '@mui/material/CardActions';
 import CardActionArea from '@mui/material/CardActionArea';
 import Dialog from '@mui/material/Dialog';

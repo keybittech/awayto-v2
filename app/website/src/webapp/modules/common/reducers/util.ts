@@ -11,7 +11,6 @@ const initialUtilState = {
   snackOn: '',
   isLoading: false,
   isConfirming: false,
-  hasSignUpCode: false,
   canSubmitAssignments: true,
   theme: kbtTheme != "undefined" && kbtTheme ? kbtTheme : 'dark'
 } as IUtilState;

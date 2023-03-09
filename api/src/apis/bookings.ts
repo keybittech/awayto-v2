@@ -23,6 +23,8 @@ const bookings: ApiModule = [
   
           booking.id = bookingId;
         });
+        
+        await props.redis.del(`${props.event.userSub}profile/details`);
 
         return bookings;
 

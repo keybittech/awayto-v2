@@ -55,7 +55,6 @@ export type IUtil = {
   snackRequestId: string;
   perPage: number;
   theme: 'light' | 'dark';
-  hasSignUpCode: boolean;
   test: { objectUrl: string };
 }
 

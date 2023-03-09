@@ -42,7 +42,7 @@ import {
   userTimezone,
   getRelativeDuration
 } from 'awayto';
-import { useApi, useRedux, useComponents, useStyles, useAct, useSchedule } from 'awayto-hooks';
+import { useApi, useRedux, useComponents, useStyles, useAct } from 'awayto-hooks';
 import { Duration, DurationUnitType } from 'dayjs/plugin/duration';
 import { useNavigate } from 'react-router';
 
@@ -155,16 +155,21 @@ export function RequestQuote(props: IProps): JSX.Element {
       });
       res?.then(data => {
         const dateSlots = data as IGroupScheduleDateSlots[];
-        dateSlots.forEach(slot => {
-          const slotDay = dayjs(slot.weekStart).add(dayjs.duration(slot.startTime));
-          slot.hour = slotDay.hour();
-          slot.minute = slotDay.minute();
-        });
-        setGroupScheduleDateSlots(dateSlots);
-        if (activeSchedule !== schedule.id) {
-          const [slot] = dateSlots;
-          setFirstAvailable({ ...slot, time: dayjs(slot.weekStart).add(dayjs.duration(slot.startTime)) });
-          setActiveSchedule(schedule.id);
+        if (dateSlots.length) {
+          dateSlots.forEach(slot => {
+            const slotDay = dayjs(slot.weekStart).add(dayjs.duration(slot.startTime));
+            slot.hour = slotDay.hour();
+            slot.minute = slotDay.minute();
+          });
+          setGroupScheduleDateSlots(dateSlots);
+          if (activeSchedule !== schedule.id) {
+            const [slot] = dateSlots;
+            setFirstAvailable({ ...slot, time: dayjs(slot.weekStart).add(dayjs.duration(slot.startTime)) });
+            setActiveSchedule(schedule.id);
+          }
+        } else {
+          act(SET_SNACK, { snackType: 'warning', snackOn: 'There are no appointments for the selected month.' });
+          setGroupScheduleDateSlots([]);
         }
       });
       return () => abort();
@@ -366,7 +371,7 @@ export function RequestQuote(props: IProps): JSX.Element {
           </AccordionDetails>
         </Accordion>}
 
-        {!!groupScheduleDateSlots.length && firstAvailable && <Accordion defaultExpanded={true}>
+        {<Accordion defaultExpanded={true}>
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
             aria-controls="service-request-section-time-selection-content"
@@ -380,7 +385,7 @@ export function RequestQuote(props: IProps): JSX.Element {
                 <DesktopDatePicker
                   label="Date"
                   inputFormat="MM/DD/YYYY"
-                  value={bracketSlotDate || firstAvailable.time}
+                  value={bracketSlotDate || firstAvailable.time || null}
                   minDate={firstAvailable.time}
                   onOpen={() => setMonthSeekDate(firstAvailable.time)}
                   onMonthChange={date => date && setMonthSeekDate(date)}
@@ -389,14 +394,14 @@ export function RequestQuote(props: IProps): JSX.Element {
                   renderInput={(params) => <TextField {...params} />}
                   disableHighlightToday={true}
                   shouldDisableDate={date => {
-                    if (date) {
+                    if (date && groupScheduleDateSlots.length) {
                       return !groupScheduleDateSlots.filter(s => s.startDate === date.format("YYYY-MM-DD")).length;
                     }
                     return true;
                   }}
                 />
               </Grid>
-              {timeUnitOrder.indexOf(schedule.slotTimeUnitName) <= timeUnitOrder.indexOf(TimeUnit.HOUR) && <Grid item xs={4}>
+              {(bracketSlotDate || firstAvailable.time) && timeUnitOrder.indexOf(schedule.slotTimeUnitName) <= timeUnitOrder.indexOf(TimeUnit.HOUR) && <Grid item xs={4}>
                 <TimePicker
                   label="Time"
                   value={bracketSlotTime || firstAvailable.time}
@@ -425,30 +430,33 @@ export function RequestQuote(props: IProps): JSX.Element {
                   }}
                   onChange={bracketSlotTime => setBracketSlotTime(bracketSlotTime)}
                   shouldDisableTime={(time, clockType) => {
-                    const currentSlotTime = bracketSlotTime || firstAvailable.time;
-                    const currentSlotDate = bracketSlotDate || firstAvailable.time;
-                    // Ignore seconds check because final time doesn't need seconds, so this will cause invalidity
-                    if ('seconds' === clockType) return false;
-
-                    // Create a duration based on the current clock validation check and the days from start of current week
-                    let duration: Duration = dayjs.duration(time, clockType).add(bracketSlotDateDayDiff, TimeUnit.DAY);
-
-                    // Submitting a new time a two step process, an hour is selected, and then a minute. Upon hour selection, bracketSlotTime is first set, and then when the user selects a minute, that will cause this block to run, so we should add the existing hour from bracketSlotTime such that "hour + minute" will give us the total duration, i.e. 4:30 AM = PT4H30M
-                    if ('minutes' === clockType && currentSlotTime) {
-                      duration = duration.add(currentSlotTime.hour(), TimeUnit.HOUR);
-                    }
-
-                    // When checking hours, we need to also check the hour + next session time, because shouldDisableTime checks atomic parts of the clock, either hour or minute, but no both. So instead of keeping track of some ongoing clock, we can just check both durations here
-                    const checkDurations: Duration[] = [duration];
-                    if ('hours' === clockType) {
-                      for (const factor of schedule.slotFactors) { 
-                        checkDurations.push(duration.add(factor, schedule.slotTimeUnitName as DurationUnitType));
+                    if (groupScheduleDateSlots.length) {
+                      const currentSlotTime = bracketSlotTime || firstAvailable.time;
+                      const currentSlotDate = bracketSlotDate || firstAvailable.time;
+                      // Ignore seconds check because final time doesn't need seconds, so this will cause invalidity
+                      if ('seconds' === clockType) return false;
+  
+                      // Create a duration based on the current clock validation check and the days from start of current week
+                      let duration: Duration = dayjs.duration(time, clockType).add(bracketSlotDateDayDiff, TimeUnit.DAY);
+  
+                      // Submitting a new time a two step process, an hour is selected, and then a minute. Upon hour selection, bracketSlotTime is first set, and then when the user selects a minute, that will cause this block to run, so we should add the existing hour from bracketSlotTime such that "hour + minute" will give us the total duration, i.e. 4:30 AM = PT4H30M
+                      if ('minutes' === clockType && currentSlotTime) {
+                        duration = duration.add(currentSlotTime.hour(), TimeUnit.HOUR);
                       }
+  
+                      // When checking hours, we need to also check the hour + next session time, because shouldDisableTime checks atomic parts of the clock, either hour or minute, but no both. So instead of keeping track of some ongoing clock, we can just check both durations here
+                      const checkDurations: Duration[] = [duration];
+                      if ('hours' === clockType) {
+                        for (const factor of schedule.slotFactors) { 
+                          checkDurations.push(duration.add(factor, schedule.slotTimeUnitName as DurationUnitType));
+                        }
+                      }
+  
+                      const matches = groupScheduleDateSlots.filter(s => s.startDate === currentSlotDate.format("YYYY-MM-DD") && checkDurations.filter(d => d.hours() === s.hour && d.minutes() === s.minute).length > 0);
+                      // Checks that have no existing slots are invalid
+                      return !matches.length;
                     }
-
-                    const matches = groupScheduleDateSlots.filter(s => s.startDate === currentSlotDate.format("YYYY-MM-DD") && checkDurations.filter(d => d.hours() === s.hour && d.minutes() === s.minute).length > 0);
-                    // Checks that have no existing slots are invalid
-                    return !matches.length;
+                    return true;
                   }}
                   renderInput={params => <TextField {...params} />}
                 />

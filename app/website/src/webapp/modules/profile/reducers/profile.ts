@@ -7,10 +7,19 @@ import {
 
 const initialUserProfileState: Partial<IUserProfileState> = {
   groups: {},
-  roles: {}
+  roles: {},
+  quotes: {},
+  availableUserGroupRoles: {}
 };
 
 const profileReducer: Reducer<Partial<IUserProfileState>, IUserProfileActions> = (state = initialUserProfileState, action) => {
+  if (action.payload) {
+    if (!action.payload.groups) action.payload.groups = {};
+    if (!action.payload.roles) action.payload.roles = {};
+    if (!action.payload.quotes) action.payload.quotes = {};
+    if (!action.payload.availableUserGroupRoles) action.payload.availableUserGroupRoles = {};
+  }
+
   switch (action.type) {
     case IUserProfileActionTypes.HAS_CODE:
     case IUserProfileActionTypes.SIGNUP_USER:

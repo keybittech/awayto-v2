@@ -244,18 +244,22 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
   OR REPLACE VIEW dbview_schema.enabled_quotes AS
   SELECT
     q.id,
+    esbs."startTime",
     q.slot_date as "slotDate",
     q.schedule_bracket_slot_id as "scheduleBracketSlotId",
     q.service_tier_id as "serviceTierId",
+    est.name as "serviceTierName",
+    es.name as "serviceName",
     q.service_form_version_submission_id as "serviceFormVersionSubmissionId",
     q.tier_form_version_submission_id as "tierFormVersionSubmissionId",
-    esbs."startTime",
     q.created_sub as "createdSub",
     q.created_on as "createdOn",
     row_number() OVER () as row
   FROM
     dbtable_schema.quotes q
   JOIN dbview_schema.enabled_schedule_bracket_slots esbs ON esbs.id = q.schedule_bracket_slot_id
+  JOIN dbview_schema.enabled_service_tiers est ON est.id = q.service_tier_id
+  JOIN dbview_schema.enabled_services es ON es.id = est."serviceId"
   WHERE
     q.enabled = true;
 

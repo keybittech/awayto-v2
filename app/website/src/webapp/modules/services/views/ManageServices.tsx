@@ -73,8 +73,8 @@ export function ManageServices(props: IProps): JSX.Element {
         if (groupName) {
           void act(OPEN_CONFIRM, {
             isConfirming: true,
-            message: 'Are you sure you want to delete these services? This cannot be undone.',
-            action: () => {
+            confirmEffect: 'Are you sure you want to delete these services? This cannot be undone.',
+            confirmAction: () => {
               const [, res] = api(deleteGroupServicesAction, { groupName, ids: selected.map(s => s.id).join(',') }, { load: true })
               res?.then(() => {
                 setToggle(!toggle);

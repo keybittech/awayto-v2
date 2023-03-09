@@ -147,34 +147,6 @@ export const getBaseComponents: () => ThemeOptions = () => ({
           padding: '4px 0'
         }
       }
-    },
-    MuiList: {
-      styleOverrides: {
-        root: {
-          listStyleType: 'disc',
-          marginTop: 24,
-          marginBottom: 24
-        },
-        padding: {
-          paddingTop: 0,
-          paddingRight: 0,
-          paddingBottom: 0,
-          paddingLeft: 16,
-        }
-      }
-    },
-    MuiListItem: {
-      styleOverrides: {
-        root: {
-          '&.bullet': {
-            display: 'list-Item'
-          }
-        },
-        gutters: {
-          paddingLeft: 0,
-          paddingRight: 0,
-        }
-      }
     }
   }
 });
@@ -212,15 +184,16 @@ export const getDesignTokens: (mode: PaletteMode) => ThemeOptions = (mode) => ({
       mode === 'light' ? {
         // palette values for light mode
         primary: {
-          main: '#000',
+          main: '#121f31',
           dark: '#aaa',
           contrastText: '#333'
-        }
+        },
+        secondary: { main: 'rgb(0 191 255)' }
       }
       : mode === 'dark' ? {
         // palette values for dark mode
         primary: {
-          main: '#fff',
+          main: '#ddd',
           contrastText: '#333'
         },
         secondary: { main: '#009cc8' }
