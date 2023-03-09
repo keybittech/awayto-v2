@@ -26,20 +26,19 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
         slot.id as schedule_bracket_slot_id,
         schedule.timezone as schedule_timezone
       FROM generate_series(
-        DATE_TRUNC('week', p_month_start_date::DATE) - INTERVAL '1 day',
-        DATE_TRUNC('week', p_month_start_date::DATE) - INTERVAL '1 day' + INTERVAL '1 month',
+        DATE_TRUNC('week', p_month_start_date::DATE + INTERVAL '1 day') - INTERVAL '1 day',
+        DATE_TRUNC('week', p_month_start_date::DATE + INTERVAL '1 day') - INTERVAL '1 day' + INTERVAL '1 month',
         interval '1 week'
       ) AS week_start
       CROSS JOIN dbtable_schema.schedule_bracket_slots slot
-      LEFT JOIN dbtable_schema.schedule_bracket_slot_exclusions exclusion ON exclusion.schedule_bracket_slot_id = slot.id
+      LEFT JOIN dbtable_schema.bookings booking ON booking.schedule_bracket_slot_id = slot.id AND DATE_TRUNC('week', booking.slot_date + INTERVAL '1 day') - INTERVAL '1 DAY' = week_start
+      LEFT JOIN dbtable_schema.schedule_bracket_slot_exclusions exclusion ON exclusion.schedule_bracket_slot_id = slot.id AND DATE_TRUNC('week', exclusion.exclusion_date + INTERVAL '1 day') - INTERVAL '1 DAY' = week_start
       JOIN dbtable_schema.schedule_brackets bracket ON bracket.id = slot.schedule_bracket_id
       JOIN dbtable_schema.group_user_schedules gus ON gus.user_schedule_id = bracket.schedule_id
       JOIN dbtable_schema.schedules schedule ON schedule.id = gus.group_schedule_id
-      LEFT JOIN dbtable_schema.bookings booking ON booking.schedule_bracket_slot_id = slot.id AND 
-				DATE_TRUNC('week', booking.slot_date) = DATE_TRUNC('week', week_start)
       WHERE
-        exclusion.id IS NULL AND
         booking.id IS NULL AND
+        exclusion.id IS NULL AND
         schedule.id = p_schedule_id
     ), timers AS (
       SELECT
