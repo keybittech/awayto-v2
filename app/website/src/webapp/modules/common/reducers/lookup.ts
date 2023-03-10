@@ -11,14 +11,10 @@ const initialLookupState: ILookupState = {
   timeUnits: []
 };
 
-function reduceLookup(state: ILookupState, action: ILookupActions): ILookupState {
-  return { ...state, ...action.payload };
-}
-
 const loginReducer: Reducer<ILookupState, ILookupActions> = (state = initialLookupState, action) => {
   switch (action.type) {
     case ILookupActionTypes.GET_LOOKUPS:
-      return reduceLookup(state, action);
+      return { ...state, ...action.payload };
     default:
       return state;
   }

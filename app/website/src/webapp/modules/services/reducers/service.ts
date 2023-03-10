@@ -3,45 +3,27 @@ import {
   IServiceState,
   IServiceActions,
   IServiceActionTypes,
-  IGetServiceByIdAction,
-  IGetServicesAction,
-  IDeleteServiceAction,
-  IDisableServiceAction,
-  IPostServiceAction,
-  IPutServiceAction
+  IService
 } from 'awayto';
 
 const initialServiceState: IServiceState = {
-  services: {}
+  services: new Map()
 };
-
-function reduceDeleteService(state: IServiceState, action: IDeleteServiceAction): IServiceState {
-  const services = { ...state.services };
-  action.payload.forEach(service => {
-    delete services[service.id];
-  });
-  state.services = services;
-  return { ...state };
-}
-
-
-function reduceServices(state: IServiceState, action: IGetServicesAction | IDisableServiceAction | IGetServiceByIdAction | IPostServiceAction | IPutServiceAction): IServiceState {
-  const services = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id}`]: b } }), {});
-  state.services = { ...state.services, ...services };
-  return { ...state };
-}
 
 const servicesReducer: Reducer<IServiceState, IServiceActions> = (state = initialServiceState, action) => {
   switch (action.type) {
+    case IServiceActionTypes.DISABLE_SERVICE:
     case IServiceActionTypes.DELETE_SERVICE:
-      return reduceDeleteService(state, action);
+      action.payload.forEach(service => {
+        state.services.delete(service.id);
+      });
+      return state;
     case IServiceActionTypes.PUT_SERVICE:
     case IServiceActionTypes.POST_SERVICE:
     case IServiceActionTypes.GET_SERVICE_BY_ID:
-      // return reduceService(state, action);
-    case IServiceActionTypes.DISABLE_SERVICE:
     case IServiceActionTypes.GET_SERVICES:
-      return reduceServices(state, action);
+      state.services = new Map([ ...state.services ].concat( action.payload.map(q => [q.id, q]) as readonly [string, IService][] ));
+      return state;
     default:
       return state;
   }

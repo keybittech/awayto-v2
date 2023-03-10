@@ -3,27 +3,12 @@ import {
   IManageUsersState,
   IManageUsersActionTypes,
   IManageUsersActions,
-  IGetManageUsersAction,
-  IGetManageUsersInfoAction,
-  ILockManageUsersAction,
-  IPostManageUsersAction,
-  IPutManageUsersAction,
-  IUnlockManageUsersAction,
-  IPostManageUsersSubAction,
-  IPostManageUsersAppAcctAction,
-  IGetManageUsersByIdAction,
-  IGetManageUsersBySubAction
+  IUserProfile
 } from 'awayto';
 
-const initialManageUsersState: IManageUsersState = {
-  users: {}
-};
-
-function reduceManageUsers(state: IManageUsersState, action: IGetManageUsersAction | IGetManageUsersInfoAction | ILockManageUsersAction | IPostManageUsersAction | IPutManageUsersAction | IUnlockManageUsersAction | IPostManageUsersSubAction | IPostManageUsersAppAcctAction | IGetManageUsersByIdAction | IGetManageUsersBySubAction): IManageUsersState {
-  const users = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id}`]: b } }), {});
-  state.users = { ...state.users, ...users };
-  return { ...state };
-}
+const initialManageUsersState = {
+  users: new Map()
+} as IManageUsersState;
 
 const manageUsersReducer: Reducer<IManageUsersState, IManageUsersActions> = (state = initialManageUsersState, action) => {
   switch (action.type) {
@@ -37,7 +22,8 @@ const manageUsersReducer: Reducer<IManageUsersState, IManageUsersActions> = (sta
     case IManageUsersActionTypes.LOCK_MANAGE_USERS:
     case IManageUsersActionTypes.UNLOCK_MANAGE_USERS:
     case IManageUsersActionTypes.GET_MANAGE_USERS_INFO:
-      return reduceManageUsers(state, action);
+      state.users = new Map([ ...state.users ].concat( action.payload.map(q => [q.id, q]) as readonly [string, IUserProfile][] ));
+      return state;
     default:
       return state;
   }

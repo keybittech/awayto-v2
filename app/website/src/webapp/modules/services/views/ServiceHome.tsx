@@ -55,11 +55,8 @@ export function ServiceHome(props: IProps): JSX.Element {
   const [group, setGroup] = useState({ id: '' } as IGroup);
 
   useEffect(() => {
-    if (groups) {
-      for (const g in groups) {
-        setGroup(groups[g]);
-        break;
-      }
+    if (groups.size) {
+      setGroup(groups.values().next().value as IGroup);
     }
   }, [groups]);
 
@@ -96,9 +93,9 @@ export function ServiceHome(props: IProps): JSX.Element {
               select
               value={group.id}
               label="Group"
-              onChange={e => setGroup(Object.values(groups).filter(g => g.id === e.target.value)[0])}
+              onChange={e => setGroup(Array.from(groups.values()).filter(g => g.id === e.target.value)[0])}
             >
-              {Object.values(groups).map(group => <MenuItem key={`group-select${group.id}`} value={group.id}>{group.name}</MenuItem>)}
+              {Array.from(groups.values()).map(group => <MenuItem key={`group-select${group.id}`} value={group.id}>{group.name}</MenuItem>)}
             </TextField>
           }
         />

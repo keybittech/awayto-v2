@@ -3,17 +3,12 @@ import {
   IGroupState,
   IGroupActions,
   IGroupActionTypes,
-  IGetGroupByIdAction,
-  IGetGroupsAction,
-  IDeleteGroupAction,
-  IDisableGroupAction,
-  IPostGroupAction,
-  IPutGroupAction
+  IGroup
 } from 'awayto';
 
 const initialGroupState = {
-  groups: {},
-  users: {},
+  groups: new Map(),
+  users: new Map(),
   checkedName: '',
   availableGroupAssignments: {},
   checkingName: false,
@@ -22,34 +17,23 @@ const initialGroupState = {
   needCheckName: false
 } as IGroupState;
 
-function reduceDeleteGroup(state: IGroupState, action: IDeleteGroupAction): IGroupState {
-  const groups = { ...state.groups };
-  action.payload.forEach(group => {
-    delete groups[group.id];
-  });
-  state.groups = groups;
-  return { ...state };
-}
-
-function reduceGroups(state: IGroupState, action: IGetGroupsAction | IDisableGroupAction | IGetGroupByIdAction | IPostGroupAction | IPutGroupAction): IGroupState {
-  const groups = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id}`]: b } }), {});
-  state.groups = { ...state.groups, ...groups };
-  return { ...state };
-}
-
 const groupReducer: Reducer<IGroupState, IGroupActions> = (state = initialGroupState, action) => {
   switch (action.type) {
     case IGroupActionTypes.DELETE_GROUPS:
-      return reduceDeleteGroup(state, action);
+      action.payload.forEach(group => {
+        state.groups.delete(group.id);
+      });
+      return state;
     case IGroupActionTypes.PUT_GROUPS:
     case IGroupActionTypes.POST_GROUPS:
     case IGroupActionTypes.GET_GROUPS_BY_ID:
     case IGroupActionTypes.DISABLE_GROUPS:
     case IGroupActionTypes.GET_GROUPS:
-      return reduceGroups(state, action);
+      state.groups = new Map([ ...state.groups ].concat( action.payload.map(q => [q.id, q]) as readonly [string, IGroup][] ));
+      return state;
     case IGroupActionTypes.GET_GROUPS_ASSIGNMENTS:
     case IGroupActionTypes.CHECK_GROUPS_NAME:
-      return { ...state, ...action.payload }
+      return { ...state, ...action.payload };
     default:
       return state;
   }

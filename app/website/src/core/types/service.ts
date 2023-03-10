@@ -36,7 +36,7 @@ export type IService = {
   id: string;
   name: string;
   cost: string;
-  tiers: Record<string, IServiceTier>;
+  tiers: Map<string, IServiceTier>;
   formId?: string;
   createdOn: string;
 };
@@ -45,7 +45,7 @@ export type IService = {
  * @category Service
  */
 export type IServiceState = Partial<IService> & {
-  services: Record<string, IService>;
+  services: Map<string, IService>;
 };
 
 /**
@@ -116,7 +116,7 @@ export type IServiceActions = IPostServiceAction
  * @category Service
  */
  export type IServiceAddonState = {
-   serviceAddons: Record<string, IServiceAddon>;
+   serviceAddons: Map<string, IServiceAddon>;
  };
 
  /**

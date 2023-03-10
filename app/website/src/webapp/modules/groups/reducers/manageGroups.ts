@@ -1,49 +1,34 @@
 import { Reducer } from 'redux';
 import {
-  IGetManageGroupsAction,
-  IManageGroupsActionTypes,
   IManageGroupsState,
-  IPostManageGroupsAction,
-  IPutManageGroupsAction,
-  IDeleteManageGroupsAction,
+  IManageGroupsActionTypes,
   IManageGroupsActions,
-  IDisableManageGroupsAction
+  IGroup
 } from 'awayto';
 
-const initialManageGroupsState: IManageGroupsState = {
-  groups: {},
+const initialManageGroupsState = {
+  groups: new Map(),
   isValid: true,
   needCheckName: false,
   checkingName: false,
   checkedName: ''
-};
-
-function reduceDeleteManageGroups(state: IManageGroupsState, action: IDeleteManageGroupsAction): IManageGroupsState {
-  const groups = { ...state.groups };
-  action.payload.forEach(group => {
-    delete groups[group.id];
-  });
-  state.groups = groups;
-  return { ...state };
-}
-
-function reduceManageGroups(state: IManageGroupsState, action: IGetManageGroupsAction | IPostManageGroupsAction | IPutManageGroupsAction | IDisableManageGroupsAction): IManageGroupsState {
-  const groups = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id}`]: b } }), {});
-  state.groups = { ...state.groups, ...groups };
-  return { ...state };
-}
+} as IManageGroupsState;
 
 const manageGroupsReducer: Reducer<IManageGroupsState, IManageGroupsActions> = (state = initialManageGroupsState, action) => {
   switch (action.type) {
     case IManageGroupsActionTypes.DELETE_MANAGE_GROUPS:
-      return reduceDeleteManageGroups(state, action);
+    case IManageGroupsActionTypes.DISABLE_MANAGE_GROUPS:
+      action.payload.forEach(group => {
+        state.groups.delete(group.id);
+      });
+      return state;
     case IManageGroupsActionTypes.GET_MANAGE_GROUPS:
     case IManageGroupsActionTypes.POST_MANAGE_GROUPS:
     case IManageGroupsActionTypes.PUT_MANAGE_GROUPS:
-    case IManageGroupsActionTypes.DISABLE_MANAGE_GROUPS:
-      return reduceManageGroups(state, action);
+      state.groups = new Map([ ...state.groups ].concat( action.payload.map(q => [q.id, q]) as readonly [string, IGroup][] ));
+      return state;
     case IManageGroupsActionTypes.CHECK_GROUP_NAME:
-      return { ...state, ...action.payload }
+      return { ...state, ...action.payload };
     default:
       return state;
   }

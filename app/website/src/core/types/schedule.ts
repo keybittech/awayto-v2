@@ -48,13 +48,13 @@ export type IScheduleBracketSlot = {
   scheduleId: string;
   duration: number;
   multiplier: string;
-  services: Record<string, IService>;
-  slots: Record<string, IScheduleBracketSlot>;
+  services: Map<string, IService>;
+  slots: Map<string, IScheduleBracketSlot>;
   createdOn: string;
 };
 
 export type IScheduleBracketState = IScheduleBracket & {
-  schedules: Record<string, IScheduleBracket>;
+  schedules: Map<string, IScheduleBracket>;
 }
 
 
@@ -84,7 +84,7 @@ export type ISchedule = {
  * @category Schedule
  */
 export type IScheduleState = ISchedule & {
-  schedules: Record<string, ISchedule>;
+  schedules: Map<string, ISchedule>;
 };
 
 /**

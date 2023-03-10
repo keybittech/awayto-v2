@@ -63,12 +63,12 @@ export type IGroup = {
   name: string;
   code: string;
   usersCount: number;
-  roles: Record<string, IRole>;
+  roles: Map<string, IRole>;
 }
 
 export type IGroupState = IGroup & {
-  groups: Record<string, IGroup>;
-  users: Record<string, IUserProfile>;
+  groups: Map<string, IGroup>;
+  users: Map<string, IUserProfile>;
   isValid: boolean;
   availableGroupAssignments: Record<string, IGroupRoleActions>;
   needCheckName: boolean;
@@ -179,7 +179,7 @@ export type IGroupServiceAddon = IServiceAddon & {
  * @category Group
  */
 export type IGroupServiceAddonState = {
-  groupServiceAddons: Record<string, IGroupServiceAddon>;
+  groupServiceAddons: Map<string, IGroupServiceAddon>;
 };
 
 /**
@@ -227,7 +227,7 @@ export type IGroupService = IService & {
  * @category Group
  */
 export type IGroupServiceState = IGroupService & {
-  groupServices: Record<string, IGroupService>
+  groupServices: Map<string, IGroupService>
 };
 
 /**
@@ -276,7 +276,7 @@ export type IGroupSchedule = ISchedule & {
  * @category Group
  */
 export type IGroupScheduleState = IGroupSchedule & {
-  groupSchedules: Record<string, IGroupSchedule>;
+  groupSchedules: Map<string, IGroupSchedule>;
 };
 
 export type IGroupScheduleDateSlots = {
@@ -356,7 +356,7 @@ export type IGroupForms = Record<string, IGroupForm>;
  * @category Group
  */
 export type IGroupFormState = IGroupForm & {
-  groupForms: Record<string, IGroupForm>;
+  groupForms: Map<string, IGroupForm>;
 };
 
 /**
@@ -434,7 +434,7 @@ export type IGroupUserSchedules = Record<string, IGroupUserSchedule>;
  * @category Group
  */
 export type IGroupUserScheduleState = IGroupUserSchedule & {
-  groupUserSchedules: Record<string, IGroupUserSchedule>;
+  groupUserSchedules: Map<string, IGroupUserSchedule>;
 };
 
 /**

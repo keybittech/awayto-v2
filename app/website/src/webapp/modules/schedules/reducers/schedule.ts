@@ -3,44 +3,27 @@ import {
   IScheduleState,
   IScheduleActions,
   IScheduleActionTypes,
-  IGetScheduleByIdAction,
-  IGetSchedulesAction,
-  IDeleteScheduleAction,
-  IDisableScheduleAction,
-  IPostScheduleAction,
-  IPutScheduleAction
+  ISchedule
 } from 'awayto';
 
 const initialScheduleState = {
-  schedules: {}
+  schedules: new Map()
 } as IScheduleState;
-
-function reduceDeleteSchedule(state: IScheduleState, action: IDeleteScheduleAction): IScheduleState {
-  const schedules = { ...state.schedules };
-  action.payload.forEach(serviceAddon => {
-    delete schedules[serviceAddon.id];
-  });
-  state.schedules = schedules;
-  return { ...state };
-}
-
-function reduceSchedules(state: IScheduleState, action: IGetSchedulesAction | IDisableScheduleAction | IGetScheduleByIdAction | IPostScheduleAction | IPutScheduleAction): IScheduleState {
-  const schedules = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id}`]: b } }), {});
-  state.schedules = { ...state.schedules, ...schedules };
-  return { ...state };
-}
 
 const scheduleReducer: Reducer<IScheduleState, IScheduleActions> = (state = initialScheduleState, action) => {
   switch (action.type) {
+    case IScheduleActionTypes.DISABLE_SCHEDULE:
     case IScheduleActionTypes.DELETE_SCHEDULE:
-      return reduceDeleteSchedule(state, action);
+      action.payload.forEach(serviceAddon => {
+        state.schedules.delete(serviceAddon.id);
+      });
+      return state;
     case IScheduleActionTypes.PUT_SCHEDULE:
     case IScheduleActionTypes.POST_SCHEDULE:
     case IScheduleActionTypes.GET_SCHEDULE_BY_ID:
-      // return reduceSchedule(state, action);
-    case IScheduleActionTypes.DISABLE_SCHEDULE:
     case IScheduleActionTypes.GET_SCHEDULES:
-      return reduceSchedules(state, action);
+      state.schedules = new Map([ ...state.schedules ].concat( action.payload.map(q => [q.id, q]) as readonly [string, ISchedule][] ));
+      return state;
     default:
       return state;
   }

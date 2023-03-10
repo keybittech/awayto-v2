@@ -178,20 +178,22 @@ export function RequestQuote(props: IProps): JSX.Element {
   }, [group, schedule, monthSeekDate]);
 
   useEffect(() => {
-    if (groups) {
-      for (const g in groups) {
-        const [abort, res] = api(GET_GROUP_SCHEDULES, { groupName: groups[g].name })
-        res?.then(data => {
-          const scheds = data as IGroupSchedule[];
-          const [, rez] = api(GET_GROUP_SCHEDULE_MASTER_BY_ID, { groupName: groups[g].name, scheduleId: scheds[0].id })
-          rez?.then(data => {
-            const [sched] = data as IGroupSchedule[];
-            loadSchedule(sched);
-            setGroup(groups[g]);
-          }).catch(console.warn);
+    if (groups.size) {
+      const gr = groups.values().next().value as IGroup;
+
+      const [abort, res] = api(GET_GROUP_SCHEDULES, { groupName: gr.name })
+
+      res?.then(data => {
+        const scheds = data as IGroupSchedule[];
+        const [, rez] = api(GET_GROUP_SCHEDULE_MASTER_BY_ID, { groupName: gr.name, scheduleId: scheds[0].id })
+        rez?.then(data => {
+          const [sched] = data as IGroupSchedule[];
+          loadSchedule(sched);
+          setGroup(gr);
         }).catch(console.warn);
-        return () => abort();
-      }
+      }).catch(console.warn);
+
+      return () => abort();
     }
   }, [groups, timeUnits]);
 
@@ -266,9 +268,9 @@ export function RequestQuote(props: IProps): JSX.Element {
                 select
                 value={group.id}
                 label="Group"
-                onChange={e => setGroup(Object.values(groups).filter(g => g.id === e.target.value)[0])}
+                onChange={e => setGroup(Array.from(groups.values()).filter(g => g.id === e.target.value)[0])}
               >
-                {Object.values(groups).map(group => <MenuItem key={`group-select${group.id}`} value={group.id}>{group.name}</MenuItem>)}
+                {Array.from(groups.values()).map(group => <MenuItem key={`group-select${group.id}`} value={group.id}>{group.name}</MenuItem>)}
               </TextField>
             }
           />

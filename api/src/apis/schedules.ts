@@ -186,7 +186,7 @@ const schedules: ApiModule = [
 
           await asyncForEach(Object.values(brackets), async b => {
 
-            // Delete slots that aren't attached to a booking
+            // Delete slots that aren't attached to a booking or quote
             await props.db.query<{ enabled: boolean[] }>(`
               DELETE FROM dbtable_schema.schedule_bracket_slots slot
               WHERE slot.schedule_bracket_id = $1
@@ -194,6 +194,11 @@ const schedules: ApiModule = [
                 SELECT 1
                 FROM dbtable_schema.bookings booking
                 WHERE booking.schedule_bracket_slot_id = slot.id
+              )
+              AND NOT EXISTS (
+                SELECT 1
+                FROM dbtable_schema.quotes quote
+                WHERE quote.schedule_bracket_slot_id = slot.id
               )
             `, [b.id]);
 
@@ -204,8 +209,7 @@ const schedules: ApiModule = [
               AND NOT EXISTS (
                 SELECT 1
                 FROM dbtable_schema.schedule_bracket_slots slot
-                JOIN dbtable_schema.schedule_bracket_services svc ON svc.schedule_bracket_id = slot.schedule_bracket_id
-                WHERE svc.service_id = service.service_id
+                WHERE slot.schedule_bracket_id = service.schedule_bracket_id
               )
             `, [b.id]);
 
@@ -221,6 +225,15 @@ const schedules: ApiModule = [
             `, [b.id]);
 
           });
+
+          await props.db.query(`
+            UPDATE dbtable_schema.quotes
+            SET enabled = false, updated_on = $2, updated_sub = $3
+            FROM dbtable_schema.schedule_bracket_slots slot
+            JOIN dbtable_schema.schedule_brackets bracket ON bracket.id = slot.schedule_bracket_id
+            JOIN dbtable_schema.schedules schedule ON schedule.id = bracket.schedule_id
+            WHERE slot.id = dbtable_schema.quotes.schedule_bracket_slot_id AND schedule.id = $1
+          `, [scheduleId, utcNowString(), props.event.userSub]);
 
           await props.db.query(`
             UPDATE dbtable_schema.schedules

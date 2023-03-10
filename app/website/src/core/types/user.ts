@@ -38,7 +38,7 @@ export type IUsers = Record<string, IUser>;
  * @category Manage Users
  */
 export type IUserState = {
-  users: Record<string, IUserProfile>;
+  users: Map<string, IUserProfile>;
 }
 
 /**

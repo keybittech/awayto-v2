@@ -54,10 +54,9 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
       return;
     }
     
-    group.name = formatName(name);
-    group.roles = roleIds.reduce((m, d) => ({ ...m, [d]: roles[d] }), {}) as Record<string, IRole>;
-    group.roleId = primaryRole;
-    const [, res] = api(id ? putGroupsAction : postGroupsAction, group, { load: true });
+    const mapRoleIds = new Map(roleIds.map(id => [id, roles.get(id) as IRole]));
+
+    const [, res] = api(id ? putGroupsAction : postGroupsAction, { name: formatName(name), roles: Array.from(mapRoleIds.values()), roleId: primaryRole }, { load: true });
     res?.then(() => {
       id && act(SET_SNACK, { snackType: 'success', snackOn: 'Group updated! Please allow up to a minute for any related permissions changes to persist.' } )
       !id && keycloak.clearToken();
@@ -78,8 +77,8 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
   }, [group, setGroup]);
 
   useEffect(() => {
-    if (!roleIds.length && group.roles?.length && !primaryRole)
-      setRoleIds(Object.keys(group.roles))
+    if (!roleIds.length && group.roles?.size && !primaryRole)
+      setRoleIds(Array.from(group.roles.keys()))
   }, [roleIds, group.roles, primaryRole]);
 
   useEffect(() => {
@@ -152,7 +151,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
                 <SelectLookup
                   multiple
                   lookupName="Group Role"
-                  lookups={Object.values(roles || {})}
+                  lookups={Array.from(roles.values())}
                   lookupChange={setRoleIds}
                   lookupValue={roleIds}
                   refetchAction={getRolesAction}
@@ -171,7 +170,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
                   onChange={e => setPrimaryRole(e.target.value)}
                   value={primaryRole}
                 >
-                  {roleIds.map(roleId => <MenuItem key={`${roleId}_primary_role_select`} value={roleId}>{Object.values(roles).find(role => role.id === roleId)?.name || ''}</MenuItem>)}
+                  {roleIds.map(roleId => <MenuItem key={`${roleId}_primary_role_select`} value={roleId}>{Array.from(roles.values()).find(role => role.id === roleId)?.name || ''}</MenuItem>)}
                 </TextField>
               </Grid>}
             </Grid>

@@ -6,36 +6,26 @@ import {
   IPostManageRolesAction, 
   IPutManageRolesAction, 
   IDeleteManageRolesAction, 
-  IManageRolesActions
+  IManageRolesActions,
+  IRole
 } from 'awayto';
 
-const initialManageRolesState: IManageRolesState = {
-  roles: {}
-};
-
-function reduceDeleteManageRoles(state: IManageRolesState, action: IDeleteManageRolesAction): IManageRolesState {
-  const roles = { ...state.roles };
-  action.payload.forEach(role => {
-    delete roles[role.id];
-  });
-  state.roles = roles;
-  return { ...state };
-}
-
-function reduceManageRoles(state: IManageRolesState, action: IGetManageRolesAction | IPostManageRolesAction | IPutManageRolesAction): IManageRolesState {
-  const roles = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id}`]: b } }), {});
-  state.roles = { ...state.roles, ...roles };
-  return { ...state };
-}
+const initialManageRolesState = {
+  roles: new Map()
+} as IManageRolesState;
 
 const roleReducer: Reducer<IManageRolesState, IManageRolesActions> = (state = initialManageRolesState, action) => {
   switch (action.type) {
     case IManageRolesActionTypes.DELETE_MANAGE_ROLES:
-      return reduceDeleteManageRoles(state, action);
+      action.payload.forEach(role => {
+        state.roles.delete(role.id);
+      });
+      return state;
     case IManageRolesActionTypes.PUT_MANAGE_ROLES:
     case IManageRolesActionTypes.POST_MANAGE_ROLES:
     case IManageRolesActionTypes.GET_MANAGE_ROLES:
-      return reduceManageRoles(state, action);
+      state.roles = new Map([ ...state.roles ].concat( action.payload.map(q => [q.id, q]) as readonly [string, IRole][] ));
+      return state;
     default:
       return state;
   }

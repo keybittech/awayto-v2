@@ -88,28 +88,28 @@ const users: ApiModule = [
     }
   },
 
-  {
-    action: IUserActionTypes.DISABLE_USERS,
-    cmnd : async (props) => {
-      try {
-        const { users } = props.event.body;
+  // {
+  //   action: IUserActionTypes.DISABLE_USERS,
+  //   cmnd : async (props) => {
+  //     try {
+  //       const { users } = props.event.body;
 
-        await asyncForEach(Object.values(users), async role => {
-          await props.db.query(`
-            UPDATE dbtable_schema.users
-            SET enabled = false, updated_on = $2, updated_sub = $3
-            WHERE id = $1
-          `, [role.id, utcNowString(), props.event.userSub]);
-        });
+  //       await asyncForEach(Object.values(users), async role => {
+  //         await props.db.query(`
+  //           UPDATE dbtable_schema.users
+  //           SET enabled = false, updated_on = $2, updated_sub = $3
+  //           WHERE id = $1
+  //         `, [role.id, utcNowString(), props.event.userSub]);
+  //       });
 
-        return users;
+  //       return users;
         
-      } catch (error) {
-        throw error;
-      }
+  //     } catch (error) {
+  //       throw error;
+  //     }
 
-    }
-  }
+  //   }
+  // }
 
 ];
 

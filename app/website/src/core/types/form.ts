@@ -81,7 +81,7 @@ export type IForm = {
  * @category Form
  */
 export type IFormState = Partial<IForm> & {
-  forms: Record<string, IForm>
+  forms: Map<string, IForm>
 };
 
 /**

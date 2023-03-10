@@ -33,8 +33,8 @@ export type ManageGroupsActions = {
   checkNameAction?: IActionTypes;
   postRolesAction?: IActionTypes;
   deleteRolesAction?: IActionTypes;
-  groups?: Record<string, IGroup>;
-  roles?: Record<string, IRole>;
+  groups?: Map<string, IGroup>;
+  roles?: Map<string, IRole>;
 };
 
 declare global {
@@ -176,7 +176,7 @@ export function ManageGroups(props: IProps): JSX.Element {
             }}>Create</Button>
           ]}
           contextActions={actions}
-          data={groups ? Object.values(groups) : []}
+          data={Array.from(groups.values())}
           theme={util.theme}
           columns={columns}
           defaultSortFieldId="createdOn"

@@ -72,7 +72,7 @@ export type IManageUsers = unknown;
  * @category Manage Users
  */
 export type IManageUsersState = Partial<IManageUsers> & {
-  users: Record<string, IUserProfile>;
+  users: Map<string, IUserProfile>;
 };
 
 /**
@@ -167,7 +167,7 @@ export type IManageRoles = unknown;
  * @category Manage Roles
  */
 export type IManageRolesState = Partial<IManageRoles> & {
-  roles: Record<string, IRole>
+  roles: Map<string, IRole>
 };
 
 /**
@@ -219,7 +219,7 @@ export type IManageGroups = unknown;
  * @category Manage Groups
  */
 export type IManageGroupsState = Partial<IManageGroups> & {
-  groups: Record<string, IGroup>,
+  groups: Map<string, IGroup>,
   isValid: boolean,
   needCheckName: boolean,
   checkingName: boolean,

@@ -40,10 +40,12 @@ export type IUserProfile = {
   createdOn: string;
   updatedOn: string;
   locked: boolean;
-  quotes: Record<string, IQuote>;
-  bookings: Record<string, IBooking>;
-  groups: Record<string, IGroup>;
-  roles: Record<string, IRole>;
+  quotes: Map<string, IQuote>;
+  seenQuotes: boolean;
+  bookings: Map<string, IBooking>;
+  seenBookings: boolean;
+  groups: Map<string, IGroup>;
+  roles: Map<string, IRole>;
   availableUserGroupRoles: UserGroupRoles;
 };
 

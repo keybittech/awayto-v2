@@ -3,43 +3,24 @@ import {
   IGroupServiceState,
   IGroupServiceActions,
   IGroupServiceActionTypes,
-  IGetGroupServicesAction,
-  IDeleteGroupServiceAction,
-  IPostGroupServiceAction,
+  IGroupService,
 } from 'awayto';
 
 const initialGroupServiceState = {
-  groupServices: {}
+  groupServices: new Map()
 } as IGroupServiceState;
-
-function reduceDeleteGroupService(state: IGroupServiceState, action: IDeleteGroupServiceAction): IGroupServiceState {
-  const groupServices = { ...state.groupServices };
-  action.payload.forEach(groupService => {
-    delete groupServices[groupService.id];
-  });
-  state.groupServices = groupServices;
-  return { ...state };
-}
-
-function reducePostGroupServices(state: IGroupServiceState, action: IPostGroupServiceAction): IGroupServiceState {
-  const groupServices = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id}`]: b } }), {});
-  state.groupServices = { ...state.groupServices, ...groupServices };
-  return { ...state };
-}
-
-function reduceGetGroupServices(state: IGroupServiceState, action: IGetGroupServicesAction): IGroupServiceState {
-  state.groupServices = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id}`]: b } }), {});
-  return { ...state };
-}
 
 const groupServicesReducer: Reducer<IGroupServiceState, IGroupServiceActions> = (state = initialGroupServiceState, action) => {
   switch (action.type) {
     case IGroupServiceActionTypes.DELETE_GROUP_SERVICE:
-      return reduceDeleteGroupService(state, action);
+      action.payload.forEach(groupService => {
+        state.groupServices.delete(groupService.id);
+      });
+      return state;
     case IGroupServiceActionTypes.POST_GROUP_SERVICE:
-      return reducePostGroupServices(state, action);
     case IGroupServiceActionTypes.GET_GROUP_SERVICES:
-      return reduceGetGroupServices(state, action);
+      state.groupServices = new Map([ ...state.groupServices ].concat( action.payload.map(q => [q.id, q]) as readonly [string, IGroupService][] ));
+      return state;
     default:
       return state;
   }

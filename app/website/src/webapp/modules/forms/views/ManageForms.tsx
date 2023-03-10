@@ -18,7 +18,7 @@ import { useRedux, useApi } from 'awayto-hooks';
 import ManageFormModal from './ManageFormModal';
 
 export type ManageFormsActions = {
-  groupForms?: Record<string, IGroupForm>;
+  groupForms?: Map<string, IGroupForm>;
   getGroupFormsAction?: IActionTypes;
   getGroupFormByIdAction?: IActionTypes;
   putGroupFormsAction?: IActionTypes;
@@ -99,7 +99,7 @@ export function ManageForms(props: IProps): JSX.Element {
           title="Forms"
           actions={<Button onClick={() => { setForm(undefined); setDialog('manage_form') }}>New</Button>}
           contextActions={actions}
-          data={groupForms ? Object.values(groupForms) : []}
+          data={Array.from(groupForms.values())}
           defaultSortFieldId="createdOn"
           defaultSortAsc={false}
           theme={util.theme}

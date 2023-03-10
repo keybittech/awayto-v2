@@ -10,9 +10,11 @@ const bookings: ApiModule = [
     cmnd : async (props) => {
       try {
 
-        const bookings = Object.values(props.event.body.bookings);
+        const bookings = new Map(props.event.body.bookings);
 
-        await asyncForEach(bookings, async booking => {
+        const newBookings: IBooking[] = [];
+
+        for (const booking of bookings.values()) {
           const { quoteId, slotDate, scheduleBracketSlotId } = booking;
 
           const { rows: [{ id: bookingId }]} = await props.db.query<IBooking>(`
@@ -22,11 +24,12 @@ const bookings: ApiModule = [
           `, [quoteId, slotDate, scheduleBracketSlotId, props.event.userSub]);
   
           booking.id = bookingId;
-        });
+          newBookings.push(booking);
+        }
         
         await props.redis.del(`${props.event.userSub}profile/details`);
 
-        return bookings;
+        return newBookings;
 
       } catch (error) {
         throw error;

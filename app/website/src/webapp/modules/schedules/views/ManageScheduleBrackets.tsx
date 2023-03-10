@@ -60,11 +60,8 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
   if (!groups) return <></>;
 
   useEffect(() => {
-    if (groups) {
-      for (const g in groups) {
-        setGroup(groups[g]);
-        break;
-      }
+    if (groups.size) {
+      setGroup(groups.values().next().value as IGroup);
     }
   }, [groups]);
 
@@ -170,10 +167,11 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
                     label="Group"
                     variant="standard"
                     onChange={e => {
-                      setGroup(groups[e.target.value]);
+                      const gr = groups.get(e.target.value);
+                      if (gr) setGroup(gr);
                     }}
                   >
-                    {Object.values(groups).map(group => <MenuItem key={`group-select${group.id}`} value={group.id}>{group.name}</MenuItem>)}
+                    {Array.from(groups.values()).map(group => <MenuItem key={`group-select${group.id}`} value={group.id}>{group.name}</MenuItem>)}
                   </TextField>
                 </Box>
               ]}

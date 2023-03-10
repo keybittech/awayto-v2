@@ -45,7 +45,7 @@ export type IBooking = IQuote & {
  * @category Booking
  */
 export type IBookingState = IBooking & {
-  bookings: Record<string, IBooking>;
+  bookings: Map<string, IBooking>;
 };
 
 /**

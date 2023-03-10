@@ -149,28 +149,30 @@ const roles: ApiModule = [
     }
   },
 
-  {
-    action: IRoleActionTypes.DISABLE_ROLES,
-    cmnd : async (props) => {
-      try {
-        const { roles } = props.event.body;
+  // {
+  //   action: IRoleActionTypes.DISABLE_ROLES,
+  //   cmnd : async (props) => {
+  //     try {
+  //       const { roles } = props.event.body;
 
-        await asyncForEach(Object.values(roles), async role => {
-          await props.db.query(`
-            UPDATE dbtable_schema.roles
-            SET enabled = false, updated_on = $2, updated_sub = $3
-            WHERE id = $1
-          `, [role.id, utcNowString(), props.event.userSub]);
-        });
+  //       console.log({ roles })
 
-        return roles;
+  //       await asyncForEach(Object.values(roles), async role => {
+  //         await props.db.query(`
+  //           UPDATE dbtable_schema.roles
+  //           SET enabled = false, updated_on = $2, updated_sub = $3
+  //           WHERE id = $1
+  //         `, [role.id, utcNowString(), props.event.userSub]);
+  //       });
+
+  //       return roles;
         
-      } catch (error) {
-        throw error;
-      }
+  //     } catch (error) {
+  //       throw error;
+  //     }
 
-    }
-  }
+  //   }
+  // }
 ];
 
 export default roles;

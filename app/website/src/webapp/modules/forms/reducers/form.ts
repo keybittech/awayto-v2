@@ -3,43 +3,27 @@ import {
   IFormState,
   IFormActions,
   IFormActionTypes,
-  IGetFormByIdAction,
-  IGetFormsAction,
-  IDeleteFormAction,
-  IDisableFormAction,
-  IPostFormAction,
-  IPutFormAction
+  IForm
 } from 'awayto';
 
 const initialFormState = {
-  forms: {}
+  forms: new Map()
 } as IFormState;
-
-function reduceDeleteForm(state: IFormState, action: IDeleteFormAction): IFormState {
-  const forms = { ...state.forms };
-  action.payload.forEach(form => {
-    delete forms[form.id];
-  });
-  state.forms = forms;
-  return { ...state };
-}
-
-function reduceForm(state: IFormState, action: IGetFormsAction | IDisableFormAction | IGetFormByIdAction | IPostFormAction | IPutFormAction): IFormState {
-  const forms = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id}`]: b } }), {});
-  state.forms = { ...state.forms, ...forms };
-  return { ...state };
-}
 
 const formReducer: Reducer<IFormState, IFormActions> = (state = initialFormState, action) => {
   switch (action.type) {
     case IFormActionTypes.DELETE_FORM:
-      return reduceDeleteForm(state, action);
+      action.payload.forEach(form => {
+        state.forms.delete(form.id);
+      });
+      return state;
     case IFormActionTypes.PUT_FORM:
     case IFormActionTypes.GET_FORM_BY_ID:
     case IFormActionTypes.POST_FORM:
     case IFormActionTypes.DISABLE_FORM:
     case IFormActionTypes.GET_FORMS:
-      return reduceForm(state, action);
+      state.forms = new Map([ ...state.forms ].concat( action.payload.map(q => [q.id, q]) as readonly [string, IForm][] ));
+      return state;
     default:
       return state;
   }

@@ -3,43 +3,24 @@ import {
   IGroupServiceAddonState,
   IGroupServiceAddonActions,
   IGroupServiceAddonActionTypes,
-  IGetGroupServiceAddonsAction,
-  IDeleteGroupServiceAddonAction,
-  IPostGroupServiceAddonAction,
+  IGroupServiceAddon,
 } from 'awayto';
 
 const initialGroupServiceAddonState: IGroupServiceAddonState = {
-  groupServiceAddons: {}
+  groupServiceAddons: new Map()
 };
-
-function reduceDeleteGroupServiceAddon(state: IGroupServiceAddonState, action: IDeleteGroupServiceAddonAction): IGroupServiceAddonState {
-  const groupServiceAddons = { ...state.groupServiceAddons };
-  action.payload.forEach(groupServiceAddon => {
-    delete groupServiceAddons[groupServiceAddon.id];
-  });
-  state.groupServiceAddons = groupServiceAddons;
-  return { ...state };
-}
-
-function reducePostGroupServiceAddons(state: IGroupServiceAddonState, action: IPostGroupServiceAddonAction): IGroupServiceAddonState {
-  const groupServiceAddons = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id}`]: b } }), {});
-  state.groupServiceAddons = { ...state.groupServiceAddons, ...groupServiceAddons };
-  return { ...state };
-}
-
-function reduceGetGroupServiceAddons(state: IGroupServiceAddonState, action: IGetGroupServiceAddonsAction): IGroupServiceAddonState {
-  state.groupServiceAddons = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id}`]: b } }), {});
-  return { ...state };
-}
 
 const groupServiceAddonsReducer: Reducer<IGroupServiceAddonState, IGroupServiceAddonActions> = (state = initialGroupServiceAddonState, action) => {
   switch (action.type) {
     case IGroupServiceAddonActionTypes.DELETE_GROUP_SERVICE_ADDON:
-      return reduceDeleteGroupServiceAddon(state, action);
+      action.payload.forEach(groupServiceAddon => {
+        state.groupServiceAddons.delete(groupServiceAddon.id);
+      });
+      return state;
     case IGroupServiceAddonActionTypes.POST_GROUP_SERVICE_ADDON:
-      return reducePostGroupServiceAddons(state, action);
     case IGroupServiceAddonActionTypes.GET_GROUP_SERVICE_ADDONS:
-      return reduceGetGroupServiceAddons(state, action);
+      state.groupServiceAddons = new Map([ ...state.groupServiceAddons ].concat( action.payload.map(q => [q.id, q]) as readonly [string, IGroupServiceAddon][] ));
+      return state;
     default:
       return state;
   }

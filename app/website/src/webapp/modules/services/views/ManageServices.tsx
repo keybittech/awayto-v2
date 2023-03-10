@@ -87,7 +87,7 @@ export function ManageServices(props: IProps): JSX.Element {
         <DeleteIcon />
       </IconButton></Tooltip>
     ]
-  }, [selected])
+  }, [selected]);
 
   useEffect(() => {
     if (groupName) {

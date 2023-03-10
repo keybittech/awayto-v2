@@ -21,7 +21,7 @@ export type ManageRolesActions = {
   putRolesAction?: IActionTypes;
   postRolesAction?: IActionTypes;
   deleteRolesAction?: IActionTypes;
-  roles?: Record<string, IRole>;
+  roles?: Map<string, IRole>;
 };
 
 declare global {
@@ -30,6 +30,8 @@ declare global {
 
 export function ManageRoles(props: IProps): JSX.Element {
   const { roles, getRolesAction, deleteRolesAction } = props as IProps & Required<ManageRolesActions>;
+
+  console.log({ roles })
 
   const api = useApi();
   const util = useRedux(state => state.util);
@@ -93,7 +95,7 @@ export function ManageRoles(props: IProps): JSX.Element {
           title="Roles"
           actions={<Button onClick={() => { setRole(undefined); setDialog('manage_role') }}>New</Button>}
           contextActions={actions}
-          data={roles ? Object.values(roles) : []}
+          data={Array.from(roles.values())}
           defaultSortFieldId="createdOn"
           defaultSortAsc={false}
           theme={util.theme}

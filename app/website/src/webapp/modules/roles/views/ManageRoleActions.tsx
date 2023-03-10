@@ -63,10 +63,10 @@ export function ManageRoleActions(): JSX.Element {
   }, [groupName, assignments]);
 
   const columns = useMemo(() => {
-    if (!groups) return [];
-    const group = Object.values(groups).find(g => g.name === groupName);
-    const groupRoles = Object.values(group?.roles || {});
-    if (!groupRoles.length || !Object.keys(assignments) || !groupName) return [];
+    if (!groups.size || !groupName) return [];
+    const group = Array.from(groups.values()).find(g => g.name === groupName);
+    if (!group || !group.roles.size || !Object.keys(assignments).length) return [];
+    const groupRoles = Array.from(group.roles.values());
     return [
       { selector: (row: { name: string }) => row.name },
       ...groupRoles.reduce((memo, { name }) => {

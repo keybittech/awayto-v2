@@ -3,47 +3,26 @@ import {
   IGroupScheduleState,
   IGroupScheduleActions,
   IGroupScheduleActionTypes,
-  IGetGroupSchedulesAction,
-  IGetGroupScheduleMasterByIdAction,
-  IDeleteGroupScheduleAction,
-  IPostGroupScheduleAction,
-  IPutGroupScheduleAction
+  IGroupSchedule
 } from 'awayto';
 
 const initialGroupScheduleState = {
-  groupSchedules: {}
+  groupSchedules: new Map()
 } as IGroupScheduleState;
-
-function reduceDeleteGroupSchedule(state: IGroupScheduleState, action: IDeleteGroupScheduleAction): IGroupScheduleState {
-  const groupSchedules = { ...state.groupSchedules };
-  action.payload.forEach(groupSchedule => {
-    delete groupSchedules[groupSchedule.id];
-  });
-  state.groupSchedules = groupSchedules;
-  return { ...state };
-}
-
-function reducePostGroupSchedules(state: IGroupScheduleState, action: IPostGroupScheduleAction | IPutGroupScheduleAction | IGetGroupScheduleMasterByIdAction): IGroupScheduleState {
-  const groupSchedules = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id}`]: b } }), {});
-  state.groupSchedules = { ...state.groupSchedules, ...groupSchedules };
-  return { ...state };
-}
-
-function reduceGetGroupSchedules(state: IGroupScheduleState, action: IGetGroupSchedulesAction): IGroupScheduleState {
-  state.groupSchedules = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id}`]: b } }), {});
-  return { ...state };
-}
 
 const groupSchedulesReducer: Reducer<IGroupScheduleState, IGroupScheduleActions> = (state = initialGroupScheduleState, action) => {
   switch (action.type) {
     case IGroupScheduleActionTypes.DELETE_GROUP_SCHEDULE:
-      return reduceDeleteGroupSchedule(state, action);
+      action.payload.forEach(groupSchedule => {
+        state. groupSchedules.delete(groupSchedule.id);
+      });
+      return state;
     case IGroupScheduleActionTypes.POST_GROUP_SCHEDULE:
     case IGroupScheduleActionTypes.PUT_GROUP_SCHEDULE:
     case IGroupScheduleActionTypes.GET_GROUP_SCHEDULE_MASTER_BY_ID:
-      return reducePostGroupSchedules(state, action);
     case IGroupScheduleActionTypes.GET_GROUP_SCHEDULES:
-      return reduceGetGroupSchedules(state, action);
+      state.groupSchedules = new Map([ ...state.groupSchedules ].concat( action.payload.map(q => [q.id, q]) as readonly [string, IGroupSchedule][] ));
+      return state;
     default:
       return state;
   }

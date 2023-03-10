@@ -324,7 +324,7 @@ export type IFile = {
  * @category File
  */
 export type IFileState = IFile & {
-  files: Record<string, IFile>
+  files: Map<string, IFile>
 };
 
 /**

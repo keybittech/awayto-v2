@@ -3,44 +3,27 @@ import {
   IQuoteState,
   IQuoteActions,
   IQuoteActionTypes,
-  IGetQuoteByIdAction,
-  IGetQuotesAction,
-  IDeleteQuoteAction,
-  IDisableQuoteAction,
-  IPostQuoteAction,
-  IPutQuoteAction
+  IQuote
 } from 'awayto';
 
 const initialQuoteState = {
-  quotes: {}
+  quotes: new Map()
 } as IQuoteState;
-
-function reduceDeleteQuote(state: IQuoteState, action: IDeleteQuoteAction | IDisableQuoteAction): IQuoteState {
-  const quotes = { ...state.quotes };
-  action.payload.forEach(quote => {
-    delete quotes[quote.id];
-  });
-  state.quotes = quotes;
-  return { ...state };
-}
-
-function reduceQuotes(state: IQuoteState, action: IGetQuotesAction | IGetQuoteByIdAction | IPostQuoteAction | IPutQuoteAction): IQuoteState {
-  const quotes = action.payload.reduce((a, b) => ({ ...a, ...{ [`${b.id}`]: b } }), {});
-  state.quotes = { ...state.quotes, ...quotes };
-  return { ...state };
-}
 
 const quoteReducer: Reducer<IQuoteState, IQuoteActions> = (state = initialQuoteState, action) => {
   switch (action.type) {
     case IQuoteActionTypes.DELETE_QUOTE:
     case IQuoteActionTypes.DISABLE_QUOTE:
-      return reduceDeleteQuote(state, action);
+      action.payload.forEach(quote => {
+        state.quotes.delete(quote.id);
+      });
+      return state;
     case IQuoteActionTypes.PUT_QUOTE:
     case IQuoteActionTypes.POST_QUOTE:
     case IQuoteActionTypes.GET_QUOTE_BY_ID:
-      // return reduceQuote(state, action);
     case IQuoteActionTypes.GET_QUOTES:
-      return reduceQuotes(state, action);
+      state.quotes = new Map([ ...state.quotes ].concat( action.payload.map(q => [q.id, q]) as readonly [string, IQuote][] ));
+      return state;
     default:
       return state;
   }

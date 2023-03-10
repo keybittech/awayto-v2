@@ -16,7 +16,10 @@ const groups: ApiModule = [
 
       try {
 
-        const { name, roles, roleId: adminRoleId } = props.event.body;
+        const { name, roleId: adminRoleId } = props.event.body;
+
+        const roles = new Map<string, IRole>(Object.entries(props.event.body.roles));
+
         let primaryRoleSubgroupId = '';
 
         const groupSub = uuid();
@@ -41,7 +44,7 @@ const groups: ApiModule = [
         await props.db.query(`UPDATE dbtable_schema.groups SET external_id = $1 WHERE id = $2`, [externalId, group.id]);
 
         // For each group role, create a keycloak subgroup and attach to group uuid
-        await asyncForEach(Object.values(roles), async ({ id: groupRoleId, name }) => {
+        for (const { id: groupRoleId, name } of roles.values()) {
 
           const { id: kcSubgroupId } = await keycloak.groups.setOrCreateChild({ id: externalId }, { name });
 
@@ -61,7 +64,8 @@ const groups: ApiModule = [
             VALUES ($1, $2, $3, $4, $5::uuid)
             ON CONFLICT (parent_uuid, role_id) DO NOTHING
           `, [group.id, groupRoleId, kcSubgroupId, utcNowString(), props.event.userSub])
-        });
+          
+        }
 
         // Get the user uuid from the sub
         const { rows: [{ id: userId }] } = await props.db.query<IUserProfile>(`
@@ -420,28 +424,28 @@ const groups: ApiModule = [
     }
   },
 
-  {
-    action: IGroupActionTypes.DISABLE_GROUPS,
-    cmnd: async (props) => {
-      try {
-        const { groups } = props.event.body;
+  // {
+  //   action: IGroupActionTypes.DISABLE_GROUPS,
+  //   cmnd: async (props) => {
+  //     try {
+  //       const { groups } = props.event.body;
 
-        await asyncForEach(Object.values(groups), async group => {
-          await props.db.query(`
-            UPDATE dbtable_schema.groups
-            SET enabled = false, updated_on = $2, updated_sub = $3
-            WHERE id = $1
-          `, [group.id, utcNowString(), props.event.userSub]);
-        });
+  //       await asyncForEach(Object.values(groups), async group => {
+  //         await props.db.query(`
+  //           UPDATE dbtable_schema.groups
+  //           SET enabled = false, updated_on = $2, updated_sub = $3
+  //           WHERE id = $1
+  //         `, [group.id, utcNowString(), props.event.userSub]);
+  //       });
 
-        return groups;
+  //       return groups;
 
-      } catch (error) {
-        throw error;
-      }
+  //     } catch (error) {
+  //       throw error;
+  //     }
 
-    }
-  },
+  //   }
+  // },
 
   {
     action: IGroupActionTypes.CHECK_GROUPS_NAME,
@@ -469,9 +473,8 @@ const groups: ApiModule = [
     cmnd: async (props) => {
       const { users } = props.event.body;
 
-      await asyncForEach(Object.values(users), async ({ email }) => {
+      for (const { email } of users.values()) {
         try {
-
           const { id: userId } = await keycloak.users.create({
             email,
             username: email,
@@ -483,9 +486,9 @@ const groups: ApiModule = [
         } catch (error) {
           console.log('Invite Failure', error);
         }
-      })
+      }
 
-      return users;
+      return { users };
     }
   },
 

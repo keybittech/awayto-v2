@@ -12,38 +12,24 @@ import {
   IPutRoleAction
 } from 'awayto';
 
-const initialRoleState: IRoleState = {
-  roles: {}
-};
-
-function reduceDeleteRole(state: IRoleState, action: IDeleteRoleAction): IRoleState {
-  const roles = { ...state.roles };
-  action.payload.forEach(serviceAddon => {
-    delete roles[serviceAddon.id];
-  });
-  state.roles = roles;
-  return { ...state };
-}
-
-function reduceRoles(state: IRoleState, action: IGetRolesAction | IDisableRoleAction | IGetRoleByIdAction | IPostRoleAction | IPutRoleAction): IRoleState {
-  const roles = {} as Record<string, IRole>;
-  action.payload.forEach(r => {
-    roles[r.id] = r;
-  })
-  state.roles = { ...state.roles, ...roles };
-  return { ...state };
-}
+const initialRoleState = {
+  roles: new Map()
+} as IRoleState;
 
 const roleReducer: Reducer<IRoleState, IRoleActions> = (state = initialRoleState, action) => {
   switch (action.type) {
+    case IRoleActionTypes.DISABLE_ROLES:
     case IRoleActionTypes.DELETE_ROLES:
-      return reduceDeleteRole(state, action);
+      action.payload.forEach(role => {
+        state.roles.delete(role.id);
+      });
+      return state;
     case IRoleActionTypes.PUT_ROLES:
     case IRoleActionTypes.POST_ROLES:
     case IRoleActionTypes.GET_ROLES_BY_ID:
-    case IRoleActionTypes.DISABLE_ROLES:
     case IRoleActionTypes.GET_ROLES:
-      return reduceRoles(state, action);
+      state.roles = new Map([ ...state.roles ].concat( action.payload.map(q => [q.id, q]) as readonly [string, IRole][] ));
+      return state;
     default:
       return state;
   }

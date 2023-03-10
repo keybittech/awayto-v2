@@ -37,7 +37,7 @@ export type IRole = {
  * @category Manage Roles
  */
 export type IRoleState = Partial<IRole> & {
-  roles: Record<string, IRole>
+  roles: Map<string, IRole>
 }
 
 /**

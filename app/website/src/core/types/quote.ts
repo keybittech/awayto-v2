@@ -49,7 +49,7 @@ export type IQuote = {
  * @category Quote
  */
 export type IQuoteState = IQuote & {
-  quotes: Record<string, IQuote>;
+  quotes: Map<string, IQuote>;
 };
 
 /**

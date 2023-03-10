@@ -40,7 +40,6 @@ export function ManageUserModal({ editUser, closeModal }: IProps): JSX.Element {
     lastName: '',
     email: '',
     username: '',
-    groups: {},
     ...editUser
   });
 
@@ -61,10 +60,10 @@ export function ManageUserModal({ editUser, closeModal }: IProps): JSX.Element {
   useEffect(() => {
     const { groups: userGroups } = editUser || {};
     if (userGroups) {
-      const userGroupValues = Object.values(userGroups);
-      if (userGroupValues?.length && groups?.length) {
-        setUserGroups(Object.values(groups).filter(g => userGroupValues.map(ug => ug.name).includes(g.name)));
-        setUserGroupRoles({ ...userGroupRoles, ...userGroupValues.map(g => ({ [g.name]: Object.values(g.roles).map(r => r.name) })).reduce((a, b) => ({ ...a, ...b }), {}) });
+      const userGroupValues = Array.from(userGroups.values());
+      if (userGroupValues?.length && groups.size) {
+        setUserGroups(Array.from(groups.values()).filter(g => userGroupValues.map(ug => ug.name).includes(g.name)));
+        setUserGroupRoles({ ...userGroupRoles, ...userGroupValues.map(g => ({ [g.name]: Array.from(g.roles.values()).map(r => r.name) })).reduce((a, b) => ({ ...a, ...b }), {}) });
       }
     }
   }, [editUser, groups]);
@@ -134,11 +133,11 @@ export function ManageUserModal({ editUser, closeModal }: IProps): JSX.Element {
             label="Groups"
             multiple
           >
-            {Object.values(groups)?.filter(g => g.roles && !userGroups.map(ug => ug.id).includes(g.id)).map((g, i) => <MenuItem key={i} value={g.id}>{g.name}</MenuItem>) ?? <MenuItem />}
+            {Array.from(groups.values())?.filter(g => g.roles && !userGroups.map(ug => ug.id).includes(g.id)).map((g, i) => <MenuItem key={i} value={g.id}>{g.name}</MenuItem>) ?? <MenuItem />}
           </Select>
         </FormControl>
         <Button variant="text" onClick={() => {
-          const group = Object.values(groups)?.filter(g => groupIds.includes(g.id));
+          const group = Array.from(groups.values())?.filter(g => groupIds.includes(g.id));
           if (group) {
             setUserGroups([...userGroups, ...group]);
             setGroupIds([]);
@@ -154,7 +153,7 @@ export function ManageUserModal({ editUser, closeModal }: IProps): JSX.Element {
       <Grid item xs={12}>
         <Grid container spacing={1}>
           {userGroups.map((g, i) => {
-            const roleValues = Object.values(g.roles);
+            const roleValues = Array.from(g.roles.values());
             return <Grid key={i} item xs={12}>
               <FormControl fullWidth variant="outlined">
                 <InputLabel id="role-selection-label">{g.name} roles</InputLabel>
