@@ -3,6 +3,7 @@ import DataTable, { TableColumn } from 'react-data-table-component';
 
 import IconButton from '@mui/material/IconButton';
 import Dialog from '@mui/material/Dialog';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -13,9 +14,10 @@ import Grid from '@mui/material/Grid';
 import MenuItem from '@mui/material/MenuItem';
 
 import CreateIcon from '@mui/icons-material/Create';
+import DeleteIcon from '@mui/icons-material/Delete';
 
-import { IService, ISchedule, IActionTypes, IGroupSchedule, IGroup } from 'awayto';
-import { useRedux, useApi } from 'awayto-hooks';
+import { IService, ISchedule, IActionTypes, IGroupSchedule, IGroup, IUtilActionTypes, plural } from 'awayto';
+import { useRedux, useApi, useAct } from 'awayto-hooks';
 
 import ManageScheduleBracketsModal from './ManageScheduleBracketsModal';
 
@@ -27,6 +29,8 @@ export type ManageScheduleBracketsActions = {
   getGroupServicesAction?: IActionTypes;
   getGroupSchedulesAction?: IActionTypes;
   postScheduleAction?: IActionTypes;
+  deleteScheduleAction?: IActionTypes;
+  deleteGroupUserScheduleByUserScheduleIdAction?: IActionTypes;
   postGroupUserScheduleAction?: IActionTypes;
   getScheduleBracketsAction?: IActionTypes;
   postScheduleBracketsAction?: IActionTypes;
@@ -36,12 +40,15 @@ declare global {
   interface IProps extends ManageScheduleBracketsActions { }
 }
 
+const { OPEN_CONFIRM, SET_SNACK } = IUtilActionTypes;
+
 // This is how group users interact with the schedule
 
 export function ManageScheduleBrackets(props: IProps): JSX.Element {
-  const { getGroupServicesAction, getGroupSchedulesAction, schedules, getScheduleBracketsAction } = props as IProps & Required<ManageScheduleBracketsActions>;
+  const { getGroupServicesAction, getGroupSchedulesAction, schedules, getScheduleBracketsAction, deleteScheduleAction, deleteGroupUserScheduleByUserScheduleIdAction } = props as IProps & Required<ManageScheduleBracketsActions>;
 
   const api = useApi();
+  const act = useAct();
   const util = useRedux(state => state.util);
   const [schedule, setSchedule] = useState<ISchedule>();
   const [selected, setSelected] = useState<ISchedule[]>([]);
@@ -101,27 +108,29 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
 
     return [
       ...acts,
-      // <Tooltip key={'delete_schedule'} title="Delete"><IconButton onClick={() => {
-      //   if (groupName) {
-
-      //     void act(OPEN_CONFIRM, {
-      //       isConfirming: true,
-      //       message: 'Are you sure you want to delete these brackets? This cannot be undone.',
-      //       action: () => {
-
-      //         const [, res] = api(deleteScheduleBracketsAction, true, { groupName, ids: selected.map(s => s.id).join(',') })
-      //         res?.then(() => {
-      //           setToggle(!toggle);
-      //           api(getScheduleBracketsAction, true, { groupName });
-      //         }).catch(console.warn);
-      //       }
-      //     });
-      //   }
-      // }}>
-      //   <DeleteIcon />
-      // </IconButton></Tooltip>
+      <Tooltip key={'delete_schedule'} title="Delete"><IconButton onClick={() => {
+        if (group.name) {
+          void act(OPEN_CONFIRM, {
+            isConfirming: true,
+            confirmEffect: `Remove ${plural(selected.length, 'schedule', 'schedules')}. This cannot be undone.`,
+            confirmAction: () => {
+              const ids = selected.map(s => s.id).join(',');
+              const [, res] = api(deleteGroupUserScheduleByUserScheduleIdAction, { groupName: group.name, ids })
+              res?.then(() => {
+                const [, rez] = api(deleteScheduleAction, { ids });
+                rez?.then(() => {
+                  act(SET_SNACK, { snackType: 'success', snackOn: 'Successfully removed schedule records.'})
+                  setToggle(!toggle);
+                })
+              }).catch(console.warn);
+            }
+          });
+        }
+      }}>
+        <DeleteIcon />
+      </IconButton></Tooltip>
     ]
-  }, [selected]);
+  }, [selected, group]);
 
   return <>
     <Dialog open={dialog === 'manage_schedule'} fullWidth maxWidth="sm">

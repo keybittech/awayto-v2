@@ -445,7 +445,7 @@ export enum IGroupUserScheduleActionTypes {
   PUT_GROUP_USER_SCHEDULE = "PUT/group/:groupName/schedules/:groupScheduleId/user",
   GET_GROUP_USER_SCHEDULES = "GET/group/:groupName/schedules/:groupScheduleId/user",
   GET_GROUP_USER_SCHEDULE_BY_ID = "GET/group/:groupName/schedules/:groupScheduleId/user/:userScheduleId",
-  DELETE_GROUP_USER_SCHEDULE = "DELETE/group/:groupName/schedules/:groupScheduleId/user/:ids"
+  DELETE_GROUP_USER_SCHEDULE_BY_USER_SCHEDULE_ID = "DELETE/group/:groupName/schedules/user/:ids"
 }
 
 /**
@@ -471,7 +471,7 @@ export type IGetGroupUserScheduleByIdAction = PayloadAction<IGroupUserScheduleAc
 /**
  * @category Group
  */
-export type IDeleteGroupUserScheduleAction = PayloadAction<IGroupUserScheduleActionTypes.DELETE_GROUP_USER_SCHEDULE, IGroupUserSchedule[]>;
+export type IDeleteGroupUserScheduleAction = PayloadAction<IGroupUserScheduleActionTypes.DELETE_GROUP_USER_SCHEDULE_BY_USER_SCHEDULE_ID, IGroupUserSchedule[]>;
 
 /**
  * @category Group

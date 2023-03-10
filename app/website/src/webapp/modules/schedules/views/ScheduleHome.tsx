@@ -5,9 +5,9 @@ import { useRedux, useComponents } from 'awayto-hooks';
 
 const { GET_GROUP_SERVICES } = IGroupServiceActionTypes;
 const { GET_GROUP_SCHEDULES } = IGroupScheduleActionTypes;
-const { POST_GROUP_USER_SCHEDULE } = IGroupUserScheduleActionTypes;
+const { POST_GROUP_USER_SCHEDULE, DELETE_GROUP_USER_SCHEDULE_BY_USER_SCHEDULE_ID } = IGroupUserScheduleActionTypes;
 
-const { GET_SCHEDULES, GET_SCHEDULE_BY_ID, POST_SCEHDULE_BRACKETS, POST_SCHEDULE } = IScheduleActionTypes;
+const { GET_SCHEDULES, GET_SCHEDULE_BY_ID, POST_SCEHDULE_BRACKETS, POST_SCHEDULE, DELETE_SCHEDULE } = IScheduleActionTypes;
 
 export const scheduleSchema = {
   id: '',
@@ -46,6 +46,8 @@ export function ScheduleHome(): JSX.Element {
       getGroupServicesAction={GET_GROUP_SERVICES}
       getGroupSchedulesAction={GET_GROUP_SCHEDULES}
       postScheduleAction={POST_SCHEDULE}
+      deleteScheduleAction={DELETE_SCHEDULE}
+      deleteGroupUserScheduleByUserScheduleIdAction={DELETE_GROUP_USER_SCHEDULE_BY_USER_SCHEDULE_ID}
       postGroupUserScheduleAction={POST_GROUP_USER_SCHEDULE}
       getScheduleBracketsAction={GET_SCHEDULES}
       postScheduleBracketsAction={POST_SCEHDULE_BRACKETS}

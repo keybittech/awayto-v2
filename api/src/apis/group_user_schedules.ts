@@ -61,20 +61,20 @@ const groupUserSchedules: ApiModule = [
   },
 
   {
-    action: IGroupUserScheduleActionTypes.DELETE_GROUP_USER_SCHEDULE,
+    action: IGroupUserScheduleActionTypes.DELETE_GROUP_USER_SCHEDULE_BY_USER_SCHEDULE_ID,
     cmnd: async (props) => {
       try {
 
-        const { groupName, groupScheduleId, ids } = props.event.pathParameters;
+        const { groupName, ids } = props.event.pathParameters;
         const idsSplit = ids.split(',');
 
-        await asyncForEach(idsSplit, async scheduleId => {
-          // Detach schedule from group
+        await asyncForEach(idsSplit, async userScheduleId => {
+          // Detach user schedule from group
           await props.db.query<IGroupService>(`
             DELETE FROM dbtable_schema.group_user_schedules
-            WHERE group_schedule_id = $1 AND schedule_id = $2
+            WHERE user_schedule_id = $1
             RETURNING id
-          `, [groupScheduleId, scheduleId]);
+          `, [userScheduleId]);
         });
 
         await props.redis.del(props.event.userSub + `group/${groupName}/schedules`);

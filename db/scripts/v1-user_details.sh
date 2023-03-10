@@ -31,6 +31,8 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
           FROM dbview_schema.enabled_quotes eq
           JOIN dbtable_schema.users us ON us.sub = eq."createdSub"
           JOIN dbtable_schema.schedule_bracket_slots sbs ON sbs.id = eq."scheduleBracketSlotId"
+          JOIN dbview_schema.enabled_schedule_brackets esb ON esb.id = sbs.schedule_bracket_id
+          JOIN dbview_schema.enabled_schedules schedule ON schedule.id = esb."scheduleId"
           WHERE sbs.created_sub = u.sub
         ) q
     ) as quos on true
@@ -47,6 +49,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
             eb."serviceName",
             eb."createdOn"
           FROM dbview_schema.enabled_bookings eb
+          JOIN dbview_schema.enabled_schedule_bracket_slots esbs ON esbs.id = eb."scheduleBracketSlotId"
+          JOIN dbview_schema.enabled_schedule_brackets esb ON esb.id = esbs."scheduleBracketId"
+          JOIN dbview_schema.enabled_schedules schedule ON schedule.id = esb."scheduleId"
           WHERE eb."createdSub" = u.sub OR eb."quoteSub" = u.sub
         ) b
     ) as boks on true

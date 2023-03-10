@@ -96,7 +96,7 @@ export enum IScheduleActionTypes {
   PUT_SCHEDULE = "PUT/schedules",
   GET_SCHEDULES = "GET/schedules",
   GET_SCHEDULE_BY_ID = "GET/schedules/:id",
-  DELETE_SCHEDULE = "DELETE/schedules/:id",
+  DELETE_SCHEDULE = "DELETE/schedules/:ids",
   DISABLE_SCHEDULE = "PUT/schedules/:id/disable"
 }
 

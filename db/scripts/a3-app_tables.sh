@@ -200,8 +200,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
     updated_sub uuid REFERENCES dbtable_schema.users (sub),
-    enabled BOOLEAN NOT NULL DEFAULT true,
-    UNIQUE (name, created_sub)
+    enabled BOOLEAN NOT NULL DEFAULT true
   );
 
   CREATE TABLE dbtable_schema.group_schedules (
