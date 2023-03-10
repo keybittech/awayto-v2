@@ -371,7 +371,7 @@ export function RequestQuote(props: IProps): JSX.Element {
           </AccordionDetails>
         </Accordion>}
 
-        {<Accordion defaultExpanded={true}>
+        <Accordion defaultExpanded={true}>
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
             aria-controls="service-request-section-time-selection-content"
@@ -401,14 +401,16 @@ export function RequestQuote(props: IProps): JSX.Element {
                   }}
                 />
               </Grid>
-              {(bracketSlotDate || firstAvailable.time) && timeUnitOrder.indexOf(schedule.slotTimeUnitName) <= timeUnitOrder.indexOf(TimeUnit.HOUR) && <Grid item xs={4}>
+              {timeUnitOrder.indexOf(schedule.slotTimeUnitName) <= timeUnitOrder.indexOf(TimeUnit.HOUR) && <Grid item xs={4}>
                 <TimePicker
                   label="Time"
                   value={bracketSlotTime || firstAvailable.time}
                   ampmInClock={true}
                   ignoreInvalidInputs={true}
                   onAccept={time => {
-                    if (time && bracketSlotDate) {
+                    if (time) {
+                      const currentSlotDate = bracketSlotDate || firstAvailable.time;
+
                       const timeHour = time.hour();
                       const timeMins = time.minute();
                       const duration = dayjs.duration(0)
@@ -416,12 +418,12 @@ export function RequestQuote(props: IProps): JSX.Element {
                         .add(timeHour, TimeUnit.HOUR)
                         .add(timeMins, TimeUnit.MINUTE);
                       const [slot] = groupScheduleDateSlots
-                        .filter(s => s.startDate === bracketSlotDate.format("YYYY-MM-DD") && duration.hours() === s.hour && duration.minutes() === s.minute);
+                        .filter(s => s.startDate === currentSlotDate.format("YYYY-MM-DD") && duration.hours() === s.hour && duration.minutes() === s.minute);
 
                       if (slot) {
                         setQuote({
                           ...quote,
-                          slotDate: bracketSlotDate.format('YYYY-MM-DD'),
+                          slotDate: currentSlotDate.format('YYYY-MM-DD'),
                           scheduleBracketSlotId: slot.scheduleBracketSlotId
                         });
                       }
@@ -486,7 +488,7 @@ export function RequestQuote(props: IProps): JSX.Element {
               </Grid>} */}
             </Grid>
           </AccordionDetails>
-        </Accordion>}
+        </Accordion>
 
         <FileManager {...props} />
       </Grid>
