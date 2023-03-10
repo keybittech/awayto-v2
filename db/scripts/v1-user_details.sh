@@ -10,7 +10,8 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     u.*,
     grps.* as groups,
     rols.* as roles,
-    quos.* as quotes
+    quos.* as quotes,
+    boks.* as bookings
   FROM
     dbview_schema.enabled_users u
     LEFT JOIN LATERAL (
@@ -33,6 +34,22 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
           WHERE sbs.created_sub = u.sub
         ) q
     ) as quos on true
+    LEFT JOIN LATERAL (
+      SELECT
+        JSONB_OBJECT_AGG(b.id, TO_JSONB(b)) as bookings
+      FROM
+        (
+          SELECT
+            eb.id,
+            eb."slotDate",
+            eb."startTime",
+            eb."serviceTierName",
+            eb."serviceName",
+            eb."createdOn"
+          FROM dbview_schema.enabled_bookings eb
+          WHERE eb."createdSub" = u.sub OR eb."quoteSub" = u.sub
+        ) b
+    ) as boks on true
     LEFT JOIN LATERAL (
       SELECT
         JSONB_OBJECT_AGG(r.id, TO_JSONB(r)) as roles

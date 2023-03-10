@@ -2,8 +2,9 @@ import React from "react";
 import { useComponents } from "awayto-hooks";
 
 export function Home(props: IProps): JSX.Element {
-  const { GroupHome, QuoteHome, PendingQuotesProvider } = useComponents();
+  const { BookingHome, GroupHome, QuoteHome, PendingQuotesProvider } = useComponents();
   return <>
+    <BookingHome {...props} />
     <PendingQuotesProvider>
       <QuoteHome {...props} />
     </PendingQuotesProvider>

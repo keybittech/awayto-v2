@@ -72,8 +72,11 @@ const bookings: ApiModule = [
       try {
 
         const response = await props.db.query<IBooking>(`
-          SELECT * FROM dbview_schema.enabled_bookings
-        `);
+          SELECT eb.*
+          FROM dbview_schema.enabled_bookings eb
+          JOIN dbtable_schema.schedule_bracket_slots sbs ON sbs.id = eb."scheduleBracketSlotId"
+          WHERE eb."createdSub" = $1 OR sbs.created_sub = $1
+        `, [props.event.userSub]);
         
         return response.rows;
         
