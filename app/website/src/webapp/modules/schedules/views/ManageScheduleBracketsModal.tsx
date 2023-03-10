@@ -110,7 +110,6 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
     if (schedule) {
       const { name, scheduleTimeUnitName } = schedule;
       if (name && scheduleTimeUnitName && scheduleBracketsValues.length) {
-        schedule.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
         const [, res] = !editSchedule ?
           api(postScheduleAction, schedule, { load: true }) :
           [undefined, new Promise<ISchedule[]>(res => res([schedule]))];
@@ -172,7 +171,16 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
               }
             }}
           >
-            {Object.values(groupSchedules).map(s => <MenuItem key={`schedule-select${s.id}`} value={s.id}>{s.name}</MenuItem>)}
+            {Object.values(groupSchedules).map(s =>{
+              return <MenuItem
+                key={`schedule-select${s.id}`}
+                value={s.id}
+                sx={{ alignItems: 'baseline' }}
+              >
+                {s.name}&nbsp;&nbsp;&nbsp;
+                <Typography variant="caption" fontSize={10}>Timezone: {s.timezone}</Typography>
+              </MenuItem>
+            })}
           </TextField>
         </Box>
 

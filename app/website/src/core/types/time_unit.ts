@@ -55,16 +55,21 @@ export function plural(n: number, singular: string, plural: string): string {
   return n.toString() + ' ' + (n === 1 ? singular: plural);
 }
 
+export function staticDT(weekStart: dayjs.Dayjs, startTime:string): dayjs.Dayjs {
+  const d = dayjs.duration(startTime);
+  return weekStart.day(d.days()).hour(d.hours()).minute(d.minutes());
+}
+
 export function quotedDT(weekStart: string, startTime: string): dayjs.Dayjs {
-  return dayjs(weekStart).add(dayjs.duration(startTime));
+  return staticDT(dayjs(weekStart), startTime);
 }
 
 export function bookingDT(slotDate: string, startTime: string): dayjs.Dayjs {
-  return dayjs(slotDate).startOf('week').add(dayjs.duration(startTime));
+  return staticDT(dayjs(slotDate).startOf('day').startOf('week'), startTime);
 }
 
 export function bookingDTHours(slotDate: string, startTime: string): string {
-  return dayjs(slotDate).startOf('week').add(dayjs.duration(startTime)).format("hh:mm a");
+  return bookingDT(slotDate, startTime).format("hh:mm a");
 }
 
 export function shortNSweet(slotDate: string, startTime: string): string {
