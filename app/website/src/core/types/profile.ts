@@ -1,4 +1,4 @@
-import { PayloadAction, IGroup, IRole, IQuote } from '.';
+import { PayloadAction, IGroup, IRole, IQuote, IBooking } from '.';
 import { Merge } from '../util';
 
 declare global {
@@ -41,6 +41,7 @@ export type IUserProfile = {
   updatedOn: string;
   locked: boolean;
   quotes: Record<string, IQuote>;
+  bookings: Record<string, IBooking>;
   groups: Record<string, IGroup>;
   roles: Record<string, IRole>;
   availableUserGroupRoles: UserGroupRoles;

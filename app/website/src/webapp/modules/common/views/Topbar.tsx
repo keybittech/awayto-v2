@@ -39,24 +39,29 @@ export function Topbar(props: IProps): JSX.Element {
   const act = useAct();
   const navigate = useNavigate();
   const hasRole = useSecure();
-  const { PendingQuotesMenu, PendingQuotesProvider } = useComponents();
+  const { PendingQuotesMenu, PendingQuotesProvider, UpcomingBookingsMenu } = useComponents();
   const location = useLocation();
 
   const { theme } = useRedux(state => state.util);
-  const { quotes } = useRedux(state => state.profile);
+  const { quotes, bookings } = useRedux(state => state.profile);
 
   const pendingQuotes = useMemo(() => Object.values(quotes), [quotes]);
+  const upcomingBookings = useMemo(() => Object.values(bookings), [bookings]);
 
   const mobileMenuId = 'mobile-app-bar-menu';
   const pendingQuotesMenuId = 'pending-requests-menu';
+  const upcomingBookingsMenuId = 'upcoming-bookings-menu';
 
-  const [pendingQuotesAnchorEl, setPendingQuotesAnchorEl] = useState<null | HTMLElement>(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState<null | HTMLElement>(null);
+  const [pendingQuotesAnchorEl, setPendingQuotesAnchorEl] = useState<null | HTMLElement>(null);
+  const [upcomingBookingsAnchorEl, setUpcomingBookingsAnchorEl] = useState<null | HTMLElement>(null);
 
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
   const isPendingQuotesOpen = Boolean(pendingQuotesAnchorEl);
+  const isUpcomingBookingsOpen = Boolean(upcomingBookingsAnchorEl);
 
   const handleMenuClose = () => {
+    setUpcomingBookingsAnchorEl(null);
     setPendingQuotesAnchorEl(null);
     setMobileMoreAnchorEl(null)
   };
@@ -78,9 +83,12 @@ export function Topbar(props: IProps): JSX.Element {
         <Box>
           <Tooltip title="Upcoming Appointments">
             <IconButton
-              aria-label="show 4 upcoming appointments"
+              aria-label={`show ${upcomingBookings.length} upcoming appointments`}
+              aria-controls={upcomingBookingsMenuId}
+              aria-haspopup="true"
+              onClick={e => setUpcomingBookingsAnchorEl(e.currentTarget)}
             >
-              <Badge badgeContent={4} color="error">
+              <Badge badgeContent={upcomingBookings.length} color="error">
                 <ThreePIcon />
               </Badge>
             </IconButton>
@@ -183,6 +191,13 @@ export function Topbar(props: IProps): JSX.Element {
       </Box>
     </Menu>
 
+    <UpcomingBookingsMenu
+      {...props}
+      upcomingBookingsAnchorEl={upcomingBookingsAnchorEl}
+      upcomingBookingsMenuId={upcomingBookingsMenuId}
+      isUpcomingBookingsOpen={isUpcomingBookingsOpen}
+      handleMenuClose={handleMenuClose}
+    />
 
     {/** PENDING REQUESTS MENU */}
     <PendingQuotesProvider>

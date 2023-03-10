@@ -40,7 +40,8 @@ import {
   timeUnitOrder,
   IGroupScheduleDateSlots,
   userTimezone,
-  getRelativeDuration
+  getRelativeDuration,
+  quotedDT
 } from 'awayto';
 import { useApi, useRedux, useComponents, useStyles, useAct } from 'awayto-hooks';
 import { Duration, DurationUnitType } from 'dayjs/plugin/duration';
@@ -157,14 +158,14 @@ export function RequestQuote(props: IProps): JSX.Element {
         const dateSlots = data as IGroupScheduleDateSlots[];
         if (dateSlots.length) {
           dateSlots.forEach(slot => {
-            const slotDay = dayjs(slot.weekStart).add(dayjs.duration(slot.startTime));
+            const slotDay = quotedDT(slot.weekStart, slot.startTime);
             slot.hour = slotDay.hour();
             slot.minute = slotDay.minute();
           });
           setGroupScheduleDateSlots(dateSlots);
           if (activeSchedule !== schedule.id) {
             const [slot] = dateSlots;
-            setFirstAvailable({ ...slot, time: dayjs(slot.weekStart).add(dayjs.duration(slot.startTime)) });
+            setFirstAvailable({ ...slot, time: quotedDT(slot.weekStart, slot.startTime) });
             setActiveSchedule(schedule.id);
           }
         } else {

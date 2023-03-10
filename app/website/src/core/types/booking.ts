@@ -1,4 +1,4 @@
-import { IScheduleBracket } from 'awayto';
+import { IQuote, IScheduleBracket } from 'awayto';
 import { PayloadAction } from '.';
 import { Merge } from '../util';
 
@@ -36,13 +36,9 @@ export type IBookingScheduleBracket = {
 /**
  * @category Awayto
  */
-export type IBooking = {
-  id: string;
+export type IBooking = IQuote & {
   quoteId: string;
-  slotDate: string;
-  scheduleBracketSlotId: string;
-  createdOn: string;
-  createdSub: string;
+  quoteSub: string;
 };
 
 /**

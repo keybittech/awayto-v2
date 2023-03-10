@@ -55,12 +55,20 @@ export function plural(n: number, singular: string, plural: string): string {
   return n.toString() + ' ' + (n === 1 ? singular: plural);
 }
 
-export function scheduleTime(slotDate: string, startTime: string): string {
+export function quotedDT(weekStart: string, startTime: string): dayjs.Dayjs {
+  return dayjs(weekStart).add(dayjs.duration(startTime));
+}
+
+export function bookingDT(slotDate: string, startTime: string): dayjs.Dayjs {
+  return dayjs(slotDate).startOf('week').add(dayjs.duration(startTime));
+}
+
+export function bookingDTHours(slotDate: string, startTime: string): string {
   return dayjs(slotDate).startOf('week').add(dayjs.duration(startTime)).format("hh:mm a");
 }
 
 export function shortNSweet(slotDate: string, startTime: string): string {
-  return `${dayjs(slotDate).format("ddd, MMM D")} at ${scheduleTime(slotDate, startTime)}`;
+  return `${dayjs(slotDate).format("ddd, MMM D")} at ${bookingDTHours(slotDate, startTime)}`;
 }
 
 export function utcDTLocal(utc: string): string {

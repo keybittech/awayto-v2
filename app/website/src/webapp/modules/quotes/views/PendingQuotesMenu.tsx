@@ -97,7 +97,10 @@ export function PendingQuotesMenu({ handleMenuClose, pendingQuotesAnchorEl, pend
         <Divider />
 
         {pendingQuotes.map((pq, i) => {
-          return <ListItem key={`pqs_${i}`} disablePadding>
+          return <ListItem
+            key={`pending_quotes_pqs_${i}`}
+            disablePadding
+          >
             <ListItemButton role={undefined} onClick={() => handleSelectPendingQuote(pq)} dense>
               <ListItemIcon>
                 <Checkbox
@@ -107,7 +110,11 @@ export function PendingQuotesMenu({ handleMenuClose, pendingQuotesAnchorEl, pend
                   inputProps={{ 'aria-labelledby': `checkbox-list-label-${i}` }}
                 />
               </ListItemIcon>
-              <ListItemText id={`checkbox-list-label-${i}`} primary={`${shortNSweet(pq.slotDate, pq.startTime)}`} secondary={`${pq.serviceName} ${pq.serviceTierName} with ${pq.username}`} />
+              <ListItemText
+                id={`checkbox-list-label-${i}`}
+                primary={`${shortNSweet(pq.slotDate, pq.startTime)}`}
+                secondary={`${pq.serviceName} ${pq.serviceTierName} with ${pq.username}`}
+              />
             </ListItemButton>
           </ListItem>
         })}

@@ -5,7 +5,7 @@ import { IBookingActionTypes } from "awayto";
 
 const { GET_BOOKINGS } = IBookingActionTypes;
 
-export function BookingHome(props: IProps) {
+export function BookingHome(): JSX.Element {
 
   const api = useApi();
 
