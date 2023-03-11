@@ -67,9 +67,9 @@ export function RequestQuote(props: IProps): JSX.Element {
   const util = useRedux(state => state.util);
 
   const [serviceTierAddons, setServiceTierAddons] = useState<string[]>([]);
-  const [services, setServices] = useState<Record<string, IService>>({});
+  const [services, setServices] = useState(new Map() as Map<string, IService>);
   const [schedule, setSchedule] = useState({ id: '' } as ISchedule);
-  const [service, setService] = useState({ id: '' } as IService);
+  const [service, setService] = useState({ id: '', tiers: {} } as IService);
   const [tier, setTier] = useState({ id: '' } as IServiceTier);
   const [serviceForm, setServiceForm] = useState({} as IForm);
   const [tierForm, setTierForm] = useState({} as IForm);
@@ -90,7 +90,7 @@ export function RequestQuote(props: IProps): JSX.Element {
     if (!service || !tier || !serviceTierAddons.length) return [];
     return [
       { name: '', selector: row => row.name } as TableColumn<Partial<IServiceAddon>>,
-      ...Object.values(service.tiers).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime()).reduce((memo, { name, addons }) => {
+      ...serviceTiers.reduce((memo, { name, addons }) => {
         memo.push({
           name: `${name}`,
           cell: row => {
@@ -127,22 +127,18 @@ export function RequestQuote(props: IProps): JSX.Element {
   }, [timeUnits]);
 
   useEffect(()  => {
-    if (Object.keys(groupUserSchedules).length) {
-      const brackets = Object.keys(groupUserSchedules).flatMap(s => Object.values(groupUserSchedules[s].brackets));
+    if (groupUserSchedules.size) {
+      let newServices = new Map() as Map<string, IService>;
+      for (const sched of groupUserSchedules.values()) {
+        newServices = new Map([ ...newServices, ...sched.services ]);
+      }
 
-      const newServices = {} as Record<string, IService>;
-      let someService = {} as IService;
-
-      brackets.forEach(bracket => {
-        for (const s in bracket.services) {
-          newServices[s] = bracket.services[s];
-          someService = bracket.services[s];
-        }
-      });
+      const someService = newServices.values().next().value as IService;
+      const someServiceTiers = Object.values(someService.tiers).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime());
 
       setService(someService);
       setServices(newServices);
-      setTier(Object.values(someService.tiers).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime())[0]);
+      setTier(someServiceTiers[0]);
     } 
   }, [groupUserSchedules]);
 
@@ -198,11 +194,8 @@ export function RequestQuote(props: IProps): JSX.Element {
   }, [groups, timeUnits]);
 
   useEffect(() => {
-    if (Object.keys(groupSchedules).length) {
-      for (const gs in groupSchedules) {
-        loadSchedule(groupSchedules[gs]);
-        break;
-      }
+    if (groupSchedules.size) {
+      loadSchedule(groupSchedules.values().next().value as IGroupSchedule);
     }
   }, [groupSchedules, timeUnits]);
 
@@ -216,7 +209,7 @@ export function RequestQuote(props: IProps): JSX.Element {
 
   useEffect(() => {
     if (group.name && service.formId && service.formId != serviceForm.id) {
-      const [abort, res] = api(GET_GROUP_FORM_BY_ID, { groupName: group.name, formId: service.formId }, { load: true });
+      const [abort, res] = api(GET_GROUP_FORM_BY_ID, { groupName: group.name, formId: service.formId });
       res?.then(forms => {
         const [form] = forms as IForm[];
         setServiceForm(form);
@@ -227,7 +220,7 @@ export function RequestQuote(props: IProps): JSX.Element {
 
   useEffect(() => {
     if (group.name && tier.formId && tier.formId != tierForm.id) {
-      const [abort, res] = api(GET_GROUP_FORM_BY_ID, { groupName: group.name, formId: tier.formId }, { load: true });
+      const [abort, res] = api(GET_GROUP_FORM_BY_ID, { groupName: group.name, formId: tier.formId });
       res?.then(forms => {
         const [form] = forms as IForm[];
         setTierForm(form);
@@ -285,13 +278,14 @@ export function RequestQuote(props: IProps): JSX.Element {
                   value={schedule.id}
                   onChange={e => {
                     if (e.target.value !== schedule.id) {
-                      loadSchedule(groupSchedules[e.target.value]);
+                      const sched = groupSchedules.get(e.target.value);
+                      if (sched) {
+                        loadSchedule(sched);
+                      }
                     }
                   }}
                 >
-                  {Object.values(groupSchedules)?.map((sched, i) => {
-                    return <MenuItem key={i} value={sched.id}>{sched.name}</MenuItem>
-                  })}
+                  {Array.from(groupSchedules.values()).map((sched, i) => <MenuItem key={i} value={sched.id}>{sched.name}</MenuItem>)}
                 </TextField>
               </Grid>
               <Grid item xs={4}>
@@ -301,14 +295,14 @@ export function RequestQuote(props: IProps): JSX.Element {
                   fullWidth
                   value={service.id}
                   onChange={e => {
-                    const serv = services[e.target.value];
-                    setService(serv);
-                    setTier(serv.tiers[0]);
+                    const serv = services.get(e.target.value);
+                    if (serv) {
+                      setService(serv);
+                      setTier(serv.tiers[0]);
+                    }
                   }}
                 >
-                  {Object.values(services).map((service, i) => {
-                    return <MenuItem key={`service_request_selection_${i}`} value={service.id}>{service.name}</MenuItem>
-                  })}
+                  {Array.from(services.values()).map((service, i) => <MenuItem key={`service_request_selection_${i}`} value={service.id}>{service.name}</MenuItem>)}
                 </TextField>
               </Grid>
               <Grid item xs={4}>

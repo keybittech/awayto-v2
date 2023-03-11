@@ -29,7 +29,7 @@ export function UpcomingBookingsMenu({ handleMenuClose, upcomingBookingsAnchorEl
   const minsAgo15 = dayjs.duration(-15, 'minutes');
   const startOfDay = dayjs().startOf('day');
 
-  const upcomingBookings = useMemo(() => Object.values(bookings), [bookings]);
+  const upcomingBookings = useMemo(() => Array.from(bookings.values()), [bookings]);
 
   const goToBooking = useCallback(() => {
     console.log('navigate here');

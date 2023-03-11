@@ -114,28 +114,28 @@ const uuidNotes: ApiModule = [
     }
   },
 
-  {
-    action: IUuidNotesActionTypes.DISABLE_UUID_NOTES,
-    cmnd : async (props) => {
-      try {
-        const { notes } = props.event.body;
+  // {
+  //   action: IUuidNotesActionTypes.DISABLE_UUID_NOTES,
+  //   cmnd : async (props) => {
+  //     try {
+  //       const { notes } = props.event.body;
 
-        await asyncForEach(Object.values(notes), async note => {
-          await props.db.query(`
-            UPDATE dbtable_schema.uuid_notes
-            SET enabled = false, updated_on = $2, updated_sub = $3
-            WHERE id = $1
-          `, [note.id, utcNowString(), props.event.userSub]);
-        });
+  //       await asyncForEach(Object.values(notes), async note => {
+  //         await props.db.query(`
+  //           UPDATE dbtable_schema.uuid_notes
+  //           SET enabled = false, updated_on = $2, updated_sub = $3
+  //           WHERE id = $1
+  //         `, [note.id, utcNowString(), props.event.userSub]);
+  //       });
 
-        return notes;
+  //       return notes;
         
-      } catch (error) {
-        throw error;
-      }
+  //     } catch (error) {
+  //       throw error;
+  //     }
 
-    }
-  }
+  //   }
+  // }
 
 ];
 

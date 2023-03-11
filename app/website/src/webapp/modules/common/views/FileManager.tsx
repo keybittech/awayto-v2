@@ -72,7 +72,7 @@ export function FileManager(): JSX.Element {
           title="Files"
           actions={<Button onClick={addFiles}>Add</Button>}
           contextActions={actions}
-          data={files ? Object.values(files) : []}
+          data={Array.from(files.values())}
           theme={util.theme}
           columns={columns}
           selectableRows

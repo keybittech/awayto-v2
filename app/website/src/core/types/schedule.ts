@@ -54,7 +54,7 @@ export type IScheduleBracketSlot = {
 };
 
 export type IScheduleBracketState = IScheduleBracket & {
-  schedules: Map<string, IScheduleBracket>;
+  brackets: Map<string, IScheduleBracket>;
 }
 
 
@@ -74,7 +74,7 @@ export type ISchedule = {
   slotTimeUnitId: string;
   slotTimeUnitName: ITimeUnitNames;
   slotDuration: number;
-  brackets: Record<string, IScheduleBracket>;
+  brackets: Map<string, IScheduleBracket>;
   slotFactors: number[];
   createdOn: string;
 };

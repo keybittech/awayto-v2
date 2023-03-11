@@ -10,7 +10,7 @@ const services: ApiModule = [
       try {
 
         const { name, cost, formId, tiers } = props.event.body;
-
+        
         const { rows: [service] } = await props.db.query<IService>(`
           INSERT INTO dbtable_schema.services (name, cost, form_id, created_sub)
           VALUES ($1, $2::integer, $3::uuid, $4::uuid)

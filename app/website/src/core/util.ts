@@ -33,7 +33,7 @@ export const passwordGen = (): string => {
 
 
 //- ---------------------
-type Primitive = string | number | boolean | bigint | symbol | null | undefined;
+type Primitive = Map<string, unknown> | string | number | boolean | bigint | symbol | null | undefined;
 type Expand<T> = T extends Primitive ? T : { [K in keyof T]: T[K] };
 
 type OptionalKeys<T> = {

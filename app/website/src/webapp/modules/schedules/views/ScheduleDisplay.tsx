@@ -25,12 +25,12 @@ declare global {
 const bracketColors = ['cadetblue', 'brown', 'chocolate', 'forestgreen', 'darkslateblue', 'goldenrod', 'indianred', 'teal'];
 
 export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Required<ScheduleDisplayProps>): JSX.Element {
-  console.log({ schedule })
+
   const columnWidth = 150;
   
   const getScheduleData = useSchedule();
   const parentRef = useRef<HTMLDivElement>(null);
-  const [selected, setSelected] = useState({} as Record<string, IScheduleBracketSlot>);
+  const [selected, setSelected] = useState(new Map() as Map<string, IScheduleBracketSlot>);
   const [selectedBracket, setSelectedBracket] = useState<IScheduleBracket>();
   const [buttonDown, setButtonDown] = useState(false);
   const [width, setWidth] = useState(1);
@@ -40,33 +40,38 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
     return getScheduleData({ scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName, slotDuration });
   }, [scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName, slotDuration])
 
-  const scheduleBracketsValues = useMemo(() => Object.values(schedule.brackets), [schedule.brackets]);
+  const scheduleBracketsValues = useMemo(() => Array.from(schedule.brackets.values()), [schedule.brackets]);
 
   const setValue = useCallback((startTime: string) => {
     if (selectedBracket) {
-      const bracket = schedule.brackets[selectedBracket.id];
-      if (!bracket.slots) bracket.slots = {};
-      const target = `schedule_bracket_slot_selection_${startTime}`;    
-      const exists = selected[target];
+      const bracket = schedule.brackets.get(selectedBracket.id);
+      if (bracket) {
+        if (!bracket.slots) bracket.slots = new Map();
 
-      const slot = {
-        id: (new Date()).getTime().toString(),
-        startTime,
-        scheduleBracketId: selectedBracket.id
-      } as IScheduleBracketSlot;
-
-      if (exists) {
-        delete bracket.slots[exists.id];
-        delete selected[target];
-      } else if ((Object.keys(bracket.slots).length * schedule.slotDuration) < getRelativeDuration(selectedBracket.duration, schedule.bracketTimeUnitName, schedule.slotTimeUnitName)) {
-        bracket.slots[slot.id] = slot;
-        selected[target] = slot;
-      } else {
-        alert('you went over your allottment');
+        const target = `schedule_bracket_slot_selection_${startTime}`;
+        const exists = selected.get(target);
+  
+        const slot = {
+          id: (new Date()).getTime().toString(),
+          startTime,
+          scheduleBracketId: selectedBracket.id
+        } as IScheduleBracketSlot;
+  
+        if (exists) {
+          bracket.slots.delete(exists.id);
+          selected.delete(target);
+        } else if (bracket.slots.size * schedule.slotDuration < getRelativeDuration(selectedBracket.duration, schedule.bracketTimeUnitName, schedule.slotTimeUnitName)) {
+          bracket.slots.set(slot.id, slot);
+          selected.set(target, slot);
+        } else {
+          alert('you went over your allottment');
+          setButtonDown(false);
+          return;
+        }
+  
+        setSchedule({ ...schedule, brackets: new Map([ ...schedule.brackets ]) });
+        setSelected(new Map([ ...selected ]));
       }
-
-      setSchedule({ ...schedule, brackets: { ...schedule.brackets } });
-      setSelected({ ...selected });
     }
   }, [schedule, selectedBracket, scheduleBracketsValues, selected]);
 
@@ -74,7 +79,7 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
     const { startTime, contextFormat } = durations[gridCell.columnIndex][gridCell.rowIndex];
 
     const target = `schedule_bracket_slot_selection_${startTime}`;    
-    const exists = selected[target];
+    const exists = selected.get(target);
 
     return <CardActionArea
       style={gridCell.style}
@@ -113,11 +118,11 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
   }, [parentRef]);
 
   useEffect(() => {
-    if (!Object.keys(selected).length && scheduleBracketsValues.some(b => Object.keys(b.slots).length)) {
-      const newSelected = {} as Record<string, IScheduleBracketSlot>;
+    if (!selected.size && scheduleBracketsValues.some(b => b.slots.size)) {
+      const newSelected = new Map() as Map<string, IScheduleBracketSlot>;
       scheduleBracketsValues.forEach(b => {
-        Object.values(b.slots).forEach(s => {
-          newSelected[`schedule_bracket_slot_selection_${s.startTime}`] = s;
+        b.slots.forEach(s => {
+          newSelected.set(`schedule_bracket_slot_selection_${s.startTime}`, s);
         });
       });
       setSelected(newSelected);
@@ -129,14 +134,14 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
     <Box ref={parentRef}>
       <Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
         {scheduleBracketsValues.map((bracket, i) => {
-          if (!bracket.slots) bracket.slots = {};
+          if (!bracket.slots) bracket.slots = new Map();
           return <Box key={`bracket-chip${i + 1}new`} m={1}>
             <Chip
-              label={`#${i + 1} ${getRelativeDuration(bracket.duration, schedule.bracketTimeUnitName, schedule.slotTimeUnitName) - (Object.keys(bracket.slots).length * schedule.slotDuration)} ${schedule.slotTimeUnitName}s (${bracket.multiplier}x)`}
+              label={`#${i + 1} ${getRelativeDuration(bracket.duration, schedule.bracketTimeUnitName, schedule.slotTimeUnitName) - (bracket.slots.size * schedule.slotDuration)} ${schedule.slotTimeUnitName}s (${bracket.multiplier}x)`}
               sx={{ '&:hover': { cursor: 'pointer' }, borderWidth: '1px', borderStyle: 'solid', borderColor: bracketColors[i], boxShadow: selectedBracket?.id === bracket.id ? 2 : undefined }}
               onDelete={() => {
-                delete schedule.brackets[bracket.id];
-                setSchedule({ ...schedule, brackets: { ...schedule.brackets } });
+                schedule.brackets.delete(bracket.id);
+                setSchedule({ ...schedule, brackets: new Map([ ...schedule.brackets ]) });
               }}
               onClick={() => {
                 setSelectedBracket(bracket);

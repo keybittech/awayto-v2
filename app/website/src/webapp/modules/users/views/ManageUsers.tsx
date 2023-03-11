@@ -19,11 +19,11 @@ import ManageUserModal from './ManageUserModal';
 const { LOCK_MANAGE_USERS, UNLOCK_MANAGE_USERS } = IManageUsersActionTypes;
 
 export type ManageUsersProps = {
+  users?: Map<string, IUserProfile>;
   getAction?: IActionTypes;
   deleteAction?: IActionTypes;
   putAction?: IActionTypes;
   postAction?: IActionTypes;
-  users?: IUsers;
 };
 
 declare global {
@@ -47,12 +47,6 @@ export function ManageUsers(props: IProps): JSX.Element {
     { name: 'Username', selector: row => row.username },
     { name: 'First Name', selector: row => row.firstName },
     { name: 'Last Name', selector: row => row.lastName },
-    {
-      name: 'Group', selector: (user: IUserProfile) => {
-        const userGroups = Object.values(user.groups || {});
-        return userGroups.length ? userGroups.map(r => r.name).join(', ') : ''
-      }
-    },
     { name: 'Created', selector: (user: IUserProfile) => user.createdOn },
   ] as TableColumn<IUserProfile>[], undefined)
 
@@ -89,8 +83,8 @@ export function ManageUsers(props: IProps): JSX.Element {
 
   // When we update a user's profile, this will refresh their state in the table once the API has updated manageUsers redux state
   useEffect(() => {
-    if (users?.length && user) setUser(users[user.id]);
-  }, [users]);
+    if (users.size && user) setUser(users.get(user.id));
+  }, [users, user]);
 
   return <>
 
@@ -103,7 +97,7 @@ export function ManageUsers(props: IProps): JSX.Element {
           title="Users"
           actions={<Button onClick={() => { setUser(undefined); setDialog('manage_user') }}>New</Button>}
           contextActions={actions}
-          data={users ? Object.values(users) : []}
+          data={Array.from(users.values())}
           theme={util.theme}
           columns={columns}
           defaultSortFieldId="createdOn"

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import TextField from '@mui/material/TextField';
 import Slider from '@mui/material/Slider';
@@ -54,6 +54,8 @@ export function ServiceHome(props: IProps): JSX.Element {
   const { groups } = useRedux(state => state.profile);
   const [group, setGroup] = useState({ id: '' } as IGroup);
 
+  const groupServiceAddonValues = useMemo(() => Array.from(groupServiceAddons.values()), [groupServiceAddons]);
+  
   useEffect(() => {
     if (groups.size) {
       setGroup(groups.values().next().value as IGroup);
@@ -123,7 +125,7 @@ export function ServiceHome(props: IProps): JSX.Element {
                     setNewService({ ...newService, formId: form?.id })
                   }}
                 >
-                  {Object.values(groupForms).map(form => <MenuItem key={`form-version-select${form.id}`} value={form.id}>{form.name}</MenuItem>)}
+                  {Array.from(groupForms.values()).map(form => <MenuItem key={`form-version-select${form.id}`} value={form.id}>{form.name}</MenuItem>)}
                 </TextField>
               </Box>
             </Grid>
@@ -148,12 +150,12 @@ export function ServiceHome(props: IProps): JSX.Element {
                 <SelectLookup
                   multiple
                   lookupName='Feature'
-                  lookups={Object.values(groupServiceAddons)}
+                  lookups={groupServiceAddonValues}
                   lookupValue={serviceTierAddonIds}
                   parentUuid={group.name}
                   parentUuidName='groupName'
                   lookupChange={(val: string[]) => {
-                    const gsa = Object.values(groupServiceAddons).filter(s => val.includes(s.id)).map(s => s.id);
+                    const gsa = groupServiceAddonValues.filter(s => val.includes(s.id)).map(s => s.id);
                     setServiceTierAddonIds(gsa);
                   }}
                   createAction={POST_SERVICE_ADDON}
@@ -177,7 +179,7 @@ export function ServiceHome(props: IProps): JSX.Element {
                     setNewServiceTier({ ...newServiceTier, formId: form?.id })
                   }}
                 >
-                  {Object.values(groupForms).map(form => <MenuItem key={`form-version-select${form.id}`} value={form.id}>{form.name}</MenuItem>)}
+                  {Array.from(groupForms.values()).map(form => <MenuItem key={`form-version-select${form.id}`} value={form.id}>{form.name}</MenuItem>)}
                 </TextField>
               </Box>
 
@@ -198,11 +200,12 @@ export function ServiceHome(props: IProps): JSX.Element {
             newServiceTier.createdOn = created;
             newServiceTier.order = Object.keys(newService.tiers).length + 1;
             newServiceTier.addons = serviceTierAddonIds.reduce((m, id, i) => {
+              const addon = groupServiceAddons.get(id);
               return {
                 ...m,
-                [id]: {
+                [id]: addon && {
                   id,
-                  name: groupServiceAddons[id].name,
+                  name: addon.name,
                   order: i + 1
                 }
               }

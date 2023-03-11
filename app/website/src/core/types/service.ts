@@ -36,7 +36,7 @@ export type IService = {
   id: string;
   name: string;
   cost: string;
-  tiers: Map<string, IServiceTier>;
+  tiers: Record<string, IServiceTier>;
   formId?: string;
   createdOn: string;
 };

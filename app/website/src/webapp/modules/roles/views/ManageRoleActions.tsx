@@ -9,7 +9,7 @@ import Grid from '@mui/material/Grid';
 import CardActionArea from '@mui/material/CardActionArea';
 import Checkbox from '@mui/material/Checkbox';
 
-import { IUtilActionTypes, SiteRoles, IGroupActionTypes, IGroupRoleActions, IUserProfileActionTypes } from 'awayto';
+import { IUtilActionTypes, SiteRoles, IGroupActionTypes, IGroupRoleActions, IUserProfileActionTypes, IRole } from 'awayto';
 import { useApi, useRedux, useStyles, useAct } from 'awayto-hooks';
 import { useParams } from 'react-router';
 
@@ -63,18 +63,23 @@ export function ManageRoleActions(): JSX.Element {
   }, [groupName, assignments]);
 
   const columns = useMemo(() => {
-    if (!groups.size || !groupName) return [];
-    const group = Array.from(groups.values()).find(g => g.name === groupName);
-    if (!group || !group.roles.size || !Object.keys(assignments).length) return [];
-    const groupRoles = Array.from(group.roles.values());
-    return [
-      { selector: (row: { name: string }) => row.name },
-      ...groupRoles.reduce((memo, { name }) => {
-        const subgroup = `/${groupName}/${name}`;
-        memo.push({ name, cell: row => <Checkbox checked={assignments[subgroup] ? assignments[subgroup].actions.some(a => a.name === row.name) : false} onChange={e => handleCheck(subgroup, row.name, e.target.checked)} /> });
-        return memo;
-      }, [] as TableColumn<{ name: string }>[])
-    ]
+    if (groups.size && groupName) {
+      const group = Array.from(groups.values()).find(g => g.name === groupName);
+      if (group) {
+        const roles = new Map(Object.entries(group.roles || {}) as Iterable<readonly [string, IRole]>);
+        if (roles.size && Object.keys(assignments).length) {
+          return [
+            { selector: (row: { name: string }) => row.name },
+            ...Array.from(roles.values()).reduce((memo, { name }) => {
+              const subgroup = `/${groupName}/${name}`;
+              memo.push({ name, cell: row => <Checkbox checked={assignments[subgroup] ? assignments[subgroup].actions.some(a => a.name === row.name) : false} onChange={e => handleCheck(subgroup, row.name, e.target.checked)} /> });
+              return memo;
+            }, [] as TableColumn<{ name: string }>[])
+          ]
+        }
+      }
+    }
+    return [];
   }, [groups, assignments, groupName]);
 
   const options = useMemo(() => Object.values(SiteRoles).filter(r => ![SiteRoles.APP_ROLE_CALL, SiteRoles.APP_GROUP_ADMIN].includes(r)).map(name => ({ name })), []);

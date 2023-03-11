@@ -20,7 +20,7 @@ import { useParams } from 'react-router';
 const { OPEN_CONFIRM } = IUtilActionTypes;
 
 export type ManageSchedulesActions = {
-  groupSchedules?: Record<string, IGroupSchedule>;
+  groupSchedules?: Map<string, IGroupSchedule>;
   getGroupSchedulesAction?: IActionTypes;
   getGroupScheduleMasterByIdAction?: IActionTypes;
   postGroupSchedulesAction?: IActionTypes;
@@ -115,7 +115,7 @@ export function ManageSchedules(props: IProps): JSX.Element {
           title="Schedule Templates"
           actions={<Button onClick={() => { setSchedule(undefined); setDialog('manage_schedule') }}>New</Button>}
           contextActions={actions}
-          data={Object.values(groupSchedules)}
+          data={Array.from(groupSchedules.values())}
           defaultSortFieldId="createdOn"
           defaultSortAsc={false}
           theme={util.theme}

@@ -20,7 +20,7 @@ import ManageServiceModal from './ManageServiceModal';
 const { OPEN_CONFIRM } = IUtilActionTypes;
 
 export type ManageServicesActions = {
-  services?: Record<string, IGroupService>;
+  services?: Map<string, IGroupService>;
   getServicesAction?: IActionTypes;
   postServicesAction?: IActionTypes;
   postGroupServicesAction?: IActionTypes;
@@ -110,7 +110,7 @@ export function ManageServices(props: IProps): JSX.Element {
           title="Services"
           actions={<Button onClick={() => { setService(undefined); setDialog('manage_service') }}>New</Button>}
           contextActions={actions}
-          data={Object.values(services)}
+          data={Array.from(services.values())}
           defaultSortFieldId="createdOn"
           defaultSortAsc={false}
           theme={util.theme}

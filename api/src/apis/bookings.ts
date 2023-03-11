@@ -10,7 +10,7 @@ const bookings: ApiModule = [
     cmnd : async (props) => {
       try {
 
-        const bookings = new Map(props.event.body.bookings);
+        const bookings = new Map(Object.entries(props.event.body.bookings) as Iterable<readonly [string, IBooking]>);
 
         const newBookings: IBooking[] = [];
 

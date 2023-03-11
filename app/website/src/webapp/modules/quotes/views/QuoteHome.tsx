@@ -60,7 +60,6 @@ function QuoteHome(): JSX.Element {
   return <Box mb={4}>
     <Card>
       <CardContent>
-
         <DataTable
           title="Pending Requests"
           contextActions={actions}

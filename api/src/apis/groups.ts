@@ -95,11 +95,9 @@ const groups: ApiModule = [
 
         await regroup(externalId);
 
-        group.roles = roles;
-
         await props.redis.del(props.event.userSub + 'profile/details');
 
-        return [group];
+        return [{ ...group, roles: Array.from(roles.values()) }];
 
       } catch (error) {
         const { constraint } = error as DbError;
@@ -117,7 +115,9 @@ const groups: ApiModule = [
     action: IGroupActionTypes.PUT_GROUPS,
     cmnd: async (props) => {
       try {
-        const { id, name, roles, roleId: adminRoleId } = props.event.body;
+        const { id, name, roleId: adminRoleId } = props.event.body;
+
+        const roles = new Map<string, IRole>(Object.entries(props.event.body.roles));
 
         const updateProps = buildUpdate({
           id,
@@ -135,7 +135,7 @@ const groups: ApiModule = [
         `, updateProps.array);
 
         // See if any roles have changed
-        const roleIds = Object.values(roles).map(r => r.id);
+        const roleIds = Array.from(roles.keys());
         const diffs = (await props.db.query<IUuidRoles>(`
           SELECT id, "roleId" 
           FROM dbview_schema.enabled_uuid_roles 
@@ -163,16 +163,14 @@ const groups: ApiModule = [
           }
         }
 
-
-        await asyncForEach(Object.values(roles), async role => {
+        for (const role of roles.values()) {
           await keycloak.groups.setOrCreateChild({ id: group.externalId }, { name: role.name });
           await props.db.query(`
             INSERT INTO dbtable_schema.uuid_roles (parent_uuid, role_id, created_on, created_sub)
             VALUES ($1, $2, $3, $4::uuid)
             ON CONFLICT (parent_uuid, role_id) DO NOTHING
           `, [group.id, role.id, utcNowString(), props.event.userSub])
-        })
-
+        }
 
         // If the admin role has changed
         if (group.roleId !== adminRoleId) {
@@ -213,11 +211,9 @@ const groups: ApiModule = [
           });
         }
 
-        group.roles = roles;
-
         await props.redis.del(props.event.userSub + 'profile/details');
 
-        return [group];
+        return [{ ...group, roles: Array.from(roles.values()) }];
 
       } catch (error) {
         throw error;

@@ -20,7 +20,7 @@ export function PendingQuotesProvider ({ children }: IProps): JSX.Element {
 
   const { quotes } = useRedux(state => state.profile);
 
-  const pendingQuotes = useMemo(() => Object.values(quotes || {}), [quotes]);
+  const pendingQuotes = useMemo(() => Array.from(quotes.values()), [quotes]);
 
   const pendingQuotesContext = {
     pendingQuotes,
@@ -54,7 +54,7 @@ export function PendingQuotesProvider ({ children }: IProps): JSX.Element {
 
       const { slotDate, startTime, scheduleBracketSlotId } = selectedPendingQuotes[0];
 
-      const copies = Object.values(quotes).filter(q => !selectedPendingQuotes.some(s => s.id === q.id)).filter(q => q.slotDate === slotDate && q.scheduleBracketSlotId === scheduleBracketSlotId);
+      const copies = pendingQuotes.filter(q => !selectedPendingQuotes.some(s => s.id === q.id)).filter(q => q.slotDate === slotDate && q.scheduleBracketSlotId === scheduleBracketSlotId);
 
       void act(OPEN_CONFIRM, {
         isConfirming: true,

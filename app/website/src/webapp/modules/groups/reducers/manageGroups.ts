@@ -3,7 +3,8 @@ import {
   IManageGroupsState,
   IManageGroupsActionTypes,
   IManageGroupsActions,
-  IGroup
+  IGroup,
+  IRole
 } from 'awayto';
 
 const initialManageGroupsState = {
@@ -25,7 +26,12 @@ const manageGroupsReducer: Reducer<IManageGroupsState, IManageGroupsActions> = (
     case IManageGroupsActionTypes.GET_MANAGE_GROUPS:
     case IManageGroupsActionTypes.POST_MANAGE_GROUPS:
     case IManageGroupsActionTypes.PUT_MANAGE_GROUPS:
-      state.groups = new Map([ ...state.groups ].concat( action.payload.map(q => [q.id, q]) as readonly [string, IGroup][] ));
+      state.groups = new Map([ ...state.groups ].concat(
+        action.payload.map(g => {
+          g.roles = new Map<string, IRole>(Object.entries(g.roles || {}) as Iterable<readonly [string, IRole]>);
+          return [g.id, g];
+        }) as readonly [string, IGroup][]
+      ));
       return state;
     case IManageGroupsActionTypes.CHECK_GROUP_NAME:
       return { ...state, ...action.payload };

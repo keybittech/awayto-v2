@@ -16,7 +16,6 @@ declare global {
 
 
   interface IMergedState extends Merge<Merge<Merge<Merge<Merge<Merge<Merge<unknown, IGroupRoleActionState>, IGroupState>, IGroupServiceState>, IGroupServiceAddonState>, IGroupScheduleState>, IGroupFormState>, IGroupUserScheduleState> { }
-
   /**
    * @category Awayto Redux
    */
@@ -418,17 +417,12 @@ export type IGroupFormActions = IPostGroupFormAction
 /**
  * @category Group
  */
-export type IGroupUserSchedule = {
+export type IGroupUserSchedule = ISchedule & {
   id: string;
   groupScheduleId: string;
   userScheduleId: string;
-  brackets: Record<string, IScheduleBracket>;
+  services: Map<string, IService>;
 }
-
-/**
- * @category Group
- */
-export type IGroupUserSchedules = Record<string, IGroupUserSchedule>;
 
 /**
  * @category Group

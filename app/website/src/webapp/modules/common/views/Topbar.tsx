@@ -45,8 +45,8 @@ export function Topbar(props: IProps): JSX.Element {
   const { theme } = useRedux(state => state.util);
   const { quotes, bookings } = useRedux(state => state.profile);
 
-  const pendingQuotes = useMemo(() => Object.values(quotes), [quotes]);
-  const upcomingBookings = useMemo(() => Object.values(bookings), [bookings]);
+  const pendingQuotes = useMemo(() => Array.from(quotes.values()), [quotes]);
+  const upcomingBookings = useMemo(() => Array.from(bookings.values()), [bookings]);
 
   const mobileMenuId = 'mobile-app-bar-menu';
   const pendingQuotesMenuId = 'pending-requests-menu';

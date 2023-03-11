@@ -22,9 +22,9 @@ import { useRedux, useApi, useAct } from 'awayto-hooks';
 import ManageScheduleBracketsModal from './ManageScheduleBracketsModal';
 
 export type ManageScheduleBracketsActions = {
-  schedules?: Record<string, ISchedule>;
-  groupServices?: Record<string, IService>;
-  groupSchedules?: Record<string, IGroupSchedule>;
+  schedules?: Map<string, ISchedule>;
+  groupServices?: Map<string, IService>;
+  groupSchedules?: Map<string, IGroupSchedule>;
   getScheduleByIdAction?: IActionTypes;
   getGroupServicesAction?: IActionTypes;
   getGroupSchedulesAction?: IActionTypes;
@@ -176,7 +176,7 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
                 </Box>
               ]}
               contextActions={actions}
-              data={Object.values(schedules)}
+              data={Array.from(schedules.values())}
               defaultSortFieldId="createdOn"
               defaultSortAsc={false}
               theme={util.theme}

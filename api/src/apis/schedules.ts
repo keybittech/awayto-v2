@@ -1,4 +1,4 @@
-import { DbError, ISchedule, IScheduleActionTypes, IScheduleBracket, utcNowString } from 'awayto';
+import { DbError, ISchedule, IScheduleActionTypes, IScheduleBracket, IScheduleBracketSlot, IService, utcNowString } from 'awayto';
 import { asyncForEach } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
@@ -39,15 +39,16 @@ const schedules: ApiModule = [
     action: IScheduleActionTypes.POST_SCEHDULE_BRACKETS,
     cmnd: async (props) => {
       try {
-        const { scheduleId, brackets } = props.event.body;
-        const newBrackets = {} as Record<string, IScheduleBracket>;
+        const { scheduleId } = props.event.body;
+
+        const brackets = new Map<string, IScheduleBracket>(Object.entries(props.event.body.brackets));
 
         await props.db.query(`
           DELETE FROM dbtable_schema.schedule_brackets
           WHERE schedule_id = $1 AND created_sub = $2
         `, [scheduleId, props.event.userSub]);
 
-        await asyncForEach(Object.values(brackets), async b => {
+        for (const b of brackets.values()) {
           const { id: bracketId } = (await props.db.query<IScheduleBracket>(`
             INSERT INTO dbtable_schema.schedule_brackets (schedule_id, duration, multiplier, automatic, created_sub)
             VALUES ($1, $2, $3, $4, $5::uuid)
@@ -68,30 +69,32 @@ const schedules: ApiModule = [
 
           b.id = bracketId;
 
-          await asyncForEach(Object.values(b.services), async s => {
+          const services = new Map<string, IService>(Object.entries(b.services));
+
+          for (const serv of services.values()) {
             await props.db.query(`
               INSERT INTO dbtable_schema.schedule_bracket_services (schedule_bracket_id, service_id, created_sub)
               VALUES ($1, $2, $3::uuid)
-            `, [bracketId, s.id, props.event.userSub])
-          });
+            `, [bracketId, serv.id, props.event.userSub])
+          }
 
-          await asyncForEach(Object.values(b.slots), async s => {
+          const slots = new Map<string, IScheduleBracketSlot>(Object.entries(b.slots));
+
+          for (const slot of slots.values()) {
             const [{ id: slotId }] = (await props.db.query(`
               INSERT INTO dbtable_schema.schedule_bracket_slots (schedule_bracket_id, start_time, created_sub)
               VALUES ($1, $2::interval, $3::uuid)
               RETURNING id
-            `, [bracketId, s.startTime, props.event.userSub])).rows;
+            `, [bracketId, slot.startTime, props.event.userSub])).rows;
 
-            s.id = slotId;
-            s.scheduleBracketId = bracketId;
-          });
-
-          newBrackets[bracketId] = b;
-        });
+            slot.id = slotId;
+            slot.scheduleBracketId = bracketId;
+          }
+        }
 
         await props.redis.del(props.event.userSub + 'schedules/' + scheduleId);
 
-        return brackets;
+        return { id: scheduleId, brackets: Array.from(brackets.values()) };
 
       } catch (error) {
         throw error;
@@ -179,13 +182,14 @@ const schedules: ApiModule = [
 
         await asyncForEach(idsSplit, async scheduleId => {
 
-          const { rows: [{ brackets }] } = await props.db.query<ISchedule>(`
+          let { rows: [{ brackets }] } = await props.db.query<ISchedule>(`
             SELECT * FROM dbview_schema.enabled_schedules_ext
             WHERE id = $1
           `, [scheduleId]);
 
-          await asyncForEach(Object.values(brackets), async b => {
+          brackets = new Map(Object.entries(brackets || {}) as Iterable<readonly [string, IScheduleBracket]>);
 
+          for (const b of brackets.values()) {
             // Delete slots that aren't attached to a booking or quote
             await props.db.query<{ enabled: boolean[] }>(`
               DELETE FROM dbtable_schema.schedule_bracket_slots slot
@@ -223,8 +227,7 @@ const schedules: ApiModule = [
                 WHERE brack.id = bracket.id
               )
             `, [b.id]);
-
-          });
+          }
 
           await props.db.query(`
             UPDATE dbtable_schema.quotes
@@ -241,7 +244,7 @@ const schedules: ApiModule = [
             WHERE id = $1
           `, [scheduleId]);
 
-          await props.db.query<ISchedule>(`
+          await props.db.query(`
             DELETE FROM dbtable_schema.schedules schedule
             WHERE schedule.id = $1
             AND NOT EXISTS (

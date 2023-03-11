@@ -1,4 +1,4 @@
-import { IGroup, IUuidRoles, DbError, IManageGroupsActionTypes, IManageGroupsState, asyncForEach, utcNowString } from 'awayto';
+import { IGroup, IUuidRoles, DbError, IManageGroupsActionTypes, IManageGroupsState, asyncForEach, utcNowString, IRole } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
 
@@ -9,7 +9,9 @@ const manageGroups: ApiModule = [
     cmnd : async (props) => {
       try {
 
-        const { name, roles } = props.event.body;
+        const { name } = props.event.body;
+
+        const roles = new Map<string, IRole>(Object.entries(props.event.body.roles));
 
         const { rows: [ group ] } = await props.db.query<IGroup>(`
           INSERT INTO dbtable_schema.groups (name, created_on, created_sub)
@@ -18,17 +20,15 @@ const manageGroups: ApiModule = [
           RETURNING id, name
         `, [name, utcNowString(), props.event.userSub]);
 
-        await asyncForEach(Object.values(roles), async role => {
+        for (const role of roles.values()) {
           await props.db.query(`
             INSERT INTO dbtable_schema.uuid_roles (parent_uuid, role_id, created_on, created_sub)
             VALUES ($1, $2, $3, $4::uuid)
             ON CONFLICT (parent_uuid, role_id) DO NOTHING
-          `, [group.id, role.id, utcNowString(), props.event.userSub])
-        });
-
-        group.roles = roles;
+          `, [group.id, role.id, utcNowString(), props.event.userSub]);
+        }
         
-        return group;
+        return { ...group, roles: Array.from(roles.values()) };
 
       } catch (error) {
         const { constraint } = error as DbError;
@@ -46,7 +46,9 @@ const manageGroups: ApiModule = [
     action: IManageGroupsActionTypes.PUT_MANAGE_GROUPS,
     cmnd : async (props) => {
       try {
-        const { id, name, roles } = props.event.body;
+        const { id, name } = props.event.body;
+
+        const roles = new Map<string, IRole>(Object.entries(props.event.body.roles));
 
         const updateProps = buildUpdate({
           id,
@@ -62,9 +64,7 @@ const manageGroups: ApiModule = [
           RETURNING id, name
         `, updateProps.array);
 
-        const rolesValues = Object.values(roles);
-
-        const roleIds = rolesValues.map(r => r.id);
+        const roleIds = Array.from(roles.keys());
         const diffs = (await props.db.query<IUuidRoles>('SELECT id, role_id as "roleId" FROM uuid_roles WHERE parent_uuid = $1', [group.id])).rows.filter(r => !roleIds.includes(r.roleId)).map(r => r.id) as string[];
 
         if (diffs.length) {
@@ -73,17 +73,15 @@ const manageGroups: ApiModule = [
           });          
         }
 
-        await asyncForEach(rolesValues, async role => {
+        for (const role of roles.values()) {
           await props.db.query(`
             INSERT INTO dbtable_schema.uuid_roles (parent_uuid, role_id, created_on, created_sub)
             VALUES ($1, $2, $3, $4::uuid)
             ON CONFLICT (parent_uuid, role_id) DO NOTHING
-          `, [group.id, role.id, utcNowString(), props.event.userSub])
-        });
+          `, [group.id, role.id, utcNowString(), props.event.userSub]);
+        }
 
-        group.roles = roles;
-
-        return group;
+        return { ...group, roles: Array.from(roles.values()) };
         
       } catch (error) {
         throw error;

@@ -124,15 +124,13 @@ const {
   SOCK_PORT
 } = process.env as { [prop: string]: string } & { PG_PORT: number };
 
-let connections: Record<string, boolean>;
+let connections: Map<string, boolean> = new Map();
 
 function setConnections() {
-  connections = {
-    keycloak: !!keycloakClient,
-    db: dbConnected,
-    redis: redis.isReady,
-    logger: !!logger
-  }
+  connections.set('keycloak', !!keycloakClient);
+  connections.set('db', dbConnected);
+  connections.set('redis', redis.isReady);
+  connections.set('logger', !!logger);
 };
 
 setConnections();
@@ -142,7 +140,7 @@ async function go() {
   try {
 
     // Gracefully wait for connections to start
-    while (Object.values(connections).includes(false)) {
+    while (Array.from(connections.values()).includes(false)) {
       console.log('All connections are not available, waiting', JSON.stringify(connections, null, 2));
       await new Promise<void>(res => setTimeout(() => {
         setConnections();
@@ -150,7 +148,7 @@ async function go() {
       }, 1250))
     }
 
-    console.log('starting api with connections', JSON.stringify(connections, null, 2))
+    console.log('starting api with connections', JSON.stringify(Array.from(connections.entries()), null, 2))
 
     // Create Express app
     const app: Express = express();
@@ -487,7 +485,7 @@ async function go() {
       let status = 'OK';
 
       setConnections();
-      if (Object.values(connections).includes(false)) {
+      if (Array.from(connections.values()).includes(false)) {
         status = 'Error';
       }
 

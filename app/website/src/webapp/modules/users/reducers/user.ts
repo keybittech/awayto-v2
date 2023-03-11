@@ -3,7 +3,8 @@ import {
   IUserState,
   IUserActions,
   IUserActionTypes,
-  IUserProfile
+  IUserProfile,
+  IGroup
 } from 'awayto';
 
 const initialUserState = {
@@ -22,7 +23,10 @@ const userReducer: Reducer<IUserState, IUserActions> = (state = initialUserState
     case IUserActionTypes.POST_USERS:
     case IUserActionTypes.GET_USERS_BY_ID:
     case IUserActionTypes.GET_USERS:
-      state.users = new Map([ ...state.users ].concat( action.payload.map(q => [q.id, q]) as readonly [string, IUserProfile][] ));
+      state.users = new Map([ ...state.users ].concat( action.payload.map(usr => {
+        usr.groups = new Map(Object.entries(usr.groups || {}) as Iterable<readonly [string, IGroup]>);
+        return  [usr.id, usr];
+      }) as readonly [string, IUserProfile][] ));
       return state;
     default:
       return state;
