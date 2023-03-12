@@ -84,7 +84,14 @@ export function RequestQuote(props: IProps): JSX.Element {
   const [monthSeekDate, setMonthSeekDate] = useState(dayjs().startOf(TimeUnit.MONTH));
   const [activeSchedule, setActiveSchedule] = useState('');
 
-  const serviceTiers = useMemo(() => Object.values(service.tiers || {}), [service.tiers]);
+  const serviceTiers = useMemo(() => {
+    const tiers = Object.values(service.tiers || {}).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime());
+    if (tiers.length) {
+      setTier(tiers[0]);
+      return tiers;
+    }
+    return [];
+  }, [service.tiers]);
 
   const tierColumns = useMemo(() => {
     if (!service || !tier || !serviceTierAddons.length) return [];
@@ -298,7 +305,6 @@ export function RequestQuote(props: IProps): JSX.Element {
                     const serv = services.get(e.target.value);
                     if (serv) {
                       setService(serv);
-                      setTier(serv.tiers[0]);
                     }
                   }}
                 >
@@ -501,7 +507,7 @@ export function RequestQuote(props: IProps): JSX.Element {
               quote.slotDate = startDate;
             }
 
-            if (serviceForm) {
+            if (Object.keys(serviceForm).length) {
               const missingValues = Object.keys(serviceForm.version.form).some(rowId => serviceForm.version.form[rowId].some((field, i) => field.r && [undefined, ''].includes(serviceForm.version.submission[rowId][i])));
               if (missingValues) {
                 act(SET_SNACK, { snackType: 'error', snackOn: 'The Service Questionnaire is missing required fields!' });
@@ -513,7 +519,7 @@ export function RequestQuote(props: IProps): JSX.Element {
               }
             }
 
-            if (tierForm) {
+            if (Object.keys(tierForm).length) {
               const missingValues = Object.keys(tierForm.version.form).some(rowId => tierForm.version.form[rowId].some((field, i) => field.r && [undefined, ''].includes(tierForm.version.submission[rowId][i])));
               if (missingValues) {
                 act(SET_SNACK, { snackType: 'error', snackOn: 'The Tier Questionnaire is missing required fields!' });

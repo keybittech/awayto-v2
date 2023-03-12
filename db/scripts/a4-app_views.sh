@@ -361,7 +361,6 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     eesl.* as slots
   FROM
     dbview_schema.enabled_schedule_brackets esb
-    LEFT JOIN dbtable_schema.schedule_bracket_services sbs ON sbs.schedule_bracket_id = esb.id
     LEFT JOIN LATERAL (
       SELECT
         JSONB_OBJECT_AGG(servs.id, TO_JSONB(servs)) as services
@@ -374,9 +373,10 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
             ese.tiers,
             ese."formId"
           FROM
-            dbview_schema.enabled_services_ext ese
+            dbtable_schema.schedule_bracket_services sbs
+            JOIN dbview_schema.enabled_services_ext ese ON ese.id = sbs.service_id
           WHERE
-            ese.id = sbs.service_id
+            sbs.schedule_bracket_id = esb.id
         ) servs
     ) as eess ON true
     LEFT JOIN LATERAL (

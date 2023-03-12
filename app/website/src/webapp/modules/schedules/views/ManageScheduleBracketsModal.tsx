@@ -19,7 +19,6 @@ import { useApi, useAct, useComponents, useRedux } from 'awayto-hooks';
 
 import { scheduleSchema } from "./ScheduleHome";
 import { ManageScheduleBracketsActions } from "./ManageScheduleBrackets";
-import { abort } from "process";
 
 const { SET_SNACK } = IUtilActionTypes;
 
@@ -119,7 +118,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
         res?.then(scheds => {
           const [sched] = scheds as ISchedule[];
 
-          const newBrackets = Array.from(new Map(scheduleBracketsValues.map(
+          const newBrackets = scheduleBracketsValues.map(
             ({ id, duration, automatic, multiplier, slots, services }) => [
               id,
               {
@@ -127,11 +126,11 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
                 duration,
                 automatic,
                 multiplier,
-                slots: Array.from(new Map(Array.from(slots.values()).map(({ startTime }, i) => [String(i), { startTime } as IScheduleBracketSlot])).values()),
-                services: Array.from(new Map(Array.from(services.values()).map(({ id }, i) => [String(i), { id } as IService])).values())
+                slots: Array.from(slots.values()).map(({ startTime }, i) => [String(i), { startTime } as IScheduleBracketSlot]),
+                services: Array.from(services.values()).map(({ id }, i) => [String(i), { id } as IService])
               }
             ]
-          )).values());
+          );
 
           const [, rex] = api(postScheduleBracketsAction, { scheduleId: sched.id, brackets: newBrackets });
           const [, rez] = !editSchedule ?
