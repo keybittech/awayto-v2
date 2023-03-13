@@ -262,6 +262,17 @@ export type IGroupServiceActions = IPostGroupServiceAction
 
 
 
+/**
+ * @category Group
+ */
+export type IGroupScheduleDateSlots = {
+  weekStart: string;
+  startTime: string;
+  startDate: string;
+  scheduleBracketSlotId: string;
+  hour: number;
+  minute: number;
+}
 
 /**
  * @category Group
@@ -276,16 +287,8 @@ export type IGroupSchedule = ISchedule & {
  */
 export type IGroupScheduleState = IGroupSchedule & {
   groupSchedules: Map<string, IGroupSchedule>;
+  dateSlots: IGroupScheduleDateSlots[];
 };
-
-export type IGroupScheduleDateSlots = {
-  weekStart: string;
-  startTime: string;
-  startDate: string;
-  scheduleBracketSlotId: string;
-  hour: number;
-  minute: number;
-}
 
 /**
  * @category Action Types
@@ -318,6 +321,11 @@ export type IGetGroupSchedulesAction = PayloadAction<IGroupScheduleActionTypes.G
 /**
  * @category Group
  */
+export type IGetGroupScheduleDateSlotsAction = PayloadAction<IGroupScheduleActionTypes.GET_GROUP_SCHEDULE_BY_DATE, IGroupScheduleDateSlots[]>;
+
+/**
+ * @category Group
+ */
 export type IGetGroupScheduleMasterByIdAction = PayloadAction<IGroupScheduleActionTypes.GET_GROUP_SCHEDULE_MASTER_BY_ID, IGroupSchedule[]>;
 
 /**
@@ -331,6 +339,7 @@ export type IDeleteGroupScheduleAction = PayloadAction<IGroupScheduleActionTypes
 export type IGroupScheduleActions = IPostGroupScheduleAction
   | IPutGroupScheduleAction
   | IGetGroupSchedulesAction
+  | IGetGroupScheduleDateSlotsAction
   | IGetGroupScheduleMasterByIdAction
   | IDeleteGroupScheduleAction;
 
@@ -429,6 +438,7 @@ export type IGroupUserSchedule = ISchedule & {
  */
 export type IGroupUserScheduleState = IGroupUserSchedule & {
   groupUserSchedules: Map<string, IGroupUserSchedule>;
+  stubs: Map<string, IGroupUserSchedule>;
 };
 
 /**
@@ -438,6 +448,7 @@ export enum IGroupUserScheduleActionTypes {
   POST_GROUP_USER_SCHEDULE = "POST/group/:groupName/schedules/:groupScheduleId/user/:userScheduleId",
   PUT_GROUP_USER_SCHEDULE = "PUT/group/:groupName/schedules/:groupScheduleId/user",
   GET_GROUP_USER_SCHEDULES = "GET/group/:groupName/schedules/:groupScheduleId/user",
+  GET_GROUP_USER_SCHEDULE_STUBS = "GET/group/:groupName/schedules/user/stub",
   GET_GROUP_USER_SCHEDULE_BY_ID = "GET/group/:groupName/schedules/:groupScheduleId/user/:userScheduleId",
   DELETE_GROUP_USER_SCHEDULE_BY_USER_SCHEDULE_ID = "DELETE/group/:groupName/schedules/user/:ids"
 }
@@ -460,6 +471,11 @@ export type IGetGroupUserSchedulesAction = PayloadAction<IGroupUserScheduleActio
 /**
  * @category Group
  */
+export type IGetGroupUserScheduleStubsAction = PayloadAction<IGroupUserScheduleActionTypes.GET_GROUP_USER_SCHEDULE_STUBS, IGroupUserSchedule[]>;
+
+/**
+ * @category Group
+ */
 export type IGetGroupUserScheduleByIdAction = PayloadAction<IGroupUserScheduleActionTypes.GET_GROUP_USER_SCHEDULE_BY_ID, IGroupUserSchedule[]>;
 
 /**
@@ -473,5 +489,6 @@ export type IDeleteGroupUserScheduleAction = PayloadAction<IGroupUserScheduleAct
 export type IGroupUserScheduleActions = IPostGroupUserScheduleAction
   | IPutGroupUserScheduleAction
   | IGetGroupUserSchedulesAction
+  | IGetGroupUserScheduleStubsAction
   | IGetGroupUserScheduleByIdAction
   | IDeleteGroupUserScheduleAction;

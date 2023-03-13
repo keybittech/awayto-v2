@@ -17,11 +17,11 @@ import { useRedux, useApi } from 'awayto-hooks';
 import ManageRoleModal from './ManageRoleModal';
 
 export type ManageRolesActions = {
+  roles?: Map<string, IRole>;
   getRolesAction?: IActionTypes;
   putRolesAction?: IActionTypes;
   postRolesAction?: IActionTypes;
   deleteRolesAction?: IActionTypes;
-  roles?: Map<string, IRole>;
 };
 
 declare global {

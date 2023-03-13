@@ -53,7 +53,7 @@ export function ManageSchedules(props: IProps): JSX.Element {
     { id: 'createdOn', selector: row => row.createdOn, omit: true },
     { name: 'Name', selector: row => row.name },
     { name: 'Created', selector: row => row.createdOn }
-  ] as TableColumn<ISchedule>[], [groupSchedules])
+  ] as TableColumn<ISchedule>[], [])
 
   const actions = useMemo(() => {
     const { length } = selected;

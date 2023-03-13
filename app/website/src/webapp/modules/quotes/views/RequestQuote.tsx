@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router';
 import DataTable, { TableColumn } from 'react-data-table-component';
 import dayjs from 'dayjs';
 
@@ -15,8 +16,6 @@ import CardContent from '@mui/material/CardContent';
 import CardActionArea from '@mui/material/CardActionArea';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
-import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker';
-import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckIcon from '@mui/icons-material/Check';
@@ -39,18 +38,14 @@ import {
   TimeUnit,
   timeUnitOrder,
   IGroupScheduleDateSlots,
-  userTimezone,
-  getRelativeDuration,
   quotedDT
 } from 'awayto';
 import { useApi, useRedux, useComponents, useStyles, useAct } from 'awayto-hooks';
-import { Duration, DurationUnitType } from 'dayjs/plugin/duration';
-import { useNavigate } from 'react-router';
 
 const { GET_GROUP_FORM_BY_ID } = IGroupFormActionTypes;
 const { POST_QUOTE } = IQuoteActionTypes;
 const { SET_SNACK } = IUtilActionTypes;
-const { GET_GROUP_SCHEDULES, GET_GROUP_SCHEDULE_MASTER_BY_ID, GET_GROUP_SCHEDULE_BY_DATE } = IGroupScheduleActionTypes;
+const { GET_GROUP_SCHEDULES, GET_GROUP_SCHEDULE_MASTER_BY_ID } = IGroupScheduleActionTypes;
 const { GET_GROUP_USER_SCHEDULES } = IGroupUserScheduleActionTypes;
 
 export function RequestQuote(props: IProps): JSX.Element {
@@ -59,14 +54,13 @@ export function RequestQuote(props: IProps): JSX.Element {
   const api = useApi();
   const act = useAct();
   const navigate = useNavigate();
-  const { FileManager, FormDisplay } = useComponents();
-  const { groupSchedules } = useRedux(state => state.groupSchedule);
+  const { FileManager, FormDisplay, ScheduleDatePicker, ScheduleTimePicker } = useComponents();
+  const { groupSchedules, dateSlots } = useRedux(state => state.groupSchedule);
   const { groupUserSchedules } = useRedux(state => state.groupUserSchedule);
   const { groups } = useRedux(state => state.profile);
   const { timeUnits } = useRedux(state => state.lookup);
   const util = useRedux(state => state.util);
 
-  const [serviceTierAddons, setServiceTierAddons] = useState<string[]>([]);
   const [services, setServices] = useState(new Map() as Map<string, IService>);
   const [schedule, setSchedule] = useState({ id: '' } as ISchedule);
   const [service, setService] = useState({ id: '', tiers: {} } as IService);
@@ -75,23 +69,50 @@ export function RequestQuote(props: IProps): JSX.Element {
   const [tierForm, setTierForm] = useState({} as IForm);
   const [group, setGroup] = useState({ id: '' } as IGroup);
   const [quote, setQuote] = useState({} as IQuote);
-  const [groupScheduleDateSlots, setGroupScheduleDateSlots] = useState([] as IGroupScheduleDateSlots[]);
-  const [firstAvailable, setFirstAvailable] = useState({ time: dayjs().startOf('day') } as IGroupScheduleDateSlots & { time: dayjs.Dayjs });
-
+  
   const [bracketSlotDate, setBracketSlotDate] = useState<dayjs.Dayjs | null>();
   const [bracketSlotTime, setBracketSlotTime] = useState<dayjs.Dayjs | null>();
-
-  const [monthSeekDate, setMonthSeekDate] = useState(dayjs().startOf(TimeUnit.MONTH));
+  
   const [activeSchedule, setActiveSchedule] = useState('');
+  const [firstAvailable, setFirstAvailable] = useState({ time: dayjs().startOf('day') } as IGroupScheduleDateSlots & { time: dayjs.Dayjs });
 
-  const serviceTiers = useMemo(() => {
-    const tiers = Object.values(service.tiers || {}).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime());
-    if (tiers.length) {
-      setTier(tiers[0]);
-      return tiers;
-    }
-    return [];
-  }, [service.tiers]);
+  const loadSchedule = useCallback((sched: ISchedule) => {
+    sched.scheduleTimeUnitName = timeUnits.find(u => u.id === sched.scheduleTimeUnitId)?.name as ITimeUnitNames;
+    sched.bracketTimeUnitName = timeUnits.find(u => u.id === sched.bracketTimeUnitId)?.name as ITimeUnitNames;
+    sched.slotTimeUnitName = timeUnits.find(u => u.id === sched.slotTimeUnitId)?.name as ITimeUnitNames;    
+    setSchedule(sched);
+  }, [timeUnits]);
+
+  if (groups.size && !group.id) {
+    setGroup(groups.values().next().value as IGroup);
+  }
+
+  if (schedule.id && activeSchedule !== schedule.id && dateSlots.length && !firstAvailable.scheduleBracketSlotId) {
+    const [slot] = dateSlots;
+    setFirstAvailable({ ...slot, time: quotedDT(slot.weekStart, slot.startTime) });
+    setActiveSchedule(schedule.id);
+  }
+
+  const serviceTiers = useMemo(() => Object.values(service.tiers || {}).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime()), [service.tiers]);
+
+  if (serviceTiers.length && (!tier.id || !serviceTiers.map(t => t.id).includes(tier.id))) {
+    setTier(serviceTiers[0]);
+  }
+
+  const serviceTierAddons = useMemo(() => {
+    return serviceTiers
+      .sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime())
+      .reduce<string[]>((memo, { addons }) => {
+        const serviceAddons = Object.values(addons);
+        if (serviceAddons) {
+          for (let i = 0, v = serviceAddons.length; i < v; i++) {
+            const { name } = serviceAddons[i];
+            if (memo.indexOf(name) < 0) memo.push(name);
+          }
+        }
+        return memo;
+      }, []);
+  }, [serviceTiers])
 
   const tierColumns = useMemo(() => {
     if (!service || !tier || !serviceTierAddons.length) return [];
@@ -109,102 +130,26 @@ export function RequestQuote(props: IProps): JSX.Element {
     ]
   }, [serviceTierAddons, service, tier]);
 
-  const bracketSlotDateDayDiff = useMemo(() => {
-    if (bracketSlotDate) {
-      const startOfDay = bracketSlotDate.startOf('day');
-      return startOfDay.diff(startOfDay.day(0), TimeUnit.DAY);
-    }
-    return 0;
-  }, [bracketSlotDate]);
-
-  const loadSchedule = useCallback((sched: ISchedule) => {
-    sched.scheduleTimeUnitName = timeUnits.find(u => u.id === sched.scheduleTimeUnitId)?.name as ITimeUnitNames;
-    sched.bracketTimeUnitName = timeUnits.find(u => u.id === sched.bracketTimeUnitId)?.name as ITimeUnitNames;
-    sched.slotTimeUnitName = timeUnits.find(u => u.id === sched.slotTimeUnitId)?.name as ITimeUnitNames;
-    
-    const sessionDuration = Math.round(getRelativeDuration(1, sched.bracketTimeUnitName, sched.slotTimeUnitName));
-    sched.slotFactors = [];
-    for (let value = 1; value < sessionDuration; value++) {
-      if (sessionDuration % value === 0) {
-        sched.slotFactors.push(value);
-      }
-    }
-    
-    setSchedule(sched);
-  }, [timeUnits]);
-
-  useEffect(()  => {
-    if (groupUserSchedules.size) {
-      let newServices = new Map() as Map<string, IService>;
-      for (const sched of groupUserSchedules.values()) {
-        newServices = new Map([ ...newServices, ...sched.services ]);
-      }
-
-      const someService = newServices.values().next().value as IService;
-      const someServiceTiers = Object.values(someService.tiers).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime());
-
-      setService(someService);
-      setServices(newServices);
-      setTier(someServiceTiers[0]);
-    } 
-  }, [groupUserSchedules]);
-
   useEffect(() => {
     if (group.name) {
-      const [abort, res] = api(GET_GROUP_SCHEDULE_BY_DATE, {
-        groupName: group.name,
-        scheduleId: schedule.id,
-        date: monthSeekDate.format("YYYY-MM-DD"),
-        timezone: btoa(userTimezone)
-      });
-      res?.then(data => {
-        const dateSlots = data as IGroupScheduleDateSlots[];
-        if (dateSlots.length) {
-          dateSlots.forEach(slot => {
-            const slotDay = quotedDT(slot.weekStart, slot.startTime);
-            slot.hour = slotDay.hour();
-            slot.minute = slotDay.minute();
-          });
-          setGroupScheduleDateSlots(dateSlots);
-          if (activeSchedule !== schedule.id) {
-            const [slot] = dateSlots;
-            setFirstAvailable({ ...slot, time: quotedDT(slot.weekStart, slot.startTime) });
-            setActiveSchedule(schedule.id);
-          }
-        } else {
-          act(SET_SNACK, { snackType: 'warning', snackOn: 'There are no appointments for the selected month.' });
-          setGroupScheduleDateSlots([]);
-        }
-      });
-      return () => abort();
-    }
-  }, [group, schedule, monthSeekDate]);
-
-  useEffect(() => {
-    if (groups.size) {
-      const gr = groups.values().next().value as IGroup;
-
-      const [abort, res] = api(GET_GROUP_SCHEDULES, { groupName: gr.name })
-
-      res?.then(data => {
-        const scheds = data as IGroupSchedule[];
-        const [, rez] = api(GET_GROUP_SCHEDULE_MASTER_BY_ID, { groupName: gr.name, scheduleId: scheds[0].id })
-        rez?.then(data => {
-          const [sched] = data as IGroupSchedule[];
-          loadSchedule(sched);
-          setGroup(gr);
+      const [abort, res] = api(GET_GROUP_SCHEDULES, { groupName: group.name })
+      res?.then(scheduleData => {
+        const [sched] = scheduleData as IGroupSchedule[];
+        const [, rez] = api(GET_GROUP_SCHEDULE_MASTER_BY_ID, { groupName: group.name, scheduleId: sched.id })
+        rez?.then(masterSchedules => {
+          const [masterSched] = masterSchedules as IGroupSchedule[];
+          loadSchedule(masterSched);
         }).catch(console.warn);
       }).catch(console.warn);
-
       return () => abort();
     }
-  }, [groups, timeUnits]);
+  }, [group]);
 
   useEffect(() => {
-    if (groupSchedules.size) {
+    if (groupSchedules.size && !schedule.id) {
       loadSchedule(groupSchedules.values().next().value as IGroupSchedule);
     }
-  }, [groupSchedules, timeUnits]);
+  }, [groupSchedules, schedule]);
 
   useEffect(() => {
     if (group.name && schedule.id) {
@@ -215,6 +160,23 @@ export function RequestQuote(props: IProps): JSX.Element {
   }, [group, schedule]);
 
   useEffect(() => {
+    if (groupUserSchedules.size && (!tier.id && !services.size && !service.id)) {
+      let newServices = new Map() as Map<string, IService>;
+
+      for (const sched of groupUserSchedules.values()) {
+        newServices = new Map([ ...newServices, ...sched.services ]);
+      }
+
+      setServices(newServices);
+  
+      const someService = newServices.values().next().value as IService;
+      setService(someService);
+
+      setTier(Object.values(someService.tiers).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime())[0]);
+    }
+  }, [groupUserSchedules, tier, services, service]);
+
+  useEffect(() => {
     if (group.name && service.formId && service.formId != serviceForm.id) {
       const [abort, res] = api(GET_GROUP_FORM_BY_ID, { groupName: group.name, formId: service.formId });
       res?.then(forms => {
@@ -223,7 +185,7 @@ export function RequestQuote(props: IProps): JSX.Element {
       }).catch(console.warn);
       return () => abort();
     }
-  }, [service, group]);
+  }, [service, serviceForm, group]);
 
   useEffect(() => {
     if (group.name && tier.formId && tier.formId != tierForm.id) {
@@ -234,26 +196,7 @@ export function RequestQuote(props: IProps): JSX.Element {
       }).catch(console.warn);
       return () => abort();
     }
-  }, [tier, group]);
-
-  useEffect(() => {
-    if (serviceTiers.length) {
-      const newAddons = serviceTiers
-        .sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime())
-        .reduce<string[]>((memo, { addons }) => {
-          const serviceAddons = Object.values(addons);
-          if (serviceAddons) {
-            for (let i = 0, v = serviceAddons.length; i < v; i++) {
-              const { name } = serviceAddons[i];
-              if (memo.indexOf(name) < 0) memo.push(name);
-            }
-          }
-          return memo;
-        }, []);
-
-      setServiceTierAddons(newAddons);
-    }
-  }, [service]);
+  }, [tier, tierForm, group]);
 
   return <>
     <Grid container spacing={2}>
@@ -385,89 +328,32 @@ export function RequestQuote(props: IProps): JSX.Element {
           <AccordionDetails>
             <Grid container spacing={2}>
               <Grid item xs={4}>
-                <DesktopDatePicker
-                  label="Date"
-                  inputFormat="MM/DD/YYYY"
+                <ScheduleDatePicker
+                  key={schedule.id}
+                  scheduleId={schedule.id}
+                  groupName={group.name}
+                  firstAvailable={firstAvailable}
                   value={bracketSlotDate || firstAvailable.time || null}
-                  minDate={firstAvailable.time}
-                  onOpen={() => setMonthSeekDate(firstAvailable.time)}
-                  onMonthChange={date => date && setMonthSeekDate(date)}
-                  onYearChange={date => date && setMonthSeekDate(date)}
-                  onChange={date => setBracketSlotDate(date ? date.isBefore(firstAvailable.time) ? firstAvailable.time : date  : null)}
-                  renderInput={(params) => <TextField {...params} />}
-                  disableHighlightToday={true}
-                  shouldDisableDate={date => {
-                    if (date && groupScheduleDateSlots.length) {
-                      return !groupScheduleDateSlots.filter(s => s.startDate === date.format("YYYY-MM-DD")).length;
-                    }
-                    return true;
-                  }}
+                  onChange={(date: dayjs.Dayjs | null) => setBracketSlotDate(date ? date.isBefore(firstAvailable.time) ? firstAvailable.time : date  : null)}
                 />
               </Grid>
               {timeUnitOrder.indexOf(schedule.slotTimeUnitName) <= timeUnitOrder.indexOf(TimeUnit.HOUR) && <Grid item xs={4}>
-                <TimePicker
-                  label="Time"
+                <ScheduleTimePicker
+                  key={schedule.id}
+                  firstAvailable={firstAvailable}
+                  bracketSlotDate={bracketSlotDate}
+                  bracketTimeUnitName={schedule.bracketTimeUnitName}
+                  slotTimeUnitName={schedule.slotTimeUnitName}
                   value={bracketSlotTime || firstAvailable.time}
-                  ampmInClock={true}
-                  ignoreInvalidInputs={true}
-                  onAccept={time => {
-                    if (time) {
-                      const currentSlotDate = bracketSlotDate || firstAvailable.time;
-
-                      const timeHour = time.hour();
-                      const timeMins = time.minute();
-                      const duration = dayjs.duration(0)
-                        .add(bracketSlotDateDayDiff, TimeUnit.DAY)
-                        .add(timeHour, TimeUnit.HOUR)
-                        .add(timeMins, TimeUnit.MINUTE);
-                      const [slot] = groupScheduleDateSlots
-                        .filter(s => s.startDate === currentSlotDate.format("YYYY-MM-DD") && duration.hours() === s.hour && duration.minutes() === s.minute);
-
-                      if (slot) {
-                        setQuote({
-                          ...quote,
-                          slotDate: currentSlotDate.format('YYYY-MM-DD'),
-                          scheduleBracketSlotId: slot.scheduleBracketSlotId
-                        });
-                      }
-
-                    }
+                  onChange={(time: dayjs.Dayjs | null) => setBracketSlotTime(time)}
+                  onAccept={(value: IQuote) => {
+                    setQuote({
+                      ...quote,
+                      ...value
+                    })
                   }}
-                  onChange={bracketSlotTime => setBracketSlotTime(bracketSlotTime)}
-                  shouldDisableTime={(time, clockType) => {
-                    if (groupScheduleDateSlots.length) {
-                      const currentSlotTime = bracketSlotTime || firstAvailable.time;
-                      const currentSlotDate = bracketSlotDate || firstAvailable.time;
-                      // Ignore seconds check because final time doesn't need seconds, so this will cause invalidity
-                      if ('seconds' === clockType) return false;
-  
-                      // Create a duration based on the current clock validation check and the days from start of current week
-                      let duration: Duration = dayjs.duration(time, clockType).add(bracketSlotDateDayDiff, TimeUnit.DAY);
-  
-                      // Submitting a new time a two step process, an hour is selected, and then a minute. Upon hour selection, bracketSlotTime is first set, and then when the user selects a minute, that will cause this block to run, so we should add the existing hour from bracketSlotTime such that "hour + minute" will give us the total duration, i.e. 4:30 AM = PT4H30M
-                      if ('minutes' === clockType && currentSlotTime) {
-                        duration = duration.add(currentSlotTime.hour(), TimeUnit.HOUR);
-                      }
-  
-                      // When checking hours, we need to also check the hour + next session time, because shouldDisableTime checks atomic parts of the clock, either hour or minute, but no both. So instead of keeping track of some ongoing clock, we can just check both durations here
-                      const checkDurations: Duration[] = [duration];
-                      if ('hours' === clockType) {
-                        for (const factor of schedule.slotFactors) { 
-                          checkDurations.push(duration.add(factor, schedule.slotTimeUnitName as DurationUnitType));
-                        }
-                      }
-  
-                      const matches = groupScheduleDateSlots.filter(s => s.startDate === currentSlotDate.format("YYYY-MM-DD") && checkDurations.filter(d => d.hours() === s.hour && d.minutes() === s.minute).length > 0);
-                      // Checks that have no existing slots are invalid
-                      return !matches.length;
-                    }
-                    return true;
-                  }}
-                  renderInput={params => <TextField {...params} />}
                 />
               </Grid>}
-
-
 
               {/*
               TODO LATER SHOULD ONLY SHOW USER SELECTION BASED ON AUTO/ROUND-ROBIN/DIRECT-SELECT
