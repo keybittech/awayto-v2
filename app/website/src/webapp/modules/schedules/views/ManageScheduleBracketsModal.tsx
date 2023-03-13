@@ -14,13 +14,14 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 
-import { getRelativeDuration, IGroup, ISchedule, IScheduleBracket, IScheduleBracketSlot, IService, ITimeUnitNames, IUtilActionTypes, timeUnitOrder } from "awayto";
+import { getRelativeDuration, IGroup, ISchedule, IScheduleBracket, IScheduleBracketSlot, IService, ITimeUnitNames, IUtilActionTypes, IUserProfileActionTypes, timeUnitOrder } from "awayto";
 import { useApi, useAct, useComponents, useRedux } from 'awayto-hooks';
 
 import { scheduleSchema } from "./ScheduleHome";
 import { ManageScheduleBracketsActions } from "./ManageScheduleBrackets";
 
 const { SET_SNACK } = IUtilActionTypes;
+const { GET_USER_PROFILE_DETAILS } = IUserProfileActionTypes;
 
 const bracketSchema = {
   duration: 1,
@@ -112,7 +113,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
       const { name, scheduleTimeUnitName } = schedule;
       if (name && scheduleTimeUnitName && scheduleBracketsValues.length) {
         const [, res] = !editSchedule ?
-          api(postScheduleAction, schedule, { load: true }) :
+          api(postScheduleAction, schedule) :
           [undefined, new Promise<ISchedule[]>(res => res([schedule]))];
 
         res?.then(scheds => {
@@ -137,8 +138,11 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
             api(postGroupUserScheduleAction, { groupName: group?.name, userScheduleId: sched.id, groupScheduleId: schedule.id }) :
             [undefined, new Promise(res => res(true))];
           void Promise.all([rex, rez]).then(() => {
-            act(SET_SNACK, { snackOn: 'Successfully added ' + name, snackType: 'info' });
-            if (closeModal) closeModal();
+            const [, rey] = api(GET_USER_PROFILE_DETAILS);
+            rey?.then(() => {
+              act(SET_SNACK, { snackOn: 'Successfully added ' + name, snackType: 'info' });
+              if (closeModal) closeModal();
+            })
           }).catch(console.warn);
         });
 

@@ -61,14 +61,46 @@ RESTART FRESH USERS TABLE:
 
 
 
+SELECT slot.id FROM dbtable_schema.schedule_bracket_slots slot
+JOIN dbtable_schema.quotes quote ON quote.schedule_bracket_slot_id = slot.id;
+
+
+SELECT 
+	count("schedule".*) as schedulesCount,
+	count("bracket".*) as bracketsCount,
+	count("slot".*) as slotCount,
+	count("service".*) as serviceCount
+FROM
+	dbtable_schema.schedules schedule
+	JOIN dbtable_schema.schedule_brackets bracket ON bracket.schedule_id = schedule.id
+	JOIN dbtable_schema.schedule_bracket_services "service" ON "service".schedule_bracket_id = bracket.id
+	JOIN dbtable_schema.schedule_bracket_slots slot ON slot.schedule_bracket_id = bracket.id
+;
 
 
 
 
-
-
-
-
+		-- can use this to get orphaned items by time
+    SELECT service.id
+    FROM dbtable_schema.schedule_bracket_services sbs
+    JOIN dbtable_schema.services service ON service.id = sbs.service_id
+    JOIN dbtable_schema.service_tiers tier ON tier.service_id = service.id
+    JOIN dbtable_schema.quotes quote ON quote.service_tier_id = tier.id
+    JOIN dbtable_schema.schedule_bracket_slots slot ON slot.id = quote.schedule_bracket_slot_id
+    LEFT JOIN dbtable_schema.bookings booking ON booking.quote_id = quote.id
+    WHERE
+    TIMEZONE('America/Los_Angeles', (DATE_TRUNC('week', quote.slot_date::DATE) + slot.start_time)::TIMESTAMP) < TIMEZONE('America/Los_Angeles', NOW())
+    AND booking.id IS NOT NULL
+    UNION
+    SELECT service.id
+    FROM dbtable_schema.schedule_bracket_services sbs
+    JOIN dbtable_schema.services service ON service.id = sbs.service_id
+    JOIN dbtable_schema.service_tiers tier ON tier.service_id = service.id
+    LEFT JOIN dbtable_schema.quotes quote ON quote.service_tier_id = tier.id
+    JOIN dbtable_schema.schedule_bracket_slots slot ON slot.id = quote.schedule_bracket_slot_id
+    WHERE
+    TIMEZONE('America/Los_Angeles', (DATE_TRUNC('week', quote.slot_date::DATE) + slot.start_time)::TIMESTAMP) < TIMEZONE('America/Los_Angeles', NOW())
+    AND quote.id IS NOT NULL
 
 
 

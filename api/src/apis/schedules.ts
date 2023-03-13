@@ -1,7 +1,94 @@
-import { DbError, ISchedule, IScheduleActionTypes, IScheduleBracket, IScheduleBracketSlot, IService, utcNowString } from 'awayto';
+import { DbError, ISchedule, IScheduleActionTypes, IScheduleBracket, IScheduleBracketSlot, IService, ScheduledParts, utcNowString } from 'awayto';
 import { asyncForEach } from 'awayto';
-import { ApiModule } from '../api';
+import { ApiModule, ApiProps } from '../api';
 import { buildUpdate } from '../util/db';
+
+async function removeScheduleBrackets(scheduleId: string, props: ApiProps): Promise<void> {
+
+  const { rows: parts } = await props.db.query<ScheduledParts>(`
+    SELECT * FROM dbfunc_schema.get_scheduled_parts($1);
+  `, [scheduleId]);
+
+  const scheduledSlots = parts.find(p => p.ids?.length && 'slot' === p.type);
+  const scheduledServices = parts.find(p => p.ids?.length && 'service' === p.type);
+
+  const { rows: [{ ids }] } = await props.db.query<{ ids: string[] }>(`
+    SELECT JSONB_AGG(id) as ids FROM dbtable_schema.schedule_brackets
+    WHERE schedule_id = $1
+  `, [scheduleId]);
+
+  // If there are existing brackets for this user schedule
+  if (ids) {
+
+    // Loop through old bracket ids
+    for (const bracketId of ids) {
+
+      // If any slots or services are tied to existing quotes or bookings
+      if (scheduledSlots?.ids?.length || scheduledServices?.ids?.length) {
+
+        // Delete and disable this old bracket's unused and used slots
+        if (scheduledSlots) {
+          await props.db.query(`
+            DELETE FROM dbtable_schema.schedule_bracket_slots
+            WHERE schedule_bracket_id = $1 AND id <> ALL($2::uuid[])
+          `, [bracketId, scheduledSlots.ids]);
+
+          // Disable record so we can catch all disabled records later
+          await props.db.query(`
+            UPDATE dbtable_schema.schedule_bracket_slots
+            SET enabled = false
+            WHERE schedule_bracket_id = $1 AND id = ANY($2::uuid[])
+          `, [bracketId, scheduledSlots.ids]);
+        }
+
+        // Delete and disable this old bracket's unused and used services
+        if (scheduledServices) {
+          await props.db.query(`
+            DELETE FROM dbtable_schema.schedule_bracket_services
+            WHERE schedule_bracket_id = $1 AND id <> ALL($2::uuid[])
+          `, [bracketId, scheduledServices.ids]);
+
+          // Disable record so we can catch all disabled records later
+          await props.db.query(`
+            UPDATE dbtable_schema.schedule_bracket_services
+            SET enabled = false
+            WHERE schedule_bracket_id = $1 AND id = ANY($2::uuid[])
+          `, [bracketId, scheduledServices.ids]);
+        }
+
+        // Delete and disable brackets with unused and used slots or services
+        await props.db.query(`
+          DELETE FROM dbtable_schema.schedule_brackets
+          USING dbtable_schema.schedule_bracket_slots slot,
+                dbtable_schema.schedule_bracket_services service
+          WHERE dbtable_schema.schedule_brackets.id = $1
+          AND dbtable_schema.schedule_brackets.id = slot.schedule_bracket_id
+          AND slot.schedule_bracket_id = service.schedule_bracket_id
+          AND slot.id <> ALL($2::uuid[])
+          AND service.id <> ALL($3::uuid[])
+        `, [bracketId, (scheduledSlots?.ids || []), (scheduledServices?.ids || [])]);
+
+        // Disable record so we can catch all disabled records later
+        await props.db.query(`
+          UPDATE dbtable_schema.schedule_brackets
+          SET enabled = false
+          FROM dbtable_schema.schedule_bracket_slots slot
+          JOIN dbtable_schema.schedule_bracket_services service ON service.schedule_bracket_id = slot.schedule_bracket_id
+          WHERE dbtable_schema.schedule_brackets.id = $1
+          AND slot.schedule_bracket_id = dbtable_schema.schedule_brackets.id
+          AND (slot.id = ANY($2::uuid[])
+          OR service.id = ANY($3::uuid[]))
+        `, [bracketId, (scheduledSlots?.ids || []), (scheduledServices?.ids || [])]);
+      } else {
+        // If there were no slots or services attached to this bracket, delete it completely
+        await props.db.query(`
+          DELETE FROM dbtable_schema.schedule_brackets
+          WHERE id = $1
+        `, [bracketId]);
+      }
+    }
+  }
+}
 
 const schedules: ApiModule = [
 
@@ -35,41 +122,34 @@ const schedules: ApiModule = [
     }
   },
 
+  // Posting new brackets completely wipes out old brackets, and inserts new ones.
+  // If any quotes or bookings are already attached to a bracket, creating a dependency,
+  // the slots and services tied to those quotes or bookings will be set to disabled, hiding
+  // them from various UIs; all other records are deleted. For any future quotes or bookings, 
+  // they will be handled as orphaned records by the admin on a separate UI
   {
     action: IScheduleActionTypes.POST_SCEHDULE_BRACKETS,
     cmnd: async (props) => {
       try {
         const { scheduleId } = props.event.body;
 
-        const brackets = new Map<string, IScheduleBracket>(Object.entries(props.event.body.brackets));
+        // Handle old brackets
+        await removeScheduleBrackets(scheduleId, props);
 
-        await props.db.query(`
-          DELETE FROM dbtable_schema.schedule_brackets
-          WHERE schedule_id = $1 AND created_sub = $2
-        `, [scheduleId, props.event.userSub]);
+        // Handle new brackets
+        const brackets = new Map<string, IScheduleBracket>(props.event.body.brackets);
 
+        // For all new incomimg brackets, create all resources
         for (const b of brackets.values()) {
-          const { id: bracketId } = (await props.db.query<IScheduleBracket>(`
+          const { rows: [{ id: bracketId }] } = await props.db.query<IScheduleBracket>(`
             INSERT INTO dbtable_schema.schedule_brackets (schedule_id, duration, multiplier, automatic, created_sub)
             VALUES ($1, $2, $3, $4, $5::uuid)
             RETURNING id
-          `, [scheduleId, b.duration, b.multiplier, b.automatic, props.event.userSub])).rows[0];
-
-          if (isNaN(parseInt(b.id))) {
-            await props.db.query(`
-              DELETE FROM dbtable_schema.schedule_bracket_services
-              WHERE schedule_bracket_id = $1 AND created_sub = $2
-            `, [b.id, props.event.userSub]);
-
-            await props.db.query(`
-              DELETE FROM dbtable_schema.schedule_bracket_slots
-              WHERE schedule_bracket_id = $1 AND created_sub = $2
-            `, [b.id, props.event.userSub]);
-          }
+          `, [scheduleId, b.duration, b.multiplier, b.automatic, props.event.userSub]);
 
           b.id = bracketId;
 
-          const services = new Map<string, IService>(Object.entries(b.services));
+          const services = new Map<string, IService>(b.services);
 
           for (const serv of services.values()) {
             await props.db.query(`
@@ -78,7 +158,7 @@ const schedules: ApiModule = [
             `, [bracketId, serv.id, props.event.userSub])
           }
 
-          const slots = new Map<string, IScheduleBracketSlot>(Object.entries(b.slots));
+          const slots = new Map<string, IScheduleBracketSlot>(b.slots);
 
           for (const slot of slots.values()) {
             const [{ id: slotId }] = (await props.db.query(`
@@ -92,6 +172,7 @@ const schedules: ApiModule = [
           }
         }
 
+        await props.redis.del(props.event.userSub + `profile/details`);
         await props.redis.del(props.event.userSub + 'schedules/' + scheduleId);
 
         return { id: scheduleId, brackets: Array.from(brackets.values()) };
@@ -161,8 +242,8 @@ const schedules: ApiModule = [
 
         const response = await props.db.query<ISchedule>(`
           SELECT * FROM dbview_schema.enabled_schedules_ext
-          WHERE id = $1 AND "createdSub" = $2
-        `, [id, props.event.userSub]);
+          WHERE id = $1
+        `, [id]);
 
         return response.rows;
 
@@ -182,61 +263,8 @@ const schedules: ApiModule = [
 
         await asyncForEach(idsSplit, async scheduleId => {
 
-          let { rows: [{ brackets }] } = await props.db.query<ISchedule>(`
-            SELECT * FROM dbview_schema.enabled_schedules_ext
-            WHERE id = $1
-          `, [scheduleId]);
-
-          brackets = new Map(Object.entries(brackets || {}) as Iterable<readonly [string, IScheduleBracket]>);
-
-          for (const b of brackets.values()) {
-            // Delete slots that aren't attached to a booking or quote
-            await props.db.query<{ enabled: boolean[] }>(`
-              DELETE FROM dbtable_schema.schedule_bracket_slots slot
-              WHERE slot.schedule_bracket_id = $1
-              AND NOT EXISTS (
-                SELECT 1
-                FROM dbtable_schema.bookings booking
-                WHERE booking.schedule_bracket_slot_id = slot.id
-              )
-              AND NOT EXISTS (
-                SELECT 1
-                FROM dbtable_schema.quotes quote
-                WHERE quote.schedule_bracket_slot_id = slot.id
-              )
-            `, [b.id]);
-
-            // Delete any bracket services which also aren't related to bookings
-            await props.db.query(`
-              DELETE FROM dbtable_schema.schedule_bracket_services service
-              WHERE service.schedule_bracket_id = $1
-              AND NOT EXISTS (
-                SELECT 1
-                FROM dbtable_schema.schedule_bracket_slots slot
-                WHERE slot.schedule_bracket_id = service.schedule_bracket_id
-              )
-            `, [b.id]);
-
-            await props.db.query(`
-              DELETE FROM dbtable_schema.schedule_brackets bracket
-              WHERE bracket.id = $1
-              AND NOT EXISTS (
-                SELECT 1
-                FROM dbtable_schema.schedule_bracket_slots slot
-                JOIN dbtable_schema.schedule_brackets brack ON bracket.id = slot.schedule_bracket_id
-                WHERE brack.id = bracket.id
-              )
-            `, [b.id]);
-          }
-
-          await props.db.query(`
-            UPDATE dbtable_schema.quotes
-            SET enabled = false, updated_on = $2, updated_sub = $3
-            FROM dbtable_schema.schedule_bracket_slots slot
-            JOIN dbtable_schema.schedule_brackets bracket ON bracket.id = slot.schedule_bracket_id
-            JOIN dbtable_schema.schedules schedule ON schedule.id = bracket.schedule_id
-            WHERE slot.id = dbtable_schema.quotes.schedule_bracket_slot_id AND schedule.id = $1
-          `, [scheduleId, utcNowString(), props.event.userSub]);
+          // Handle old brackets
+          await removeScheduleBrackets(scheduleId, props);
 
           await props.db.query(`
             UPDATE dbtable_schema.schedules
@@ -245,13 +273,12 @@ const schedules: ApiModule = [
           `, [scheduleId]);
 
           await props.db.query(`
-            DELETE FROM dbtable_schema.schedules schedule
-            WHERE schedule.id = $1
+            DELETE FROM dbtable_schema.schedules
+            WHERE dbtable_schema.schedules.id = $1
             AND NOT EXISTS (
               SELECT 1
               FROM dbtable_schema.schedule_brackets bracket
-              JOIN dbtable_schema.schedules sched ON sched.id = bracket.schedule_id
-              WHERE sched.id = schedule.id
+              WHERE bracket.schedule_id = dbtable_schema.schedules.id
             )
           `, [scheduleId]);
         });

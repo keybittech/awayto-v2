@@ -25,9 +25,20 @@ declare global {
   }
 }
 
+/**
+ * @category Schedule
+ */
 export enum BookingModes {
   FIRST_COME = "First Come First Served",
   DISTRIBUTED = "Distributed"
+}
+
+/**
+ * @category Schedule
+ */
+export type ScheduledParts = {
+  ids?: string[];
+  type: string;
 }
 
 /**

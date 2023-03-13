@@ -16,7 +16,7 @@ import MenuItem from '@mui/material/MenuItem';
 import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-import { IService, ISchedule, IActionTypes, IGroupSchedule, IGroup, IUtilActionTypes, plural } from 'awayto';
+import { IService, ISchedule, IActionTypes, IGroupSchedule, IGroup, IUtilActionTypes, IUserProfileActionTypes, plural } from 'awayto';
 import { useRedux, useApi, useAct } from 'awayto-hooks';
 
 import ManageScheduleBracketsModal from './ManageScheduleBracketsModal';
@@ -41,6 +41,7 @@ declare global {
 }
 
 const { OPEN_CONFIRM, SET_SNACK } = IUtilActionTypes;
+const { GET_USER_PROFILE_DETAILS } = IUserProfileActionTypes;
 
 // This is how group users interact with the schedule
 
@@ -116,6 +117,7 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
               res?.then(() => {
                 const [, rez] = api(deleteScheduleAction, { ids });
                 rez?.then(() => {
+                  api(GET_USER_PROFILE_DETAILS);
                   act(SET_SNACK, { snackType: 'success', snackOn: 'Successfully removed schedule records.'})
                   setToggle(!toggle);
                 })
@@ -132,8 +134,7 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
   return <>
     <Dialog open={dialog === 'manage_schedule'} fullWidth maxWidth="sm">
       <ManageScheduleBracketsModal {...props} group={group} editSchedule={schedule} closeModal={() => {
-        setDialog('')
-        // api(getScheduleBracketsAction);
+        setDialog('');
       }} />
     </Dialog>
 

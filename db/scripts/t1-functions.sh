@@ -22,7 +22,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     WITH series AS (
       SELECT
         week_start::DATE,
-        slot.start_time,
+        slot."startTime"::INTERVAL as start_time,
         slot.id as schedule_bracket_slot_id,
         schedule.timezone as schedule_timezone
       FROM generate_series(
@@ -30,10 +30,10 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
         DATE_TRUNC('week', p_month_start_date::DATE + INTERVAL '1 day') - INTERVAL '1 day' + INTERVAL '1 month',
         interval '1 week'
       ) AS week_start
-      CROSS JOIN dbtable_schema.schedule_bracket_slots slot
+      CROSS JOIN dbview_schema.enabled_schedule_bracket_slots slot
       LEFT JOIN dbtable_schema.bookings booking ON booking.schedule_bracket_slot_id = slot.id AND DATE_TRUNC('week', booking.slot_date + INTERVAL '1 day') - INTERVAL '1 DAY' = week_start
       LEFT JOIN dbtable_schema.schedule_bracket_slot_exclusions exclusion ON exclusion.schedule_bracket_slot_id = slot.id AND DATE_TRUNC('week', exclusion.exclusion_date + INTERVAL '1 day') - INTERVAL '1 DAY' = week_start
-      JOIN dbtable_schema.schedule_brackets bracket ON bracket.id = slot.schedule_bracket_id
+      JOIN dbtable_schema.schedule_brackets bracket ON bracket.id = slot."scheduleBracketId"
       JOIN dbtable_schema.group_user_schedules gus ON gus.user_schedule_id = bracket.schedule_id
       JOIN dbtable_schema.schedules schedule ON schedule.id = gus.group_schedule_id
       WHERE
@@ -83,11 +83,39 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
           WHERE "id" = NEW.id;
           EXIT;
         EXCEPTION WHEN unique_violation THEN
-
         END;
       END LOOP;
       RETURN NEW;
     END;
   $$ LANGUAGE PLPGSQL VOLATILE;
 
+  CREATE OR REPLACE FUNCTION dbfunc_schema.get_scheduled_parts (
+    p_schedule_id UUID
+  )
+  RETURNS TABLE (
+    type TEXT,
+    ids JSONB
+  )  AS $$
+  BEGIN
+  RETURN QUERY
+    SELECT DISTINCT 'slot', JSONB_AGG(sl.id)
+    FROM dbtable_schema.schedule_bracket_slots sl
+    JOIN dbtable_schema.schedule_brackets bracket ON bracket.id = sl.schedule_bracket_id
+    JOIN dbtable_schema.schedules schedule ON schedule.id = bracket.schedule_id
+    LEFT JOIN dbtable_schema.quotes quote ON quote.schedule_bracket_slot_id = sl.id
+    WHERE schedule.id = p_schedule_id AND quote.id IS NOT NULL
+    UNION
+    SELECT DISTINCT 'service', JSONB_AGG(se.id)
+    FROM dbtable_schema.schedule_bracket_services se
+    JOIN dbtable_schema.schedule_brackets bracket ON bracket.id = se.schedule_bracket_id
+    JOIN dbtable_schema.schedules schedule ON schedule.id = bracket.schedule_id
+    JOIN dbtable_schema.services service ON service.id = se.service_id
+    JOIN dbtable_schema.service_tiers tier ON tier.service_id = service.id
+    LEFT JOIN dbtable_schema.quotes quote ON quote.service_tier_id = tier.id
+    JOIN dbtable_schema.schedule_bracket_slots slot ON slot.id = quote.schedule_bracket_slot_id 
+    WHERE schedule.id = p_schedule_id
+    AND slot.schedule_bracket_id = bracket.id
+    AND quote.id IS NOT NULL;
+  END;
+  $$ LANGUAGE PLPGSQL;
 EOSQL

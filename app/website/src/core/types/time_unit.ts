@@ -91,13 +91,13 @@ export function utcNowString(): string {
 export const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 export const compactDateTimeFormat = 'ddd, hh:mm a';
 
-export function getContextFormattedDuration(contextUnit: ITimeUnitNames | string, duration: string, relativeDate: dayjs.Dayjs = dayjs()): string {
+export function getContextFormattedDuration(contextUnit: ITimeUnitNames | string, duration: string, relativeDate: dayjs.Dayjs = dayjs().startOf('year')): string {
   let formatted = 'No format!';
 
   if (TimeUnit.DAY === contextUnit) {
-    formatted = relativeDate.startOf('week').startOf('day').add(dayjs.duration(duration)).format(compactDateTimeFormat);
+    formatted = staticDT(relativeDate.startOf('day').startOf('week'), duration).format(compactDateTimeFormat);
   } else if (TimeUnit.WEEK === contextUnit) {
-    formatted = relativeDate.startOf('week').startOf('day').add(dayjs.duration(duration)).format(compactDateTimeFormat);
+    formatted = staticDT(relativeDate.startOf('day').startOf('week'), duration).format(compactDateTimeFormat);
   }
 
   return formatted;
