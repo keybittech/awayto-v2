@@ -10,9 +10,11 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 
 import { getBaseComponents, getDesignTokens, getThemedComponents } from './hooks/useStyles';
 import { IUserProfileActionTypes, ILookupActionTypes, SiteRoles } from 'awayto';
-import { useRedux, useComponents, useApi } from 'awayto-hooks';
+import { useRedux, useApi } from 'awayto-hooks';
 
 import './App.css';
+
+import Layout from './modules/common/views/Layout';
 
 const {
   REACT_APP_KC_CLIENT
@@ -25,7 +27,6 @@ const { GET_LOOKUPS } = ILookupActionTypes;
 const App = (props: IProps): JSX.Element => {
   const api = useApi();
 
-  const { Layout } = useComponents();
   const { theme } = useRedux(state => state.util);
   const [ready, setReady] = useState(false);
 
@@ -58,13 +59,11 @@ const App = (props: IProps): JSX.Element => {
   }, []);
 
   return <>
-    {ready && <Suspense>
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <ThemeProvider theme={currentTheme}>
-          <Layout {...props} />
-        </ThemeProvider>
-      </LocalizationProvider>
-    </Suspense>}
+    {ready && <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <ThemeProvider theme={currentTheme}>
+        <Layout {...props} />
+      </ThemeProvider>
+    </LocalizationProvider>}
   </>
 }
 

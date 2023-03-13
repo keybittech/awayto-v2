@@ -170,18 +170,17 @@ void initKeycloak.call({
   cb: function () {
 
     async function go() {
-
       const { reducers } = build as Record<string, Record<string, string>>;
-
-      await asyncForEach(Object.keys(reducers), async (reducer: string): Promise<void> => {
+  
+      await Promise.all(Object.keys(reducers).map(async reducer => {
         const r = await import('../webapp/modules/' + reducers[reducer]) as { default: IReducers };
         addReducer({ [reducer]: r.default });
-      });
-
+      }));
+  
       const props = { store, loading: false, persistor };
-
+  
       const root = createRoot(document.getElementById('root') as Element);
-
+  
       root.render(
         <React.StrictMode>
           <Provider store={store}>
@@ -193,9 +192,10 @@ void initKeycloak.call({
           </Provider>
         </React.StrictMode>
       )
-
+  
       reportWebVitals(console.log);
     }
+
     void go();
   }
 });

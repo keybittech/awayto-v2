@@ -16,6 +16,7 @@ import { Typography } from '@mui/material';
 
 import Home from './Home';
 import Topbar from './Topbar';
+import Sidebar from './Sidebar';
 
 const { SET_SNACK } = IUtilActionTypes;
 
@@ -32,7 +33,7 @@ const Layout = (props: IProps): JSX.Element => {
 
   const act = useAct();
 
-  const { Sidebar, ConfirmAction, Profile, GroupPaths, ServiceHome, ScheduleHome, RequestQuote } = useComponents();
+  const { ConfirmAction, Profile, GroupPaths, ServiceHome, ScheduleHome, RequestQuote } = useComponents();
   const { snackOn, snackType, snackRequestId, isLoading, loadingMessage } = useRedux(state => state.util);
 
   const hideSnack = (): void => {
