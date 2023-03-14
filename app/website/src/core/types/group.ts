@@ -426,6 +426,7 @@ export type IGroupFormActions = IPostGroupFormAction
  */
 export type IGroupUserScheduleStub = {
   groupScheduleId: string;
+  userScheduleId: string;
   quoteId: string;
   slotDate: string;
   startTime: string;
