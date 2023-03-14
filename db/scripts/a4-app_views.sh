@@ -507,8 +507,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
   CREATE
   OR REPLACE VIEW dbview_schema.group_user_schedule_stubs AS
   SELECT
-    gus.group_schedule_id as "groupScheduleId",
-    gus.user_schedule_id as "userScheduleId",
+    brac.schedule_id as "userScheduleId",
     q.id as "quoteId",
     q.slot_date as "slotDate",
     sbs.start_time::TEXT as "startTime",
@@ -523,13 +522,12 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     JOIN dbtable_schema.schedule_brackets brac ON brac.id = sbs.schedule_bracket_id
     LEFT JOIN LATERAL (
       SELECT replacement FROM dbfunc_schema.get_peer_schedule_replacement(
-        brac.schedule_id,
+        ARRAY(SELECT id FROM dbtable_schema.schedules WHERE id = brac.schedule_id),
         q.slot_date,
         sbs.start_time,
         t.name
       )
     ) rep ON true
-    JOIN dbtable_schema.group_user_schedules gus ON gus.user_schedule_id = brac.schedule_id
   WHERE
     sbs.enabled = false;
 

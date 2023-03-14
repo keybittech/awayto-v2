@@ -70,7 +70,8 @@ export function ScheduleTimePicker(props: IProps): JSX.Element {
       if (slot) {
         quote = {
           slotDate: date,
-          scheduleBracketSlotId: slot.scheduleBracketSlotId
+          startTime: slot.startTime,
+          scheduleBracketSlotId: slot.scheduleBracketSlotId,
         } as IQuote;
       }
     }
@@ -86,6 +87,7 @@ export function ScheduleTimePicker(props: IProps): JSX.Element {
   }, [dateSlots, firstAvailable, didInit]);
 
   return <TimePicker
+    {...props}
     label="Time"
     value={value}
     onChange={time => {

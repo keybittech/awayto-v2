@@ -120,7 +120,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
   $$ LANGUAGE PLPGSQL;
 
   CREATE OR REPLACE FUNCTION dbfunc_schema.get_peer_schedule_replacement (
-    p_user_schedule_id UUID,
+    p_user_schedule_ids UUID[],
     p_slot_date DATE,
     p_start_time INTERVAL,
     p_tier_name TEXT
@@ -133,21 +133,23 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     SELECT JSON_BUILD_OBJECT(
       'username', usr.username,
       'scheduleBracketSlotId', repslot.id,
+      'startTime', repslot.start_time::TEXT,
       'serviceTierId', reptier.id
     ) as replacement
     FROM
       dbtable_schema.group_user_schedules user_sched
-    JOIN dbtable_schema.group_user_schedules peer_sched ON peer_sched.group_schedule_id = user_sched.group_schedule_id AND peer_sched.user_schedule_id <> p_user_schedule_id
+    JOIN dbtable_schema.group_user_schedules peer_sched ON peer_sched.group_schedule_id = user_sched.group_schedule_id AND peer_sched.user_schedule_id <> ALL(p_user_schedule_ids::UUID[])
     JOIN dbtable_schema.schedule_brackets repbrac ON repbrac.schedule_id = peer_sched.user_schedule_id
     JOIN dbtable_schema.schedule_bracket_slots repslot ON repslot.schedule_bracket_id = repbrac.id
     JOIN dbtable_schema.schedule_bracket_services repserv ON repserv.schedule_bracket_id = repbrac.id
     JOIN dbtable_schema.service_tiers reptier ON reptier.service_id = repserv.service_id
     JOIN dbtable_schema.users usr ON usr.sub = repslot.created_sub
     LEFT JOIN dbtable_schema.quotes repq ON repq.schedule_bracket_slot_id = repslot.id AND repq.slot_date = p_slot_date AND repq.enabled = true
-    WHERE user_sched.user_schedule_id = p_user_schedule_id
+    WHERE user_sched.user_schedule_id = ANY(p_user_schedule_ids::UUID[])
       AND repslot.start_time = p_start_time
       AND reptier.name = p_tier_name
       AND repq.id IS NULL
+      AND repslot.enabled = true
     LIMIT 1;
   END;
   $$ LANGUAGE PLPGSQL;

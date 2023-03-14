@@ -68,9 +68,10 @@ const groupUserSchedules: ApiModule = [
         const { groupName } = props.event.pathParameters;
 
         const response = await props.db.query<IGroupUserScheduleStub>(`
-          SELECT guss.*
+          SELECT guss.*, gus.group_schedule_id as "groupScheduleId"
           FROM dbview_schema.group_user_schedule_stubs guss
-          JOIN dbtable_schema.schedules schedule ON schedule.id = guss."groupScheduleId"
+          JOIN dbtable_schema.group_user_schedules gus ON gus.user_schedule_id = guss."userScheduleId"
+          JOIN dbtable_schema.schedules schedule ON schedule.id = gus.group_schedule_id
           JOIN dbview_schema.enabled_users eu ON eu.sub = schedule.created_sub
           WHERE eu.username = $1
         `, ['system_group_' + groupName]);
@@ -82,6 +83,27 @@ const groupUserSchedules: ApiModule = [
       }
 
     }
+  },
+
+  {
+    action: IGroupUserScheduleActionTypes.GET_GROUP_USER_SCHEDULE_STUB_REPLACEMENT,
+    cmnd: async (props) => {
+      try {
+        const { userScheduleId } = props.event.pathParameters;
+        const { slotDate, startTime, tierName } = props.event.queryParameters;
+
+        const { rows: stubs } = await props.db.query<IGroupUserScheduleStub>(`
+          SELECT replacement FROM dbfunc_schema.get_peer_schedule_replacement($1::UUID[], $2::DATE, $3::INTERVAL, $4::TEXT)
+        `, [[userScheduleId], slotDate, startTime, tierName]);
+
+        return { stubs } as IGroupUserScheduleState;
+
+      } catch (error) {
+        throw error;
+      }
+
+    }
+
   },
 
   {

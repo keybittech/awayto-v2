@@ -11,12 +11,14 @@ import CardContent from '@mui/material/CardContent';
 import CardActions from '@mui/material/CardActions';
 import Button from '@mui/material/Button';
 
-import { IGroupScheduleDateSlots, IGroupUserScheduleStub, quotedDT, shortNSweet } from "awayto";
+import { IGroupScheduleDateSlots, IGroupUserScheduleStub, IGroupUserScheduleActionTypes, quotedDT, shortNSweet, IGroupUserScheduleState } from "awayto";
 import { useApi, useAct, useRedux } from 'awayto-hooks';
 import { useCallback } from "react";
 import ScheduleDatePicker from "./ScheduleDatePicker";
 import ScheduleTimePicker from "./ScheduleTimePicker";
 import { useParams } from "react-router";
+
+const { GET_GROUP_USER_SCHEDULE_STUB_REPLACEMENT } = IGroupUserScheduleActionTypes;
 
 declare global {
   interface IProps {
@@ -34,6 +36,7 @@ export function ManageScheduleStubModal({ editGroupUserScheduleStub, closeModal 
 
   const [firstAvailable, setFirstAvailable] = useState({ time: dayjs().startOf('day') } as IGroupScheduleDateSlots);
   const [activeSchedule, setActiveSchedule] = useState('');
+  const [searching, setSearching] = useState(false);
 
   const [bracketSlotDate, setBracketSlotDate] = useState<dayjs.Dayjs | null>();
   const [bracketSlotTime, setBracketSlotTime] = useState<dayjs.Dayjs | null>();
@@ -42,13 +45,15 @@ export function ManageScheduleStubModal({ editGroupUserScheduleStub, closeModal 
 
   const originalReplacement = editGroupUserScheduleStub && { ...editGroupUserScheduleStub.replacement };
 
-  if (groupUserScheduleStub.groupScheduleId && activeSchedule !== groupUserScheduleStub.groupScheduleId && dateSlots.length && !firstAvailable.scheduleBracketSlotId) {
+  if (groupUserScheduleStub.userScheduleId && activeSchedule !== groupUserScheduleStub.userScheduleId && dateSlots.length && !firstAvailable.scheduleBracketSlotId) {
     const [slot] = dateSlots;
     setFirstAvailable({ ...slot, time: quotedDT(slot.weekStart, slot.startTime) });
-    setActiveSchedule(groupUserScheduleStub.groupScheduleId);
+    setActiveSchedule(groupUserScheduleStub.userScheduleId);
   }
 
   const handleSubmit = useCallback((replacement: Partial<IGroupUserScheduleStub['replacement']>) => {
+    
+    
     console.log({ replacement });
     //   if (closeModal)
     //     closeModal();
@@ -62,7 +67,7 @@ export function ManageScheduleStubModal({ editGroupUserScheduleStub, closeModal 
           <Box mb={2}>
             <Typography>Use an existing slot at the same date and time:</Typography>
           </Box>
-          <Box mb={2}>
+          <Box mb={4}>
             <Button fullWidth variant="contained" color="primary" onClick={() => handleSubmit(originalReplacement)}>Reassign to {originalReplacement.username}</Button>
           </Box>
 
@@ -79,7 +84,7 @@ export function ManageScheduleStubModal({ editGroupUserScheduleStub, closeModal 
           </Grid>
         </>}
 
-        <Box my={2}>
+        <Box my={4}>
           <Box mb={2}>
             <Typography>Select a new date and time:</Typography>
           </Box>
@@ -101,37 +106,44 @@ export function ManageScheduleStubModal({ editGroupUserScheduleStub, closeModal 
                 firstAvailable={firstAvailable}
                 bracketSlotDate={bracketSlotDate}
                 value={bracketSlotTime || firstAvailable.time}
-                onTimeChange={({ time, quote: newQuote }) => {
-                  setBracketSlotTime(time);
-                  if (newQuote) {
-                    setGroupUserScheduleStub({
-                      ...groupUserScheduleStub,
-                      replacement: {
-                        slotDate: newQuote.slotDate,
-                        scheduleBracketSlotId: newQuote.scheduleBracketSlotId
-                      }
-                    } as IGroupUserScheduleStub);
-                  }
-                }}
-                onTimeAccept={({ slotDate, scheduleBracketSlotId }) => {
-                  console.log('accepting', slotDate, scheduleBracketSlotId);
-                  setGroupUserScheduleStub({
-                    ...groupUserScheduleStub,
-                    replacement: {
-                      slotDate,
-                      scheduleBracketSlotId
+                disabled={searching}
+                onTimeChange={({ time }) => setBracketSlotTime(time)}
+                onTimeAccept={({ slotDate, startTime }) => {
+                  setSearching(true);
+
+                  const { userScheduleId, tierName } = groupUserScheduleStub;
+            
+                  const [, res] = api(GET_GROUP_USER_SCHEDULE_STUB_REPLACEMENT, {
+                    groupName,
+                    userScheduleId,
+                    slotDate,
+                    startTime,
+                    tierName
+                  }, { useParams: true });
+
+                  res?.then(stubRes => {
+                    const { stubs: [replacementStub] } = stubRes as IGroupUserScheduleState;
+                    
+                      console.log({ stubRes })
+                    if (replacementStub) {
+                      setGroupUserScheduleStub({
+                        ...groupUserScheduleStub,
+                        replacement: replacementStub.replacement
+                      } as IGroupUserScheduleStub);
                     }
-                  } as IGroupUserScheduleStub);
+                  }).finally(() => {
+                    setSearching(false);
+                  });
+
                 }}
               />
             </Grid>
           </Grid>
         </Box>
 
-        <Box my={2}>
-          <Button onClick={() => handleSubmit(groupUserScheduleStub.replacement)} fullWidth variant="contained" color="primary">Reassign to new slot</Button>
-        </Box>
-
+        {groupUserScheduleStub.replacement?.username && <Box my={2}>
+          <Button onClick={() => handleSubmit(groupUserScheduleStub.replacement)} fullWidth variant="contained" color="primary">Reassign to {groupUserScheduleStub.replacement?.username}</Button>
+        </Box>}
       </CardContent>
       <CardActions>
         <Grid container justifyContent="space-between">

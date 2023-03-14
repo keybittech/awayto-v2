@@ -72,6 +72,7 @@ const { SET_LOADING, API_SUCCESS, SET_SNACK } = IUtilActionTypes;
 
 type ApiMeta = {
   load: boolean;
+  useParams: boolean;
   noRedux: boolean;
   noRedis: boolean;
   debounce: {
@@ -141,7 +142,9 @@ export function useApi(): <T extends { [prop: string]: unknown}, R = IMergedStat
           keyBody[k[0]] = body[k[0]] as string;
         }
 
-        path = generator.generate(pathKey, keyBody).split(/\/(.+)/)[1];
+        // When "generator.generate" takes more keys than it requires for the base path, it turns those extras into query parameters, so we either do want that or don't and it needs to be set with { useParams: true } as a meta option, allowing for GET/path?some=param&array=values
+        // This will automatically be handled in the express controller and the query params available in props.event.queryParameters
+        path = generator.generate(pathKey, meta.useParams ? body as Record<string, string> : keyBody).slice(method.length + 1);
       }
 
       if (['delete', 'get'].indexOf(method.toLowerCase()) > -1 && body) {
