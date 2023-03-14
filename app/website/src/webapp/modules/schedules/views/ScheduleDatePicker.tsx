@@ -13,7 +13,7 @@ type ScheduleDatePickerType = {
   groupName?: string;
   scheduleId?: string;
   firstAvailable?: IGroupScheduleDateSlots & { time: dayjs.Dayjs };
-  value?: dayjs.Dayjs | null;
+  bracketSlotDate?: dayjs.Dayjs | null;
   onDateChange?(value: dayjs.Dayjs | null, keyboardInputValue?: string | undefined): void;
 }
 
@@ -23,7 +23,7 @@ declare global {
 
 export function ScheduleDatePicker(props: IProps): JSX.Element {
 
-  const { groupName, scheduleId, firstAvailable, value, onDateChange } = props as Required<ScheduleDatePickerType>;
+  const { groupName, scheduleId, firstAvailable, bracketSlotDate, onDateChange } = props as Required<ScheduleDatePickerType>;
 
   const api = useApi();
 
@@ -45,7 +45,7 @@ export function ScheduleDatePicker(props: IProps): JSX.Element {
   }, [groupName, scheduleId, monthSeekDate]);
 
   return <DesktopDatePicker
-    value={value}
+    value={bracketSlotDate}
     onChange={onDateChange}
     label="Date"
     inputFormat="MM/DD/YYYY"

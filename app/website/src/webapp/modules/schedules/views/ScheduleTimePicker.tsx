@@ -5,14 +5,14 @@ import { Duration, DurationUnitType } from 'dayjs/plugin/duration';
 import TextField from '@mui/material/TextField';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 
-import { getRelativeDuration, IGroupScheduleDateSlots, IQuote, TimeUnit } from 'awayto';
+import { getRelativeDuration, IGroupScheduleDateSlots, IQuote, ITimeUnitNames, TimeUnit } from 'awayto';
 import { useRedux } from 'awayto-hooks';
 
 type ScheduleTimePickerType = {
   scheduleId?: string;
   bracketSlotDate?: dayjs.Dayjs | null;
+  bracketSlotTime?: dayjs.Dayjs | null;
   firstAvailable?: IGroupScheduleDateSlots & { time: dayjs.Dayjs };
-  value?: dayjs.Dayjs | null;
   onTimeChange?(props: { time: dayjs.Dayjs | null, quote?: IQuote }): void;
   onTimeAccept?(value: IQuote): void;
 }
@@ -23,17 +23,18 @@ declare global {
 
 export function ScheduleTimePicker(props: IProps): JSX.Element {
 
-  const { scheduleId, bracketSlotDate, firstAvailable, value, onTimeChange, onTimeAccept } = props as Required<ScheduleTimePickerType>;
+  const { scheduleId, bracketSlotDate, firstAvailable, bracketSlotTime, onTimeChange, onTimeAccept } = props as Required<ScheduleTimePickerType>;
   
   const { dateSlots, groupSchedules } = useRedux(state => state.groupSchedule);
+  const { timeUnits } = useRedux(state => state.lookup);
   const [didInit, setDidInit] = useState(false);
 
-  const { bracketTimeUnitName, slotTimeUnitName } = groupSchedules.get(scheduleId) || {};
-
+  const { bracketTimeUnitId, slotTimeUnitId } = groupSchedules.get(scheduleId) || {};
+  const bracketTimeUnitName = timeUnits.find(u => u.id === bracketTimeUnitId)?.name as ITimeUnitNames;
+  const slotTimeUnitName = timeUnits.find(u => u.id === slotTimeUnitId)?.name as ITimeUnitNames;
   const sessionDuration = Math.round(getRelativeDuration(1, bracketTimeUnitName, slotTimeUnitName));
   
   const slotFactors = [] as number[];
-
   for (let factor = 1; factor < sessionDuration; factor++) {
     if (sessionDuration % factor === 0) {
       slotFactors.push(factor);
@@ -87,13 +88,11 @@ export function ScheduleTimePicker(props: IProps): JSX.Element {
   }, [dateSlots, firstAvailable, didInit]);
 
   return <TimePicker
-    {...props}
     label="Time"
-    value={value}
+    value={bracketSlotTime}
     onChange={time => {
       const quote = getQuote(time)
       onTimeChange({ time, quote });
-      quote && onTimeAccept(quote);
     }}
     ampmInClock={true}
     ignoreInvalidInputs={true}
@@ -103,7 +102,7 @@ export function ScheduleTimePicker(props: IProps): JSX.Element {
     }}
     shouldDisableTime={(time, clockType) => {
       if (dateSlots.length) {
-        const currentSlotTime = value;
+        const currentSlotTime = bracketSlotTime;
         const currentSlotDate = bracketSlotDate || firstAvailable.time;
         // Ignore seconds check because final time doesn't need seconds, so this will cause invalidity
         if ('seconds' === clockType) return false;

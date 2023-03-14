@@ -1,4 +1,5 @@
-import { asyncForEach, IGroupUserScheduleActionTypes, IGroupService, IGroupUserSchedule, ScheduledParts, IGroupUserScheduleStub, IGroupUserScheduleState } from 'awayto';
+import { asyncForEach, IGroupUserScheduleActionTypes, IGroupService, IGroupUserSchedule, ScheduledParts, IGroupUserScheduleStub, IGroupUserScheduleState, utcNowString } from 'awayto';
+import { buildUpdate } from '../util/db';
 import { ApiModule } from '../api';
 
 const groupUserSchedules: ApiModule = [
@@ -104,6 +105,31 @@ const groupUserSchedules: ApiModule = [
 
     }
 
+  },
+
+  {
+    action: IGroupUserScheduleActionTypes.PUT_GROUP_USER_SCHEDULE_STUB_REPLACEMENT,
+    cmnd: async (props) => {
+
+      const { quoteId, slotDate, scheduleBracketSlotId, serviceTierId } = props.event.body
+
+      const updateProps = buildUpdate({
+        id: quoteId,
+        slot_date: slotDate,
+        schedule_bracket_slot_id: scheduleBracketSlotId,
+        service_tier_id: serviceTierId,
+        updated_sub: props.event.userSub,
+        updated_on: utcNowString()
+      });
+
+      await props.db.query(`
+        UPDATE dbtable_schema.quotes
+        SET ${updateProps.string}
+        WHERE id = $1
+      `, updateProps.array)
+
+      return true;
+    }
   },
 
   {

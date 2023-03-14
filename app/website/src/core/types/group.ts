@@ -421,6 +421,15 @@ export type IGroupFormActions = IPostGroupFormAction
   | IGetGroupFormByIdAction
   | IDeleteGroupFormAction;
 
+
+export type IGroupUserScheduleStubReplacement = {
+  username: string;
+  slotDate: string;
+  startTime: string;
+  scheduleBracketSlotId: string;
+  serviceTierId: string;
+} 
+
 /**
  * @category Group
  */
@@ -432,13 +441,7 @@ export type IGroupUserScheduleStub = {
   startTime: string;
   serviceName: string;
   tierName: string;
-  replacement?: {
-    username: string;
-    slotDate: string;
-    startTime: string;
-    scheduleBracketSlotId: string;
-    serviceTierId: string;
-  } 
+  replacement: IGroupUserScheduleStubReplacement;
 }
 
 /**
@@ -468,6 +471,7 @@ export enum IGroupUserScheduleActionTypes {
   GET_GROUP_USER_SCHEDULES = "GET/group/:groupName/schedules/:groupScheduleId/user",
   GET_GROUP_USER_SCHEDULE_STUBS = "GET/group/:groupName/schedules/user/stub",
   GET_GROUP_USER_SCHEDULE_STUB_REPLACEMENT = "GET/group/:groupName/schedules/user/:userScheduleId/stubreplacement",
+  PUT_GROUP_USER_SCHEDULE_STUB_REPLACEMENT = "PUT/group/:groupName/schedules/user/:userScheduleId/stubreplacement",
   GET_GROUP_USER_SCHEDULE_BY_ID = "GET/group/:groupName/schedules/:groupScheduleId/user/:userScheduleId",
   DELETE_GROUP_USER_SCHEDULE_BY_USER_SCHEDULE_ID = "DELETE/group/:groupName/schedules/user/:ids"
 }
