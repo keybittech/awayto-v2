@@ -59,7 +59,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
   useEffect(() => {
     if (groupSchedules) {
       if (editSchedule) {
-        const [abort, res] = api(getScheduleByIdAction, { id: editSchedule.id }, { load: true });
+        const [abort, res] = api(getScheduleByIdAction, { id: editSchedule.id });
         res?.catch(console.warn);
         return () => abort();
       } else {

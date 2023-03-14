@@ -43,7 +43,7 @@ export function ManageScheduleStubModal({ editGroupUserScheduleStub, closeModal 
 
   const [groupUserScheduleStub, setGroupUserScheduleStub] = useState({ ...editGroupUserScheduleStub } as IGroupUserScheduleStub);
 
-  const originalReplacement = editGroupUserScheduleStub && { ...editGroupUserScheduleStub.replacement };
+  const originalReplacement = editGroupUserScheduleStub?.replacement && { ...editGroupUserScheduleStub.replacement };
 
   if (groupUserScheduleStub.userScheduleId && activeSchedule !== groupUserScheduleStub.userScheduleId && dateSlots.length && !firstAvailable.scheduleBracketSlotId) {
     const [slot] = dateSlots;
@@ -71,7 +71,7 @@ export function ManageScheduleStubModal({ editGroupUserScheduleStub, closeModal 
             <Button fullWidth variant="contained" color="primary" onClick={() => handleSubmit(originalReplacement)}>Reassign to {originalReplacement.username}</Button>
           </Box>
 
-          <Grid container direction="row" alignItems="center" spacing={2}>
+          <Grid container direction="row" alignItems="center" spacing={2} mb={4}>
             <Grid item flexGrow={1}>
               <Divider />
             </Grid>
@@ -84,7 +84,7 @@ export function ManageScheduleStubModal({ editGroupUserScheduleStub, closeModal 
           </Grid>
         </>}
 
-        <Box my={4}>
+        <Box mb={4}>
           <Box mb={2}>
             <Typography>Select a new date and time:</Typography>
           </Box>
