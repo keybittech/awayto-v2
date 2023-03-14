@@ -1,11 +1,7 @@
 import { Reducer } from 'redux';
-import {
-  IGetManageRolesAction, 
+import { 
   IManageRolesActionTypes, 
   IManageRolesState, 
-  IPostManageRolesAction, 
-  IPutManageRolesAction, 
-  IDeleteManageRolesAction, 
   IManageRolesActions,
   IRole
 } from 'awayto';

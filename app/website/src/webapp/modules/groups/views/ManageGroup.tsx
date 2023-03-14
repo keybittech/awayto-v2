@@ -27,7 +27,7 @@ export function ManageGroup(props: IProps): JSX.Element {
 
   const navigate = useNavigate();
 
-  const user = useRedux(state => state.profile);
+  const { roles } = useRedux(state => state.profile);
   const { users } = useRedux(state => state.user);
   const { groupServices } = useRedux(state => state.groupService);
   const { groupSchedules } = useRedux(state => state.groupSchedule);
@@ -44,7 +44,7 @@ export function ManageGroup(props: IProps): JSX.Element {
     schedules: [SiteRoles.APP_GROUP_SCHEDULES],
   }
 
-  const menu =  Object.keys(menuRoles).map(comp =>
+  const menu = Object.keys(menuRoles).map(comp =>
     groupName && component && <GroupSecure key={`menu_${comp}`} contentGroupRoles={menuRoles[comp]}>
       <Button style={comp == component ? { textDecoration: 'underline' } : undefined} onClick={() => navigate(`/group/${groupName}/manage/${comp}`)}>
         {comp}
@@ -61,7 +61,7 @@ export function ManageGroup(props: IProps): JSX.Element {
         />
       case 'roles':
         return <ManageRoles {...props}
-          roles={user.roles}
+          roles={roles}
           getRolesAction={GET_USER_PROFILE_DETAILS}
           putRolesAction={PUT_ROLES}
           postRolesAction={POST_ROLES}
@@ -90,6 +90,7 @@ export function ManageGroup(props: IProps): JSX.Element {
           disableServicesAction={DISABLE_SERVICE}
           deleteServicesAction={DELETE_SERVICE}
           deleteGroupServicesAction={DELETE_GROUP_SERVICE}
+          {...props}
         />
       case 'schedules':
         return <ManageSchedules
@@ -99,11 +100,12 @@ export function ManageGroup(props: IProps): JSX.Element {
           postGroupSchedulesAction={POST_GROUP_SCHEDULE}
           putGroupSchedulesAction={PUT_GROUP_SCHEDULE}
           deleteGroupSchedulesAction={DELETE_GROUP_SCHEDULE}
+          {...props}
         />
       default:
         return;
     }
-  }, [users, groupServices, groupSchedules, groupForms, user.groups, user.roles, component])
+  }, [users, groupServices, groupSchedules, groupForms, roles, component])
 
   return <>
 

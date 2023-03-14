@@ -11,7 +11,7 @@ import CreateIcon from '@mui/icons-material/Create';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 
-import { IManageUsersActionTypes, IUserProfile, IActionTypes, IUsers } from 'awayto';
+import { IManageUsersActionTypes, IUserProfile, IActionTypes } from 'awayto';
 import { useRedux, useApi } from 'awayto-hooks';
 
 import ManageUserModal from './ManageUserModal';

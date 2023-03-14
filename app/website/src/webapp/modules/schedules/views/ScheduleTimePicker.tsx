@@ -1,21 +1,20 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
 import { Duration, DurationUnitType } from 'dayjs/plugin/duration';
 
 import TextField from '@mui/material/TextField';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 
-import { getRelativeDuration, IGroupScheduleDateSlots, IQuote, ISchedule, TimeUnit } from 'awayto';
+import { getRelativeDuration, IGroupScheduleDateSlots, IQuote, TimeUnit } from 'awayto';
 import { useRedux } from 'awayto-hooks';
 
 type ScheduleTimePickerType = {
-  bracketTimeUnitName?: string;
-  slotTimeUnitName?: string;
+  scheduleId?: string;
   bracketSlotDate?: dayjs.Dayjs | null;
   firstAvailable?: IGroupScheduleDateSlots & { time: dayjs.Dayjs };
   value?: dayjs.Dayjs | null;
-  onChange?(value: dayjs.Dayjs | null, keyboardInputValue?: string | undefined): void;
-  onAccept?(value: IQuote): void;
+  onTimeChange?(props: { time: dayjs.Dayjs | null, quote?: IQuote }): void;
+  onTimeAccept?(value: IQuote): void;
 }
 
 declare global {
@@ -24,17 +23,20 @@ declare global {
 
 export function ScheduleTimePicker(props: IProps): JSX.Element {
 
-  const { bracketTimeUnitName, slotTimeUnitName, bracketSlotDate, firstAvailable, value, onChange, onAccept } = props as Required<ScheduleTimePickerType>;
+  const { scheduleId, bracketSlotDate, firstAvailable, value, onTimeChange, onTimeAccept } = props as Required<ScheduleTimePickerType>;
   
-  const { dateSlots } = useRedux(state => state.groupSchedule);
+  const { dateSlots, groupSchedules } = useRedux(state => state.groupSchedule);
+  const [didInit, setDidInit] = useState(false);
+
+  const { bracketTimeUnitName, slotTimeUnitName } = groupSchedules.get(scheduleId) || {};
 
   const sessionDuration = Math.round(getRelativeDuration(1, bracketTimeUnitName, slotTimeUnitName));
   
   const slotFactors = [] as number[];
 
-  for (let value = 1; value < sessionDuration; value++) {
-    if (sessionDuration % value === 0) {
-      slotFactors.push(value);
+  for (let factor = 1; factor < sessionDuration; factor++) {
+    if (sessionDuration % factor === 0) {
+      slotFactors.push(factor);
     }
   }
 
@@ -46,33 +48,56 @@ export function ScheduleTimePicker(props: IProps): JSX.Element {
     return 0;
   }, [bracketSlotDate]);
 
+  function getSlot(time: dayjs.Dayjs, date: string): IGroupScheduleDateSlots | undefined {
+    const timeHour = time.hour();
+    const timeMins = time.minute();
+    const duration = dayjs.duration(0)
+      .add(bracketSlotDateDayDiff, TimeUnit.DAY)
+      .add(timeHour, TimeUnit.HOUR)
+      .add(timeMins, TimeUnit.MINUTE);
+    const [slot] = dateSlots
+      .filter(s => s.startDate === date && duration.hours() === s.hour && duration.minutes() === s.minute);
+
+    return slot;
+  }
+
+  function getQuote(time: dayjs.Dayjs | null): IQuote | undefined {
+    let quote: IQuote | undefined = undefined;
+    if (time) {
+      const currentSlotDate = bracketSlotDate || firstAvailable.time;
+      const date = currentSlotDate.format('YYYY-MM-DD');
+      const slot = getSlot(time, date);
+      if (slot) {
+        quote = {
+          slotDate: date,
+          scheduleBracketSlotId: slot.scheduleBracketSlotId
+        } as IQuote;
+      }
+    }
+    return quote;
+  }
+
+  useEffect(() => {
+    if (dateSlots.length && firstAvailable.time &&!didInit) {
+      setDidInit(true);
+      const quote = getQuote(firstAvailable.time);
+      quote && onTimeAccept(quote);
+    }
+  }, [dateSlots, firstAvailable, didInit]);
+
   return <TimePicker
     label="Time"
     value={value}
-    onChange={onChange}
+    onChange={time => {
+      const quote = getQuote(time)
+      onTimeChange({ time, quote });
+      quote && onTimeAccept(quote);
+    }}
     ampmInClock={true}
     ignoreInvalidInputs={true}
     onAccept={time => {
-      if (time) {
-        const currentSlotDate = bracketSlotDate || firstAvailable.time;
-
-        const timeHour = time.hour();
-        const timeMins = time.minute();
-        const duration = dayjs.duration(0)
-          .add(bracketSlotDateDayDiff, TimeUnit.DAY)
-          .add(timeHour, TimeUnit.HOUR)
-          .add(timeMins, TimeUnit.MINUTE);
-        const [slot] = dateSlots
-          .filter(s => s.startDate === currentSlotDate.format("YYYY-MM-DD") && duration.hours() === s.hour && duration.minutes() === s.minute);
-
-        if (slot) {
-          onAccept({
-            slotDate: currentSlotDate.format('YYYY-MM-DD'),
-            scheduleBracketSlotId: slot.scheduleBracketSlotId
-          } as IQuote);
-        }
-
-      }
+      const quote = getQuote(time);
+      if (quote) onTimeAccept(quote);
     }}
     shouldDisableTime={(time, clockType) => {
       if (dateSlots.length) {
@@ -103,7 +128,7 @@ export function ScheduleTimePicker(props: IProps): JSX.Element {
       }
       return true;
     }}
-    renderInput={params => <TextField {...params} />}
+    renderInput={params => <TextField fullWidth {...params} />}
   />
 }
 

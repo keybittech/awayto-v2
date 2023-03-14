@@ -1,4 +1,4 @@
-import { asyncForEach, IGroup, IGroupSchedule, IGroupScheduleActionTypes, IGroupService, IGroupServiceAddon, IGroupUserSchedule, ISchedule, IScheduleActionTypes, IUserProfile } from 'awayto';
+import { asyncForEach, IGroup, IGroupSchedule, IGroupScheduleActionTypes, IGroupService, ISchedule, IScheduleActionTypes, IUserProfile } from 'awayto';
 import { ApiEvent, ApiModule } from '../api';
 import schedules from './schedules';
 

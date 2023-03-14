@@ -14,7 +14,7 @@ type ScheduleDatePickerType = {
   scheduleId?: string;
   firstAvailable?: IGroupScheduleDateSlots & { time: dayjs.Dayjs };
   value?: dayjs.Dayjs | null;
-  onChange?(value: dayjs.Dayjs | null, keyboardInputValue?: string | undefined): void;
+  onDateChange?(value: dayjs.Dayjs | null, keyboardInputValue?: string | undefined): void;
 }
 
 declare global {
@@ -23,7 +23,7 @@ declare global {
 
 export function ScheduleDatePicker(props: IProps): JSX.Element {
 
-  const { groupName, scheduleId, firstAvailable, value, onChange } = props as Required<ScheduleDatePickerType>;
+  const { groupName, scheduleId, firstAvailable, value, onDateChange } = props as Required<ScheduleDatePickerType>;
 
   const api = useApi();
 
@@ -46,14 +46,14 @@ export function ScheduleDatePicker(props: IProps): JSX.Element {
 
   return <DesktopDatePicker
     value={value}
-    onChange={onChange}
+    onChange={onDateChange}
     label="Date"
     inputFormat="MM/DD/YYYY"
     minDate={firstAvailable.time}
     onOpen={() => setMonthSeekDate(firstAvailable.time)}
     onMonthChange={date => date && setMonthSeekDate(date)}
     onYearChange={date => date && setMonthSeekDate(date)}
-    renderInput={(params) => <TextField {...params} />}
+    renderInput={(params) => <TextField fullWidth {...params} />}
     disableHighlightToday={true}
     shouldDisableDate={date => {
       if (date && dateSlots.length) {

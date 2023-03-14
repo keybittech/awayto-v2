@@ -15,7 +15,7 @@ import storage from 'redux-persist/lib/storage'
 import persistStore from 'redux-persist/es/persistStore';
 import { Theme } from '@mui/material/styles/createTheme';
 import { setStore, ThunkStore } from './hooks/useDispatch';
-import { asyncForEach, ILoadedState } from 'awayto';
+import { ILoadedState } from 'awayto';
 
 import build from './build.json';
 import reportWebVitals from './reportWebVitals';

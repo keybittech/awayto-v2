@@ -74,7 +74,7 @@ export function RequestQuote(props: IProps): JSX.Element {
   const [bracketSlotTime, setBracketSlotTime] = useState<dayjs.Dayjs | null>();
   
   const [activeSchedule, setActiveSchedule] = useState('');
-  const [firstAvailable, setFirstAvailable] = useState({ time: dayjs().startOf('day') } as IGroupScheduleDateSlots & { time: dayjs.Dayjs });
+  const [firstAvailable, setFirstAvailable] = useState({ time: dayjs().startOf('day') } as IGroupScheduleDateSlots);
 
   const loadSchedule = useCallback((sched: ISchedule) => {
     sched.scheduleTimeUnitName = timeUnits.find(u => u.id === sched.scheduleTimeUnitId)?.name as ITimeUnitNames;
@@ -334,7 +334,7 @@ export function RequestQuote(props: IProps): JSX.Element {
                   groupName={group.name}
                   firstAvailable={firstAvailable}
                   value={bracketSlotDate || firstAvailable.time || null}
-                  onChange={(date: dayjs.Dayjs | null) => setBracketSlotDate(date ? date.isBefore(firstAvailable.time) ? firstAvailable.time : date  : null)}
+                  onDateChange={(date: dayjs.Dayjs | null) => setBracketSlotDate(date ? date.isBefore(firstAvailable.time) ? firstAvailable.time : date  : null)}
                 />
               </Grid>
               {timeUnitOrder.indexOf(schedule.slotTimeUnitName) <= timeUnitOrder.indexOf(TimeUnit.HOUR) && <Grid item xs={4}>
@@ -345,11 +345,19 @@ export function RequestQuote(props: IProps): JSX.Element {
                   bracketTimeUnitName={schedule.bracketTimeUnitName}
                   slotTimeUnitName={schedule.slotTimeUnitName}
                   value={bracketSlotTime || firstAvailable.time}
-                  onChange={(time: dayjs.Dayjs | null) => setBracketSlotTime(time)}
-                  onAccept={(value: IQuote) => {
+                  onTimeChange={({ time, quote: newQuote }: { time: dayjs.Dayjs | null, quote?: IQuote }) => {
+                    setBracketSlotTime(time);
+                    if (newQuote) {
+                      setQuote({
+                        ...quote,
+                        ...newQuote
+                      })
+                    }
+                  }}
+                  onTimeAccept={(newQuote: IQuote) => {
                     setQuote({
                       ...quote,
-                      ...value
+                      ...newQuote
                     })
                   }}
                 />

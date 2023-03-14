@@ -45,7 +45,7 @@ export const millisTimeUnits: Record<ITimeUnitNames, number> = {
   [TimeUnit.MINUTE]: 60000
 }
 
-export function getRelativeDuration(amount: number, fromUnit: ITimeUnitNames, toUnit: ITimeUnitNames): number {
+export function getRelativeDuration(amount: number, fromUnit: ITimeUnitNames = TimeUnit.HOUR, toUnit: ITimeUnitNames = TimeUnit.MINUTE): number {
   const fromDuration = millisTimeUnits[fromUnit];
   const toDuration = millisTimeUnits[toUnit];
   return (amount * fromDuration) / toDuration;

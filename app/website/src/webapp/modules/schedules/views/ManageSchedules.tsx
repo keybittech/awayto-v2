@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import DataTable, { TableColumn } from 'react-data-table-component';
 
+import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import Dialog from '@mui/material/Dialog';
 import Card from '@mui/material/Card';
@@ -12,7 +13,7 @@ import EventNoteIcon from '@mui/icons-material/EventNote';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import { ISchedule, IActionTypes, IGroupSchedule, IUtilActionTypes } from 'awayto';
-import { useRedux, useApi, useAct } from 'awayto-hooks';
+import { useRedux, useApi, useAct, useComponents } from 'awayto-hooks';
 
 import ManageSchedulesModal from './ManageSchedulesModal';
 import { useParams } from 'react-router';
@@ -37,6 +38,7 @@ declare global {
 export function ManageSchedules(props: IProps): JSX.Element {
   const { groupSchedules, getGroupSchedulesAction, deleteGroupSchedulesAction } = props as IProps & Required<ManageSchedulesActions>;
 
+  const { ManageScheduleStubs } = useComponents();
   const { groupName } = useParams();
 
   const act = useAct();
@@ -109,28 +111,35 @@ export function ManageSchedules(props: IProps): JSX.Element {
       }} />
     </Dialog>
 
-    <Card>
-      <CardContent>
-        <DataTable
-          title="Schedule Templates"
-          actions={<Button onClick={() => { setSchedule(undefined); setDialog('manage_schedule') }}>New</Button>}
-          contextActions={actions}
-          data={Array.from(groupSchedules.values())}
-          defaultSortFieldId="createdOn"
-          defaultSortAsc={false}
-          theme={util.theme}
-          columns={columns}
-          selectableRows
-          selectableRowsHighlight={true}
-          // selectableRowsComponent={<Checkbox />}
-          onSelectedRowsChange={updateState}
-          clearSelectedRows={toggle}
-          pagination={true}
-          paginationPerPage={5}
-          paginationRowsPerPageOptions={[5, 10, 25]}
-        />
-      </CardContent>
-    </Card>
+    <Box mb={2}>
+      <Card>
+        <CardContent>
+          <DataTable
+            title="Schedule Templates"
+            actions={<Button onClick={() => { setSchedule(undefined); setDialog('manage_schedule') }}>New</Button>}
+            contextActions={actions}
+            data={Array.from(groupSchedules.values())}
+            defaultSortFieldId="createdOn"
+            defaultSortAsc={false}
+            theme={util.theme}
+            columns={columns}
+            selectableRows
+            selectableRowsHighlight={true}
+            // selectableRowsComponent={<Checkbox />}
+            onSelectedRowsChange={updateState}
+            clearSelectedRows={toggle}
+            pagination={true}
+            paginationPerPage={5}
+            paginationRowsPerPageOptions={[5, 10, 25]}
+          />
+        </CardContent>
+      </Card>
+
+    </Box>
+    <Box mb={2}>
+      <ManageScheduleStubs {...props} />
+    </Box>
+    
   </>
 }
 

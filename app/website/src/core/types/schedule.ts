@@ -1,4 +1,4 @@
-import { IService, Merge } from 'awayto';
+import { IQuote, IService, Merge } from 'awayto';
 import { ITimeUnitNames } from './time_unit';
 import { PayloadAction } from '.';
 
@@ -61,6 +61,7 @@ export type IScheduleBracketSlot = {
   multiplier: string;
   services: Map<string, IService>;
   slots: Map<string, IScheduleBracketSlot>;
+  quotes: Map<string, IQuote>;
   createdOn: string;
 };
 
@@ -86,7 +87,6 @@ export type ISchedule = {
   slotTimeUnitName: ITimeUnitNames;
   slotDuration: number;
   brackets: Map<string, IScheduleBracket>;
-  slotFactors: number[];
   createdOn: string;
 };
 

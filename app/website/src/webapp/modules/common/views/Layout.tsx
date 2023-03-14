@@ -44,7 +44,7 @@ const Layout = (props: IProps): JSX.Element => {
     <CssBaseline />
     <div className={classes.root}>
       <Topbar {...props} />
-      <Sidebar {...props} />
+      <Sidebar />
 
       <main className={classes.content}>
         <div className={classes.toolbar} />

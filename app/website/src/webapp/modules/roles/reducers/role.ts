@@ -3,13 +3,7 @@ import {
   IRole,
   IRoleState,
   IRoleActions,
-  IRoleActionTypes,
-  IGetRoleByIdAction,
-  IGetRolesAction,
-  IDeleteRoleAction,
-  IDisableRoleAction,
-  IPostRoleAction,
-  IPutRoleAction
+  IRoleActionTypes
 } from 'awayto';
 
 const initialRoleState = {

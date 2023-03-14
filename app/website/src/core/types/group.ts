@@ -1,4 +1,5 @@
-import { PayloadAction, IRole, IUserProfile, IService, IServiceAddon, ISchedule, IForm, IScheduleBracket } from '.';
+import dayjs from 'dayjs';
+import { PayloadAction, IRole, IUserProfile, IService, IServiceAddon, ISchedule, IForm } from '.';
 import { Merge } from '../util';
 
 declare global {
@@ -272,6 +273,7 @@ export type IGroupScheduleDateSlots = {
   scheduleBracketSlotId: string;
   hour: number;
   minute: number;
+  time: dayjs.Dayjs;
 }
 
 /**
@@ -419,9 +421,23 @@ export type IGroupFormActions = IPostGroupFormAction
   | IGetGroupFormByIdAction
   | IDeleteGroupFormAction;
 
-
-
-
+/**
+ * @category Group
+ */
+export type IGroupUserScheduleStub = {
+  groupScheduleId: string;
+  quoteId: string;
+  slotDate: string;
+  startTime: string;
+  serviceName: string;
+  tierName: string;
+  replacement?: {
+    username: string;
+    slotDate: string;
+    scheduleBracketSlotId: string;
+    serviceTierId: string;
+  } 
+}
 
 /**
  * @category Group
@@ -436,9 +452,9 @@ export type IGroupUserSchedule = ISchedule & {
 /**
  * @category Group
  */
-export type IGroupUserScheduleState = IGroupUserSchedule & {
+export type IGroupUserScheduleState = IGroupUserScheduleStub & IGroupUserSchedule & {
   groupUserSchedules: Map<string, IGroupUserSchedule>;
-  stubs: Map<string, IGroupUserSchedule>;
+  stubs: IGroupUserScheduleStub[];
 };
 
 /**
@@ -471,7 +487,7 @@ export type IGetGroupUserSchedulesAction = PayloadAction<IGroupUserScheduleActio
 /**
  * @category Group
  */
-export type IGetGroupUserScheduleStubsAction = PayloadAction<IGroupUserScheduleActionTypes.GET_GROUP_USER_SCHEDULE_STUBS, IGroupUserSchedule[]>;
+export type IGetGroupUserScheduleStubsAction = PayloadAction<IGroupUserScheduleActionTypes.GET_GROUP_USER_SCHEDULE_STUBS, { stubs: IGroupUserScheduleStub[] }>;
 
 /**
  * @category Group

@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import keycloak from './keycloak';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 

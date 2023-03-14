@@ -4,17 +4,22 @@ import {
   IGroupUserScheduleActions,
   IGroupUserScheduleActionTypes,
   IGroupUserSchedule,
+  IGroupUserScheduleStub,
   IScheduleBracket,
   IService,
   IScheduleBracketSlot
 } from 'awayto';
 
 const initialGroupUserScheduleState = {
-  groupUserSchedules: new Map()
+  groupUserSchedules: new Map(),
+  stubs: [] as IGroupUserScheduleStub[]
 } as IGroupUserScheduleState;
 
 const groupUserSchedulesReducer: Reducer<IGroupUserScheduleState, IGroupUserScheduleActions> = (state = initialGroupUserScheduleState, action) => {
   switch (action.type) {
+    case IGroupUserScheduleActionTypes.GET_GROUP_USER_SCHEDULE_STUBS:
+      state.stubs = action.payload.stubs;
+      return state;
     case IGroupUserScheduleActionTypes.DELETE_GROUP_USER_SCHEDULE_BY_USER_SCHEDULE_ID:
       action.payload.forEach(groupSchedule => {
         state.groupUserSchedules.delete(groupSchedule.id);
