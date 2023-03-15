@@ -78,7 +78,7 @@ export type IWebhooks = {
  */
 export type ApiModule = ApiModulet[];
 
-export type ApiResponseBody = ILoadedState | ILoadedState[] | boolean;
+export type ApiResponseBody = Partial<ILoadedState> | Partial<ILoadedState>[] | boolean;
 
 /**
  * @category API

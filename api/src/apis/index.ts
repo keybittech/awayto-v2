@@ -29,11 +29,13 @@ import GroupSchedules from './group_schedules';
 import GroupUserSchedules from './group_user_schedules';
 import GroupForms from './group_forms';
 
+import Assist from './assist';
 
 
 export default  {
   protected: [
     // ...Tests,
+    ...Assist,
     ...Files,
     ...Forms,
     ...Lookups,

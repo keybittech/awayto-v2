@@ -131,20 +131,24 @@ export function useApi(): <T extends { [prop: string]: unknown}, R = IMergedStat
 
       let jsonBody: string | undefined = JSON.stringify(body);
 
-      if (path.includes('/:') && body) {
+      if ((path.includes('/:') || meta.useParams) && body) {
         // Get the key of the enum from ApiActions based on the path (actionType)
         const pathKey = Object.keys(ApiActions).filter((x) => ApiActions[x] == actionType)[0];
 
-        // Only access body keys that are part of the action param string (GET/path/:id/subpath/:subId will expect id and subId in the body and only try to get them)
-        const keys = [...actionType.matchAll(/(?<=\/:)(\w*)/g)];
-        const keyBody = {} as Record<string, string>;
-        for (const k of keys) {
-          keyBody[k[0]] = body[k[0]] as string;
-        }
+        if (meta.useParams) {
+          path = generator.generate(pathKey, body as Record<string, string>).slice(method.length + 1);
+        } else {
+          // Only access body keys that are part of the action param string (GET/path/:id/subpath/:subId will expect id and subId in the body and only try to get them)
+          const keys = [...actionType.matchAll(/(?<=\/:)(\w*)/g)];
+          const keyBody = {} as Record<string, string>;
+          for (const k of keys) {
+            keyBody[k[0]] = body[k[0]] as string;
+          }
 
-        // When "generator.generate" takes more keys than it requires for the base path, it turns those extras into query parameters, so we either do want that or don't and it needs to be set with { useParams: true } as a meta option, allowing for GET/path?some=param&array=values
-        // This will automatically be handled in the express controller and the query params available in props.event.queryParameters
-        path = generator.generate(pathKey, meta.useParams ? body as Record<string, string> : keyBody).slice(method.length + 1);
+          // When "generator.generate" takes more keys than it requires for the base path, it turns those extras into query parameters, so we either do want that or don't and it needs to be set with { useParams: true } as a meta option, allowing for GET/path?some=param&array=values
+          // This will automatically be handled in the express controller and the query params available in props.event.queryParameters
+          path = generator.generate(pathKey, keyBody).slice(method.length + 1);
+        }
       }
 
       if (['delete', 'get'].indexOf(method.toLowerCase()) > -1 && body) {

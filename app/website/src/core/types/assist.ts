@@ -28,7 +28,8 @@ declare global {
  * @category Awayto
  */
 export type IAssist = {
-  message: string;
+  prompt: string;
+  result: string;
 };
 
 /**
@@ -42,13 +43,13 @@ export type IAssistState = IAssist & {
  * @category Action Types
  */
 export enum IAssistActionTypes {
-  POST_ASSIST = "POST/assist"
+  GET_SUGGESTION = "GET/assist/suggest"
 }
 
 /**
  * @category Assist
  */
-export type IPostAssistsAction = PayloadAction<IAssistActionTypes.POST_ASSIST, IAssist>;
+export type IPostAssistsAction = PayloadAction<IAssistActionTypes.GET_SUGGESTION, IAssist>;
 
 /**
  * @category Assist

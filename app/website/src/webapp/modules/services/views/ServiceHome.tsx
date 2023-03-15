@@ -12,7 +12,7 @@ import CardHeader from '@mui/material/CardHeader';
 import Grid from '@mui/material/Grid';
 import Chip from '@mui/material/Chip';
 
-import { IService, IServiceActionTypes, IServiceTier, IGroupFormActionTypes, IGroupServiceAddonActionTypes, IServiceAddonActionTypes, IGroupServiceActionTypes, IUtilActionTypes, IGroup, IForm } from 'awayto';
+import { IAssistActionTypes, IService, IServiceActionTypes, IServiceTier, IGroupFormActionTypes, IGroupServiceAddonActionTypes, IServiceAddonActionTypes, IGroupServiceActionTypes, IUtilActionTypes, IGroup, IForm, IAssist, IAssistState } from 'awayto';
 import { useApi, useRedux, useComponents, useAct, useStyles } from 'awayto-hooks';
 
 const { POST_SERVICE } = IServiceActionTypes;
@@ -21,6 +21,7 @@ const { GET_GROUP_FORMS, GET_GROUP_FORM_BY_ID } = IGroupFormActionTypes;
 const { GET_GROUP_SERVICES, POST_GROUP_SERVICE } = IGroupServiceActionTypes;
 const { GET_GROUP_SERVICE_ADDONS, POST_GROUP_SERVICE_ADDON, DELETE_GROUP_SERVICE_ADDON } = IGroupServiceAddonActionTypes;
 const { SET_SNACK } = IUtilActionTypes;
+const { GET_SUGGESTION } = IAssistActionTypes;
 
 const serviceSchema = {
   name: '',
@@ -53,12 +54,20 @@ export function ServiceHome(props: IProps): JSX.Element {
   const { groupForms } = useRedux(state => state.groupForm);
   const { groups } = useRedux(state => state.profile);
   const [group, setGroup] = useState({ id: '' } as IGroup);
+  const [serviceSuggestions, setServiceSuggestions] = useState('');
+  const [tierSuggestions, setTierSuggestions] = useState('');
 
   const groupServiceAddonValues = useMemo(() => Array.from(groupServiceAddons.values()), [groupServiceAddons]);
   
   useEffect(() => {
     if (groups.size) {
-      setGroup(groups.values().next().value as IGroup);
+      const gr = groups.values().next().value as IGroup;
+      const [, res] = api(GET_SUGGESTION, { prompt: 'Service names for ' + gr.name.replaceAll('_', ' ')}, { useParams: true })
+      res?.then(serviceSuggestionData => {
+        const { result } = serviceSuggestionData;
+        if (result) setServiceSuggestions(result)
+        setGroup(gr);
+      })
     }
   }, [groups]);
 
@@ -106,7 +115,13 @@ export function ServiceHome(props: IProps): JSX.Element {
           <Grid container>
             <Grid item xs={12} md={6}>
               <Box mb={4}>
-                <TextField fullWidth label="Name" value={newService.name} onChange={e => setNewService({ ...newService, name: e.target.value })} helperText="Ex: Website Hosting, Yard Maintenance, Automotive Repair" />
+                <TextField
+                  fullWidth
+                  label="Name"
+                  value={newService.name}
+                  onChange={e => setNewService({ ...newService, name: e.target.value })}
+                  helperText={`Ex: ${serviceSuggestions ? serviceSuggestions : 'Website Hosting, Yard Maintenance, Automotive Repair'}`}
+                />
               </Box>
 
               <Box mb={4}>
@@ -143,7 +158,7 @@ export function ServiceHome(props: IProps): JSX.Element {
             <Grid item xs={12} md={6}>
               <Box mb={4}>
                 {/* <Typography variant="body2">Some services divide their offering up into tiers. For example, a "Basic" tier may some basic features, and the "Advanced" tier has more features. If your service has no tier, you can ignore this section and we'll create a standard tier for you.</Typography> */}
-                <TextField fullWidth label="Name" value={newServiceTier.name} onChange={e => setNewServiceTier({ ...newServiceTier, name: e.target.value })} helperText="Ex: Basic, Mid-Tier, Advanced" />
+                <TextField fullWidth label="Name" value={newServiceTier.name} onChange={e => setNewServiceTier({ ...newServiceTier, name: e.target.value })} helperText={`Ex: ${tierSuggestions.length ? tierSuggestions : 'Basic, Mid-Tier, Advanced'}`} />
               </Box>
 
               {group.name && <Box mb={4} sx={{ display: 'flex', alignItems: 'baseline' }}>
