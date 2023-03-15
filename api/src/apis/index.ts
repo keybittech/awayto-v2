@@ -13,6 +13,7 @@ import Users from './users';
 import ManageUsers from './manage_users';
 
 import Bookings from './bookings';
+import BookingTranscripts from './booking_transcripts';
 import Contacts from './contacts';
 import Payments from './payments';
 import Quotes from './quotes';
@@ -45,6 +46,7 @@ export default  {
     ...ManageGroups,
     ...ManageUsers,
     ...Bookings,
+    ...BookingTranscripts,
     ...Contacts,
     ...Payments,
     ...Quotes,

@@ -290,6 +290,17 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     enabled BOOLEAN NOT NULL DEFAULT true
   );
 
+  CREATE TABLE dbtable_schema.booking_transcripts (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    booking_id uuid NOT NULL REFERENCES dbtable_schema.bookings (id),
+    messages JSONB NOT NULL,
+    created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
+    updated_on TIMESTAMP,
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
+    enabled BOOLEAN NOT NULL DEFAULT true
+  );
+
   CREATE TABLE dbtable_schema.schedule_bracket_slot_exclusions (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     exclusion_date DATE NOT NULL,

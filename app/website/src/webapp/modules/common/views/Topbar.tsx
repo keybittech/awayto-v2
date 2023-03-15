@@ -15,6 +15,7 @@ import Toolbar from '@mui/material/Toolbar';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 
+import TtyIcon from '@mui/icons-material/ThreeP';
 import ThreePIcon from '@mui/icons-material/ThreeP';
 import LogoutIcon from '@mui/icons-material/Logout';
 import EventNoteIcon from '@mui/icons-material/EventNote';
@@ -160,6 +161,11 @@ export function Topbar(props: IProps): JSX.Element {
           </MenuItem>
 
           <Divider />
+
+          <MenuItem aria-label="navigate to exchange" onClick={() => handleNavAndClose('/exchange')}>
+            <ListItemIcon><TtyIcon color={location.pathname === '/exchange' ? "secondary" : "primary"} /></ListItemIcon>
+            <ListItemText>Exchange</ListItemText>
+          </MenuItem>
 
           <MenuItem hidden={!hasRole([SiteRoles.APP_GROUP_SERVICES])} aria-label="navigate to create service" onClick={() => handleNavAndClose('/service')}>
             <ListItemIcon><BusinessIcon color={location.pathname === '/service' ? "secondary" : "primary"} /></ListItemIcon>

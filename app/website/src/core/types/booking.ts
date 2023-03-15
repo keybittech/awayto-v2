@@ -7,10 +7,11 @@ declare global {
    * @category Awayto Redux
    */
   interface ISharedState { 
-    booking: IBookingState
+    booking: IBookingState;
+    bookingTranscript: IBookingTranscriptState;
   }
 
-  interface IMergedState extends Merge<unknown, IBookingState> {}
+  interface IMergedState extends Merge<Merge<unknown, IBookingState>, IBookingTranscriptState> {}
 
   /**
    * @category Awayto Redux
@@ -22,6 +23,7 @@ declare global {
    */
   interface ISharedActionTypes {
     booking: IBookingActionTypes;
+    bookingTranscript: IBookingTranscriptActionTypes;
   }
 }
 
@@ -39,6 +41,7 @@ export type IBookingScheduleBracket = {
 export type IBooking = IQuote & {
   quoteId: string;
   quoteSub: string;
+  transcripts: IBookingTranscript[];
 };
 
 /**
@@ -99,3 +102,78 @@ export type IBookingActions = IPostBookingAction
   | IGetBookingByIdAction
   | IDeleteBookingAction
   | IDisableBookingAction;
+
+
+export type ITranscriptMessage = {
+  words: string;
+  duration: number;
+  timestamp: string;
+  username: string;
+}
+
+/**
+ * @category Booking
+ */
+export type IBookingTranscript = {
+  username: string;
+  messages: ITranscriptMessage[];
+}
+
+/**
+ * @category Booking
+ */
+export type IBookingTranscriptState = IBookingTranscript & {
+  bookingTranscripts: Map<string, IBookingTranscript>;
+};
+
+/**
+ * @category Action Types
+ */
+export enum IBookingTranscriptActionTypes {
+  POST_BOOKING_TRANSCRIPT = "POST/booking_transcripts",
+  PUT_BOOKING_TRANSCRIPT = "PUT/booking_transcripts",
+  GET_BOOKING_TRANSCRIPTS = "GET/booking_transcripts",
+  GET_BOOKING_TRANSCRIPT_BY_ID = "GET/booking_transcripts/:id",
+  DELETE_BOOKING_TRANSCRIPT = "DELETE/booking_transcripts/:id",
+  DISABLE_BOOKING_TRANSCRIPT = "PUT/booking_transcripts/:id/disable"
+}
+
+/**
+ * @category BookingTranscript
+ */
+export type IPostBookingTranscriptAction = PayloadAction<IBookingTranscriptActionTypes.POST_BOOKING_TRANSCRIPT, IBookingTranscript[]>;
+
+/**
+ * @category BookingTranscript
+ */
+export type IPutBookingTranscriptAction = PayloadAction<IBookingTranscriptActionTypes.PUT_BOOKING_TRANSCRIPT, IBookingTranscript[]>;
+
+/**
+ * @category BookingTranscript
+ */
+export type IGetBookingTranscriptsAction = PayloadAction<IBookingTranscriptActionTypes.GET_BOOKING_TRANSCRIPTS, IBookingTranscript[]>;
+
+/**
+ * @category BookingTranscript
+ */
+export type IGetBookingTranscriptByIdAction = PayloadAction<IBookingTranscriptActionTypes.GET_BOOKING_TRANSCRIPT_BY_ID, IBookingTranscript[]>;
+
+/**
+ * @category BookingTranscript
+ */
+export type IDeleteBookingTranscriptAction = PayloadAction<IBookingTranscriptActionTypes.DELETE_BOOKING_TRANSCRIPT, IBookingTranscript[]>;
+
+/**
+ * @category BookingTranscript
+ */
+export type IDisableBookingTranscriptAction = PayloadAction<IBookingTranscriptActionTypes.DISABLE_BOOKING_TRANSCRIPT, IBookingTranscript[]>;
+
+/**
+ * @category BookingTranscript
+ */
+export type IBookingTranscriptActions = IPostBookingTranscriptAction 
+  | IPutBookingTranscriptAction 
+  | IGetBookingTranscriptsAction 
+  | IGetBookingTranscriptByIdAction
+  | IDeleteBookingTranscriptAction
+  | IDisableBookingTranscriptAction;

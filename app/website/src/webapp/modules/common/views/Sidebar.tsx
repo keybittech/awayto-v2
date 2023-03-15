@@ -9,6 +9,7 @@ import ListItemText from '@mui/material/ListItemText';
 import Button from '@mui/material/Button';
 
 import GroupIcon from '@mui/icons-material/Group';
+import TtyIcon from '@mui/icons-material/Tty';
 import AccountBoxIcon from '@mui/icons-material/AccountBox';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import MoreTimeIcon from '@mui/icons-material/MoreTime';
@@ -48,6 +49,10 @@ export function Sidebar(): JSX.Element {
             <ListItem className={classes.menuIcon} onClick={() => navigate('/')} button key={'home'}>
               <ListItemIcon><GroupIcon color={location.pathname === '/' ? "secondary" : "primary"} /></ListItemIcon>
               <ListItemText classes={{ primary: classes.menuText }}>Home</ListItemText>
+            </ListItem>
+            <ListItem className={classes.menuIcon} onClick={() => navigate('/exchange')} button key={'exchange'}>
+              <ListItemIcon><TtyIcon color={location.pathname === '/exchange' ? "secondary" : "primary"} /></ListItemIcon>
+              <ListItemText classes={{ primary: classes.menuText }}>Exchange</ListItemText>
             </ListItem>
             {hasRole([SiteRoles.APP_GROUP_SERVICES]) && <ListItem className={classes.menuIcon} onClick={() => navigate('/service')} button key={'service'}>
                 <ListItemIcon><BusinessIcon color={location.pathname === '/service' ? "secondary" : "primary"} /></ListItemIcon>

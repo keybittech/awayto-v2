@@ -197,6 +197,7 @@ export * from './group';
 export * from './role';
 export * from './user';
 
+export * from './exchange';
 export * from './booking';
 export * from './contact';
 export * from './form';
