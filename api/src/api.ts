@@ -86,7 +86,7 @@ export type ApiResponseBody = Partial<ILoadedState> | Partial<ILoadedState>[] | 
 export type ApiModulet = {
   roles?: string;
   inclusive?: boolean;
-  cache?: 'skip' | number;
+  cache?: 'skip' | number | null;
   action: IActionTypes;
   cmnd(props: ApiProps, meta?: string): Promise<ApiResponseBody>;
 }
@@ -404,10 +404,16 @@ async function go() {
 
             if ('skip' !== cache) {
               if ('get' === method.toLowerCase()) {
-                await redis.setEx(cacheKey, cache || 180, JSON.stringify(response));
+                if (null === cache) {
+                  await redis.set(cacheKey, JSON.stringify(response))
+                } else {
+                  await redis.setEx(cacheKey, cache || 180, JSON.stringify(response));
+                }
                 res.header('x-in-cache', 'true');
               } else {
-                await redis.del(cacheKey);
+                if (null != cache) {
+                  await redis.del(cacheKey);
+                }
               }
             }
 

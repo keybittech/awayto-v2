@@ -34,7 +34,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
   const api = useApi();
   const act = useAct();
   const { SelectLookup } = useComponents();
-  const { isValid, needCheckName, checkedName, checkingName } = useRedux(state => state.group);
+  const { isValid, needCheckName, checkedName, checkingName, flagged } = useRedux(state => state.group);
   const [primaryRole, setPrimaryRole] = useState('');
   const [roleIds, setRoleIds] = useState<string[]>([]);
   const [group, setGroup] = useState<Partial<IGroup>>({
@@ -93,6 +93,13 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
       setPrimaryRole(roleIds[0]);
     }
   }, [roleIds])
+  
+  useEffect(() => {
+    if (flagged) {
+      act(SET_SNACK, { snackType: 'error', snackOn: 'A moderation event has been flagged. This will be recorded.' })
+      act(CHECK_GROUPS_NAME, { flagged: false });
+    }
+  }, [flagged])
   
   return <>
     <Card>

@@ -5,7 +5,12 @@
     "../app/website/src/core"
   ],
   "compilerOptions": {
-    "target": "es2017",
+    "target": "es6",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "module": "esnext",
     "strict": true,
     "moduleResolution": "node",

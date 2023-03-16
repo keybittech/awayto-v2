@@ -70,6 +70,7 @@ export type IGroupState = IGroup & {
   groups: Map<string, IGroup>;
   users: Map<string, IUserProfile>;
   isValid: boolean;
+  flagged: boolean;
   availableGroupAssignments: Record<string, IGroupRoleActions>;
   needCheckName: boolean;
   checkingName: boolean;

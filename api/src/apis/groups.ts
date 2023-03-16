@@ -1,11 +1,12 @@
 import { performance } from 'perf_hooks';
 import { v4 as uuid } from 'uuid';
 
-import { IGroup, IUuidRoles, DbError, IUserProfile, IGroupState, IRole, IGroupActionTypes, asyncForEach, utcNowString } from 'awayto';
+import { IGroup, IUuidRoles, DbError, IUserProfile, IGroupState, IRole, IGroupActionTypes, asyncForEach, utcNowString, IPrompts } from 'awayto';
 
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
 import { keycloak, appClient, appRoles, groupAdminRoles, groupRoleActions, regroup, roleCall } from '../util/keycloak';
+import { generatePrompt, getChatCompletionPrompt } from '../util/openai';
 
 
 const groups: ApiModule = [
@@ -445,17 +446,27 @@ const groups: ApiModule = [
 
   {
     action: IGroupActionTypes.CHECK_GROUPS_NAME,
+    cache: null,
     cmnd: async (props) => {
       try {
         const { name } = props.event.pathParameters;
 
-        const { rows: [{ count }] } = await props.db.query<{ count: number }>(`
-          SELECT COUNT(*) as count
-          FROM dbtable_schema.groups
-          WHERE name = $1
-        `, [name]);
+        const generatedPrompt = generatePrompt(IPrompts.MODERATE_PHRASE, name.replaceAll('_', ' '));
 
-        return { checkingName: false, isValid: count == 0 } as IGroupState;
+        const [flagged] = await getChatCompletionPrompt(generatedPrompt);
+
+        if (flagged.message?.content && (/false/i).test(flagged.message?.content)) {
+          const { rows: [{ count }] } = await props.db.query<{ count: number }>(`
+            SELECT COUNT(*) as count
+            FROM dbtable_schema.groups
+            WHERE name = $1
+          `, [name]);
+  
+          return { checkingName: false, isValid: count == 0 } as IGroupState;
+        } else {
+          return { checkingName: false, isValid: false, flagged: true } as IGroupState;
+        }
+
 
       } catch (error) {
         throw error;
