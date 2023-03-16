@@ -34,6 +34,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     external_id as "externalId",
     role_id as "roleId",
     name,
+    purpose,
     code,
     created_on as "createdOn",
     created_sub as "createdSub",

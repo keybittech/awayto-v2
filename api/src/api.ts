@@ -21,9 +21,9 @@ import { keycloakClient, groupRoleActions } from './util/keycloak';
 import { DecodedJWTToken, UserGroupRoles, StrategyUser, ILoadedState, IActionTypes } from 'awayto';
 import { IdTokenClaims, Strategy, StrategyVerifyCallbackUserInfo } from 'openid-client';
 
+import { db, connected as dbConnected } from './util/db';
 import redis, { RedisClient } from './util/redis';
 import logger from './util/logger';
-import { db, connected as dbConnected } from './util/db';
 
 import dayjs from 'dayjs';
 

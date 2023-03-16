@@ -1,6 +1,8 @@
 import postgres, { Client } from 'pg';
 import { v4 as uuid } from 'uuid';
-import { IUserProfile } from '../../../app/website/src/core/types';
+import redis from './redis';
+import { IUserProfile } from 'awayto';
+
 
 type BuildParamTypes = string | number | boolean | null;
 
@@ -20,7 +22,6 @@ const {
   PG_DATABASE
 } = process.env as { [prop: string]: string } & { PG_PORT: number };
 
-export let adminSub: string;
 export let connected: boolean = false;
 export let db: Client = new postgres.Client({
   host: PG_HOST,
@@ -42,22 +43,31 @@ export const buildUpdate = (params: BuildUpdateParams) => {
 async function go() {
 
   try {
-      
+    
+    while (false === redis.isReady) {
+      console.log('Waiting for redis to start');
+      await new Promise<void>(res => setTimeout(() => res(), 250))
+    }
+
+    console.log('redis started, init db starting');
+
     await db.connect();
     
     try {
+      // Set admin sub
       const { rows: [{ sub }] } = await db.query<IUserProfile>(`
         SELECT sub
         FROM dbtable_schema.users
         WHERE username = 'system_owner'
       `);
-      adminSub = sub;
+
+      redis.set('adminSub', sub);
+    
     } catch (error) {
-      adminSub = uuid();
       await db.query(`
         INSERT INTO dbtable_schema.users (sub, username, created_on, created_sub)
         VALUES ($1::uuid, $2, $3, $1::uuid)
-      `, [adminSub, 'system_owner', new Date()]);
+      `, [uuid(), 'system_owner', new Date()]);
     }
 
     connected = true;

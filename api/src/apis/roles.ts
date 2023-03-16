@@ -1,7 +1,8 @@
 import { IRole, IRoleActionTypes, IUserProfile, utcNowString } from 'awayto';
 import { asyncForEach } from 'awayto';
 import { ApiModule } from '../api';
-import { adminSub, buildUpdate } from '../util/db';
+import { buildUpdate } from '../util/db';
+import { redisProxy } from '../util/redis';
 
 const roles: ApiModule = [
 
@@ -11,6 +12,7 @@ const roles: ApiModule = [
       try {
 
         const { name } = props.event.body;
+        const { adminSub } = redisProxy;
 
         const { rows: [ role ] } = await props.db.query<IRole>(`
           WITH input_rows(name, created_sub) as (VALUES ($1, $2::uuid)), ins AS (
@@ -25,7 +27,7 @@ const roles: ApiModule = [
           SELECT s.id, s.name
           FROM input_rows
           JOIN dbtable_schema.roles s USING (name);
-        `, [name, adminSub]);
+        `, [name, await adminSub]);
 
         const { rows: [{ id: userId }] } = await props.db.query<IUserProfile>(`
           SELECT id FROM dbtable_schema.users WHERE sub = $1

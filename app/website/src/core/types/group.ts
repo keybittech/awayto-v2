@@ -61,6 +61,7 @@ export type IGroup = {
   createdOn: string;
   roleId: string;
   name: string;
+  purpose: string;
   code: string;
   usersCount: number;
   roles: Map<string, IRole>;
