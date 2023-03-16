@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
+import FormHelperText from '@mui/material/FormHelperText';
 import TextField from '@mui/material/TextField';
 import Slider from '@mui/material/Slider';
 import Box from '@mui/material/Box';
@@ -12,7 +13,7 @@ import CardHeader from '@mui/material/CardHeader';
 import Grid from '@mui/material/Grid';
 import Chip from '@mui/material/Chip';
 
-import { IAssistActionTypes, IService, IServiceActionTypes, IServiceTier, IGroupFormActionTypes, IGroupServiceAddonActionTypes, IServiceAddonActionTypes, IGroupServiceActionTypes, IUtilActionTypes, IGroup, IForm, IAssist, IAssistState } from 'awayto';
+import { IAssistActionTypes, IService, IServiceActionTypes, IServiceTier, IGroupFormActionTypes, IGroupServiceAddonActionTypes, IServiceAddonActionTypes, IGroupServiceActionTypes, IUtilActionTypes, IGroup, IForm, IAssist, IAssistState, IPrompts } from 'awayto';
 import { useApi, useRedux, useComponents, useAct, useStyles } from 'awayto-hooks';
 
 const { POST_SERVICE } = IServiceActionTypes;
@@ -21,7 +22,7 @@ const { GET_GROUP_FORMS, GET_GROUP_FORM_BY_ID } = IGroupFormActionTypes;
 const { GET_GROUP_SERVICES, POST_GROUP_SERVICE } = IGroupServiceActionTypes;
 const { GET_GROUP_SERVICE_ADDONS, POST_GROUP_SERVICE_ADDON, DELETE_GROUP_SERVICE_ADDON } = IGroupServiceAddonActionTypes;
 const { SET_SNACK } = IUtilActionTypes;
-const { GET_SUGGESTION } = IAssistActionTypes;
+const { GET_PROMPT } = IAssistActionTypes;
 
 const serviceSchema = {
   name: '',
@@ -56,16 +57,17 @@ export function ServiceHome(props: IProps): JSX.Element {
   const [group, setGroup] = useState({ id: '' } as IGroup);
   const [serviceSuggestions, setServiceSuggestions] = useState('');
   const [tierSuggestions, setTierSuggestions] = useState('');
+  const [featureSuggestions, setFeatureSuggestions] = useState('');
 
   const groupServiceAddonValues = useMemo(() => Array.from(groupServiceAddons.values()), [groupServiceAddons]);
   
   useEffect(() => {
     if (groups.size) {
       const gr = groups.values().next().value as IGroup;
-      const [, res] = api(GET_SUGGESTION, { prompt: 'Service names for ' + gr.name.replaceAll('_', ' ')}, { useParams: true })
+      const [, res] = api(GET_PROMPT, { id: IPrompts.SUGGEST_SERVICE, prompt: gr.name.replaceAll('_', ' ')}, { useParams: true })
       res?.then(serviceSuggestionData => {
-        const { result } = serviceSuggestionData;
-        if (result) setServiceSuggestions(result)
+        const { promptResult } = serviceSuggestionData;
+        if (promptResult) setServiceSuggestions(promptResult.join(', '))
         setGroup(gr);
       })
     }
@@ -120,7 +122,15 @@ export function ServiceHome(props: IProps): JSX.Element {
                   label="Name"
                   value={newService.name}
                   onChange={e => setNewService({ ...newService, name: e.target.value })}
-                  helperText={`Ex: ${serviceSuggestions ? serviceSuggestions : 'Website Hosting, Yard Maintenance, Automotive Repair'}`}
+                  onBlur={() => {
+                    // When this service name changes, let's get a new prompt for tier name suggestions
+                    const [, res] = api(GET_PROMPT, { id: IPrompts.SUGGEST_TIER, prompt: newService.name}, { useParams: true })
+                    res?.then(tierSuggestionData => {
+                      const { promptResult } = tierSuggestionData;
+                      if (promptResult) setTierSuggestions(promptResult.join(', '))
+                    })
+                  }}
+                  helperText={`Generated Suggestions: ${serviceSuggestions ? serviceSuggestions : 'Website Hosting, Yard Maintenance, Automotive Repair'}`}
                 />
               </Box>
 
@@ -158,10 +168,24 @@ export function ServiceHome(props: IProps): JSX.Element {
             <Grid item xs={12} md={6}>
               <Box mb={4}>
                 {/* <Typography variant="body2">Some services divide their offering up into tiers. For example, a "Basic" tier may some basic features, and the "Advanced" tier has more features. If your service has no tier, you can ignore this section and we'll create a standard tier for you.</Typography> */}
-                <TextField fullWidth label="Name" value={newServiceTier.name} onChange={e => setNewServiceTier({ ...newServiceTier, name: e.target.value })} helperText={`Ex: ${tierSuggestions.length ? tierSuggestions : 'Basic, Mid-Tier, Advanced'}`} />
+                <TextField
+                  fullWidth
+                  label="Name"
+                  value={newServiceTier.name}
+                  onBlur={() => {
+                    // When this tier name changes, let's get a new prompt for feature name suggestions
+                    const [, res] = api(GET_PROMPT, { id: IPrompts.SUGGEST_FEATURE, prompt: `${newService.name} service at the ${newServiceTier.name} tier`}, { useParams: true })
+                    res?.then(featureSuggestionData => {
+                      const { promptResult } = featureSuggestionData;
+                      if (promptResult) setFeatureSuggestions(promptResult.join(', '))
+                    });
+                  }}
+                  onChange={e => setNewServiceTier({ ...newServiceTier, name: e.target.value })}
+                  helperText={`Generated Suggestions: ${tierSuggestions.length ? tierSuggestions : 'Basic, Mid-Tier, Advanced'}`}
+                />
               </Box>
 
-              {group.name && <Box mb={4} sx={{ display: 'flex', alignItems: 'baseline' }}>
+              {group.name && <Box mb={4} flexDirection="column" sx={{ display: 'flex', alignItems: 'baseline' }}>
                 <SelectLookup
                   multiple
                   lookupName='Feature'
@@ -180,6 +204,9 @@ export function ServiceHome(props: IProps): JSX.Element {
                   attachName='serviceAddonId'
                   {...props}
                 />
+                <Box pl={2}>
+                  <FormHelperText>Generated Suggestions: {featureSuggestions.length ? featureSuggestions : '24-Hour Support, Premium Access, Domain Registration, 20GB Storage'}</FormHelperText>
+                </Box>
               </Box>}
 
               <Box mb={4}>
@@ -232,7 +259,7 @@ export function ServiceHome(props: IProps): JSX.Element {
             void act(SET_SNACK, { snackOn: 'Provide a tier name and at least 1 feature.', snackType: 'info' });
           }
         }}>
-          <Box mx={2} sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box m={2} sx={{ display: 'flex', alignItems: 'center' }}>
             <Typography color="secondary" variant="button">Add Tier to Service</Typography>
           </Box>
         </CardActionArea>

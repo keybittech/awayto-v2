@@ -24,12 +24,19 @@ declare global {
   }
 }
 
+export enum IPrompts {
+  SUGGEST_SERVICE = 'suggest_service',
+  SUGGEST_TIER = 'suggest_tier',
+  SUGGEST_FEATURE = 'suggest_feature'
+}
+
+
 /**
  * @category Awayto
  */
 export type IAssist = {
   prompt: string;
-  result: string;
+  promptResult: string[];
 };
 
 /**
@@ -43,13 +50,13 @@ export type IAssistState = IAssist & {
  * @category Action Types
  */
 export enum IAssistActionTypes {
-  GET_SUGGESTION = "GET/assist/suggest"
+  GET_PROMPT = "GET/assist/prompt"
 }
 
 /**
  * @category Assist
  */
-export type IPostAssistsAction = PayloadAction<IAssistActionTypes.GET_SUGGESTION, IAssist>;
+export type IPostAssistsAction = PayloadAction<IAssistActionTypes.GET_PROMPT, IAssist>;
 
 /**
  * @category Assist
