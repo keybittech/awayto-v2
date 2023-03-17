@@ -16,13 +16,13 @@ import passport from 'passport';
 
 import APIs from './apis/index';
 import WebHooks from './webhooks/index';
-import { keycloakClient, groupRoleActions } from './util/keycloak';
+import { keycloakClient } from './util/keycloak';
 
 import { DecodedJWTToken, UserGroupRoles, StrategyUser, ILoadedState, IActionTypes } from 'awayto';
 import { IdTokenClaims, Strategy, StrategyVerifyCallbackUserInfo } from 'openid-client';
 
 import { db, connected as dbConnected } from './util/db';
-import redis, { RedisClient } from './util/redis';
+import redis, { RedisClient, redisProxy } from './util/redis';
 import logger from './util/logger';
 
 import dayjs from 'dayjs';
@@ -355,6 +355,7 @@ async function go() {
 
       // Here we make use of the extra /api from the reverse proxy
       app[method.toLowerCase() as keyof Express](`/api/${path}`, checkAuthenticated, async (req: Request & { headers: { authorization: string } }, res: Response) => {
+        const { groupRoleActions } = await redisProxy('groupRoleActions');
 
         const requestId = uuid();
         let response: ApiResponseBody = false;
@@ -377,11 +378,12 @@ async function go() {
 
             const token = jwtDecode<DecodedJWTToken & IdTokenClaims>(req.headers.authorization);
             const tokenGroupRoles = {} as UserGroupRoles;
-            token.groups.forEach(subgroupPath => {
+
+            for (const subgroupPath of token.groups) {
               const [groupName, subgroupName] = subgroupPath.slice(1).split('/');
               tokenGroupRoles[groupName] = tokenGroupRoles[groupName] || {};
               tokenGroupRoles[groupName][subgroupName] = groupRoleActions[subgroupPath]?.actions.map(a => a.name) || []
-            });
+            }
 
             // Create trace event
             const event = {

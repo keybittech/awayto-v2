@@ -45,11 +45,8 @@ async function go() {
   try {
     
     while (false === redis.isReady) {
-      console.log('Waiting for redis to start');
       await new Promise<void>(res => setTimeout(() => res(), 250))
     }
-
-    console.log('redis started, init db starting');
 
     await db.connect();
     
@@ -61,7 +58,7 @@ async function go() {
         WHERE username = 'system_owner'
       `);
 
-      redis.set('adminSub', sub);
+      await redis.set('adminSub', sub);
     
     } catch (error) {
       await db.query(`

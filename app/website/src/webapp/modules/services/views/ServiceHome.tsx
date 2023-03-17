@@ -64,7 +64,7 @@ export function ServiceHome(props: IProps): JSX.Element {
   useEffect(() => {
     if (groups.size) {
       const gr = groups.values().next().value as IGroup;
-      const [, res] = api(GET_PROMPT, { id: IPrompts.SUGGEST_SERVICE, prompt: gr.name.replaceAll('_', ' ')}, { useParams: true })
+      const [, res] = api(GET_PROMPT, { id: IPrompts.SUGGEST_SERVICE, prompt: gr.purpose }, { useParams: true })
       res?.then(serviceSuggestionData => {
         const { promptResult } = serviceSuggestionData;
         if (promptResult) setServiceSuggestions(promptResult.join(', '))
@@ -124,7 +124,7 @@ export function ServiceHome(props: IProps): JSX.Element {
                   onChange={e => setNewService({ ...newService, name: e.target.value })}
                   onBlur={() => {
                     // When this service name changes, let's get a new prompt for tier name suggestions
-                    const [, res] = api(GET_PROMPT, { id: IPrompts.SUGGEST_TIER, prompt: newService.name}, { useParams: true })
+                    const [, res] = api(GET_PROMPT, { id: IPrompts.SUGGEST_TIER, prompt: `${newService.name} at ${group.name} in order ${group.purpose}`}, { useParams: true })
                     res?.then(tierSuggestionData => {
                       const { promptResult } = tierSuggestionData;
                       if (promptResult) setTierSuggestions(promptResult.join(', '))
@@ -174,7 +174,7 @@ export function ServiceHome(props: IProps): JSX.Element {
                   value={newServiceTier.name}
                   onBlur={() => {
                     // When this tier name changes, let's get a new prompt for feature name suggestions
-                    const [, res] = api(GET_PROMPT, { id: IPrompts.SUGGEST_FEATURE, prompt: `${newService.name} service at the ${newServiceTier.name} tier`}, { useParams: true })
+                    const [, res] = api(GET_PROMPT, { id: IPrompts.SUGGEST_FEATURE, prompt: `${newServiceTier.name} ${newService.name} at ${group.name.replaceAll('_', ' ')}`}, { useParams: true })
                     res?.then(featureSuggestionData => {
                       const { promptResult } = featureSuggestionData;
                       if (promptResult) setFeatureSuggestions(promptResult.join(', '))

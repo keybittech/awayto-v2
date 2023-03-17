@@ -1,7 +1,8 @@
 import { IUserProfile, IUserProfileActionTypes, utcNowString } from 'awayto';
+import { redisProxy } from '../util/redis';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
-import { appClient, keycloak, roleCall } from '../util/keycloak';
+import { appClient, keycloak } from '../util/keycloak';
 
 const profile: ApiModule = [
 
@@ -74,6 +75,8 @@ const profile: ApiModule = [
     action: IUserProfileActionTypes.GET_USER_PROFILE_DETAILS,
     cmnd: async (props) => {
       try {
+        const { roleCall } = await redisProxy('roleCall');
+
         const [user] = (await props.db.query<IUserProfile>(`
           SELECT * 
           FROM dbview_schema.enabled_users_ext

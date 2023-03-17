@@ -28,6 +28,29 @@ export const passwordGen = (): string => {
   return pass.join('');
 }
 
+// throttle
+
+type ThrottleFunction<T extends unknown[]> = (this: void, ...args: T) => void;
+
+export function throttle<T extends unknown[]>(func: ThrottleFunction<T>, limit: number): ThrottleFunction<T> {
+  let lastFunc: ReturnType<typeof setTimeout> | null;
+  let lastRan: number;
+  return function(this: void, ...args: T) {
+    if (!lastRan) {
+      func.apply(this, args);
+      lastRan = Date.now();
+    } else {
+      lastFunc && clearTimeout(lastFunc);
+      lastFunc = setTimeout(() => {
+        if ((Date.now() - lastRan) >= limit) {
+          func.apply(this, args);
+          lastRan = Date.now();
+        }
+      }, limit - (Date.now() - lastRan));
+    }
+  };
+}
+
 
 
 

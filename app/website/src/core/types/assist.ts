@@ -28,7 +28,8 @@ export enum IPrompts {
   SUGGEST_SERVICE = 'suggest_service',
   SUGGEST_TIER = 'suggest_tier',
   SUGGEST_FEATURE = 'suggest_feature',
-  MODERATE_PHRASE = 'moderate_phrase'
+  MODERATE_PHRASE = 'moderate_phrase',
+  CONVERT_PURPOSE = 'convert_purpose'
 }
 
 
@@ -37,6 +38,7 @@ export enum IPrompts {
  */
 export type IAssist = {
   prompt: string;
+  prompt2: string;
   promptResult: string[];
 };
 

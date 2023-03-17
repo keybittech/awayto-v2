@@ -5,8 +5,9 @@ import { IGroup, IUuidRoles, DbError, IUserProfile, IGroupState, IRole, IGroupAc
 
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
-import { keycloak, appClient, appRoles, groupAdminRoles, groupRoleActions, regroup, roleCall } from '../util/keycloak';
+import { keycloak, appClient, regroup } from '../util/keycloak';
 import { generatePrompt, getChatCompletionPrompt } from '../util/openai';
+import { redisProxy } from '../util/redis';
 
 
 const groups: ApiModule = [
@@ -16,8 +17,19 @@ const groups: ApiModule = [
     cmnd: async (props) => {
 
       try {
+        const { name, purpose, roleId: adminRoleId } = props.event.body;
 
-        const { name, roleId: adminRoleId } = props.event.body;
+        const moderatePurpose = generatePrompt(IPrompts.MODERATE_PHRASE, purpose);
+        const [flagged] = await getChatCompletionPrompt(moderatePurpose);
+        if (flagged.message?.content && (/true/i).test(flagged.message?.content)) {
+          return { flagged: true }
+        }
+
+        const convertPurpose = generatePrompt(IPrompts.CONVERT_PURPOSE, name, purpose);
+        const [convertedData] = await getChatCompletionPrompt(convertPurpose);
+        const purposeMission = convertedData.message?.content.toLowerCase().replaceAll('"', '').replaceAll('.', '');
+
+        const { groupAdminRoles, roleCall } = await redisProxy('groupAdminRoles', 'roleCall');
 
         const roles = new Map<string, IRole>(Object.entries(props.event.body.roles));
 
@@ -32,11 +44,11 @@ const groups: ApiModule = [
 
         // Create a group in app db if user has no groups and name is unique
         const { rows: [group] } = await props.db.query<IGroup>(`
-          INSERT INTO dbtable_schema.groups (external_id, code, role_id, name, created_sub)
-          VALUES ($1, $2, $3, $4, $5::uuid)
+          INSERT INTO dbtable_schema.groups (external_id, code, role_id, name, purpose, created_sub)
+          VALUES ($1, $2, $3, $4, $5, $6::uuid)
           ON CONFLICT (name) DO NOTHING
           RETURNING id, name, created_sub
-        `, [props.event.userSub, props.event.userSub, adminRoleId, name, props.event.userSub]);
+        `, [props.event.userSub, props.event.userSub, adminRoleId, name, purposeMission, props.event.userSub]);
 
         // Create a keycloak group if the previous operation was allowed
         const { id: externalId } = await keycloak.groups.create({ name });
@@ -116,6 +128,8 @@ const groups: ApiModule = [
     action: IGroupActionTypes.PUT_GROUPS,
     cmnd: async (props) => {
       try {
+        const { groupAdminRoles } = await redisProxy('groupAdminRoles');
+
         const { id, name, roleId: adminRoleId } = props.event.body;
 
         const roles = new Map<string, IRole>(Object.entries(props.event.body.roles));
@@ -228,6 +242,8 @@ const groups: ApiModule = [
     cmnd: async (props) => {
 
       performance.mark("putGroupAssignmentsStart");
+
+      const { appRoles, groupRoleActions, roleCall } = await redisProxy('appRoles', 'groupRoleActions', 'roleCall');
 
       // const { groupName } = props.event.pathParameters;
       const { assignments } = props.event.body;
@@ -344,6 +360,8 @@ const groups: ApiModule = [
     action: IGroupActionTypes.GET_GROUPS_ASSIGNMENTS,
     cmnd: async (props) => {
       try {
+
+        const { groupRoleActions } = await redisProxy('groupRoleActions');
 
         // Get the group external ID for now by owner
         const [{ externalId }] = (await props.db.query<IGroup>(`

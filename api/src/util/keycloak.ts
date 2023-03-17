@@ -3,20 +3,15 @@
 import KcAdminClient from '@keycloak/keycloak-admin-client';
 import { BaseClient, Issuer } from 'openid-client';
 import { Credentials } from '@keycloak/keycloak-admin-client/lib/utils/auth';
-import RealmRepresentation from '@keycloak/keycloak-admin-client/lib/defs/realmRepresentation';
 import ClientRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientRepresentation';
-import RoleRepresentation, { RoleMappingPayload } from '@keycloak/keycloak-admin-client/lib/defs/roleRepresentation';
+import { RoleMappingPayload } from '@keycloak/keycloak-admin-client/lib/defs/roleRepresentation';
 import GroupRepresentation from '@keycloak/keycloak-admin-client/lib/defs/groupRepresentation';
 import { performance } from 'perf_hooks';
 
 import { IGroupRoleActions, SiteRoles, asyncForEach } from 'awayto';
+import redis, { redisProxy } from './redis';
 
-let realm: RealmRepresentation = {};
 let appClient: ClientRepresentation = {};
-let appRoles: RoleRepresentation[] = [];
-let groupAdminRoles: RoleMappingPayload[] = [];
-let roleCall: RoleMappingPayload[] = [];
-let groupRoleActions: Record<string, IGroupRoleActions> = {};
 let keycloakClient: BaseClient;
 
 const {
@@ -43,6 +38,9 @@ const regroup = async function (groupId?: string) {
 
   let groups: GroupRepresentation[] = [];
 
+  const { groupRoleActions } = await redisProxy('groupRoleActions');
+  const oldGroupRoleActions = (await groupRoleActions || {}) as Record<string, IGroupRoleActions>;
+
   if (groupId) {
     performance.mark("regroupOneGroupStart");
     const group = await keycloak.groups.findOne({ id: groupId });
@@ -58,7 +56,7 @@ const regroup = async function (groupId?: string) {
     if (!group.subGroups) return;
     await asyncForEach(group.subGroups, async ({ path, id: subgroupId }) => {
       if (!path || !subgroupId) return;
-      if (!groupRoleActions[path] || groupRoleActions[path].fetch as boolean) {
+      if (!oldGroupRoleActions[path] || oldGroupRoleActions[path].fetch as boolean) {
 
         const roleMappings = await keycloak.groups.listRoleMappings({ id: subgroupId }) as {
           clientMappings: {
@@ -77,12 +75,12 @@ const regroup = async function (groupId?: string) {
 
       } else {
         console.log(' using cache for ', path);
-        newGroupRoleActions[path as string] = groupRoleActions[path as string];
+        newGroupRoleActions[path as string] = oldGroupRoleActions[path as string];
       }
     });
   });
 
-  groupRoleActions = newGroupRoleActions;
+  await redis.set('groupRoleActions', JSON.stringify(newGroupRoleActions));
 
   if (groupId) {
     performance.mark("regroupOneGroupEnd");
@@ -97,6 +95,11 @@ const regroup = async function (groupId?: string) {
 async function go() {
 
   try {
+
+    while (false === redis.isReady) {
+      await new Promise<void>(res => setTimeout(() => res(), 250))
+    }
+
     // API Client admin keycloak login
     await keycloak.auth(credentials);
     await regroup();
@@ -111,7 +114,7 @@ async function go() {
     const realmRequest = (await keycloak.realms.find()).find(r => r.realm === process.env.KC_REALM);
 
     if (realmRequest) {
-      realm = realmRequest;
+      await redis.set('realm', JSON.stringify(realmRequest));
 
       // Get a reference to the react application's client, as users are based there
       const appClientRequest = (await keycloak.clients.find({ realm: process.env.KC_REALM })).find(c => c.clientId === process.env.KC_CLIENT);
@@ -119,12 +122,14 @@ async function go() {
       if (appClientRequest) {
         appClient = appClientRequest;
         // Get the client roles, which are application universal roles, not specific to any group
-        const appClientRolesRequest = await keycloak.clients.listRoles({ id: appClient.id! });
+        const appRoles = await keycloak.clients.listRoles({ id: appClient.id! });
 
-        if (appClientRolesRequest.length) {
-          appRoles = appClientRolesRequest;
-          groupAdminRoles = appRoles.filter(r => r.name !== SiteRoles.APP_ROLE_CALL).map(({ id, name }) => ({ id, name })) as RoleMappingPayload[]
-          roleCall = appRoles.filter(r => r.name === SiteRoles.APP_ROLE_CALL).map(({ id, name }) => ({ id, name })) as RoleMappingPayload[]
+        if (appRoles.length) {
+          const groupAdminRoles = appRoles.filter(r => r.name !== SiteRoles.APP_ROLE_CALL).map(({ id, name }) => ({ id, name })) as RoleMappingPayload[]
+          const roleCall = appRoles.filter(r => r.name === SiteRoles.APP_ROLE_CALL).map(({ id, name }) => ({ id, name })) as RoleMappingPayload[]
+          await redis.set('appRoles', JSON.stringify(appRoles));
+          await redis.set('groupAdminRoles', JSON.stringify(groupAdminRoles));
+          await redis.set('roleCall', JSON.stringify(roleCall));
         }
       }
     }
@@ -152,11 +157,6 @@ void go();
 export {
   keycloak,
   keycloakClient,
-  realm,
   appClient,
-  appRoles,
-  groupAdminRoles,
-  roleCall,
-  groupRoleActions,
   regroup
 }

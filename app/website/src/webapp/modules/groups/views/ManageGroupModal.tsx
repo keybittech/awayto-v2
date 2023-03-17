@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, ChangeEvent } from 'react';
+import React, { useEffect, useState, useCallback, ChangeEvent, useMemo } from 'react';
 
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
@@ -47,7 +47,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
     , []);
 
   const handleSubmit = useCallback(() => {
-    const { id, name } = group;
+    const { id, name, purpose } = group;
 
     if (!name || !roleIds.length || !primaryRole) {
       act(SET_SNACK, { snackType: 'error', snackOn: 'Please provide a valid group name and roles.' });
@@ -56,7 +56,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
     
     const mapRoleIds = new Map(roleIds.map(id => [id, roles.get(id) as IRole]));
 
-    const [, res] = api(id ? putGroupsAction : postGroupsAction, { name: formatName(name), roles: Array.from(mapRoleIds.values()), roleId: primaryRole }, { load: true });
+    const [, res] = api(id ? putGroupsAction : postGroupsAction, { name: formatName(name), purpose, roles: Array.from(mapRoleIds.values()), roleId: primaryRole }, { load: true });
     res?.then(() => {
       id && act(SET_SNACK, { snackType: 'success', snackOn: 'Group updated! Please allow up to a minute for any related permissions changes to persist.' } )
       !id && keycloak.clearToken();
@@ -74,7 +74,9 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
     } else if (isValid) {
       act(CHECK_GROUPS_NAME, { checkingName: false });
     }
-  }, [group, setGroup]);
+  }, [group, editGroup]);
+
+  const progressMemo = useMemo(() => <CircularProgress size="20px" />, []);
 
   useEffect(() => {
     if (!roleIds.length && group.roles?.size && !primaryRole)
@@ -84,7 +86,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
   useEffect(() => {
     if (needCheckName && checkedName) {
       act(CHECK_GROUPS_NAME, { checkingName: true, needCheckName: false, isValid: false });
-      api(CHECK_GROUPS_NAME, { name: checkedName }, { load: true });
+      api(CHECK_GROUPS_NAME, { name: checkedName }, { load: true, debounce: { time: 1000 } });
     }
   }, [needCheckName, checkedName]);
 
@@ -113,7 +115,12 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
               </Grid>
               <Grid item xs={12}>
                 <TextField
-                  fullWidth id="name" label="Name" value={group.name} name="name" onChange={handleName}
+                  fullWidth
+                  id="name"
+                  label="Name"
+                  value={group.name}
+                  name="name"
+                  onChange={handleName}
                   multiline
                   helperText="Group names can only contain letters, numbers, and underscores. Max 50 characters."
                   error={badName}
@@ -128,8 +135,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
                         position="start"
                       >
                         <Grid item style={{ alignSelf: 'center' }}>
-                          {checkingName ?
-                            <CircularProgress size="20px" /> :
+                          {checkingName ? progressMemo :
                             badName ? <NotInterestedIcon color="error" /> : <ArrowRightAlt />}
                         </Grid>
                         <Grid item xs style={{ wordBreak: 'break-all' }}>
@@ -144,6 +150,17 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
                       </InputAdornment>
                     ),
                   }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  id={`group-purpose-entry`}
+                  fullWidth
+                  inputProps={{ maxLength: 100 }}
+                  helperText={'Enter a short phrase about the function of your group (100 characters).'}
+                  label={`Group Purpose`}
+                  onChange={e => setGroup({ ...group, purpose: e.target.value })}
+                  value={group.purpose}
                 />
               </Grid>
             </Grid>
