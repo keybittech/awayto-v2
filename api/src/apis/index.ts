@@ -28,6 +28,7 @@ import GroupServiceAddons from './group_service_addons';
 import GroupSchedules from './group_schedules';
 import GroupUserSchedules from './group_user_schedules';
 import GroupForms from './group_forms';
+import GroupFeedback from './group_feedback';
 
 import Assist from './assist';
 
@@ -61,7 +62,8 @@ export default  {
     ...GroupServiceAddons,
     ...GroupSchedules,
     ...GroupUserSchedules,
-    ...GroupForms
+    ...GroupForms,
+    ...GroupFeedback,
   ],
   public: [
     ...Public

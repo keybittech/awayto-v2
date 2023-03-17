@@ -15,7 +15,8 @@ import Toolbar from '@mui/material/Toolbar';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 
-import TtyIcon from '@mui/icons-material/ThreeP';
+import FeedbackIcon from '@mui/icons-material/Feedback';
+import TtyIcon from '@mui/icons-material/Tty';
 import ThreePIcon from '@mui/icons-material/ThreeP';
 import LogoutIcon from '@mui/icons-material/Logout';
 import EventNoteIcon from '@mui/icons-material/EventNote';
@@ -40,7 +41,7 @@ export function Topbar(props: IProps): JSX.Element {
   const act = useAct();
   const navigate = useNavigate();
   const hasRole = useSecure();
-  const { PendingQuotesMenu, PendingQuotesProvider, UpcomingBookingsMenu } = useComponents();
+  const { FeedbackMenu, PendingQuotesMenu, PendingQuotesProvider, UpcomingBookingsMenu } = useComponents();
   const location = useLocation();
 
   const { theme } = useRedux(state => state.util);
@@ -51,19 +52,23 @@ export function Topbar(props: IProps): JSX.Element {
 
   const mobileMenuId = 'mobile-app-bar-menu';
   const pendingQuotesMenuId = 'pending-requests-menu';
+  const feedbackMenuId = 'feedback-menu';
   const upcomingBookingsMenuId = 'upcoming-bookings-menu';
 
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState<null | HTMLElement>(null);
   const [pendingQuotesAnchorEl, setPendingQuotesAnchorEl] = useState<null | HTMLElement>(null);
+  const [feedbackAnchorEl, setFeedbackAnchorEl] = useState<null | HTMLElement>(null);
   const [upcomingBookingsAnchorEl, setUpcomingBookingsAnchorEl] = useState<null | HTMLElement>(null);
 
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
   const isPendingQuotesOpen = Boolean(pendingQuotesAnchorEl);
+  const isFeedbackOpen = Boolean(feedbackAnchorEl);
   const isUpcomingBookingsOpen = Boolean(upcomingBookingsAnchorEl);
 
   const handleMenuClose = () => {
     setUpcomingBookingsAnchorEl(null);
     setPendingQuotesAnchorEl(null);
+    setFeedbackAnchorEl(null);
     setMobileMoreAnchorEl(null)
   };
 
@@ -104,6 +109,16 @@ export function Topbar(props: IProps): JSX.Element {
               <Badge badgeContent={pendingQuotes.length} color="error">
                 <ApprovalIcon />
               </Badge>
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Give Feedback">
+            <IconButton
+              aria-label={`give group feedback`}
+              aria-controls={feedbackMenuId}
+              aria-haspopup="true"
+              onClick={e => setFeedbackAnchorEl(e.currentTarget)}
+            >
+              <FeedbackIcon />
             </IconButton>
           </Tooltip>
         </Box>
@@ -216,6 +231,12 @@ export function Topbar(props: IProps): JSX.Element {
       />
     </PendingQuotesProvider>
 
+    <FeedbackMenu
+      feedbackAnchorEl={feedbackAnchorEl}
+      feedbackMenuId={feedbackMenuId}
+      isFeedbackOpen={isFeedbackOpen}
+      handleMenuClose={handleMenuClose}
+    />
   </>;
 }
 

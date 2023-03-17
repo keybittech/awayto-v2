@@ -9,14 +9,15 @@ declare global {
     util: IUtilState,
     uuidFiles: IUuidFilesState;
     file: IFileState;
+    feedback: IFeedbackState;
   }
 
-  interface IMergedState extends Merge<Merge<Merge<Merge<unknown, IFileState>, IUuidFilesState>, IUtilState>, IUuidNotesState> {}
+  interface IMergedState extends Merge<Merge<Merge<Merge<Merge<unknown, IFileState>, IUuidFilesState>, IUtilState>, IUuidNotesState>, IFeedbackState> {}
 
   /**
    * @category Awayto Redux
    */
-  type ICommonModuleActions = IUtilActions | IUuidNotesActions | IUuidFilesActions | IFileActions;
+  type ICommonModuleActions = IUtilActions | IUuidNotesActions | IUuidFilesActions | IFileActions | IFeedbackActions;
 
   /**
    * @category Awayto Redux
@@ -26,6 +27,7 @@ declare global {
     uuidNotes: IUuidNotesActionTypes;
     uuidFiles: IUuidFilesActionTypes;
     file: IFileActionTypes;
+    feedback: IFeedbackActionTypes;
   }
 }
 
@@ -160,6 +162,48 @@ export type IUtilActions = IClearReduxAction
   | IApiErrorAction
   | ISetUpdateAssignmentsAction;
 
+/**
+ * @category Awayto
+ */
+export type IFeedback = {
+  id: string;
+  message: string;
+  groupName: string;
+  createdOn: string;
+  username: string;
+}
+
+/**
+ * @category Awayto
+ */
+export type IFeedbackState = IFeedback & {
+  feedbacks: Map<string, IFeedback>;
+}
+
+/**
+ * @category Action Types
+ */
+export enum IFeedbackActionTypes {
+  POST_FEEDBACK = "POST/feedback",
+  GET_FEEDBACK = "GET/group/:groupName/feedback"
+}
+
+/**
+ * @category Feedback
+ */
+export type IPostFeedbackAction = PayloadAction<IFeedbackActionTypes.POST_FEEDBACK, IFeedback[]>;
+
+
+/**
+ * @category Feedback
+ */
+export type IGetFeedbackAction = PayloadAction<IFeedbackActionTypes.GET_FEEDBACK, IFeedback[]>;
+
+/**
+ * @category Feedback
+ */
+export type IFeedbackActions = IPostFeedbackAction
+  | IGetFeedbackAction;
 
 
 /**

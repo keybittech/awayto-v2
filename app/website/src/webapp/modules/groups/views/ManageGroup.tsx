@@ -33,12 +33,13 @@ export function ManageGroup(props: IProps): JSX.Element {
   const { groupSchedules } = useRedux(state => state.groupSchedule);
   const { groupForms } = useRedux(state => state.groupForm);
 
-  const { ManageUsers, ManageRoles, ManageRoleActions, ManageForms, ManageServices, ManageSchedules, GroupSecure } = useComponents();
+  const { ManageFeedback, ManageUsers, ManageRoles, ManageRoleActions, ManageForms, ManageServices, ManageSchedules, GroupSecure } = useComponents();
 
   const menuRoles: Record<string, SiteRoles[]> = {
     users: [SiteRoles.APP_GROUP_USERS],
     roles: [SiteRoles.APP_GROUP_ROLES],
     matrix: [SiteRoles.APP_GROUP_ADMIN],
+    feedback: [SiteRoles.APP_GROUP_ADMIN],
     forms: [SiteRoles.APP_GROUP_ADMIN],
     services: [SiteRoles.APP_GROUP_SERVICES],
     schedules: [SiteRoles.APP_GROUP_SCHEDULES],
@@ -100,6 +101,10 @@ export function ManageGroup(props: IProps): JSX.Element {
           postGroupSchedulesAction={POST_GROUP_SCHEDULE}
           putGroupSchedulesAction={PUT_GROUP_SCHEDULE}
           deleteGroupSchedulesAction={DELETE_GROUP_SCHEDULE}
+          {...props}
+        />
+      case 'feedback':
+        return <ManageFeedback
           {...props}
         />
       default:
