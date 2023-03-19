@@ -51,6 +51,13 @@ export type IGroupRoleActionState = {
   assignments: Record<string, IGroupRoleActions>;
 };
 
+export type IGroupRole = {
+  id: string;
+  groupId: string;
+  roleId: string;
+  externalId: string;
+}
+
 /**
  * @category Awayto
  */

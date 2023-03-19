@@ -80,12 +80,11 @@ export function ManageGroups(props: IProps): JSX.Element {
       !isOwner && <Tooltip key={'groups_leave'} title="Leave"><IconButton onClick={() => {
         void act(OPEN_CONFIRM, {
           isConfirming: true,
-          confirmEffect: 'Are you sure you want to leave this group?',
+          confirmEffect: 'Leave the group ' + selected[0].name + ' and refresh the session.',
           confirmAction: () => {
             const [, res] = api(GROUPS_LEAVE, { code: selected.pop()?.code }, { load: true });
             res?.then(() => {
-              api(getGroupsAction);
-              setToggle(!toggle);
+              keycloak.clearToken();
             }).catch(console.warn);
           }
         });

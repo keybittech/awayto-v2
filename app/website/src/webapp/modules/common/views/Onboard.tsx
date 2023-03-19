@@ -34,8 +34,6 @@ export function Onboard(props: IProps): JSX.Element {
         const [, res] = api(GROUPS_JOIN, { code: groupCode }, { load: true });
         res?.then(() => {
           keycloak.clearToken();
-        }).catch(() => {
-          act(SET_SNACK, { snackType: 'warning', snackOn: 'Invalid group code.' });
         });
       } else {
         act(SET_SNACK, { snackType: 'warning', snackOn: 'Invalid group code.' });

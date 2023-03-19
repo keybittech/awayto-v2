@@ -1,7 +1,7 @@
 import { performance } from 'perf_hooks';
 import { v4 as uuid } from 'uuid';
 
-import { IGroup, IUuidRoles, DbError, IUserProfile, IGroupState, IRole, IGroupActionTypes, asyncForEach, utcNowString, IPrompts } from 'awayto';
+import { IGroup, IGroupRole, DbError, IUserProfile, IGroupState, IRole, IGroupActionTypes, asyncForEach, utcNowString, IPrompts } from 'awayto';
 
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
@@ -115,7 +115,7 @@ const groups: ApiModule = [
           roles: roleCall
         });
 
-        // Put the new group role structure into redis
+        // Refresh redis cache of group users/roles
         await regroup(kcGroupExternalId);
 
         await props.redis.del(props.event.userSub + 'profile/details');
@@ -161,7 +161,7 @@ const groups: ApiModule = [
         const roleIds = Array.from(roles.keys());
 
         // Get all the group_roles by the group's id, giving us all the group's roles
-        const diffs = (await props.db.query<IUuidRoles>(`
+        const diffs = (await props.db.query<IGroupRole>(`
           SELECT id, "roleId" 
           FROM dbview_schema.enabled_group_roles 
           WHERE "groupId" = $1
@@ -499,26 +499,57 @@ const groups: ApiModule = [
       try {
         const { code } = props.event.body;
 
-        const [{ id: groupId }] = (await props.db.query<IGroup>(`
-          SELECT id FROM dbtable_schema.groups WHERE code = $1
-        `, [code])).rows;
+        // Get group id and default role based on the group code
+        const { rows: [{ id: groupId, externalId: kcGroupExternalId, defaultRoleId }]} = await props.db.query<IGroup>(`
+          SELECT id, external_id as "externalId", default_role_id as "defaultRoleId"
+          FROM dbtable_schema.groups WHERE code = $1
+        `, [code]);
 
+        // Get joining user's id
         const [{ id: userId }] = (await props.db.query<IUserProfile>(`
           SELECT id FROM dbtable_schema.users WHERE sub = $1
         `, [props.event.userSub])).rows;
 
+        // Add the joining user to the group in the app db
         await props.db.query(`
           INSERT INTO dbtable_schema.group_users (user_id, group_id, created_sub)
           VALUES ($1, $2, $3::uuid);
         `, [userId, groupId, props.event.userSub]);
 
+        // Get the role's subgroup external id
+        const { rows: [{ externalId: kcRoleSubgroupExternalId }] } = await props.db.query<IGroupRole>(`
+          SELECT "externalId"
+          FROM dbview_schema.enabled_group_roles
+          WHERE "groupId" = $1 AND "roleId" = $2
+        `, [groupId, defaultRoleId]);
+
+        // Attach the user to the role's subgroup in keycloak
+        await keycloak.users.addToGroup({
+          id: props.event.userSub,
+          groupId: kcRoleSubgroupExternalId
+        });
+
+        // Attach role call so the joining member's roles update
+        const { appClient, roleCall } = await redisProxy('appClient', 'roleCall');
+        await keycloak.users.addClientRoleMappings({
+          id: props.event.userSub,
+          clientUniqueId: appClient.id!,
+          roles: roleCall
+        });
+
+        // Refresh redis cache of group users/roles
+        await regroup(kcGroupExternalId);
+        
+        await props.redis.del(props.event.userSub + 'profile/details');
+
         return true;
       } catch (error) {
         const { constraint } = error as DbError;
 
-        if ('uuid_groups_parent_uuid_group_id_key' === constraint) {
+        if ('group_users_user_id_group_id_key' === constraint) {
           throw { reason: 'You already belong to this group.' }
         }
+        
         throw error;
       }
 
@@ -531,18 +562,34 @@ const groups: ApiModule = [
       try {
         const { code } = props.event.body;
 
-        const [{ id: groupId }] = (await props.db.query<IGroup>(`
-          SELECT id FROM dbtable_schema.groups WHERE code = $1
-        `, [code])).rows;
+        // Get group id and default role based on the group code
+        const { rows: [{ id: groupId, name, externalId: kcGroupExternalId }]} = await props.db.query<IGroup>(`
+          SELECT id, name, external_id as "externalId"
+          FROM dbtable_schema.groups WHERE code = $1
+        `, [code]);
 
+        // Get the leaving user's id
         const [{ id: userId }] = (await props.db.query<IUserProfile>(`
           SELECT id FROM dbtable_schema.users WHERE sub = $1
         `, [props.event.userSub])).rows;
 
+        // Remove the leaving user from the group in the app db
         await props.db.query(`
           DELETE FROM dbtable_schema.group_users
           WHERE user_id = $1 AND group_id = $2;
         `, [userId, groupId]);
+
+        const userCodeGroups = (await keycloak.users.listGroups({ id: props.event.userSub })).filter(ug => ug.path?.split('/')[1] === name);
+        for (const ucg of userCodeGroups) {
+          if (ucg.id) {
+            await keycloak.users.delFromGroup({ id: props.event.userSub, groupId: ucg.id })
+          }
+        }
+
+        // Refresh redis cache of group users/roles
+        await regroup(kcGroupExternalId);
+        
+        await props.redis.del(props.event.userSub + 'profile/details');
 
         return true;
       } catch (error) {

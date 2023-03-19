@@ -1,4 +1,4 @@
-import { IGroup, IUuidRoles, DbError, IManageGroupsActionTypes, IManageGroupsState, asyncForEach, utcNowString, IRole } from 'awayto';
+import { IGroup, DbError, IManageGroupsActionTypes, IManageGroupsState, asyncForEach, utcNowString, IRole, IGroupRole } from 'awayto';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
 
@@ -65,7 +65,7 @@ const manageGroups: ApiModule = [
         `, updateProps.array);
 
         const roleIds = Array.from(roles.keys());
-        const diffs = (await props.db.query<IUuidRoles>('SELECT id, role_id as "roleId" FROM uuid_roles WHERE parent_uuid = $1', [group.id])).rows.filter(r => !roleIds.includes(r.roleId)).map(r => r.id) as string[];
+        const diffs = (await props.db.query<IGroupRole>('SELECT id, role_id as "roleId" FROM uuid_roles WHERE parent_uuid = $1', [group.id])).rows.filter(r => !roleIds.includes(r.roleId)).map(r => r.id) as string[];
 
         if (diffs.length) {
           await asyncForEach(diffs, async diff => {

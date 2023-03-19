@@ -128,22 +128,3 @@ export type IUserProfileActions = IKCLoginAction
   | IGetUserProfileDetailsBySubAction 
   | IGetUserProfileDetailsByIdAction
   | IDisableUserProfileAction;
-
-/**
- * @category Awayto
- */
-export type IUuidGroups = {
-  id: string;
-  parentUuid: string;
-  groupId: string;
-};
-
-/**
- * @category Awayto
- */
-export type IUuidRoles = {
-  id: string;
-  parentUuid: string;
-  roleId: string;
-  externalId: string;
-}

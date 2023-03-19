@@ -135,11 +135,13 @@ export function RequestQuote(props: IProps): JSX.Element {
       const [abort, res] = api(GET_GROUP_SCHEDULES, { groupName: group.name })
       res?.then(scheduleData => {
         const [sched] = scheduleData as IGroupSchedule[];
-        const [, rez] = api(GET_GROUP_SCHEDULE_MASTER_BY_ID, { groupName: group.name, scheduleId: sched.id })
-        rez?.then(masterSchedules => {
-          const [masterSched] = masterSchedules as IGroupSchedule[];
-          loadSchedule(masterSched);
-        }).catch(console.warn);
+        if (sched) {
+          const [, rez] = api(GET_GROUP_SCHEDULE_MASTER_BY_ID, { groupName: group.name, scheduleId: sched.id })
+          rez?.then(masterSchedules => {
+            const [masterSched] = masterSchedules as IGroupSchedule[];
+            loadSchedule(masterSched);
+          }).catch(console.warn);
+        }
       }).catch(console.warn);
       return () => abort();
     }
