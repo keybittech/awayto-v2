@@ -7,6 +7,7 @@ export type DbError = Error & {
 };
 
 export type ApiErrorResponse = Partial<Error> & {
+  [prop: string]: unknown,
   requestId: string,
   reason?: string
 }

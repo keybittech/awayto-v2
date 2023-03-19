@@ -1,4 +1,4 @@
-import { createContext, FormEvent } from "react";
+import { createContext } from "react";
 
 export type ExchangeContextType = {
   chatLog: JSX.Element[];

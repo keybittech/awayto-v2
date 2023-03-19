@@ -13,7 +13,7 @@ const initialGroupState = {
   availableGroupAssignments: {},
   checkingName: false,
   error: '',
-  isValid: true,
+  isValid: false,
   needCheckName: false
 } as IGroupState;
 

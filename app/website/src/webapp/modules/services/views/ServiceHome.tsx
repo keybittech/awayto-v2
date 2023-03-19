@@ -13,7 +13,7 @@ import CardHeader from '@mui/material/CardHeader';
 import Grid from '@mui/material/Grid';
 import Chip from '@mui/material/Chip';
 
-import { IAssistActionTypes, IService, IServiceActionTypes, IServiceTier, IGroupFormActionTypes, IGroupServiceAddonActionTypes, IServiceAddonActionTypes, IGroupServiceActionTypes, IUtilActionTypes, IGroup, IForm, IAssist, IAssistState, IPrompts } from 'awayto';
+import { IAssistActionTypes, IService, IServiceActionTypes, IServiceTier, IGroupFormActionTypes, IGroupServiceAddonActionTypes, IServiceAddonActionTypes, IGroupServiceActionTypes, IUtilActionTypes, IGroup, IForm, IPrompts } from 'awayto';
 import { useApi, useRedux, useComponents, useAct, useStyles } from 'awayto-hooks';
 
 const { POST_SERVICE } = IServiceActionTypes;
@@ -124,13 +124,13 @@ export function ServiceHome(props: IProps): JSX.Element {
                   onChange={e => setNewService({ ...newService, name: e.target.value })}
                   onBlur={() => {
                     // When this service name changes, let's get a new prompt for tier name suggestions
-                    const [, res] = api(GET_PROMPT, { id: IPrompts.SUGGEST_TIER, prompt: `${newService.name} at ${group.name} in order ${group.purpose}`}, { useParams: true })
+                    const [, res] = api(GET_PROMPT, { id: IPrompts.SUGGEST_TIER, prompt: `${newService.name} at ${group.name}, a group interested in ${group.purpose}`}, { useParams: true })
                     res?.then(tierSuggestionData => {
                       const { promptResult } = tierSuggestionData;
                       if (promptResult) setTierSuggestions(promptResult.join(', '))
                     })
                   }}
-                  helperText={`Generated Suggestions: ${serviceSuggestions ? serviceSuggestions : 'Website Hosting, Yard Maintenance, Automotive Repair'}`}
+                  helperText={`${serviceSuggestions ? `AI: ${serviceSuggestions}` : 'Ex: Website Hosting, Yard Maintenance, Automotive Repair'}`}
                 />
               </Box>
 
@@ -174,14 +174,14 @@ export function ServiceHome(props: IProps): JSX.Element {
                   value={newServiceTier.name}
                   onBlur={() => {
                     // When this tier name changes, let's get a new prompt for feature name suggestions
-                    const [, res] = api(GET_PROMPT, { id: IPrompts.SUGGEST_FEATURE, prompt: `${newServiceTier.name} ${newService.name} at ${group.name.replaceAll('_', ' ')}`}, { useParams: true })
+                    const [, res] = api(GET_PROMPT, { id: IPrompts.SUGGEST_FEATURE, prompt: `${newServiceTier.name} ${newService.name}`}, { useParams: true })
                     res?.then(featureSuggestionData => {
                       const { promptResult } = featureSuggestionData;
                       if (promptResult) setFeatureSuggestions(promptResult.join(', '))
                     });
                   }}
                   onChange={e => setNewServiceTier({ ...newServiceTier, name: e.target.value })}
-                  helperText={`Generated Suggestions: ${tierSuggestions.length ? tierSuggestions : 'Basic, Mid-Tier, Advanced'}`}
+                  helperText={`${tierSuggestions.length ? `AI: ${tierSuggestions}` : 'Ex: Basic, Mid-Tier, Advanced'}`}
                 />
               </Box>
 
@@ -205,7 +205,7 @@ export function ServiceHome(props: IProps): JSX.Element {
                   {...props}
                 />
                 <Box pl={2}>
-                  <FormHelperText>Generated Suggestions: {featureSuggestions.length ? featureSuggestions : '24-Hour Support, Premium Access, Domain Registration, 20GB Storage'}</FormHelperText>
+                  <FormHelperText>{featureSuggestions.length ? `AI: ${featureSuggestions}` : 'Ex: 24-Hour Support, Premium Access, Domain Registration, 20GB Storage'}</FormHelperText>
                 </Box>
               </Box>}
 

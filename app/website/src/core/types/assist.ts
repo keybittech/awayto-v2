@@ -25,10 +25,10 @@ declare global {
 }
 
 export enum IPrompts {
+  SUGGEST_ROLE = 'suggest_role',
   SUGGEST_SERVICE = 'suggest_service',
   SUGGEST_TIER = 'suggest_tier',
   SUGGEST_FEATURE = 'suggest_feature',
-  MODERATE_PHRASE = 'moderate_phrase',
   CONVERT_PURPOSE = 'convert_purpose'
 }
 

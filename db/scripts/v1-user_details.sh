@@ -63,10 +63,10 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
           SELECT
             er.*
           FROM
-            dbview_schema.enabled_uuid_roles eur
+            dbview_schema.enabled_user_roles eur
             JOIN dbview_schema.enabled_roles er ON eur."roleId" = er.id
           WHERE
-            eur."parentUuid" = u.id
+            eur."userId" = u.id
         ) r
     ) as rols ON true
     LEFT JOIN LATERAL (
@@ -77,10 +77,10 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
           SELECT
             ege.*
           FROM
-            dbview_schema.enabled_uuid_groups eug
-            JOIN dbview_schema.enabled_groups_ext ege ON eug."groupId" = ege.id
+            dbview_schema.enabled_group_users egu
+            JOIN dbview_schema.enabled_groups_ext ege ON egu."groupId" = ege.id
           WHERE
-            eug."parentUuid" = u.id
+            egu."userId" = u.id
         ) g
     ) as grps ON true;
 

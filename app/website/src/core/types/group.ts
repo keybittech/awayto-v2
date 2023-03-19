@@ -59,7 +59,7 @@ export type IGroup = {
   externalId: string;
   createdSub: string;
   createdOn: string;
-  roleId: string;
+  defaultRoleId: string;
   name: string;
   purpose: string;
   code: string;
@@ -71,7 +71,6 @@ export type IGroupState = IGroup & {
   groups: Map<string, IGroup>;
   users: Map<string, IUserProfile>;
   isValid: boolean;
-  flagged: boolean;
   availableGroupAssignments: Record<string, IGroupRoleActions>;
   needCheckName: boolean;
   checkingName: boolean;

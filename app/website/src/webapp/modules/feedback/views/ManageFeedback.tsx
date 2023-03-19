@@ -11,7 +11,7 @@ import { useParams } from 'react-router';
 
 const { GET_FEEDBACK } = IFeedbackActionTypes;
 
-export function ManageFeedbacks(props: IProps): JSX.Element {
+export function ManageFeedbacks(): JSX.Element {
 
   const api = useApi();
   const { groupName } = useParams();

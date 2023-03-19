@@ -27,6 +27,8 @@ export function FeedbackMenu ({ handleMenuClose, feedbackAnchorEl, feedbackMenuI
 
   const { groups } = useRedux(state => state.profile);
 
+  if (!groups.size) return <></>;
+
   const [group, setGroup] = useState(groups.values().next().value as IGroup);
   const [message, setMessage] = useState('');
 

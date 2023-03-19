@@ -40,24 +40,25 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     enabled BOOLEAN NOT NULL DEFAULT true
   );
 
-  CREATE TABLE dbtable_schema.uuid_roles (
+  CREATE TABLE dbtable_schema.user_roles (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    parent_uuid uuid NOT NULL,
     role_id uuid NOT NULL REFERENCES dbtable_schema.roles (id) ON DELETE CASCADE,
-    external_id VARCHAR(255),
+    user_id uuid NOT NULL REFERENCES dbtable_schema.users (id) ON DELETE CASCADE,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
     created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
     updated_sub uuid REFERENCES dbtable_schema.users (sub),
     enabled BOOLEAN NOT NULL DEFAULT true,
-    UNIQUE (parent_uuid, role_id)
+    UNIQUE (role_id, user_id)
   );
 
   CREATE TABLE dbtable_schema.groups (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    external_id VARCHAR(255) NOT NULL UNIQUE,
-    role_id uuid NOT NULL REFERENCES dbtable_schema.roles (id) ON DELETE CASCADE,
+    external_id TEXT NOT NULL UNIQUE,
+    admin_external_id TEXT NOT NULL UNIQUE,
+    default_role_id uuid NOT NULL REFERENCES dbtable_schema.roles (id) ON DELETE CASCADE,
     name VARCHAR (50) NOT NULL UNIQUE,
+    purpose VARCHAR (100) NOT NULL UNIQUE,
     code TEXT NOT NULL,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
     created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
@@ -66,16 +67,29 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     enabled BOOLEAN NOT NULL DEFAULT true
   );
 
-  CREATE TABLE dbtable_schema.uuid_groups (
+  CREATE TABLE dbtable_schema.group_roles (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    parent_uuid uuid NOT NULL,
+    role_id uuid NOT NULL REFERENCES dbtable_schema.roles (id) ON DELETE CASCADE,
+    group_id uuid NOT NULL REFERENCES dbtable_schema.groups (id) ON DELETE CASCADE,
+    external_id TEXT NOT NULL UNIQUE,
+    created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
+    updated_on TIMESTAMP,
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
+    enabled BOOLEAN NOT NULL DEFAULT true,
+    UNIQUE (role_id, group_id)
+  );
+
+  CREATE TABLE dbtable_schema.group_users (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id uuid NOT NULL REFERENCES dbtable_schema.users (id) ON DELETE CASCADE,
     group_id uuid NOT NULL REFERENCES dbtable_schema.groups (id) ON DELETE CASCADE,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
     created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
     updated_sub uuid REFERENCES dbtable_schema.users (sub),
     enabled BOOLEAN NOT NULL DEFAULT true,
-    UNIQUE (parent_uuid, group_id)
+    UNIQUE (user_id, group_id)
   );
 
   CREATE TABLE dbtable_schema.file_types (

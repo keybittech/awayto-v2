@@ -1,14 +1,11 @@
 import { useMemo, useState } from "react";
 
-import { IBooking, IUtilActionTypes, IBookingActionTypes, IUserProfileActionTypes } from "awayto";
-import { useAct, useApi, useRedux } from "awayto-hooks";
+import { IBooking } from "awayto";
+import { useRedux } from "awayto-hooks";
 
 import { BookingContext, BookingContextType } from "./BookingContext";
 
 export function BookingProvider ({ children }: IProps): JSX.Element {
-
-  const act = useAct();
-  const api = useApi();
 
   const [bookingValuesChanged, setBookingValuesChanged] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<IBooking[]>([]);
@@ -19,6 +16,7 @@ export function BookingProvider ({ children }: IProps): JSX.Element {
 
   const bookingValuesContext = {
     bookingValues,
+    setBookingValuesChanged,
     bookingValuesChanged,
     selectedBooking,
     setSelectedBooking,

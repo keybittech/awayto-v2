@@ -28,36 +28,6 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     u.enabled = true;
 
   CREATE
-  OR REPLACE VIEW dbview_schema.enabled_groups AS
-  SELECT
-    id,
-    external_id as "externalId",
-    role_id as "roleId",
-    name,
-    purpose,
-    code,
-    created_on as "createdOn",
-    created_sub as "createdSub",
-    row_number() OVER () as row
-  FROM
-    dbtable_schema.groups
-  WHERE
-    enabled = true;
-
-  CREATE
-  OR REPLACE VIEW dbview_schema.enabled_uuid_groups AS
-  SELECT
-    id,
-    parent_uuid as "parentUuid",
-    group_id as "groupId",
-    created_on as "createdOn",
-    row_number() OVER () as row
-  FROM
-    dbtable_schema.uuid_groups
-  WHERE
-    enabled = true;
-
-  CREATE
   OR REPLACE VIEW dbview_schema.enabled_roles AS
   SELECT
     id,
@@ -70,16 +40,59 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     enabled = true;
 
   CREATE
-  OR REPLACE VIEW dbview_schema.enabled_uuid_roles AS
+  OR REPLACE VIEW dbview_schema.enabled_user_roles AS
   SELECT
     id,
-    parent_uuid as "parentUuid",
     role_id as "roleId",
+    user_id as "userId",
+    created_on as "createdOn",
+    row_number() OVER () as row
+  FROM
+    dbtable_schema.user_roles
+  WHERE
+    enabled = true;
+
+  CREATE
+  OR REPLACE VIEW dbview_schema.enabled_groups AS
+  SELECT
+    id,
+    external_id as "externalId",
+    default_role_id as "defaultRoleId",
+    name,
+    purpose,
+    code,
+    created_on as "createdOn",
+    created_sub as "createdSub",
+    row_number() OVER () as row
+  FROM
+    dbtable_schema.groups
+  WHERE
+    enabled = true;
+
+  CREATE
+  OR REPLACE VIEW dbview_schema.enabled_group_users AS
+  SELECT
+    id,
+    user_id as "userId",
+    group_id as "groupId",
+    created_on as "createdOn",
+    row_number() OVER () as row
+  FROM
+    dbtable_schema.group_users
+  WHERE
+    enabled = true;
+
+  CREATE
+  OR REPLACE VIEW dbview_schema.enabled_group_roles AS
+  SELECT
+    id,
+    role_id as "roleId",
+    group_id as "groupId",
     external_id as "externalId",
     created_on as "createdOn",
     row_number() OVER () as row
   FROM
-    dbtable_schema.uuid_roles
+    dbtable_schema.group_roles
   WHERE
     enabled = true;
 
@@ -156,21 +169,21 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
             er.id,
             er.name
           FROM
-            dbview_schema.enabled_uuid_roles eur
-            JOIN dbview_schema.enabled_roles er ON eur."roleId" = er.id
+            dbview_schema.enabled_group_roles egr
+            JOIN dbview_schema.enabled_roles er ON egr."roleId" = er.id
           WHERE
-            eur."parentUuid" = eg.id
+            egr."groupId" = eg.id
         ) r
     ) as rls ON true
     LEFT JOIN (
       SELECT
-        eug."groupId",
-        COUNT(eug."parentUuid") as "usersCount"
+        egu."groupId",
+        COUNT(egu."userId") as "usersCount"
       FROM
-        dbview_schema.enabled_uuid_groups eug
-        JOIN dbview_schema.enabled_users u ON u.id = eug."parentUuid"
+        dbview_schema.enabled_group_users egu
+        JOIN dbview_schema.enabled_users u ON u.id = egu."userId"
       GROUP BY
-        eug."groupId"
+        egu."groupId"
     ) ug ON ug."groupId" = eg.id;
 
 EOSQL

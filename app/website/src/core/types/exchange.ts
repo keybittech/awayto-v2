@@ -1,4 +1,4 @@
-import { IBooking, IQuote, PayloadAction } from '.';
+import { IBooking, PayloadAction } from '.';
 import { Merge } from '../util';
 
 declare global {

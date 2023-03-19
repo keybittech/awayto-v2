@@ -39,8 +39,8 @@ const users: ApiModule = [
 
         const response = await props.db.query<IUser>(`
           SELECT eu.* FROM dbview_schema.enabled_users eu
-          LEFT JOIN dbview_schema.enabled_uuid_groups eug ON eug."parentUuid" = eu.id
-          LEFT JOIN dbview_schema.enabled_groups eg ON eg.id = eug."groupId"
+          LEFT JOIN dbview_schema.enabled_group_users egu ON egu."userId" = eu.id
+          LEFT JOIN dbview_schema.enabled_groups eg ON eg.id = egu."groupId"
           WHERE eg."createdSub" = $1
         `, [props.event.userSub]);
         

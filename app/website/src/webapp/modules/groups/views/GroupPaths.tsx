@@ -4,10 +4,10 @@ import { Route, Routes } from 'react-router';
 
 export function GroupPaths (props: IProps): JSX.Element {
   
-  const { ManageGroup } = useComponents();
+  const { ManageGroupHome } = useComponents();
 
   return <Routes>
-    <Route path="manage/:component" element={<ManageGroup {...props} />} />
+    <Route path="manage/:component" element={<ManageGroupHome {...props} />} />
   </Routes>
 }
 

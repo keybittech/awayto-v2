@@ -23,6 +23,7 @@ declare global {
     lookupChange?(value: string | string[]): void;
     lookupValue?: string | string[];
     defaultValue?: string | string[];
+    invalidValues?: string[];
     createAction?: IActionTypes;
     deleteAction?: IActionTypes;
     refetchAction?: IActionTypes;
@@ -39,7 +40,7 @@ function isStringArray(str?: string | string[]): str is string[] {
   return (str as string[]).forEach !== undefined;
 }
 
-export function SelectLookup({ lookupChange, disabled = false, attachAction, attachName, refetchAction, parentUuidName, parentUuid, lookups, lookupName, helperText, lookupValue, multiple = false, noEmptyValue = false, createAction, deleteAction }: IProps): JSX.Element {
+export function SelectLookup({ lookupChange, disabled = false, invalidValues = [], attachAction, attachName, refetchAction, parentUuidName, parentUuid, lookups, lookupName, helperText, lookupValue, multiple = false, noEmptyValue = false, createAction, deleteAction }: IProps): JSX.Element {
   const api = useApi();
   const act = useAct();
   const [addingNew, setAddingNew] = useState<boolean | undefined>();
@@ -58,6 +59,11 @@ export function SelectLookup({ lookupChange, disabled = false, attachAction, att
   }
 
   const handleSubmit = useCallback(() => {
+    if (invalidValues.includes(newLookup.name)) {
+      act(SET_SNACK, { snackType: 'warning', snackOn: 'That value cannot be used here.' })
+      return;
+    }
+
     setLookupUpdater(newLookup.name);
     if (createAction) {
       const [, res] = api(createAction, newLookup, { load: true } );

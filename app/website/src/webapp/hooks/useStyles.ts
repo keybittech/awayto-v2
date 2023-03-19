@@ -20,8 +20,6 @@ export const useStyles = makeStyles(({ mixins, spacing }: Theme) => ({
 
   root: { display: 'flex' },
 
-  backdrop: { zIndex: 99999, color: '#fff', },
-
   siteTitle: { fontSize: '1.5rem', textAlign: 'center' },
 
   menuText: { fontSize: '.75rem', margin: '0' },
@@ -194,7 +192,8 @@ export const getDesignTokens: (mode: PaletteMode) => ThemeOptions = (mode) => ({
         // palette values for dark mode
         primary: {
           main: '#ddd',
-          contrastText: '#333'
+          contrastText: '#333',
+          dark: '#203040'
         },
         secondary: { main: '#009cc8' }
       }

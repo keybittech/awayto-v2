@@ -45,6 +45,7 @@ async function go() {
   try {
     
     while (false === redis.isReady) {
+      console.error('redis is not ready');
       await new Promise<void>(res => setTimeout(() => res(), 250))
     }
 
@@ -61,10 +62,13 @@ async function go() {
       await redis.set('adminSub', sub);
     
     } catch (error) {
+      const sub = uuid();
       await db.query(`
         INSERT INTO dbtable_schema.users (sub, username, created_on, created_sub)
         VALUES ($1::uuid, $2, $3, $1::uuid)
-      `, [uuid(), 'system_owner', new Date()]);
+      `, [sub, 'system_owner', new Date()]);
+
+      await redis.set('adminSub', sub);
     }
 
     connected = true;

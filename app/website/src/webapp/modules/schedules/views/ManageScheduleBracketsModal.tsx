@@ -45,7 +45,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
   const { ScheduleDisplay } = useComponents();
 
   const scheduleParent = useRef<HTMLDivElement>(null);
-  const [view, setView] = useState(1);
+  const [viewStep, setViewStep] = useState(1);
   const [schedule, setSchedule] = useState({ ...scheduleSchema, brackets: new Map() } as ISchedule);
   const [bracket, setBracket] = useState({ ...bracketSchema, services: new Map(), slots: new Map() } as IScheduleBracket);
   const { timeUnits } = useRedux(state => state.lookup);
@@ -77,7 +77,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
         attachScheduleUnits(sched);
         setSchedule({ ...sched });
         if (sched.brackets.size) {
-          setView(2);
+          setViewStep(2);
         }
       }
     }
@@ -156,7 +156,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
     <DialogTitle>{!editSchedule?.id ? 'Create' : 'Manage'} Schedule Bracket</DialogTitle>
     <DialogContent>
 
-      {1 === view ? <>
+      {1 === viewStep ? <>
         <Box mt={2} />
 
         <Box mb={4}>
@@ -253,10 +253,10 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
     <DialogActions>
       <Grid container justifyContent="space-between">
         <Button onClick={closeModal}>Cancel</Button>
-        {1 === view ? <Grid item>
+        {1 === viewStep ? <Grid item>
           {!!scheduleBracketsValues.length && <Button
             onClick={() => {
-              setView(2);
+              setViewStep(2);
               setBracket({ ...bracketSchema, services: new Map(), slots: new Map() } as IScheduleBracket);
             }}
           >
@@ -271,7 +271,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
                 schedule.brackets.set(bracket.id, bracket);
                 setSchedule({ ...schedule, brackets: schedule.brackets })
                 setBracket({ ...bracketSchema, services: new Map(), slots: new Map() } as IScheduleBracket);
-                setView(2);
+                setViewStep(2);
               } else {
                 void act(SET_SNACK, { snackOn: 'Provide a duration, and at least 1 service.', snackType: 'info' });
               }
@@ -280,7 +280,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
             Continue
           </Button>
         </Grid> : <Grid item>
-          <Button onClick={() => { setView(1); }}>Add another</Button>
+          <Button onClick={() => { setViewStep(1); }}>Add another</Button>
           <Button onClick={handleSubmit}>Submit</Button>
         </Grid>}
       </Grid>

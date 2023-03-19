@@ -2,7 +2,7 @@ import { asyncForEach, IFormVersionSubmission, IQuote, IQuoteActionTypes, utcNow
 import { redisProxy } from '../util/redis';
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
-import { keycloak, appClient } from '../util/keycloak';
+import { keycloak } from '../util/keycloak';
 
 const quotes: ApiModule = [
 
@@ -10,7 +10,7 @@ const quotes: ApiModule = [
     action: IQuoteActionTypes.POST_QUOTE,
     cmnd : async (props) => {
       try {
-        const { roleCall } = await redisProxy('roleCall');
+        const { roleCall, appClient } = await redisProxy('roleCall', 'appClient');
 
         const quote = props.event.body;
         const { serviceForm, tierForm, slotDate, scheduleBracketSlotId, serviceTierId } = quote;

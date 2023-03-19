@@ -9,7 +9,7 @@ declare global {
   }
 }
 
-function Transcript({ messages }: IProps) {
+function Transcript({ messages }: IProps): JSX.Element {
   if (!messages) return <></>;
   const sortedTranscript = useMemo(
     () => messages.sort((a, b) => dayjs(a.timestamp).millisecond() - dayjs(b.timestamp).millisecond()),
@@ -59,3 +59,5 @@ function Transcript({ messages }: IProps) {
     </ul>
   );
 }
+
+export default Transcript;

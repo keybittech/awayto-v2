@@ -34,9 +34,9 @@ const roles: ApiModule = [
         `, [props.event.userSub]);
 
         await props.db.query(`
-          INSERT INTO dbtable_schema.uuid_roles (parent_uuid, role_id, created_sub)
-          VALUES ($1, $2, $3::uuid)
-          ON CONFLICT (parent_uuid, role_id) DO NOTHING
+          INSERT INTO dbtable_schema.user_roles (user_id, role_id, created_sub)
+          VALUES ($1::uuid, $2::uuid, $3::uuid)
+          ON CONFLICT (user_id, role_id) DO NOTHING
         `, [userId, role.id, props.event.userSub]);
 
         await props.redis.del(props.event.userSub + 'profile/details');
@@ -88,8 +88,8 @@ const roles: ApiModule = [
         const response = await props.db.query<IRole>(`
           SELECT eur.id, er.name, eur."createdOn" 
           FROM dbview_schema.enabled_roles er
-          LEFT JOIN dbview_schema.enabled_uuid_roles eur ON er.id = eur."roleId"
-          LEFT JOIN dbview_schema.enabled_users eu ON eu.id = eur."parentUuid"
+          LEFT JOIN dbview_schema.enabled_user_roles eur ON er.id = eur."roleId"
+          LEFT JOIN dbview_schema.enabled_users eu ON eu.id = eur."userId"
           WHERE eu.sub = $1
         `, [props.event.userSub]);
         
@@ -135,8 +135,8 @@ const roles: ApiModule = [
 
         await asyncForEach(ids.split(','), async id => {
           await props.db.query(`
-            DELETE FROM dbtable_schema.uuid_roles
-            WHERE role_id = $1 AND parent_uuid = $2
+            DELETE FROM dbtable_schema.user_roles
+            WHERE role_id = $1 AND user_id = $2
           `, [id, userId]);
         });
 

@@ -1,12 +1,11 @@
 import React, { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
 
 import Send from '@mui/icons-material/Send';
-
-import useTheme from '@mui/material/styles/useTheme';
 
 import { asyncForEach, IUtilActionTypes, Sender, SenderStreams, SocketResponseMessageAttributes } from "awayto";
 import { useAct, useComponents } from "awayto-hooks";
@@ -39,8 +38,6 @@ export function ExchangeProvider({ children }: IProps): JSX.Element {
   const localId = `test-${(new Date).getTime()}`;
 
   const act = useAct();
-
-  const theme = useTheme();
 
   const { Video } = useComponents();
 
@@ -83,8 +80,8 @@ export function ExchangeProvider({ children }: IProps): JSX.Element {
     speechRecognizer.current.interimResults = true;
     speechRecognizer.current.lang = 'en-US';
 
-    const isSpeaking = false;
-    const silenceStartTime = 0;
+    // const isSpeaking = false;
+    // const silenceStartTime = 0;
 
     // Handle speech recognition results
     speechRecognizer.current.addEventListener('result', (event: SpeechRecognitionEvent) => {
@@ -94,8 +91,8 @@ export function ExchangeProvider({ children }: IProps): JSX.Element {
       const lastResult = event.results[event.results.length - 1];
       // console.log(lastResult)
       const isFinal = lastResult.isFinal;
-      const confidence = lastResult[0].confidence;
-      const isSilence = lastResult[0].transcript === '';
+      // const confidence = lastResult[0].confidence;
+      // const isSilence = lastResult[0].transcript === '';
 
       // console.log({ transcript })
 
@@ -400,7 +397,7 @@ export function ExchangeProvider({ children }: IProps): JSX.Element {
   const pendingQuotesContext = {
     canStartStop,
     messagesEndRef,
-    chatLog: useMemo(() => messages.map((msg, i) => <p style={{ overflowWrap: 'anywhere' }} key={i}>{msg}</p>), [messages]),
+    chatLog: useMemo(() => messages.map((msg, i) => <Typography color="primary" style={{ overflowWrap: 'anywhere' }} key={i}>{msg}</Typography>), [messages]),
     setLocalStreamAndBroadcast,
     leaveCall() {
       if (localStream) {
@@ -442,11 +439,7 @@ export function ExchangeProvider({ children }: IProps): JSX.Element {
           value={textMessage}
           name="message"
           onChange={e => setTextMessage(e.target.value)}
-          InputLabelProps={{
-            style: { color: theme.palette.primary.contrastText }
-          }}
           InputProps={{
-            style: { color: theme.palette.primary.contrastText },
             onKeyDown: e => {
               if ('Enter' === e.key && !e.shiftKey) {
                 submitMessage(e);
@@ -455,7 +448,7 @@ export function ExchangeProvider({ children }: IProps): JSX.Element {
             endAdornment: (
               <InputAdornment position="end">
                 <IconButton type="submit" aria-label="toggle password visibility">
-                  <Send style={{ color: theme.palette.primary.contrastText }} />
+                  <Send />
                 </IconButton>
               </InputAdornment>
             )

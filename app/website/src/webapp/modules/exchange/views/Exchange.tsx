@@ -12,11 +12,10 @@ import useTheme from '@mui/material/styles/useTheme';
 import ChatBubble from '@mui/icons-material/ChatBubble';
 import Videocam from '@mui/icons-material/Videocam';
 import Call from '@mui/icons-material/Call';
-import { useAct } from 'awayto-hooks';
 
 import { ExchangeContext, ExchangeContextType } from './ExchangeContext';
 
-export function Exchange(props: IProps): JSX.Element {
+export function Exchange(): JSX.Element {
   const {
     chatLog,
     messagesEndRef,
@@ -28,7 +27,6 @@ export function Exchange(props: IProps): JSX.Element {
     leaveCall
   } = useContext(ExchangeContext) as ExchangeContextType;
 
-  const act = useAct();
   const theme = useTheme();
 
   const [chatOpen, setChatOpen] = useState(true);
@@ -61,7 +59,7 @@ export function Exchange(props: IProps): JSX.Element {
       <CardContent>
 
         <Grid container direction="row" justifyContent="space-evenly">
-          <Grid item xs={12} md={5} style={{ height: '70vh', padding: '20px', color: theme.palette.primary.contrastText, backgroundColor: theme.palette.primary.dark }}>document placeholder here</Grid>
+          <Grid item xs={12} md={5} style={{ height: '70vh', padding: '20px', backgroundColor: theme.palette.primary.dark }}>document placeholder here</Grid>
           <Grid item xs={12} md={5}>
             <Grid container direction="column" style={{ height: '70vh', display: 'flex', flexWrap: 'nowrap' }}>
               {/* ---------- Video ---------- */}

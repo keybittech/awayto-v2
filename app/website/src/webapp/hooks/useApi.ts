@@ -176,7 +176,7 @@ export function useApi(): <T extends { [prop: string]: unknown}, R = IMergedStat
         return data;
       })
       .catch(err => {
-        const { name, requestId, reason } = err as ApiErrorResponse;
+        const { name, requestId, reason, ...actionProps } = err as ApiErrorResponse;
 
         if (['AbortError'].includes(name as string)) throw 'Request aborted.';
 
@@ -187,6 +187,8 @@ export function useApi(): <T extends { [prop: string]: unknown}, R = IMergedStat
         });
         
         if (load) act(SET_LOADING, { isLoading: false });
+
+        if (actionProps) act(actionType, actionProps);
         
         throw err;
       });

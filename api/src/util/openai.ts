@@ -1,5 +1,5 @@
 
-import { CreateChatCompletionResponseChoicesInner, OpenAIApi } from 'openai';
+import { CreateChatCompletionResponseChoicesInner, CreateModerationResponseResultsInner, OpenAIApi } from 'openai';
 import { RequiredError } from 'openai/dist/base';
 import { inspect } from 'util';
 import logger from './logger';
@@ -21,10 +21,8 @@ function handleOpenAIError(error: unknown): void {
 }
 
 function getSuggestionPrompt(prompt: string) {
-  return `Generate 5 ${prompt}, in a | delineated list. Here are some examples: `;
+  return `Generate 5 ${prompt}; Result is 1-3 words separated by |. Here are some examples: `;
 }
-
-const moderationPrompt = `Return the word "true" if Phrase is not appropriate for business use or <content> is flagged, "false" otherwise.`;
 
 function generateExample(prompt: string, result: string = '') {
   return `Phrase: ${prompt}\nResult: ${result}`;
@@ -38,12 +36,20 @@ export function generatePrompt(promptId: IPrompts, prompt: string, prompt2?: str
         Complete the following: A 50 character maximum gerund mission statement for a business, named "${prompt}", with the description of "${prompt2}", could be 
       `;
       break;
+    case IPrompts.SUGGEST_ROLE:
+      generatedPrompt += `
+        ${getSuggestionPrompt(`role names for a group named ${prompt} which is interested in ${prompt2}`)}
+        ${generateExample('role names for a group named writing center which is interested in consulting on writing', 'Tutor|Student|Advisor|Administrator|Consultant')}
+        ${generateExample('role names for a group named city maintenance department which is interested in maintaining the facilities in the city', 'Dispatcher|Engineer|Administrator|Technician|Manager')}
+        ${generateExample(`role names for a group named "${prompt}" which is interested in ${prompt2}`)}
+      `;
+      break;
     case IPrompts.SUGGEST_SERVICE:
       generatedPrompt += `
-        ${getSuggestionPrompt(`gerund verbs performed for the purpose of "${prompt}"`)}
+        ${getSuggestionPrompt(`gerund verbs performed for the purpose of ${prompt}`)}
         ${generateExample('gerund verbs performed for the purpose of offering educational services to community college students', 'Tutoring|Advising|Consulting|Instruction|Mentoring')}
         ${generateExample('gerund verbs performed for the purpose of providing banking services to the local area', 'Accounting|Financing|Securities|Financial Planning|Investing')}
-        ${generateExample(`gerund verbs performed for the purpose of "${prompt}"`)}`;
+        ${generateExample(`gerund verbs performed for the purpose of ${prompt}`)}`;
       break;
     case IPrompts.SUGGEST_TIER:
       generatedPrompt += `
@@ -59,24 +65,17 @@ export function generatePrompt(promptId: IPrompts, prompt: string, prompt2?: str
     case IPrompts.SUGGEST_FEATURE:
       generatedPrompt += `
         ${getSuggestionPrompt(`features of ${prompt}`)}
-        ${generateExample('features of ENGL 1010 writing tutoring at community college', 'Feedback|Revisions|Brainstorming|Discussion')}
-        ${generateExample('features of Standard membership at city gym', 'Full Gym Equipment|Limited Training|Half-Day Access')}
-        ${generateExample('features of Pro web hosting service at digital grounds pc shop', 'Unlimited Sites|Unlimited Storage|1TB Bandwidth|Daily Backups')}
+        ${generateExample('features of ENGL 1010 writing tutoring', 'Feedback|Revisions|Brainstorming|Discussion')}
+        ${generateExample('features of Standard gym membership', 'Full Gym Equipment|Limited Training|Half-Day Access')}
+        ${generateExample('features of Pro web hosting service', 'Unlimited Sites|Unlimited Storage|1TB Bandwidth|Daily Backups')}
+        ${generateExample('features of professional photography service', 'Next-Day Prints|High-quality digital photos|Retouching and editing|Choice of location|Choice of outfit changes')}
         ${generateExample(`features of ${prompt}`)}`;
-      break;
-    case IPrompts.MODERATE_PHRASE:
-      generatedPrompt += `
-        ${moderationPrompt}
-        ${generateExample('<any word classified as a swear word in any culture>', 'true')}
-        ${generateExample('adult bookstore', 'false')}
-        ${generateExample('a political extremist group', 'true')}
-        ${generateExample(prompt)}`;
       break;
     default:
       break;
   }
 
-  return generatedPrompt.replace(/\r?\n|\r-/g, ' ');
+  return generatedPrompt.replace(/\r?\n|\r-/g, ' ').trim();
 }
 
 export async function getChatCompletionPrompt(prompt: string): Promise<CreateChatCompletionResponseChoicesInner[]> {
@@ -91,7 +90,26 @@ export async function getChatCompletionPrompt(prompt: string): Promise<CreateCha
 
     console.log(inspect({ prompt, result: inspect(completion.data.choices) }))
 
+    for (const choice of completion.data.choices) {
+      console.log({ content: choice.message?.content, formatted: choice.message?.content.trim().replace(/\r?\n|\r/g, '') });
+    }
+
     return completion.data.choices || [];
+  } catch (error) {
+    handleOpenAIError(error);
+  }
+  return [];
+}
+
+export async function getModerationCompletion(prompt: string): Promise<CreateModerationResponseResultsInner[]> {
+  try {
+    const completion = await openai.createModeration({
+      input: prompt
+    }, opts);
+
+    console.log(inspect({ prompt, result: inspect(completion.data.results) }))
+
+    return completion.data.results || [];
   } catch (error) {
     handleOpenAIError(error);
   }

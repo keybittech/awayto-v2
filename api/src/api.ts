@@ -18,7 +18,7 @@ import APIs from './apis/index';
 import WebHooks from './webhooks/index';
 import { keycloakClient } from './util/keycloak';
 
-import { DecodedJWTToken, UserGroupRoles, StrategyUser, ILoadedState, IActionTypes } from 'awayto';
+import { DecodedJWTToken, UserGroupRoles, StrategyUser, ILoadedState, IActionTypes, ApiErrorResponse } from 'awayto';
 import { IdTokenClaims, Strategy, StrategyVerifyCallbackUserInfo } from 'openid-client';
 
 import { db, connected as dbConnected } from './util/db';
@@ -362,9 +362,11 @@ async function go() {
 
         const user = req.user as StrategyUser;
 
+        console.log({ origUrl: req.originalUrl })
+
         const cacheKey = user.sub + req.originalUrl.slice(5); // remove /api/
 
-        if ('get' === method.toLowerCase()) {
+        if ('get' === method.toLowerCase() && 'skip' !== cache) {
           const value = await redis.get(cacheKey);
           if (value) {
             response = JSON.parse(value);
@@ -406,29 +408,30 @@ async function go() {
 
             if ('skip' !== cache) {
               if ('get' === method.toLowerCase()) {
-                if (null === cache) {
+                if (null === cache) { // null means the item is never removed from the cache
                   await redis.set(cacheKey, JSON.stringify(response))
                 } else {
                   await redis.setEx(cacheKey, cache || 180, JSON.stringify(response));
                 }
                 res.header('x-in-cache', 'true');
               } else {
-                if (null != cache) {
+                if (null !== cache) {
                   await redis.del(cacheKey);
                 }
               }
             }
 
           } catch (error) {
-            const err = error as Error & { reason: string };
+            const { message, reason, requestId: _, ...actionProps } = error as Error & ApiErrorResponse;
 
-            console.log('protected error', err.message || err.reason);
-            logger.log('error response', { requestId, error: err });
+            console.log('protected error', message || reason);
+            logger.log('error response', { requestId, message, reason });
 
             // Handle failures
             res.status(500).send({
               requestId,
-              reason: err.reason || err.message
+              reason: reason || message,
+              ...actionProps
             });
             return;
           }

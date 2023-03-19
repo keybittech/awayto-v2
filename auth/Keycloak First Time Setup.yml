@@ -4,4 +4,4 @@ Keycloak First Time Setup
 2. Create 'devel-client' and 'api-client'
   - realm: add custom-event-listener to events, user registration, forgot password, email as username 
   - devel-client: add roles, root urls, 1 minute token, create groups client scope, add to client
-  - api-client: client authentication, service accounts roles, get secret, assign manage-X client roles
+  - api-client: client authentication, get secret, assign (manage-clients, manage-realm, manage-users) service account roles

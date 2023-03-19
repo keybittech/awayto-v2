@@ -2,11 +2,13 @@ import React, { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router';
 
 import Grid from '@mui/material/Grid';
+import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
 
 import { IRoleActionTypes, IUserActionTypes, IUserProfileActionTypes, IGroupServiceActionTypes, IGroupScheduleActionTypes, IServiceActionTypes, SiteRoles, IGroupFormActionTypes } from 'awayto';
 import { useComponents, useRedux } from 'awayto-hooks';
+
+const { APP_GROUP_ADMIN, APP_GROUP_ROLES, APP_GROUP_SCHEDULES, APP_GROUP_SERVICES, APP_GROUP_USERS } = SiteRoles;
 
 const { GET_USER_PROFILE_DETAILS } = IUserProfileActionTypes;
 const { GET_USERS } = IUserActionTypes;
@@ -22,7 +24,7 @@ declare global {
   }
 }
 
-export function ManageGroup(props: IProps): JSX.Element {
+export function ManageGroupHome(props: IProps): JSX.Element {
   const { groupName, component } = useParams();
 
   const navigate = useNavigate();
@@ -36,22 +38,31 @@ export function ManageGroup(props: IProps): JSX.Element {
   const { ManageFeedback, ManageUsers, ManageRoles, ManageRoleActions, ManageForms, ManageServices, ManageSchedules, GroupSecure } = useComponents();
 
   const menuRoles: Record<string, SiteRoles[]> = {
-    users: [SiteRoles.APP_GROUP_USERS],
-    roles: [SiteRoles.APP_GROUP_ROLES],
-    matrix: [SiteRoles.APP_GROUP_ADMIN],
-    feedback: [SiteRoles.APP_GROUP_ADMIN],
-    forms: [SiteRoles.APP_GROUP_ADMIN],
-    services: [SiteRoles.APP_GROUP_SERVICES],
-    schedules: [SiteRoles.APP_GROUP_SCHEDULES],
+    users: [APP_GROUP_USERS],
+    roles: [APP_GROUP_ROLES],
+    matrix: [APP_GROUP_ADMIN],
+    feedback: [APP_GROUP_ADMIN],
+    forms: [APP_GROUP_ADMIN],
+    services: [APP_GROUP_SERVICES],
+    schedules: [APP_GROUP_SCHEDULES],
   }
 
-  const menu = Object.keys(menuRoles).map(comp =>
-    groupName && component && <GroupSecure key={`menu_${comp}`} contentGroupRoles={menuRoles[comp]}>
-      <Button style={comp == component ? { textDecoration: 'underline' } : undefined} onClick={() => navigate(`/group/${groupName}/manage/${comp}`)}>
-        {comp}
-      </Button>
+  const menu = Object.keys(menuRoles).map(comp =>{
+    const selected = comp === component;
+    return groupName && component && <GroupSecure key={`menu_${comp}`} contentGroupRoles={menuRoles[comp]}>
+      <Grid item>
+        <Link
+          variant="button"
+          color={selected ? "secondary" : "primary"}
+          sx={{ cursor: 'pointer' }}
+          style={selected ? { textDecoration: 'underline' } : undefined}
+          onClick={() => navigate(`/group/${groupName}/manage/${comp}`)}
+        >
+          {comp}
+        </Link>
+      </Grid>
     </GroupSecure>
-  );
+  });
 
   const viewPage = useMemo(() => {
     switch (component) {
@@ -114,8 +125,11 @@ export function ManageGroup(props: IProps): JSX.Element {
 
   return <>
 
-    <Grid container justifyContent="flex-start" alignItems="center">
-      <Typography variant="button">Controls:</Typography> {menu}
+    <Grid container pb={2} spacing={2} justifyContent="flex-start" alignItems="center">
+      <Grid item>
+        <Typography variant="button">Controls:</Typography> 
+      </Grid>
+      {menu}
     </Grid>
 
     {viewPage}
@@ -124,4 +138,4 @@ export function ManageGroup(props: IProps): JSX.Element {
 
 export const roles = [];
 
-export default ManageGroup;
+export default ManageGroupHome;
