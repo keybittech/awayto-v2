@@ -27,6 +27,9 @@ import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 dayjs.extend(duration);
 
+import relativeTime from 'dayjs/plugin/relativeTime';
+dayjs.extend(relativeTime);
+
 import utc from 'dayjs/plugin/utc';
 dayjs.extend(utc);
 

@@ -3,7 +3,8 @@ import {
   IFeedback,
   IFeedbackState,
   IFeedbackActions,
-  IFeedbackActionTypes
+  IFeedbackActionTypes,
+  getMapFromArray
 } from 'awayto';
 
 const initialFeedbackState = {
@@ -13,7 +14,7 @@ const initialFeedbackState = {
 const feedbackReducer: Reducer<IFeedbackState, IFeedbackActions> = (state = initialFeedbackState, action) => {
   switch (action.type) {
     case IFeedbackActionTypes.GET_FEEDBACK:
-      state.feedbacks = new Map([ ...state.feedbacks ].concat( action.payload.map(q => [q.id, q]) as readonly [string, IFeedback][] ));
+      state.feedbacks = getMapFromArray<IFeedback>(state.feedbacks, action.payload);
       return state;
     default:
       return state;

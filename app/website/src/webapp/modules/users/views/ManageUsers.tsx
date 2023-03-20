@@ -1,29 +1,33 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import DataTable, { TableColumn } from 'react-data-table-component';
+import dayjs from 'dayjs';
 
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import IconButton from '@mui/material/IconButton';
 import Dialog from '@mui/material/Dialog';
-import Button from '@mui/material/Button';
 
 import CreateIcon from '@mui/icons-material/Create';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 
-import { IManageUsersActionTypes, IUserProfile, IActionTypes } from 'awayto';
+import { IGroupUser, IActionTypes, IGroupRole } from 'awayto';
 import { useRedux, useApi } from 'awayto-hooks';
 
 import ManageUserModal from './ManageUserModal';
-
-const { LOCK_MANAGE_USERS, UNLOCK_MANAGE_USERS } = IManageUsersActionTypes;
+import { useParams } from 'react-router';
 
 export type ManageUsersProps = {
-  users?: Map<string, IUserProfile>;
-  getAction?: IActionTypes;
-  deleteAction?: IActionTypes;
-  putAction?: IActionTypes;
-  postAction?: IActionTypes;
+  users?: Map<string, IGroupUser>;
+  groupRoles?: Map<string, IGroupRole>;
+  getUsersAction?: IActionTypes;
+  getUserByIdAction?: IActionTypes;
+  deleteUsersAction?: IActionTypes;
+  putUsersAction?: IActionTypes;
+  postUsersAction?: IActionTypes;
+  lockUsersAction?: IActionTypes;
+  unlockUsersAction?: IActionTypes;
+  getRolesAction?: IActionTypes;
 };
 
 declare global {
@@ -31,24 +35,27 @@ declare global {
 }
 
 export function ManageUsers(props: IProps): JSX.Element {
-  const { users, getAction } = props as IProps & Required<ManageUsersProps>;
+  const { users, getUsersAction, lockUsersAction, unlockUsersAction } = props as IProps & Required<ManageUsersProps>;
+  const { groupName } = useParams();
+  
   const api = useApi();
   const util = useRedux(state => state.util);
-  const [user, setUser] = useState<IUserProfile>();
-  const [selected, setSelected] = useState<IUserProfile[]>([]);
+  const [user, setUser] = useState<IGroupUser>();
+  const [selected, setSelected] = useState<IGroupUser[]>([]);
   const [toggle, setToggle] = useState(false);
   const [dialog, setDialog] = useState('');
 
-  const updateSelections = useCallback((state: { selectedRows: IUserProfile[] }) => setSelected(state.selectedRows), []);
+  const updateSelections = useCallback((state: { selectedRows: IGroupUser[] }) => setSelected(state.selectedRows), []);
 
   const columns = useMemo(() => [
     { id: 'createdOn', selector: row => row.createdOn, omit: true },
-    { name: '', grow: 'unset', minWidth: '48px', cell: (user: IUserProfile) => user.locked ? <LockIcon /> : <LockOpenIcon /> },
+    { name: '', grow: 'unset', minWidth: '48px', cell: (user: IGroupUser) => user.locked ? <LockIcon /> : <LockOpenIcon /> },
     { name: 'Username', selector: row => row.username },
     { name: 'First Name', selector: row => row.firstName },
     { name: 'Last Name', selector: row => row.lastName },
-    { name: 'Created', selector: (user: IUserProfile) => user.createdOn },
-  ] as TableColumn<IUserProfile>[], undefined)
+    { name: 'Role', selector: row => row.roleName },
+    { name: 'Created', selector: (user: IGroupUser) => dayjs().to(dayjs.utc(user.createdOn)) },
+  ] as TableColumn<IGroupUser>[], undefined)
 
   const actions = useMemo(() => {
     const { length } = selected;
@@ -65,18 +72,18 @@ export function ManageUsers(props: IProps): JSX.Element {
     return [
       ...actions,
       <IconButton key={'lock_user'} onClick={() => {
-        api(LOCK_MANAGE_USERS, { users: selected.map(u => ({ username: u.username })) }, { load: true });
+        api(lockUsersAction, { users: selected.map(u => ({ username: u.username })) }, { load: true });
         setToggle(!toggle);
       }}><LockIcon /></IconButton>,
       <IconButton key={'unlock_user'} onClick={() => {
-        api(UNLOCK_MANAGE_USERS, { users: selected.map(u => ({ username: u.username })) }, { load: true });
+        api(unlockUsersAction, { users: selected.map(u => ({ username: u.username })) }, { load: true });
         setToggle(!toggle);
       }}><LockOpenIcon /></IconButton>,
     ];
   }, [selected])
 
   useEffect(() => {
-    const [abort, res] = api(getAction);
+    const [abort, res] = api(getUsersAction, { groupName });
     res?.catch(console.warn);
     return () => abort();
   }, []);
@@ -88,14 +95,14 @@ export function ManageUsers(props: IProps): JSX.Element {
 
   return <>
 
-    <Dialog open={dialog === 'manage_user'} fullWidth maxWidth="lg">
+    <Dialog open={dialog === 'manage_user'} fullWidth maxWidth="xs">
       <ManageUserModal {...props} editUser={user} closeModal={() => setDialog('')} />
     </Dialog>
     <Card>
       <CardContent>
         <DataTable
           title="Users"
-          actions={<Button onClick={() => { setUser(undefined); setDialog('manage_user') }}>New</Button>}
+          // actions={<Button onClick={() => { setUser(undefined); setDialog('manage_user') }}>New</Button>}
           contextActions={actions}
           data={Array.from(users.values())}
           theme={util.theme}

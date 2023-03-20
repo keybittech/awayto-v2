@@ -3,7 +3,8 @@ import {
   IBookingState,
   IBookingActions,
   IBookingActionTypes,
-  IBooking
+  IBooking,
+  getMapFromArray
 } from 'awayto';
 
 const initialBookingState = {
@@ -22,7 +23,7 @@ const bookingReducer: Reducer<IBookingState, IBookingActions> = (state = initial
     case IBookingActionTypes.GET_BOOKING_BY_ID:
     case IBookingActionTypes.DISABLE_BOOKING:
     case IBookingActionTypes.GET_BOOKINGS:
-      state.bookings = new Map([...state.bookings].concat(action.payload.map(q => [q.id, q]) as readonly [string, IBooking][]));
+      state.bookings = getMapFromArray<IBooking>(state.bookings, action.payload);
       return state;
     default:
       return state;

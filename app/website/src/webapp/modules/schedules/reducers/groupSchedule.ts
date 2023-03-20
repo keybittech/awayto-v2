@@ -5,7 +5,8 @@ import {
   IGroupScheduleActionTypes,
   IGroupSchedule,
   IGroupScheduleDateSlots,
-  quotedDT
+  quotedDT,
+  getMapFromArray
 } from 'awayto';
 
 const initialGroupScheduleState = {
@@ -32,7 +33,7 @@ const groupSchedulesReducer: Reducer<IGroupScheduleState, IGroupScheduleActions>
     case IGroupScheduleActionTypes.PUT_GROUP_SCHEDULE:
     case IGroupScheduleActionTypes.GET_GROUP_SCHEDULE_MASTER_BY_ID:
     case IGroupScheduleActionTypes.GET_GROUP_SCHEDULES:
-      state.groupSchedules = new Map([ ...state.groupSchedules ].concat( action.payload.map(q => [q.id, q]) as readonly [string, IGroupSchedule][] ));
+      state.groupSchedules = getMapFromArray<IGroupSchedule>(state.groupSchedules, action.payload);
       return state;
     default:
       return state;

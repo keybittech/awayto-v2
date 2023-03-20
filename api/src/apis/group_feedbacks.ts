@@ -1,7 +1,7 @@
 import { IFeedback, IFeedbackActionTypes } from 'awayto';
 import { ApiModule } from '../api';
 
-const contacts: ApiModule = [
+const groupFeedbacks: ApiModule = [
 
   {
     action: IFeedbackActionTypes.POST_FEEDBACK,
@@ -58,4 +58,4 @@ const contacts: ApiModule = [
 
 ]
 
-export default contacts;
+export default groupFeedbacks;

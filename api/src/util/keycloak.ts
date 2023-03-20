@@ -8,7 +8,7 @@ import { RoleMappingPayload } from '@keycloak/keycloak-admin-client/lib/defs/rol
 import GroupRepresentation from '@keycloak/keycloak-admin-client/lib/defs/groupRepresentation';
 import { performance } from 'perf_hooks';
 
-import { IGroupRoleActions, SiteRoles, asyncForEach } from 'awayto';
+import { IGroupRoleAuthActions, SiteRoles, asyncForEach } from 'awayto';
 import redis, { clearLocalCache, redisProxy } from './redis';
 
 let keycloakClient: BaseClient;
@@ -40,7 +40,7 @@ const regroup = async function (groupId?: string) {
   let groups: GroupRepresentation[] = [];
 
   const { groupRoleActions } = await redisProxy('groupRoleActions');
-  const oldGroupRoleActions = (await groupRoleActions || {}) as Record<string, IGroupRoleActions>;
+  const oldGroupRoleActions = (await groupRoleActions || {}) as Record<string, IGroupRoleAuthActions>;
 
   if (groupId) {
     performance.mark("regroupOneGroupStart");
@@ -51,7 +51,7 @@ const regroup = async function (groupId?: string) {
     groups = groups.length ? groups : await keycloak.groups.find();
   }
 
-  const newGroupRoleActions: Record<string, IGroupRoleActions> = {};
+  const newGroupRoleActions: Record<string, IGroupRoleAuthActions> = {};
 
   await asyncForEach(groups, async group => {
     if (!group.subGroups) return;
@@ -71,7 +71,7 @@ const regroup = async function (groupId?: string) {
         };
 
         if (roleMappings.clientMappings) {
-          newGroupRoleActions[path] = roleMappings.clientMappings[KC_CLIENT].mappings.reduce((m: Record<string, string | boolean | Record<string, string>[]>, { id: actionId, name }) => ({ ...m, id: subgroupId, fetch: false, actions: [...(m.actions || []) as Record<string, string>[], { id: actionId, name }] }), {}) as IGroupRoleActions;
+          newGroupRoleActions[path] = roleMappings.clientMappings[KC_CLIENT].mappings.reduce((m: Record<string, string | boolean | Record<string, string>[]>, { id: actionId, name }) => ({ ...m, id: subgroupId, fetch: false, actions: [...(m.actions || []) as Record<string, string>[], { id: actionId, name }] }), {}) as IGroupRoleAuthActions;
         }
 
       } else {

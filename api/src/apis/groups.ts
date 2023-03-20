@@ -102,11 +102,11 @@ const groups: ApiModule = [
 
         // Attach the group admin to the group in the app db
         await props.db.query(`
-          INSERT INTO dbtable_schema.group_users (user_id, group_id, created_sub)
-          VALUES ($1, $2, $3::uuid)
+          INSERT INTO dbtable_schema.group_users (user_id, group_id, external_id, created_sub)
+          VALUES ($1, $2, $3, $4::uuid)
           ON CONFLICT (user_id, group_id) DO NOTHING
           RETURNING id
-        `, [userId, group.id, props.event.userSub]);
+        `, [userId, group.id, kcAdminSubgroupExternalId, props.event.userSub]);
 
         // Attach role call so the group admin's roles force update
         await keycloak.users.addClientRoleMappings({
@@ -160,7 +160,7 @@ const groups: ApiModule = [
         // See if any roles have changed, "rolesIds"/"roles" are the new incoming roles
         const roleIds = Array.from(roles.keys());
 
-        // Get all the group_roles by the group's id, giving us all the group's roles
+        // Get all the group_roles by the group's id
         const diffs = (await props.db.query<IGroupRole>(`
           SELECT id, "roleId" 
           FROM dbview_schema.enabled_group_roles 
@@ -500,8 +500,8 @@ const groups: ApiModule = [
         const { code } = props.event.body;
 
         // Get group id and default role based on the group code
-        const { rows: [{ id: groupId, externalId: kcGroupExternalId, defaultRoleId }]} = await props.db.query<IGroup>(`
-          SELECT id, external_id as "externalId", default_role_id as "defaultRoleId"
+        const { rows: [{ id: groupId, externalId: kcGroupExternalId, defaultRoleId, createdSub }]} = await props.db.query<IGroup>(`
+          SELECT id, external_id as "externalId", default_role_id as "defaultRoleId", created_sub as "createdSub"
           FROM dbtable_schema.groups WHERE code = $1
         `, [code]);
 
@@ -510,18 +510,18 @@ const groups: ApiModule = [
           SELECT id FROM dbtable_schema.users WHERE sub = $1
         `, [props.event.userSub])).rows;
 
-        // Add the joining user to the group in the app db
-        await props.db.query(`
-          INSERT INTO dbtable_schema.group_users (user_id, group_id, created_sub)
-          VALUES ($1, $2, $3::uuid);
-        `, [userId, groupId, props.event.userSub]);
-
         // Get the role's subgroup external id
         const { rows: [{ externalId: kcRoleSubgroupExternalId }] } = await props.db.query<IGroupRole>(`
           SELECT "externalId"
           FROM dbview_schema.enabled_group_roles
           WHERE "groupId" = $1 AND "roleId" = $2
         `, [groupId, defaultRoleId]);
+
+        // Add the joining user to the group in the app db
+        await props.db.query(`
+          INSERT INTO dbtable_schema.group_users (user_id, group_id, external_id, created_sub)
+          VALUES ($1, $2, $3, $4::uuid);
+        `, [userId, groupId, kcRoleSubgroupExternalId, props.event.userSub]);
 
         // Attach the user to the role's subgroup in keycloak
         await keycloak.users.addToGroup({
@@ -541,6 +541,7 @@ const groups: ApiModule = [
         await regroup(kcGroupExternalId);
         
         await props.redis.del(props.event.userSub + 'profile/details');
+        await props.redis.del(createdSub + 'profile/details');
 
         return true;
       } catch (error) {

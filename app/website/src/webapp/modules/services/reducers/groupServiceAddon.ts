@@ -4,6 +4,7 @@ import {
   IGroupServiceAddonActions,
   IGroupServiceAddonActionTypes,
   IGroupServiceAddon,
+  getMapFromArray,
 } from 'awayto';
 
 const initialGroupServiceAddonState: IGroupServiceAddonState = {
@@ -19,7 +20,7 @@ const groupServiceAddonsReducer: Reducer<IGroupServiceAddonState, IGroupServiceA
       return state;
     case IGroupServiceAddonActionTypes.POST_GROUP_SERVICE_ADDON:
     case IGroupServiceAddonActionTypes.GET_GROUP_SERVICE_ADDONS:
-      state.groupServiceAddons = new Map([ ...state.groupServiceAddons ].concat( action.payload.map(q => [q.id, q]) as readonly [string, IGroupServiceAddon][] ));
+      state.groupServiceAddons = getMapFromArray<IGroupServiceAddon>(state.groupServiceAddons, action.payload);
       return state;
     default:
       return state;

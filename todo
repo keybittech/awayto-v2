@@ -9,3 +9,8 @@ read roles from api Objects and check roles before cmnd (role auto-checker)
 
 
 group user role assignment automated via invite method.. different invite urls can place users in different subgroups, but first need to set "staff" and "user" role on group
+
+
+change feedback api to be group centric at the type name level
+
+do the delete lock unlock apis for group_users

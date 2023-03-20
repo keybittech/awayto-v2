@@ -3,7 +3,9 @@ import {
   IGroupFormState,
   IGroupFormActions,
   IGroupFormActionTypes,
-  IGroupForm
+  IGroupForm,
+  IForm,
+  getMapFromArray
 } from 'awayto';
 
 const initialGroupFormState = {
@@ -22,7 +24,7 @@ const groupFormsReducer: Reducer<IGroupFormState, IGroupFormActions> = (state = 
     case IGroupFormActionTypes.PUT_GROUP_FORM:
     case IGroupFormActionTypes.GET_GROUP_FORM_BY_ID:
     case IGroupFormActionTypes.GET_GROUP_FORMS:
-      state.groupForms = new Map([ ...state.groupForms ].concat( action.payload.map(q => [q.id, q]) as readonly [string, IGroupForm][] ));
+      state.groupForms = getMapFromArray<IGroupForm>(state.groupForms, action.payload);
       return state;
     default:
       return state;

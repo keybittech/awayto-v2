@@ -13,14 +13,16 @@ declare global {
     groupSchedule: IGroupScheduleState;
     groupForm: IGroupFormState;
     groupUserSchedule: IGroupUserScheduleState;
+    groupUser: IGroupUserState;
+    groupRole: IGroupRoleState;
   }
 
 
-  interface IMergedState extends Merge<Merge<Merge<Merge<Merge<Merge<Merge<unknown, IGroupRoleActionState>, IGroupState>, IGroupServiceState>, IGroupServiceAddonState>, IGroupScheduleState>, IGroupFormState>, IGroupUserScheduleState> { }
+  interface IMergedState extends Merge<Merge<Merge<Merge<Merge<Merge<Merge<Merge<Merge<unknown, IGroupRoleActionState>, IGroupState>, IGroupServiceState>, IGroupServiceAddonState>, IGroupScheduleState>, IGroupFormState>, IGroupUserScheduleState>, IGroupUserState>, IGroupRoleState> { }
   /**
    * @category Awayto Redux
    */
-  type IGroupModuleActions = IGroupActions | IGroupServiceActions | IGroupServiceAddonActions | IGroupScheduleActions | IGroupFormActions | IGroupUserSchedule;
+  type IGroupModuleActions = IGroupActions | IGroupServiceActions | IGroupServiceAddonActions | IGroupScheduleActions | IGroupFormActions | IGroupUserScheduleActions | IGroupUserActions | IGroupRoleActions;
 
   /**
    * @category Awayto Redux
@@ -32,13 +34,15 @@ declare global {
     groupSchedule: IGroupScheduleActionTypes;
     groupForm: IGroupFormActionTypes;
     groupUserSchedule: IGroupUserScheduleActionTypes;
+    groupUser: IGroupUserActionTypes;
+    groupRole: IGroupRoleActionTypes;
   }
 }
 
 /**
  * @category Authorization
  */
-export type IGroupRoleActions = {
+export type IGroupRoleAuthActions = {
   id?: string;
   fetch?: boolean;
   actions: {
@@ -48,15 +52,8 @@ export type IGroupRoleActions = {
 }
 
 export type IGroupRoleActionState = {
-  assignments: Record<string, IGroupRoleActions>;
+  assignments: Record<string, IGroupRoleAuthActions>;
 };
-
-export type IGroupRole = {
-  id: string;
-  groupId: string;
-  roleId: string;
-  externalId: string;
-}
 
 /**
  * @category Awayto
@@ -78,7 +75,7 @@ export type IGroupState = IGroup & {
   groups: Map<string, IGroup>;
   users: Map<string, IUserProfile>;
   isValid: boolean;
-  availableGroupAssignments: Record<string, IGroupRoleActions>;
+  availableGroupAssignments: Record<string, IGroupRoleAuthActions>;
   needCheckName: boolean;
   checkingName: boolean;
   checkedName: string;
@@ -430,6 +427,9 @@ export type IGroupFormActions = IPostGroupFormAction
   | IDeleteGroupFormAction;
 
 
+
+
+
 export type IGroupUserScheduleStubReplacement = {
   username: string;
   slotDate: string;
@@ -523,3 +523,154 @@ export type IGroupUserScheduleActions = IPostGroupUserScheduleAction
   | IGetGroupUserScheduleStubsAction
   | IGetGroupUserScheduleByIdAction
   | IDeleteGroupUserScheduleAction;
+
+  
+
+  
+/**
+ * @category Group
+ */
+export type IGroupUser = IUserProfile & {
+  groupId: string;
+  userId: string;
+  userSub: string;
+  externalId: string;
+  groupExternalId: string;
+  roleId: string;
+  roleName: string;
+};
+
+/**
+ * @category Group
+ */
+export type IGroupUsers = Record<string, IGroupUser>;
+
+/**
+ * @category Group
+ */
+export type IGroupUserState = IGroupUser & {
+  groupUsers: Map<string, IGroupUser>;
+};
+
+/**
+ * @category Action Types
+ */
+export enum IGroupUserActionTypes {
+  POST_GROUP_USER = "POST/group/:groupName/users",
+  PUT_GROUP_USER = "PUT/group/:groupName/users",
+  GET_GROUP_USERS = "GET/group/:groupName/users",
+  GET_GROUP_USER_BY_ID = "GET/group/:groupName/users/:userId",
+  DELETE_GROUP_USER = "DELETE/group/:groupName/users/:ids",
+  LOCK_GROUP_USER = "PUT/group/:groupName/users/:ids/lock",
+  UNLOCK_GROUP_USER = "PUT/group/:groupName/users/:ids/unlock"
+}
+
+/**
+ * @category Group
+ */
+export type IPostGroupUserAction = PayloadAction<IGroupUserActionTypes.POST_GROUP_USER, IGroupUser[]>;
+
+/**
+ * @category Group
+ */
+export type IPutGroupUserAction = PayloadAction<IGroupUserActionTypes.PUT_GROUP_USER, IGroupUser[]>;
+
+/**
+ * @category Group
+ */
+export type IGetGroupUsersAction = PayloadAction<IGroupUserActionTypes.GET_GROUP_USERS, IGroupUser[]>;
+
+/**
+ * @category Group
+ */
+export type IGetGroupUserByIdAction = PayloadAction<IGroupUserActionTypes.GET_GROUP_USER_BY_ID, IGroupUser[]>;
+
+/**
+ * @category Group
+ */
+export type IDeleteGroupUserAction = PayloadAction<IGroupUserActionTypes.DELETE_GROUP_USER, IGroupUser[]>;
+
+/**
+ * @category Group
+ */
+export type ILockGroupUserAction = PayloadAction<IGroupUserActionTypes.LOCK_GROUP_USER, IGroupUser[]>;
+
+/**
+ * @category Group
+ */
+export type IUnlockGroupUserAction = PayloadAction<IGroupUserActionTypes.UNLOCK_GROUP_USER, IGroupUser[]>;
+
+/**
+ * @category Group
+ */
+export type IGroupUserActions = IPostGroupUserAction
+  | IPutGroupUserAction
+  | IGetGroupUsersAction
+  | IGetGroupUserByIdAction
+  | IDeleteGroupUserAction
+  | ILockGroupUserAction
+  | IUnlockGroupUserAction;
+
+
+
+
+  
+
+/**
+ * @category Group
+ */
+export type IGroupRole = IRole & {
+  groupId: string;
+  roleId: string;
+  externalId: string;
+}
+
+/**
+ * @category Group
+ */
+export type IGroupRoles = Record<string, IGroupRole>;
+
+/**
+ * @category Group
+ */
+export type IGroupRoleState = IGroupRole & {
+  groupRoles: Map<string, IGroupRole>;
+};
+
+/**
+ * @category Action Types
+ */
+export enum IGroupRoleActionTypes {
+  POST_GROUP_ROLE = "POST/group/:groupName/roles",
+  PUT_GROUP_ROLE = "PUT/group/:groupName/roles",
+  GET_GROUP_ROLES = "GET/group/:groupName/roles",
+  DELETE_GROUP_ROLE = "DELETE/group/:groupName/roles/:ids"
+}
+
+/**
+ * @category Group
+ */
+export type IPostGroupRoleAction = PayloadAction<IGroupRoleActionTypes.POST_GROUP_ROLE, IGroupRole[]>;
+
+/**
+ * @category Group
+ */
+export type IPutGroupRoleAction = PayloadAction<IGroupRoleActionTypes.PUT_GROUP_ROLE, IGroupRole[]>;
+
+/**
+ * @category Group
+ */
+export type IGetGroupRolesAction = PayloadAction<IGroupRoleActionTypes.GET_GROUP_ROLES, IGroupRole[]>;
+
+/**
+ * @category Group
+ */
+export type IDeleteGroupRoleAction = PayloadAction<IGroupRoleActionTypes.DELETE_GROUP_ROLE, IGroupRole[]>;
+
+/**
+ * @category Group
+ */
+export type IGroupRoleActions = IPostGroupRoleAction
+  | IPutGroupRoleAction
+  | IGetGroupRolesAction
+  | IDeleteGroupRoleAction;

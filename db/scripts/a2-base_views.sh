@@ -75,6 +75,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     id,
     user_id as "userId",
     group_id as "groupId",
+    external_id as "externalId",
     created_on as "createdOn",
     row_number() OVER () as row
   FROM

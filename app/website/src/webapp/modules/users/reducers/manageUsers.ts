@@ -3,7 +3,8 @@ import {
   IManageUsersState,
   IManageUsersActionTypes,
   IManageUsersActions,
-  IUserProfile
+  IUserProfile,
+  getMapFromArray
 } from 'awayto';
 
 const initialManageUsersState = {
@@ -22,7 +23,7 @@ const manageUsersReducer: Reducer<IManageUsersState, IManageUsersActions> = (sta
     case IManageUsersActionTypes.LOCK_MANAGE_USERS:
     case IManageUsersActionTypes.UNLOCK_MANAGE_USERS:
     case IManageUsersActionTypes.GET_MANAGE_USERS_INFO:
-      state.users = new Map([ ...state.users ].concat( action.payload.map(q => [q.id, q]) as readonly [string, IUserProfile][] ));
+      state.users = getMapFromArray<IUserProfile>(state.users, action.payload);
       return state;
     default:
       return state;

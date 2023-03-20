@@ -1,5 +1,5 @@
 import { createClient } from "redis";
-import { IGroupRoleActions } from 'awayto';
+import { IGroupRoleAuthActions } from 'awayto';
 import RoleRepresentation, { RoleMappingPayload } from "@keycloak/keycloak-admin-client/lib/defs/roleRepresentation";
 import ClientRepresentation from "@keycloak/keycloak-admin-client/lib/defs/clientRepresentation";
 
@@ -12,7 +12,7 @@ redis.on('error', console.error)
 type ProxyKeys = Record<string, unknown> & {
   adminSub: string;
   appClient: ClientRepresentation;
-  groupRoleActions: Record<string, IGroupRoleActions>;
+  groupRoleActions: Record<string, IGroupRoleAuthActions>;
   groupAdminRoles: RoleMappingPayload[];
   appRoles: RoleRepresentation[];
   roleCall: RoleMappingPayload[];

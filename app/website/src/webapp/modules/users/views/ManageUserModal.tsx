@@ -1,26 +1,25 @@
-import React, { useCallback, useMemo, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import Grid from '@mui/material/Grid';
+import Card from '@mui/material/Card';
+import CardHeader from '@mui/material/CardHeader';
+import CardContent from '@mui/material/CardContent';
+import CardActions from '@mui/material/CardActions';
+import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
 import FormControl from '@mui/material/FormControl';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
 import Input from '@mui/material/Input';
 import FormHelperText from '@mui/material/FormHelperText';
 import Button from '@mui/material/Button';
 import InputLabel from '@mui/material/InputLabel';
-import Select from '@mui/material/Select';
 import TextField from '@mui/material/TextField';
-import MenuItem from '@mui/material/MenuItem';
-import CircularProgress from '@mui/material/CircularProgress';
 import InputAdornment from '@mui/material/InputAdornment';
 
-import { IGroup, IUserProfile, IManageUsersActionTypes, IManageGroupsActionTypes, passwordGen } from "awayto";
-import { useApi, useRedux } from 'awayto-hooks';
+import { IGroupUser, IUserProfile, passwordGen } from "awayto";
+import { useApi } from 'awayto-hooks';
+import { ManageUsersProps } from "./ManageUsers";
+import { useParams } from "react-router";
 
-const { GET_MANAGE_USERS_BY_ID } = IManageUsersActionTypes;
-const { GET_MANAGE_GROUPS } = IManageGroupsActionTypes;
 
 declare global {
   interface IProps {
@@ -28,50 +27,54 @@ declare global {
   }
 }
 
-export function ManageUserModal({ editUser, closeModal }: IProps): JSX.Element {
+export function ManageUserModal({ editUser, closeModal, ...props }: IProps): JSX.Element {
+  const { groupRoles, getUsersAction, putUsersAction, getRolesAction, getUserByIdAction } = props as IProps & Required<ManageUsersProps>;
+
+  const { groupName } = useParams();
+
   const api = useApi();
-  const { groups } = useRedux(state => state.manageGroups);
   const [password, setPassword] = useState('');
-  const [groupIds, setGroupIds] = useState<string[]>([]);
-  const [userGroups, setUserGroups] = useState<IGroup[]>([]);
-  const [userGroupRoles, setUserGroupRoles] = useState<Record<string, string[]>>({});
-  const [profile, setProfile] = useState<Partial<IUserProfile>>({
+  const [profile, setProfile] = useState({
     firstName: '',
     lastName: '',
     email: '',
     username: '',
+    roleId: '',
+    roleName: '',
     ...editUser
-  });
+  } as IGroupUser);
 
   useEffect(() => {
-    const [abort, res] = api(GET_MANAGE_GROUPS);
+    if (editUser?.id && !profile.roleId) {
+      const [abort, res] = api(getUserByIdAction, { groupName, userId: editUser.id });
+      res?.then(userData => {
+        const [user] = userData as IGroupUser[];
+        setProfile({ ...profile, ...user });
+      }).catch(console.warn);
+      return () => abort();
+    }
+  }, [editUser, profile]);
+
+  useEffect(() => {
+    const [abort, res] = api(getRolesAction, { groupName });
     res?.catch(console.warn);
     return () => abort();
   }, []);
-
-  useEffect(() => {
-    if (editUser?.id) {
-      const [abort, res] = api(GET_MANAGE_USERS_BY_ID, { id: editUser.id });
-      res?.catch(console.warn);
-      return () => abort();
-    }
-  }, [editUser]);
-
-  useEffect(() => {
-    const { groups: userGroups } = editUser || {};
-    if (userGroups) {
-      const userGroupValues = Array.from(userGroups.values());
-      if (userGroupValues?.length && groups.size) {
-        setUserGroups(Array.from(groups.values()).filter(g => userGroupValues.map(ug => ug.name).includes(g.name)));
-        setUserGroupRoles({ ...userGroupRoles, ...userGroupValues.map(g => ({ [g.name]: Array.from(g.roles.values()).map(r => r.name) })).reduce((a, b) => ({ ...a, ...b }), {}) });
-      }
-    }
-  }, [editUser, groups]);
 
   const handlePassword = useCallback(({ target: { value } }: React.ChangeEvent<HTMLTextAreaElement>) => setPassword(value), [])
   const handleProfile = useCallback(({ target: { name, value } }: React.ChangeEvent<HTMLTextAreaElement>) => setProfile({ ...profile, [name]: value }), [profile])
 
   const handleSubmit = useCallback(() => {
+    if (editUser?.id) {
+      const { id, roleId } = profile;
+      const [, res] = api(putUsersAction, { groupName, userId: id, roleId, roleName: groupRoles.get(roleId)?.name })
+      res?.then(() => {
+        const [, rez] = api(getUsersAction, { groupName });
+        rez?.then(() => {
+          closeModal && closeModal();
+        }).catch(console.warn);
+      }).catch(console.warn);
+    }
     // async function submitUser() {
     //   let user = profile as IUserProfile;
     //   const { id, sub } = user;
@@ -112,155 +115,66 @@ export function ManageUserModal({ editUser, closeModal }: IProps): JSX.Element {
     // }
 
     // void submitUser();
-  }, [profile, password, groups, userGroupRoles]);
+  }, [profile, password]);
 
   const passwordGenerator = useCallback(() => {
     setPassword(passwordGen());
   }, []);
 
-  const groupSelectComp = useMemo(() => {
-    return <Grid item xs={12}>
-      <Grid container justifyContent="flex-end">
-
-        <FormControl fullWidth variant="outlined">
-          <InputLabel id="group-selection-label">Groups</InputLabel>
-          <Select
-            labelId="add-group-selection-label"
-            id="add-group-selection"
-            name="add-groupIds"
-            value={groupIds}
-            onChange={e => e.target.value && setGroupIds(e.target.value as string[])}
-            label="Groups"
-            multiple
-          >
-            {Array.from(groups.values())?.filter(g => g.roles && !userGroups.map(ug => ug.id).includes(g.id)).map((g, i) => <MenuItem key={i} value={g.id}>{g.name}</MenuItem>) ?? <MenuItem />}
-          </Select>
-        </FormControl>
-        <Button variant="text" onClick={() => {
-          const group = Array.from(groups.values())?.filter(g => groupIds.includes(g.id));
-          if (group) {
-            setUserGroups([...userGroups, ...group]);
-            setGroupIds([]);
-          }
-        }}>Add Group +</Button>
-      </Grid>
-    </Grid>
-  }, [groups, groupIds, setGroupIds, userGroups, setUserGroups])
-
-  const userGroupsComp = useMemo(() => {
-    return !userGroups.length ?
-      <></> :
-      <Grid item xs={12}>
-        <Grid container spacing={1}>
-          {userGroups.map((g, i) => {
-            const roleValues = Array.from(g.roles.values());
-            return <Grid key={i} item xs={12}>
-              <FormControl fullWidth variant="outlined">
-                <InputLabel id="role-selection-label">{g.name} roles</InputLabel>
-                <Select
-                  labelId={`${g.id}-role-selection-label`}
-                  id={`${g.id}-role-selection`}
-                  name={`${g.id}-roleIds`}
-                  value={userGroupRoles[g.name] || []}
-                  onChange={e => {
-                    const rolesChangeValue = e.target.value as string[];
-                    if (rolesChangeValue.length) {
-                      setUserGroupRoles({ ...userGroupRoles, [g.name]: rolesChangeValue })
-                    } else {
-                      const ugr = { ...userGroupRoles };
-                      delete ugr[g.name];
-                      setUserGroupRoles(ugr || {});
-                    }
-                  }}
-                  label="Roles"
-                  multiple
-                >
-                  {roleValues.length ? roleValues.map((r, i) => <MenuItem key={i} value={r.name}>{r.name}</MenuItem>) : <MenuItem />}
-                </Select>
-              </FormControl>
-            </Grid>
-          })}
-        </Grid>
-      </Grid>
-  }, [userGroups, userGroupRoles, setUserGroupRoles])
-
   return <>
-    <DialogTitle>{profile.username ? `Manage ${profile.username}` : 'CREATE USER'}</DialogTitle>
-    <DialogContent>
-      <Grid container direction="row" spacing={2} justifyContent="space-evenly">
+    <Card>
+      <CardHeader
+        title={`Manage ${profile.username}`}
+        subheader={`${profile.firstName} ${profile.lastName}`}
+      />
+      <CardContent>
+        <Grid container direction="row" spacing={2} justifyContent="space-evenly">
+          <Grid item xs={12}>
+            <Grid container direction="column" spacing={4} justifyContent="space-evenly" >
 
-        {!editUser && (
-          <Grid item xs>
-            <Grid container direction="column" justifyContent="space-evenly" spacing={4}>
-              <Grid item xs={12}>
-                <Typography variant="h6">Account</Typography>
+              <Grid item>
+                <TextField select fullWidth id="roleId" label="Role" value={profile.roleId} name="roleId" onChange={handleProfile}>
+                  {Array.from(groupRoles.values()).map(role => <MenuItem key={`${role.id}_user_profile_role_select`} value={role.id}>{role.name}</MenuItem>)}
+                </TextField>
               </Grid>
-              <Grid item xs={12}>
-                <TextField fullWidth id="username" label="Username" value={profile.username} name="username" onChange={handleProfile} />
-              </Grid>
-              <Grid item xs={12}>
-                <FormControl fullWidth>
-                  <InputLabel htmlFor="password">Password</InputLabel>
-                  <Input type="text" id="password" aria-describedby="password" value={password} onChange={handlePassword}
-                    endAdornment={
-                      <InputAdornment position="end">
-                        <Button onClick={passwordGenerator} style={{ backgroundColor: 'transparent' }}>Generate</Button>
-                      </InputAdornment>
-                    }
-                  />
-                  <FormHelperText>Password must be at least 8 characters and contain 1 uppercase, lowercase, number, and special (e.g. @^$!*) character. The user must change this passowrd upon logging in for the first time.</FormHelperText>
-                </FormControl>
-              </Grid>
-            </Grid>
-          </Grid>
-        )}
 
-        <Grid item xs>
-          <Grid container direction="column" justifyContent="space-evenly" spacing={4}>
-            <Grid item>
-              <Typography variant="h6">Profile</Typography>
-            </Grid>
-            <Grid item>
-              <TextField fullWidth id="firstName" label="First Name" value={profile.firstName} name="firstName" onChange={handleProfile} />
-            </Grid>
-            <Grid item>
-              <TextField fullWidth id="lastName" label="Last Name" value={profile.lastName} name="lastName" onChange={handleProfile} />
-            </Grid>
-            <Grid item>
-              <TextField fullWidth id="email" label="Email" value={profile.email} name="email" onChange={handleProfile} />
+              {!editUser && (
+                <Grid item xs>
+                  <Grid container direction="column" justifyContent="space-evenly" spacing={4}>
+                    <Grid item xs={12}>
+                      <Typography variant="h6">Account</Typography>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <TextField fullWidth id="username" label="Username" value={profile.username} name="username" onChange={handleProfile} />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <FormControl fullWidth>
+                        <InputLabel htmlFor="password">Password</InputLabel>
+                        <Input type="text" id="password" aria-describedby="password" value={password} onChange={handlePassword}
+                          endAdornment={
+                            <InputAdornment position="end">
+                              <Button onClick={passwordGenerator} style={{ backgroundColor: 'transparent' }}>Generate</Button>
+                            </InputAdornment>
+                          }
+                        />
+                        <FormHelperText>Password must be at least 8 characters and contain 1 uppercase, lowercase, number, and special (e.g. @^$!*) character. The user must change this passowrd upon logging in for the first time.</FormHelperText>
+                      </FormControl>
+                    </Grid>
+                  </Grid>
+                </Grid>
+              )}
             </Grid>
           </Grid>
         </Grid>
+      </CardContent>
+      <CardActions>
 
-        {groups ?
-          <Grid item xs>
-            <Grid container direction="column" justifyContent="space-evenly" spacing={4}>
-              <Grid item>
-                <Typography variant="h6">Groups</Typography>
-              </Grid>
-              {groupSelectComp}
-
-              <Grid item>
-                <Typography variant="h6">User Groups</Typography>
-              </Grid>
-              {userGroupsComp}
-            </Grid>
-          </Grid> :
-          <Grid item xs={12}>
-            <Grid container justifyContent="center">
-              <CircularProgress />
-            </Grid>
-          </Grid>
-        }
-
-      </Grid>
-    </DialogContent>
-    <DialogActions>
-      <Grid container justifyContent="space-between">
-        <Button onClick={closeModal}>Cancel</Button>
-        <Button onClick={handleSubmit}>{profile.sub ? 'update' : 'create'}</Button>
-      </Grid>
-    </DialogActions>
+        <Grid container justifyContent="space-between">
+          <Button onClick={closeModal}>Cancel</Button>
+          <Button onClick={handleSubmit}>{profile.sub ? 'update' : 'create'}</Button>
+        </Grid>
+      </CardActions>
+    </Card>
   </>
 }
 

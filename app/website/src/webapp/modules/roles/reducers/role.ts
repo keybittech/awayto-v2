@@ -3,7 +3,8 @@ import {
   IRole,
   IRoleState,
   IRoleActions,
-  IRoleActionTypes
+  IRoleActionTypes,
+  getMapFromArray
 } from 'awayto';
 
 const initialRoleState = {
@@ -22,7 +23,7 @@ const roleReducer: Reducer<IRoleState, IRoleActions> = (state = initialRoleState
     case IRoleActionTypes.POST_ROLES:
     case IRoleActionTypes.GET_ROLES_BY_ID:
     case IRoleActionTypes.GET_ROLES:
-      state.roles = new Map([ ...state.roles ].concat( action.payload.map(q => [q.id, q]) as readonly [string, IRole][] ));
+      state.roles = getMapFromArray<IRole>(state.roles, action.payload);
       return state;
     default:
       return state;

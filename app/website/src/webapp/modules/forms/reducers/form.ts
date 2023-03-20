@@ -3,7 +3,8 @@ import {
   IFormState,
   IFormActions,
   IFormActionTypes,
-  IForm
+  IForm,
+  getMapFromArray
 } from 'awayto';
 
 const initialFormState = {
@@ -22,7 +23,7 @@ const formReducer: Reducer<IFormState, IFormActions> = (state = initialFormState
     case IFormActionTypes.POST_FORM:
     case IFormActionTypes.DISABLE_FORM:
     case IFormActionTypes.GET_FORMS:
-      state.forms = new Map([ ...state.forms ].concat( action.payload.map(q => [q.id, q]) as readonly [string, IForm][] ));
+      state.forms = getMapFromArray<IForm>(state.forms, action.payload);
       return state;
     default:
       return state;

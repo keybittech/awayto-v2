@@ -4,6 +4,7 @@ import {
   IServiceAddonActions,
   IServiceAddonActionTypes,
   IServiceAddon,
+  getMapFromArray,
 } from 'awayto';
 
 const initialServiceAddonState = {
@@ -22,7 +23,7 @@ const serviceAddonsReducer: Reducer<IServiceAddonState, IServiceAddonActions> = 
     case IServiceAddonActionTypes.POST_SERVICE_ADDON:
     case IServiceAddonActionTypes.GET_SERVICE_ADDON_BY_ID:
     case IServiceAddonActionTypes.GET_SERVICE_ADDONS:
-      state.serviceAddons = new Map([ ...state.serviceAddons ].concat( action.payload.map(q => [q.id, q]) as readonly [string, IServiceAddon][] ));
+      state.serviceAddons = getMapFromArray<IServiceAddon>(state.serviceAddons, action.payload);
       return state;
     default:
       return state;

@@ -3,7 +3,8 @@ import {
   IFileState,
   IFileActions,
   IFileActionTypes,
-  IFile
+  IFile,
+  getMapFromArray
 } from 'awayto';
 
 const initialFileState = {
@@ -22,7 +23,7 @@ const fileReducer: Reducer<IFileState, IFileActions> = (state = initialFileState
     case IFileActionTypes.POST_FILE:
     case IFileActionTypes.DISABLE_FILE:
     case IFileActionTypes.GET_FILES:
-      state.files = new Map([ ...state.files ].concat( action.payload.map(q => [q.id, q]) as readonly [string, IFile][] ));
+      state.files = getMapFromArray<IFile>(state.files, action.payload);
       return state;
     default:
       return state;

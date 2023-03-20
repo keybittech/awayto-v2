@@ -3,7 +3,8 @@ import {
   IQuoteState,
   IQuoteActions,
   IQuoteActionTypes,
-  IQuote
+  IQuote,
+  getMapFromArray
 } from 'awayto';
 
 const initialQuoteState = {
@@ -22,7 +23,7 @@ const quoteReducer: Reducer<IQuoteState, IQuoteActions> = (state = initialQuoteS
     case IQuoteActionTypes.POST_QUOTE:
     case IQuoteActionTypes.GET_QUOTE_BY_ID:
     case IQuoteActionTypes.GET_QUOTES:
-      state.quotes = new Map([ ...state.quotes ].concat( action.payload.map(q => [q.id, q]) as readonly [string, IQuote][] ));
+      state.quotes = getMapFromArray<IQuote>(state.quotes, action.payload);
       return state;
     default:
       return state;

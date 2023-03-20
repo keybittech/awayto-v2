@@ -9,7 +9,7 @@ import Grid from '@mui/material/Grid';
 import CardActionArea from '@mui/material/CardActionArea';
 import Checkbox from '@mui/material/Checkbox';
 
-import { IUtilActionTypes, SiteRoles, IGroupActionTypes, IGroupRoleActions, IUserProfileActionTypes, IRole } from 'awayto';
+import { IUtilActionTypes, SiteRoles, IGroupActionTypes, IGroupRoleAuthActions, IUserProfileActionTypes, IRole } from 'awayto';
 import { useApi, useRedux, useStyles, useAct } from 'awayto-hooks';
 import { useParams } from 'react-router';
 
@@ -25,7 +25,7 @@ export function ManageRoleActions(): JSX.Element {
   const util = useRedux(state => state.util);
   const { availableGroupAssignments } = useRedux(state => state.group);
   const { groups } = useRedux(state => state.profile);
-  const [assignments, setAssignments] = useState<Record<string, IGroupRoleActions>>({});
+  const [assignments, setAssignments] = useState<Record<string, IGroupRoleAuthActions>>({});
 
   useEffect(() => {
     if (Object.keys(availableGroupAssignments).length) {

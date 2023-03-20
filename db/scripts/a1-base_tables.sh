@@ -84,6 +84,8 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id uuid NOT NULL REFERENCES dbtable_schema.users (id) ON DELETE CASCADE,
     group_id uuid NOT NULL REFERENCES dbtable_schema.groups (id) ON DELETE CASCADE,
+    external_id TEXT NOT NULL,
+    locked BOOLEAN NOT NULL DEFAULT false,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
     created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,

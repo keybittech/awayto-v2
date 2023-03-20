@@ -3,7 +3,8 @@ import {
   IServiceState,
   IServiceActions,
   IServiceActionTypes,
-  IService
+  IService,
+  getMapFromArray
 } from 'awayto';
 
 const initialServiceState: IServiceState = {
@@ -22,7 +23,7 @@ const servicesReducer: Reducer<IServiceState, IServiceActions> = (state = initia
     case IServiceActionTypes.POST_SERVICE:
     case IServiceActionTypes.GET_SERVICE_BY_ID:
     case IServiceActionTypes.GET_SERVICES:
-      state.services = new Map([ ...state.services ].concat( action.payload.map(q => [q.id, q]) as readonly [string, IService][] ));
+      state.services = getMapFromArray<IService>(state.services, action.payload);
       return state;
     default:
       return state;

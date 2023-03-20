@@ -3,7 +3,8 @@ import {
   IManageRolesActionTypes, 
   IManageRolesState, 
   IManageRolesActions,
-  IRole
+  IRole,
+  getMapFromArray
 } from 'awayto';
 
 const initialManageRolesState = {
@@ -20,7 +21,7 @@ const roleReducer: Reducer<IManageRolesState, IManageRolesActions> = (state = in
     case IManageRolesActionTypes.PUT_MANAGE_ROLES:
     case IManageRolesActionTypes.POST_MANAGE_ROLES:
     case IManageRolesActionTypes.GET_MANAGE_ROLES:
-      state.roles = new Map([ ...state.roles ].concat( action.payload.map(q => [q.id, q]) as readonly [string, IRole][] ));
+      state.roles = getMapFromArray<IRole>(state.roles, action.payload);
       return state;
     default:
       return state;

@@ -51,9 +51,28 @@ export function throttle<T extends unknown[]>(func: ThrottleFunction<T>, limit: 
   };
 }
 
+export function getMapFromArray<T extends { id: string }>(state: Map<string, T>, payload: T[]): Map<string, T> {
+  return payload.reduce((m, d) => {
+    m.set(d.id, { ...m.get(d.id), ...d });
+    return m;
+  }, new Map(state))
+}
 
+// export function getMapFromArrayWithProps<T extends { id: string }>(state: Map<string, T>, payload: T[], ...props: (keyof T)[]): Map<string, T> {
+//   return payload.reduce((m, d) => {
+//     const obj = m.get(d.id) || {} as Record<keyof T, unknown>;
+//     props.forEach(prop => {
+//       if (Object.hasOwn(d, prop)) {
+//         const propMap = obj[prop] as Map<string, unknown>;
+//         const newMap = new Map(Object.entries(obj[prop] as Record<string, T>));
+//         obj[prop] = new Map([ ...propMap, ...newMap ])
+//       }
+//     })
 
-
+//     m.set(d.id, { ...obj, ...d });
+//     return m;
+//   }, new Map(state))
+// }
 
 //- ---------------------
 type Primitive = Map<string, unknown> | string | number | boolean | bigint | symbol | null | undefined;

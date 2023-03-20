@@ -3,7 +3,8 @@ import {
   IGroupState,
   IGroupActions,
   IGroupActionTypes,
-  IGroup
+  IGroup,
+  getMapFromArray
 } from 'awayto';
 
 const initialGroupState = {
@@ -29,7 +30,7 @@ const groupReducer: Reducer<IGroupState, IGroupActions> = (state = initialGroupS
     case IGroupActionTypes.GET_GROUPS_BY_ID:
     case IGroupActionTypes.DISABLE_GROUPS:
     case IGroupActionTypes.GET_GROUPS:
-      state.groups = new Map([ ...state.groups ].concat( action.payload.map(q => [q.id, q]) as readonly [string, IGroup][] ));
+      state.groups = getMapFromArray<IGroup>(state.groups, action.payload);
       return state;
     case IGroupActionTypes.GET_GROUPS_ASSIGNMENTS:
     case IGroupActionTypes.CHECK_GROUPS_NAME:

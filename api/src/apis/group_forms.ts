@@ -2,7 +2,7 @@ import { asyncForEach, IGroup, IGroupForm, IGroupFormActionTypes, IGroupService,
 import { ApiEvent, ApiModule } from '../api';
 import forms from './forms';
 
-const groupServices: ApiModule = [
+const groupForms: ApiModule = [
 
   {
     action: IGroupFormActionTypes.POST_GROUP_FORM,
@@ -202,4 +202,4 @@ const groupServices: ApiModule = [
   }
 ]
 
-export default groupServices;
+export default groupForms;
