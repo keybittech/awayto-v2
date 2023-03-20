@@ -1,7 +1,9 @@
 import React, { useEffect, useState, useCallback, ChangeEvent, useMemo } from 'react';
 
+import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
+import Chip from '@mui/material/Chip';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardHeader from '@mui/material/CardHeader';
@@ -38,14 +40,16 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
   const api = useApi();
   const act = useAct();
   const { SelectLookup } = useComponents();
-  const { roles } = useRedux(state => state.profile);
+  const { roles, username } = useRedux(state => state.profile);
   const { isValid, needCheckName, checkedName, checkingName } = useRedux(state => state.group);
   const [defaultRoleId, setDefaultRoleId] = useState(editGroup?.defaultRoleId || '');
   const [roleIds, setRoleIds] = useState<string[]>([]);
-  const [group, setGroup] = useState({ name: '', purpose: '', ...editGroup } as IGroup);
+  const [group, setGroup] = useState({ name: '', purpose: '', allowedDomains: '', ...editGroup } as IGroup);
   const [viewStep, setViewStep] = useState(1);
   const [editedPurpose, setEditedPurpose] = useState(false);
   const [roleSuggestions, setRoleSuggestions] = useState([] as string[]);
+  const [allowedDomains, setAllowedDomains] = useState([username.split('@')[1]] as string[]);
+  const [allowedDomain, setAllowedDomain] = useState('');
 
   const progressMemo = useMemo(() => <CircularProgress size="20px" />, []);
   const roleValues = useMemo(() => Array.from(roles.values()), [roles]);
@@ -70,7 +74,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
 
     const mapRoleIds = new Map(roleIds.map(id => [id, roles.get(id) as IRole]));
 
-    const [, res] = api(id ? putGroupsAction : postGroupsAction, { name: formatName(name), purpose, roles: Array.from(mapRoleIds.values()), defaultRoleId }, { load: true });
+    const [, res] = api(id ? putGroupsAction : postGroupsAction, { name: formatName(name), purpose, allowedDomains: allowedDomains.join(','), roles: Array.from(mapRoleIds.values()), defaultRoleId }, { load: true });
     res?.then(() => {
       id && act(SET_SNACK, { snackType: 'success', snackOn: 'Group updated! Please allow up to a minute for any related permissions changes to persist.' })
       !id && keycloak.clearToken();
@@ -114,7 +118,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
   }, [needCheckName, checkedName]);
 
   const roleSuggestionLinks = <>
-    AI: {roleSuggestions.map((s, i) => {
+    AI: {roleSuggestions.filter(s => s.toLowerCase() !== 'admin').map((s, i) => {
       return <span key={`role-selection-${i}`}>
         <Link sx={{ cursor: 'pointer' }} onClick={() => {
           // The currently suggested role in the user detail's role list
@@ -200,14 +204,46 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
               value={group.purpose}
             />
           </Grid>
+          <Grid item xs={12}>
+            <TextField
+              id={`group-allowed-domains-entry`}
+              fullWidth
+              helperText={`These domains will be allowed to join the group. Remove all for unrestricted access.`}
+              label={`Allowed Domains`}
+              onChange={e => setAllowedDomain(e.target.value)}
+              value={allowedDomain}
+              InputProps={{
+                endAdornment: <Button
+                  variant="text"
+                  color="secondary"
+                  onClick={() => {
+                    if (!/[a-zA-Z0-9-]+\.[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*/.test(allowedDomain)) {
+                      act(SET_SNACK, { snackType: 'info', snackOn: 'Must be an email domain, like DOMAIN.COM'})
+                    } else {
+                      setAllowedDomains([ ...allowedDomains, allowedDomain ])
+                      setAllowedDomain('');
+                    }
+                  }}
+                >Add</Button>
+              }}
+            />
+            <Grid container>
+              {allowedDomains.map((ad, i) => <Box key={`allowed-domain-selection-${i}`} mt={2} mr={2}>
+                <Chip
+                  label={ad}
+                  color="secondary"
+                  onDelete={() => {
+                    setAllowedDomains(allowedDomains.filter(da => da !== ad))
+                  }}
+                />
+              </Box>)}
+            </Grid>
+          </Grid>
         </Grid> :
           <Grid container spacing={4}>
             <Grid item>
               <Typography variant="h6">Roles</Typography>
               <Typography variant="body2">Each group needs a set of roles to assign to its users. After creating this group, visit the Matrix page to assign site functionality to your roles.</Typography>
-            </Grid>
-            <Grid item>
-              <Alert severity="info">An Admin group is created automatically. Only create groups for your members.</Alert>
             </Grid>
             <Grid item xs={12}>
               <SelectLookup
@@ -237,6 +273,9 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
                 {roleIds.map(roleId => <MenuItem key={`${roleId}_primary_role_select`} value={roleId}>{roleValues.find(role => role.id === roleId)?.name || ''}</MenuItem>)}
               </TextField>
             </Grid>}
+            <Grid item>
+              <Alert severity="info">An Admin group is created automatically. Only create groups for your members.</Alert>
+            </Grid>
           </Grid>}
       </CardContent>
       <CardActions>

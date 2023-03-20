@@ -18,7 +18,7 @@ const groups: ApiModule = [
     cmnd: async (props) => {
 
       try {
-        const { name, purpose, defaultRoleId } = props.event.body;
+        const { name, purpose, allowedDomains, defaultRoleId } = props.event.body;
 
 
         const [result] = await getModerationCompletion(purpose);
@@ -43,11 +43,11 @@ const groups: ApiModule = [
 
         // Create a group in app db if user has no groups and name is unique
         const { rows: [group] } = await props.db.query<IGroup>(`
-          INSERT INTO dbtable_schema.groups (external_id, code, admin_external_id, default_role_id, name, purpose, created_sub)
-          VALUES ($1, $2, $3, $4::uuid, $5, $6, $7::uuid)
+          INSERT INTO dbtable_schema.groups (external_id, code, admin_external_id, default_role_id, name, purpose, allowed_domains, created_sub)
+          VALUES ($1, $2, $3, $4::uuid, $5, $6, $7, $8::uuid)
           ON CONFLICT (name) DO NOTHING
           RETURNING id, name
-        `, [props.event.userSub, props.event.userSub, props.event.userSub, defaultRoleId, name, purposeMission, props.event.userSub]);
+        `, [props.event.userSub, props.event.userSub, props.event.userSub, defaultRoleId, name, purposeMission, allowedDomains, props.event.userSub]);
 
         if (!group?.id) throw { reason: 'Could not make the group. Name in use.' }
 
@@ -500,15 +500,19 @@ const groups: ApiModule = [
         const { code } = props.event.body;
 
         // Get group id and default role based on the group code
-        const { rows: [{ id: groupId, externalId: kcGroupExternalId, defaultRoleId, createdSub }]} = await props.db.query<IGroup>(`
-          SELECT id, external_id as "externalId", default_role_id as "defaultRoleId", created_sub as "createdSub"
+        const { rows: [{ id: groupId, allowedDomains, externalId: kcGroupExternalId, defaultRoleId, createdSub }]} = await props.db.query<IGroup>(`
+          SELECT id, allowed_domains as "allowedDomains", external_id as "externalId", default_role_id as "defaultRoleId", created_sub as "createdSub"
           FROM dbtable_schema.groups WHERE code = $1
         `, [code]);
 
         // Get joining user's id
-        const [{ id: userId }] = (await props.db.query<IUserProfile>(`
-          SELECT id FROM dbtable_schema.users WHERE sub = $1
+        const [{ id: userId, username }] = (await props.db.query<IUserProfile>(`
+          SELECT id, username FROM dbtable_schema.users WHERE sub = $1
         `, [props.event.userSub])).rows;
+
+        if (allowedDomains && !allowedDomains.split(',').includes(username.split('@')[1])) {
+          throw { reason: 'Group access is restricted.'}
+        }
 
         // Get the role's subgroup external id
         const { rows: [{ externalId: kcRoleSubgroupExternalId }] } = await props.db.query<IGroupRole>(`

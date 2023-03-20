@@ -64,6 +64,7 @@ export type IGroup = {
   createdSub: string;
   createdOn: string;
   defaultRoleId: string;
+  allowedDomains: string;
   name: string;
   purpose: string;
   code: string;

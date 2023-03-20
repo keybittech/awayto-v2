@@ -60,6 +60,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     default_role_id as "defaultRoleId",
     name,
     purpose,
+    allowed_domains as "allowedDomains",
     code,
     created_on as "createdOn",
     created_sub as "createdSub",
