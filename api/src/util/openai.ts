@@ -1,5 +1,5 @@
 
-import { CreateChatCompletionResponseChoicesInner, CreateModerationResponseResultsInner, OpenAIApi } from 'openai';
+import { CreateChatCompletionResponseChoicesInner, CreateCompletionResponseChoicesInner, CreateModerationResponseResultsInner, OpenAIApi } from 'openai';
 import { RequiredError } from 'openai/dist/base';
 import { inspect } from 'util';
 import logger from './logger';
@@ -92,6 +92,27 @@ export async function getChatCompletionPrompt(prompt: string): Promise<CreateCha
 
     for (const choice of completion.data.choices) {
       console.log({ content: choice.message?.content, formatted: choice.message?.content.trim().replace(/\r?\n|\r/g, '') });
+    }
+
+    return completion.data.choices || [];
+  } catch (error) {
+    handleOpenAIError(error);
+  }
+  return [];
+}
+
+export async function getCompletionPrompt(prompt: string): Promise<CreateCompletionResponseChoicesInner[]> {
+  try {
+    const completion = await openai.createCompletion({
+      model: 'ada',
+      prompt,
+      max_tokens: 512
+    }, opts);
+
+    console.log(inspect({ prompt, result: inspect(completion.data.choices) }))
+
+    for (const choice of completion.data.choices) {
+      console.log({ content: choice.text, formatted: choice.text?.trim().replace(/\r?\n|\r/g, '') });
     }
 
     return completion.data.choices || [];

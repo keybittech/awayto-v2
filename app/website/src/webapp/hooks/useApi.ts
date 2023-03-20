@@ -192,7 +192,7 @@ export function useApi(): <T extends { [prop: string]: unknown}, R = IMergedStat
         
         if (load) act(SET_LOADING, { isLoading: false });
 
-        if (actionProps) act(actionType, actionProps);
+        if (Object.keys(actionProps).length) act(actionType, actionProps);
         
         throw err;
       });

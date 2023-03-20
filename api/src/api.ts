@@ -1,6 +1,19 @@
 import dotenv from 'dotenv';
 dotenv.config({ path: __dirname + '../.env' })
 
+import dayjs from 'dayjs';
+
+import duration from 'dayjs/plugin/duration';
+dayjs.extend(duration);
+
+import utc from 'dayjs/plugin/utc';
+dayjs.extend(utc);
+
+import timezone from 'dayjs/plugin/timezone';
+dayjs.extend(timezone);
+
+import 'dayjs/locale/en';
+
 import fs from 'fs';
 import https from 'https';
 import express, { Express, NextFunction, Request, Response } from 'express';
@@ -18,25 +31,14 @@ import APIs from './apis/index';
 import WebHooks from './webhooks/index';
 import { keycloakClient } from './util/keycloak';
 
-import { DecodedJWTToken, UserGroupRoles, StrategyUser, ILoadedState, IActionTypes, ApiErrorResponse } from 'awayto';
 import { IdTokenClaims, Strategy, StrategyVerifyCallbackUserInfo } from 'openid-client';
 
 import { db, connected as dbConnected } from './util/db';
-import redis, { RedisClient, redisProxy } from './util/redis';
+import redis, { rateLimitResource, RedisClient, redisProxy } from './util/redis';
 import logger from './util/logger';
 
-import dayjs from 'dayjs';
+import { DecodedJWTToken, UserGroupRoles, StrategyUser, ILoadedState, IActionTypes, ApiErrorResponse } from 'awayto';
 
-import duration from 'dayjs/plugin/duration';
-dayjs.extend(duration);
-
-import utc from 'dayjs/plugin/utc';
-dayjs.extend(utc);
-
-import timezone from 'dayjs/plugin/timezone';
-dayjs.extend(timezone);
-
-import 'dayjs/locale/en';
 
 // import './util/twitch';
 
@@ -141,14 +143,14 @@ async function go() {
 
     // Gracefully wait for connections to start
     while (Array.from(connections.values()).includes(false)) {
-      console.log('All connections are not available, waiting', JSON.stringify(connections, null, 2));
+      console.log('All connections are not available, waiting', JSON.stringify(connections));
       await new Promise<void>(res => setTimeout(() => {
         setConnections();
         res();
       }, 1250))
     }
 
-    console.log('starting api with connections', JSON.stringify(Array.from(connections.entries()), null, 2))
+    console.log('starting api with connections', JSON.stringify(Array.from(connections.entries())))
 
     // Create Express app
     const app: Express = express();
@@ -355,14 +357,16 @@ async function go() {
 
       // Here we make use of the extra /api from the reverse proxy
       app[method.toLowerCase() as keyof Express](`/api/${path}`, checkAuthenticated, async (req: Request & { headers: { authorization: string } }, res: Response) => {
-        const { groupRoleActions } = await redisProxy('groupRoleActions');
 
         const requestId = uuid();
-        let response: ApiResponseBody = false;
-
         const user = req.user as StrategyUser;
 
-        console.log({ origUrl: req.originalUrl })
+        if (await rateLimitResource(user.sub, 'api', 5)) { // limit 5 general api requests per second
+          return res.status(500).send({ reason: 'Rate limit exceeded.', requestId });
+        }
+
+        const { groupRoleActions } = await redisProxy('groupRoleActions');
+        let response: ApiResponseBody = false;
 
         const cacheKey = user.sub + req.originalUrl.slice(5); // remove /api/
 

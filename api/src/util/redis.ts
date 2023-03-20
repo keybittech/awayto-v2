@@ -1,7 +1,8 @@
-import { createClient } from "redis";
-import { IGroupRoleAuthActions } from 'awayto';
-import RoleRepresentation, { RoleMappingPayload } from "@keycloak/keycloak-admin-client/lib/defs/roleRepresentation";
-import ClientRepresentation from "@keycloak/keycloak-admin-client/lib/defs/clientRepresentation";
+import { createClient } from 'redis';
+import dayjs from 'dayjs';
+import RoleRepresentation, { RoleMappingPayload } from '@keycloak/keycloak-admin-client/lib/defs/roleRepresentation';
+import ClientRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientRepresentation';
+import { IGroupRoleAuthActions, millisTimeUnits } from 'awayto';
 
 export const redis = createClient();
 
@@ -44,6 +45,14 @@ export const redisProxy = async function(...args: string[]): Promise<ProxyKeys> 
     }
   }));
   return Object.assign({}, ...props);
+}
+
+export async function rateLimitResource(resource: string, context: string, limit: number, duration?: string | number): Promise<boolean> {
+  const cache = 'number' === typeof duration ? duration : duration ? (millisTimeUnits[duration] / 1000) : 10; // Default rate limit window of 10 seconds
+  const rate = duration && 'number' !== typeof duration ? duration : 'seconds';
+  const key = `${resource}:${context}:${dayjs().get(rate as dayjs.UnitType)}`;
+  const [current] = await redis.multi().incr(key).expire(key, cache).exec();
+  return !!current && (current > limit);
 }
 
 async function go() {
