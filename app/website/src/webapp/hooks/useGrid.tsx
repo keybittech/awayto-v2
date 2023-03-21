@@ -5,12 +5,13 @@ import { DataGrid, GridColDef, GridRowSelectionModel, GridValidRowModel } from '
 type UseScheduleProps<T extends GridValidRowModel> = {
   rows: T[];
   columns: GridColDef<T>[];
+  rowId?: string;
   selected?: GridRowSelectionModel;
   onSelected?: (value: GridRowSelectionModel) => void;
   toolbar?: () => JSX.Element;
 };
 
-export function useGrid<T extends GridValidRowModel>({ rows, columns, selected, onSelected, toolbar }: UseScheduleProps<T>): () => JSX.Element {
+export function useGrid<T extends GridValidRowModel>({ rows, columns, rowId, selected, onSelected, toolbar }: UseScheduleProps<T>): () => JSX.Element {
   const grid = useMemo(() => {
     return <DataGrid
       autoHeight
@@ -20,6 +21,7 @@ export function useGrid<T extends GridValidRowModel>({ rows, columns, selected, 
       checkboxSelection
       pageSizeOptions={[5, 10, 25]}
       rowSelectionModel={selected}
+      getRowId={row => (rowId ? row[rowId] : row.id) as string}
       onRowSelectionModelChange={onSelected}
       slots={{ toolbar }}
     />

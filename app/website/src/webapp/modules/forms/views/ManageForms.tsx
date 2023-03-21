@@ -70,8 +70,8 @@ export function ManageForms(props: IProps): JSX.Element {
   const FormGrid = useGrid<IGroupForm>({
     rows: Array.from(groupForms.values()),
     columns: [
-      { field: 'name', headerName: 'Name', flex: 1 },
-      { field: 'createdOn', headerName: 'Created', flex: 1, renderCell: ({ row }) => dayjs().to(dayjs.utc(row.createdOn)) }
+      { flex: 1, headerName: 'Name', field: 'name' },
+      { flex: 1, headerName: 'Created', field: 'createdOn', renderCell: ({ row }) => dayjs().to(dayjs.utc(row.createdOn)) }
     ],
     selected,
     onSelected: selection => setSelected(selection as string[]),

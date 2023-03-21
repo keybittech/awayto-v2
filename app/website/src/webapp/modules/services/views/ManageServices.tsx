@@ -1,9 +1,8 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import DataTable, { TableColumn } from 'react-data-table-component';
+import React, { useEffect, useState, useMemo, Suspense } from 'react';
+import dayjs from 'dayjs';
 import { useParams } from 'react-router';
 
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
+import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import Dialog from '@mui/material/Dialog';
 import Button from '@mui/material/Button';
@@ -13,7 +12,7 @@ import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import { IService, IActionTypes, IGroupService, IUtilActionTypes } from 'awayto';
-import { useRedux, useApi, useAct } from 'awayto-hooks';
+import { useApi, useAct, useGrid } from 'awayto-hooks';
 
 import ManageServiceModal from './ManageServiceModal';
 
@@ -41,27 +40,18 @@ export function ManageServices(props: IProps): JSX.Element {
 
   const act = useAct();
   const api = useApi();
-  const util = useRedux(state => state.util);
   const [service, setService] = useState<IService>();
-  const [selected, setSelected] = useState<IService[]>([]);
-  const [toggle, setToggle] = useState(false);
+  const [selected, setSelected] = useState<string[]>([]);
   const [dialog, setDialog] = useState('');
 
-  const updateState = useCallback((state: { selectedRows: IService[] }) => setSelected(state.selectedRows), [setSelected]);
-
-  const columns = useMemo(() => [
-    { id: 'createdOn', selector: row => row.createdOn, omit: true },
-    { name: 'Name', selector: row => row.name },
-    { name: 'Created', selector: row => row.createdOn }
-  ] as TableColumn<IService>[], [services])
 
   const actions = useMemo(() => {
     const { length } = selected;
     const acts = length == 1 ? [
       <IconButton key={'manage_service'} onClick={() => {
-        setService(selected.pop());
+        setService(services.get(selected[0]));
         setDialog('manage_service');
-        setToggle(!toggle);
+        setSelected([]);
       }}>
         <CreateIcon />
       </IconButton>
@@ -75,10 +65,10 @@ export function ManageServices(props: IProps): JSX.Element {
             isConfirming: true,
             confirmEffect: 'Are you sure you want to delete these services? This cannot be undone.',
             confirmAction: () => {
-              const [, res] = api(deleteGroupServicesAction, { groupName, ids: selected.map(s => s.id).join(',') }, { load: true })
+              const [, res] = api(deleteGroupServicesAction, { groupName, ids: selected.join(',') }, { load: true })
               res?.then(() => {
-                setToggle(!toggle);
                 api(getServicesAction, { groupName });
+                setSelected([]);
               }).catch(console.warn);
             }
           });
@@ -97,35 +87,30 @@ export function ManageServices(props: IProps): JSX.Element {
     }
   }, [groupName]);
 
+  const ServiceGrid = useGrid({
+    rows: Array.from(services.values()),
+    columns: [
+      { flex: 1, headerName: 'Name', field: 'name' },
+      { flex: 1, headerName: 'Created', field: 'createdOn', renderCell: ({ row }) => dayjs().to(dayjs.utc(row.createdOn)) }
+    ],
+    selected,
+    onSelected: selection => setSelected(selection as string[]),
+    toolbar: () => <>
+      <Button onClick={() => { setService(undefined); setDialog('manage_service') }}>New</Button>
+      {!!selected.length && <Box sx={{ float: 'right' }}>{actions}</Box>}
+    </>
+  })
+
   return <>
     <Dialog scroll="paper" open={dialog === 'manage_service'} fullWidth maxWidth="sm">
-      <ManageServiceModal {...props} editService={service} closeModal={() => {
-        setDialog('')
-        api(getServicesAction, { groupName });
-      }} />
+      <Suspense>
+        <ManageServiceModal {...props} editService={service} closeModal={() => {
+          setDialog('')
+          api(getServicesAction, { groupName });
+        }} />
+      </Suspense>
     </Dialog>
-    <Card>
-      <CardContent>
-        <DataTable
-          title="Services"
-          actions={<Button onClick={() => { setService(undefined); setDialog('manage_service') }}>New</Button>}
-          contextActions={actions}
-          data={Array.from(services.values())}
-          defaultSortFieldId="createdOn"
-          defaultSortAsc={false}
-          theme={util.theme}
-          columns={columns}
-          selectableRows
-          selectableRowsHighlight={true}
-          // selectableRowsComponent={<Checkbox />}
-          onSelectedRowsChange={updateState}
-          clearSelectedRows={toggle}
-          pagination={true}
-          paginationPerPage={5}
-          paginationRowsPerPageOptions={[5, 10, 25]}
-        />
-      </CardContent>
-    </Card>
+    <ServiceGrid />
   </>
 }
 

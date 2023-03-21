@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import DataTable, { TableColumn } from 'react-data-table-component';
 
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -10,8 +9,9 @@ import CardActionArea from '@mui/material/CardActionArea';
 import Checkbox from '@mui/material/Checkbox';
 
 import { IUtilActionTypes, SiteRoles, IGroupActionTypes, IGroupRoleAuthActions, IUserProfileActionTypes, IRole } from 'awayto';
-import { useApi, useRedux, useStyles, useAct } from 'awayto-hooks';
+import { useApi, useRedux, useAct, useGrid } from 'awayto-hooks';
 import { useParams } from 'react-router';
+import { GridColDef } from '@mui/x-data-grid';
 
 const { GET_USER_PROFILE_DETAILS } = IUserProfileActionTypes;
 const { SET_SNACK, SET_UPDATE_ASSIGNMENTS } = IUtilActionTypes;
@@ -21,7 +21,6 @@ export function ManageRoleActions(): JSX.Element {
   const { groupName } = useParams();
   const api = useApi();
   const act = useAct();
-  const classes = useStyles();
   const util = useRedux(state => state.util);
   const { availableGroupAssignments } = useRedux(state => state.group);
   const { groups } = useRedux(state => state.profile);
@@ -69,12 +68,12 @@ export function ManageRoleActions(): JSX.Element {
         const roles = new Map(Object.entries(group.roles || {}) as Iterable<readonly [string, IRole]>);
         if (roles.size && Object.keys(assignments).length) {
           return [
-            { selector: (row: { name: string }) => row.name },
+            { field: '', renderCell: ({ row }) => row.name } as GridColDef<{ name: string }>,
             ...Array.from(roles.values()).reduce((memo, { name }) => {
               const subgroup = `/${groupName}/${name}`;
-              memo.push({ name, cell: row => <Checkbox checked={assignments[subgroup] ? assignments[subgroup].actions.some(a => a.name === row.name) : false} onChange={e => handleCheck(subgroup, row.name, e.target.checked)} /> });
+              memo.push({ headerName: name, field: name, renderCell: ({ row }) => <Checkbox checked={assignments[subgroup] ? assignments[subgroup].actions.some(a => a.name === row.name) : false} onChange={e => handleCheck(subgroup, row.name, e.target.checked)} /> });
               return memo;
-            }, [] as TableColumn<{ name: string }>[])
+            }, [] as GridColDef<{ name: string }>[])
           ]
         }
       }
@@ -83,6 +82,11 @@ export function ManageRoleActions(): JSX.Element {
   }, [groups, assignments, groupName]);
 
   const options = useMemo(() => Object.values(SiteRoles).filter(r => ![SiteRoles.APP_ROLE_CALL, SiteRoles.APP_GROUP_ADMIN].includes(r)).map(name => ({ name })), []);
+
+  const RoleActionGrid = useGrid({
+    rows: options,
+    columns
+  });
 
   return <>
 
@@ -109,13 +113,7 @@ export function ManageRoleActions(): JSX.Element {
 
     <Card>
       <CardContent>
-        <DataTable
-          className={classes.datatable}
-          title="Action-Role Matrix"
-          data={options}
-          theme={util.theme}
-          columns={columns}
-        />
+        <RoleActionGrid />
       </CardContent>
     </Card>
 

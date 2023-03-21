@@ -1,41 +1,25 @@
-import React, { useCallback, useMemo, useContext } from "react";
-import DataTable, { TableColumn } from 'react-data-table-component';
+import React, { useMemo, useContext } from "react";
 
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import IconButton from '@mui/material/IconButton';
 import Box from '@mui/material/Box';
+import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 
 import ApprovalIcon from '@mui/icons-material/Approval';
 import DoNotDisturbIcon from '@mui/icons-material/DoNotDisturb';
 
 import { IQuote, utcDTLocal, shortNSweet } from "awayto";
-import { useRedux, } from "awayto-hooks";
+import { useGrid } from "awayto-hooks";
 import { PendingQuotesContext, PendingQuotesContextType } from "./PendingQuotesContext";
 
 function QuoteHome(): JSX.Element {
 
   const {
     pendingQuotes,
-    pendingQuotesChanged,
     selectedPendingQuotes,
     setSelectedPendingQuotes,
     approvePendingQuotes,
     denyPendingQuotes
   } = useContext(PendingQuotesContext) as PendingQuotesContextType;
-
-  const util = useRedux(state => state.util);
-
-  const updateState = useCallback((state: { selectedRows: IQuote[] }) => setSelectedPendingQuotes(state.selectedRows), [setSelectedPendingQuotes]);
-
-  const columns = useMemo(() => [
-    { id: 'createdOn', selector: row => row.createdOn, omit: true },
-    { name: 'Booking Slot', selector: row => shortNSweet(row.slotDate, row.startTime) },
-    { name: 'Service', selector: row => row.serviceName },
-    { name: 'Tier', selector: row => row.serviceTierName },
-    { name: 'Requested On', selector: row => utcDTLocal(row.createdOn) }
-  ] as TableColumn<IQuote>[], []);
 
   const actions = useMemo(() => {
     const { length } = selectedPendingQuotes;
@@ -57,28 +41,21 @@ function QuoteHome(): JSX.Element {
     ]
   }, [selectedPendingQuotes]);
 
-  return <Box mb={4}>
-    <Card>
-      <CardContent>
-        <DataTable
-          title="Pending Requests"
-          contextActions={actions}
-          data={pendingQuotes}
-          defaultSortFieldId="createdOn"
-          defaultSortAsc={false}
-          theme={util.theme}
-          columns={columns}
-          selectableRows
-          selectableRowsHighlight={true}
-          onSelectedRowsChange={updateState}
-          clearSelectedRows={pendingQuotesChanged}
-          pagination={true}
-          paginationPerPage={5}
-          paginationRowsPerPageOptions={[5, 10, 25]}
-        />
-      </CardContent>
-    </Card>
-  </Box>
+  const QuoteGrid = useGrid<IQuote>({
+    rows: pendingQuotes,
+    columns: [
+      { flex: 1, headerName: 'Booking Slot', field: 'slotDate', renderCell: ({ row }) => shortNSweet(row.slotDate, row.startTime) },
+      { flex: 1, headerName: 'Service', field: 'serviceName' },
+      { flex: 1, headerName: 'Tier', field: 'serviceTierName' },
+      { flex: 1, headerName: 'Requested On', field: 'createdOn', renderCell: ({ row }) => utcDTLocal(row.createdOn) }
+    ],
+    selected: selectedPendingQuotes,
+    onSelected: selection => setSelectedPendingQuotes(selection as string[]),
+    toolbar: () => <>
+      {!!selectedPendingQuotes.length && <Box sx={{ float: 'right' }}>{actions}</Box>}
+    </>
+  });
+  return <QuoteGrid />
 }
 
 export default QuoteHome;

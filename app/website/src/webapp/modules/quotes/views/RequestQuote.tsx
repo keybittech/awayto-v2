@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router';
-import DataTable, { TableColumn } from 'react-data-table-component';
 import dayjs from 'dayjs';
 
 import Accordion from '@mui/material/Accordion';
@@ -25,7 +24,6 @@ import {
   IGroupScheduleActionTypes,
   ISchedule,
   IService,
-  IServiceAddon,
   IServiceTier,
   IForm,
   IGroup,
@@ -40,7 +38,8 @@ import {
   IGroupScheduleDateSlots,
   quotedDT
 } from 'awayto';
-import { useApi, useRedux, useComponents, useStyles, useAct } from 'awayto-hooks';
+import { useApi, useRedux, useComponents, useStyles, useAct, useGrid } from 'awayto-hooks';
+import { GridColDef } from '@mui/x-data-grid';
 
 const { GET_GROUP_FORM_BY_ID } = IGroupFormActionTypes;
 const { POST_QUOTE } = IQuoteActionTypes;
@@ -59,7 +58,6 @@ export function RequestQuote(props: IProps): JSX.Element {
   const { groupUserSchedules } = useRedux(state => state.groupUserSchedule);
   const { groups } = useRedux(state => state.profile);
   const { timeUnits } = useRedux(state => state.lookup);
-  const util = useRedux(state => state.util);
 
   const [services, setServices] = useState(new Map() as Map<string, IService>);
   const [schedule, setSchedule] = useState({ id: '' } as ISchedule);
@@ -112,23 +110,24 @@ export function RequestQuote(props: IProps): JSX.Element {
         }
         return memo;
       }, []);
-  }, [serviceTiers])
+  }, [serviceTiers]);
 
-  const tierColumns = useMemo(() => {
-    if (!service || !tier || !serviceTierAddons.length) return [];
-    return [
-      { name: '', selector: row => row.name } as TableColumn<Partial<IServiceAddon>>,
+  const TierGrid = useGrid({
+    rows: serviceTierAddons.map(name => ({ name })),
+    columns: [
+      { headerName: '', field: '', renderCell: ({ row }) => row.name },
       ...serviceTiers.reduce((memo, { name, addons }) => {
         memo.push({
-          name: `${name}`,
-          cell: row => {
-            return Object.values(addons).map(ad => ad.name).indexOf(row.name as string) > -1 ? <Avatar sx={{ width: 24, height: 24, backgroundColor: 'white' }}><CheckIcon className={classes.green} /></Avatar> : '--';
+          headerName: name,
+          field: '',
+          renderCell: ({ row }) => {
+            return Object.values(addons).map(ad => ad.name).indexOf(row.name) > -1 ? <Avatar sx={{ width: 24, height: 24, backgroundColor: 'white' }}><CheckIcon className={classes.green} /></Avatar> : '--';
           }
         });
         return memo;
-      }, [] as TableColumn<Partial<IServiceAddon>>[])
+      }, [] as GridColDef<{ name: string }>[])
     ]
-  }, [serviceTierAddons, service, tier]);
+  });
 
   useEffect(() => {
     if (group.name) {
@@ -285,11 +284,7 @@ export function RequestQuote(props: IProps): JSX.Element {
             <Typography>Features</Typography>
           </AccordionSummary>
           <AccordionDetails>
-            <DataTable
-              theme={util.theme}
-              columns={tierColumns}
-              data={serviceTierAddons.map(name => ({ name }))}
-            />
+            <TierGrid />
           </AccordionDetails>
         </Accordion>
 

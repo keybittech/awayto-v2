@@ -1,8 +1,7 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import DataTable, { TableColumn } from 'react-data-table-component';
+import React, { useEffect, useState, useMemo, Suspense } from 'react';
+import dayjs from 'dayjs';
 
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
+import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import Dialog from '@mui/material/Dialog';
 import Button from '@mui/material/Button';
@@ -12,7 +11,7 @@ import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import { IRole, IActionTypes } from 'awayto';
-import { useRedux, useApi } from 'awayto-hooks';
+import { useApi, useGrid } from 'awayto-hooks';
 
 import ManageRoleModal from './ManageRoleModal';
 
@@ -31,30 +30,18 @@ declare global {
 export function ManageRoles(props: IProps): JSX.Element {
   const { roles, getRolesAction, deleteRolesAction } = props as IProps & Required<ManageRolesActions>;
 
-  console.log({ roles })
-
   const api = useApi();
-  const util = useRedux(state => state.util);
   const [role, setRole] = useState<IRole>();
-  const [selected, setSelected] = useState<IRole[]>([]);
-  const [toggle, setToggle] = useState(false);
+  const [selected, setSelected] = useState<string[]>([]);
   const [dialog, setDialog] = useState('');
-
-  const updateState = useCallback((state: { selectedRows: IRole[] }) => setSelected(state.selectedRows), [setSelected]);
-
-  const columns = useMemo(() => [
-    { id: 'createdOn', selector: row => row.createdOn, omit: true },
-    { name: 'Name', selector: row => row.name },
-    { name: 'Created', selector: row => row.createdOn }
-  ] as TableColumn<IRole>[], []);
 
   const actions = useMemo(() => {
     const { length } = selected;
     const acts = length == 1 ? [
       <IconButton key={'manage_role'} onClick={() => {
-        setRole(selected.pop());
+        setRole(roles.get(selected[0]));
         setDialog('manage_role');
-        setToggle(!toggle);
+        setSelected([]);
       }}>
         <CreateIcon />
       </IconButton>
@@ -63,10 +50,10 @@ export function ManageRoles(props: IProps): JSX.Element {
     return [
       ...acts,
       <Tooltip key={'delete_group'} title="Delete"><IconButton onClick={() => {
-        const [, res] = api(deleteRolesAction, { ids: selected.map(s => s.id).join(',') }, { load: true })
+        const [, res] = api(deleteRolesAction, { ids: selected.join(',') }, { load: true })
         res?.then(() => {
-          setToggle(!toggle);
           api(getRolesAction);
+          setSelected([]);
         }).catch(console.warn);
       }}>
         <DeleteIcon />
@@ -80,37 +67,31 @@ export function ManageRoles(props: IProps): JSX.Element {
     return () => abort();
   }, []);
 
+  const RoleGrid = useGrid({
+    rows: Array.from(roles.values()),
+    columns: [
+      { flex: 1, headerName: 'Name', field: 'name' },
+      { flex: 1, headerName: 'Created', field: 'createdOn', renderCell: ({ row }) => dayjs().to(dayjs.utc(row.createdOn)) }
+    ],
+    selected,
+    onSelected: selection => setSelected(selection as string[]),
+    toolbar: () => <>
+      <Button onClick={() => { setRole(undefined); setDialog('manage_role') }}>New</Button>
+      {!!selected.length && <Box sx={{ float: 'right' }}>{actions}</Box>}
+    </>
+  })
+
   return <>
     <Dialog open={dialog === 'manage_role'} fullWidth maxWidth="sm">
-      <ManageRoleModal {...props} editRole={role} closeModal={() => {
-        setDialog('')
-        api(getRolesAction);
-      }} />
+      <Suspense>
+        <ManageRoleModal {...props} editRole={role} closeModal={() => {
+          setDialog('')
+          api(getRolesAction);
+        }} />
+      </Suspense>
     </Dialog>
 
-    <Card>
-      <CardContent>
-
-        <DataTable
-          title="Roles"
-          actions={<Button onClick={() => { setRole(undefined); setDialog('manage_role') }}>New</Button>}
-          contextActions={actions}
-          data={Array.from(roles.values())}
-          defaultSortFieldId="createdOn"
-          defaultSortAsc={false}
-          theme={util.theme}
-          columns={columns}
-          selectableRows
-          selectableRowsHighlight={true}
-          // selectableRowsComponent={<Checkbox />}
-          onSelectedRowsChange={updateState}
-          clearSelectedRows={toggle}
-          pagination={true}
-          paginationPerPage={5}
-          paginationRowsPerPageOptions={[5, 10, 25]}
-        />
-      </CardContent>
-    </Card>
+    <RoleGrid />
   </>
 }
 

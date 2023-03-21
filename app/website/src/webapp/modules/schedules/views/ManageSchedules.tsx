@@ -1,11 +1,9 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import DataTable, { TableColumn } from 'react-data-table-component';
+import React, { useEffect, useState, useMemo, Suspense } from 'react';
+import dayjs from 'dayjs';
 
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import Dialog from '@mui/material/Dialog';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 
@@ -13,7 +11,7 @@ import EventNoteIcon from '@mui/icons-material/EventNote';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import { ISchedule, IActionTypes, IGroupSchedule, IUtilActionTypes } from 'awayto';
-import { useRedux, useApi, useAct, useComponents } from 'awayto-hooks';
+import { useApi, useAct, useComponents, useGrid } from 'awayto-hooks';
 
 import ManageSchedulesModal from './ManageSchedulesModal';
 import { useParams } from 'react-router';
@@ -43,28 +41,26 @@ export function ManageSchedules(props: IProps): JSX.Element {
 
   const act = useAct();
   const api = useApi();
-  const util = useRedux(state => state.util);
   const [schedule, setSchedule] = useState<ISchedule>();
-  const [selected, setSelected] = useState<ISchedule[]>([]);
-  const [toggle, setToggle] = useState(false);
+  const [selected, setSelected] = useState<string[]>([]);
   const [dialog, setDialog] = useState('');
 
-  const updateState = useCallback((state: { selectedRows: ISchedule[] }) => setSelected(state.selectedRows), [setSelected]);
-
-  const columns = useMemo(() => [
-    { id: 'createdOn', selector: row => row.createdOn, omit: true },
-    { name: 'Name', selector: row => row.name },
-    { name: 'Created', selector: row => row.createdOn }
-  ] as TableColumn<ISchedule>[], [])
+  useEffect(() => {
+    if (groupName) {
+      const [abort, res] = api(getGroupSchedulesAction, { groupName });
+      res?.catch(console.warn);
+      return () => abort();
+    }
+  }, [groupName]);
 
   const actions = useMemo(() => {
     const { length } = selected;
     const acts = length == 1 ? [
       <Tooltip key={'view_schedule_details'} title="View Details">
         <IconButton key={'manage_schedule'} onClick={() => {
-          setSchedule(selected.pop());
+          setSchedule(groupSchedules.get(selected[0]));
           setDialog('manage_schedule');
-          setToggle(!toggle);
+          setSelected([]);
         }}>
           <EventNoteIcon />
         </IconButton>
@@ -80,10 +76,10 @@ export function ManageSchedules(props: IProps): JSX.Element {
               isConfirming: true,
               confirmEffect: 'Are you sure you want to delete these schedules? This cannot be undone.',
               confirmAction: () => {
-                const [, res] = api(deleteGroupSchedulesAction, { groupName, ids: selected.map(s => s.id).join(',') }, { load: true })
+                const [, res] = api(deleteGroupSchedulesAction, { groupName, ids: selected.join(',') }, { load: true })
                 res?.then(() => {
-                  setToggle(!toggle);
                   api(getGroupSchedulesAction, { groupName });
+                  setSelected([]);
                 }).catch(console.warn);
               }
             });
@@ -93,53 +89,39 @@ export function ManageSchedules(props: IProps): JSX.Element {
         </IconButton>
       </Tooltip>
     ]
-  }, [selected, groupName])
+  }, [selected, groupName]);
 
-  useEffect(() => {
-    if (groupName) {
-      const [abort, res] = api(getGroupSchedulesAction, { groupName });
-      res?.catch(console.warn);
-      return () => abort();
-    }
-  }, [groupName]);
+  const ScheduleGrid = useGrid({
+    rows: Array.from(groupSchedules.values()),
+    columns: [
+      { flex: 1, headerName: 'Name', field: 'name' },
+      { flex: 1, headerName: 'Created', field: 'createdOn', renderCell: ({ row }) => dayjs().to(dayjs.utc(row.createdOn)) }
+    ],
+    selected,
+    onSelected: selection => setSelected(selection as string[]),
+    toolbar: () => <>
+      <Button onClick={() => { setSchedule(undefined); setDialog('manage_schedule') }}>New</Button>
+      {!!selected.length && <Box sx={{ float: 'right' }}>{actions}</Box>}
+    </>
+  });
 
   return <>
     <Dialog open={dialog === 'manage_schedule'} fullWidth maxWidth="sm">
-      <ManageSchedulesModal {...props} editSchedule={schedule} closeModal={() => {
-        setDialog('');
-        api(getGroupSchedulesAction, { groupName });
-      }} />
+      <Suspense>
+        <ManageSchedulesModal {...props} editSchedule={schedule} closeModal={() => {
+          setDialog('');
+          api(getGroupSchedulesAction, { groupName });
+        }} />
+      </Suspense>
     </Dialog>
 
     <Box mb={2}>
-      <Card>
-        <CardContent>
-          <DataTable
-            title="Schedule Templates"
-            actions={<Button onClick={() => { setSchedule(undefined); setDialog('manage_schedule') }}>New</Button>}
-            contextActions={actions}
-            data={Array.from(groupSchedules.values())}
-            defaultSortFieldId="createdOn"
-            defaultSortAsc={false}
-            theme={util.theme}
-            columns={columns}
-            selectableRows
-            selectableRowsHighlight={true}
-            // selectableRowsComponent={<Checkbox />}
-            onSelectedRowsChange={updateState}
-            clearSelectedRows={toggle}
-            pagination={true}
-            paginationPerPage={5}
-            paginationRowsPerPageOptions={[5, 10, 25]}
-          />
-        </CardContent>
-      </Card>
-
+      <ScheduleGrid />
     </Box>
+
     <Box mb={2}>
       <ManageScheduleStubs {...props} />
     </Box>
-    
   </>
 }
 

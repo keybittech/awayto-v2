@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import DataTable, { TableColumn } from 'react-data-table-component';
+import React, { useState, useMemo, useEffect, Suspense } from 'react';
+import dayjs from 'dayjs';
 
 import IconButton from '@mui/material/IconButton';
 import Dialog from '@mui/material/Dialog';
@@ -7,7 +7,6 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 import CardActionArea from '@mui/material/CardActionArea';
 import TextField from '@mui/material/TextField';
 import Grid from '@mui/material/Grid';
@@ -17,7 +16,7 @@ import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import { IService, ISchedule, IActionTypes, IGroupSchedule, IGroup, IUtilActionTypes, IUserProfileActionTypes, plural } from 'awayto';
-import { useRedux, useApi, useAct } from 'awayto-hooks';
+import { useRedux, useApi, useAct, useGrid } from 'awayto-hooks';
 
 import ManageScheduleBracketsModal from './ManageScheduleBracketsModal';
 
@@ -50,21 +49,15 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
 
   const api = useApi();
   const act = useAct();
-  const util = useRedux(state => state.util);
   const [schedule, setSchedule] = useState<ISchedule>();
-  const [selected, setSelected] = useState<ISchedule[]>([]);
-  const [toggle, setToggle] = useState(false);
+  const [selected, setSelected] = useState<string[]>([]);
   const [dialog, setDialog] = useState('');
   const { groups } = useRedux(state => state.profile);
   const [group, setGroup] = useState({ id: '' } as IGroup);
 
-  if (!groups) return <></>;
-
-  useEffect(() => {
-    if (groups.size) {
-      setGroup(groups.values().next().value as IGroup);
-    }
-  }, [groups]);
+  if (groups.size) {
+    setGroup(groups.values().next().value as IGroup);
+  }
 
   useEffect(() => {
     const [abort, res] = api(getScheduleBracketsAction);
@@ -83,22 +76,13 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
     }
   }, [group]);
 
-  const updateState = useCallback((state: { selectedRows: ISchedule[] }) => setSelected(state.selectedRows), [setSelected]);
-
-  const columns = useMemo(() => [
-    { id: 'createdOn', selector: row => row.createdOn, omit: true },
-    { name: 'Name', selector: row => row.name },
-    { name: 'Created', selector: row => row.createdOn },
-    // TODO make a column that summarizes the bracket load
-  ] as TableColumn<ISchedule>[], []);
-
   const actions = useMemo(() => {
     const { length } = selected;
     const acts = length == 1 ? [
       <IconButton key={'manage_schedule'} onClick={() => {
-        setSchedule(selected.pop());
+        setSchedule(schedules.get(selected[0]));
         setDialog('manage_schedule');
-        setToggle(!toggle);
+        setSelected([]);
       }}>
         <CreateIcon />
       </IconButton>
@@ -112,14 +96,13 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
             isConfirming: true,
             confirmEffect: `Remove ${plural(selected.length, 'schedule', 'schedules')}. This cannot be undone.`,
             confirmAction: () => {
-              const ids = selected.map(s => s.id).join(',');
+              const ids = selected.join(',');
               const [, res] = api(deleteGroupUserScheduleByUserScheduleIdAction, { groupName: group.name, ids })
               res?.then(() => {
                 const [, rez] = api(deleteScheduleAction, { ids });
                 rez?.then(() => {
                   api(GET_USER_PROFILE_DETAILS);
                   act(SET_SNACK, { snackType: 'success', snackOn: 'Successfully removed schedule records.'})
-                  setToggle(!toggle);
                 })
               }).catch(console.warn);
             }
@@ -131,11 +114,41 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
     ]
   }, [selected, group]);
 
+  const ScheduleBracketGrid = useGrid({
+    rows: Array.from(schedules.values()),
+    columns: [
+      { flex: 1, headerName: 'Name', field: 'name' },
+      { flex: 1, headerName: 'Created', field: 'createdOn', renderCell: ({ row }) => dayjs().to(dayjs.utc(row.createdOn)) }
+    ],
+    selected,
+    onSelected: selection => setSelected(selection as string[]),
+    toolbar: () => <>
+      <Box key={'schedule_bracket_group_select'}>
+        <TextField
+          select
+          fullWidth
+          value={group.id}
+          label="Group"
+          variant="standard"
+          onChange={e => {
+            const gr = groups.get(e.target.value);
+            if (gr) setGroup(gr);
+          }}
+        >
+          {Array.from(groups.values()).map(group => <MenuItem key={`group-select${group.id}`} value={group.id}>{group.name}</MenuItem>)}
+        </TextField>
+      </Box>
+      {!!selected.length && <Box sx={{ float: 'right' }}>{actions}</Box>}
+    </>
+  })
+
   return <>
     <Dialog open={dialog === 'manage_schedule'} fullWidth maxWidth="sm">
-      <ManageScheduleBracketsModal {...props} group={group} editSchedule={schedule} closeModal={() => {
-        setDialog('');
-      }} />
+      <Suspense>
+        <ManageScheduleBracketsModal {...props} group={group} editSchedule={schedule} closeModal={() => {
+          setDialog('');
+        }} />
+      </Suspense>
     </Dialog>
 
     <Grid container spacing={2}>
@@ -154,45 +167,7 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
         </Card>
       </Grid>
       <Grid item xs={12}>
-        <Card>
-          <CardContent>
-
-            <DataTable
-              title="Schedules"
-              actions={[
-                <Box key={'schedule_bracket_group_select'}>
-                  <TextField
-                    select
-                    fullWidth
-                    value={group.id}
-                    label="Group"
-                    variant="standard"
-                    onChange={e => {
-                      const gr = groups.get(e.target.value);
-                      if (gr) setGroup(gr);
-                    }}
-                  >
-                    {Array.from(groups.values()).map(group => <MenuItem key={`group-select${group.id}`} value={group.id}>{group.name}</MenuItem>)}
-                  </TextField>
-                </Box>
-              ]}
-              contextActions={actions}
-              data={Array.from(schedules.values())}
-              defaultSortFieldId="createdOn"
-              defaultSortAsc={false}
-              theme={util.theme}
-              columns={columns}
-              selectableRows
-              selectableRowsHighlight={true}
-              // selectableRowsComponent={<Checkbox />}
-              onSelectedRowsChange={updateState}
-              clearSelectedRows={toggle}
-              pagination={true}
-              paginationPerPage={5}
-              paginationRowsPerPageOptions={[5, 10, 25]}
-            />
-          </CardContent>
-        </Card>
+        <ScheduleBracketGrid />
       </Grid>
     </Grid>
   </>

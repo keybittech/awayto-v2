@@ -1,19 +1,18 @@
-import React, { useEffect, useState, useMemo, useCallback, Suspense } from 'react';
-import DataTable, { TableColumn } from 'react-data-table-component';
+import React, { useEffect, useState, useMemo, Suspense } from 'react';
+import dayjs from 'dayjs';
 
 import IconButton from '@mui/material/IconButton';
+import Box from '@mui/material/Box';
 import Dialog from '@mui/material/Dialog';
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 
 import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Logout from '@mui/icons-material/Logout';
 
 import { IUtilActionTypes, IGroup, IActionTypes, IGroupActionTypes, IRole, SiteRoles } from 'awayto';
-import { useRedux, useApi, useAct, useSecure } from 'awayto-hooks';
+import { useRedux, useApi, useAct, useSecure, useGrid } from 'awayto-hooks';
 
 import ManageGroupModal from './ManageGroupModal';
 import JoinGroupModal from './JoinGroupModal';
@@ -51,24 +50,13 @@ export function ManageGroups(props: IProps): JSX.Element {
   const util = useRedux(state => state.util);
   const profile = useRedux(state => state.profile);
   const [group, setGroup] = useState<IGroup>();
-  const [toggle, setToggle] = useState(false);
   const [dialog, setDialog] = useState('');
-  const [selected, setSelected] = useState<IGroup[]>([]);
-
-  const updateState = useCallback((state: { selectedRows: IGroup[] }) => setSelected(state.selectedRows), [setSelected]);
-
-  const columns = useMemo(() => [
-    { id: 'createdOn', selector: row => row.createdOn, omit: true },
-    hasRole([SiteRoles.APP_GROUP_ADMIN]) && { cell: row => <Button key={`group_manage_selection_${row.name}`} onClick={() => navigate(`/group/${row.name}/manage/users`)} >Manage</Button> },
-    { name: 'Name', selector: row => row.name },
-    { name: 'Code', selector: row => row.code },
-    { name: 'Users', cell: (group: IGroup) => group.usersCount || 0 },
-    { name: 'Created', selector: row => row.createdOn }
-  ] as TableColumn<IGroup>[], undefined);
+  const [selected, setSelected] = useState<string[]>([]);
 
   const actions = useMemo(() => {
     const { length } = selected;
-    const isOwner = selected[0]?.createdSub === profile.sub;
+    const gr = groups.get(selected[0]);
+    const isOwner = gr?.createdSub === profile.sub;
     const acts = length == 1 ? [
       // <IconButton key={'groups_users_invite'} onClick={() => {
       //   setGroup(selected.pop());
@@ -77,12 +65,12 @@ export function ManageGroups(props: IProps): JSX.Element {
       // }}>
       //   <GroupAdd />
       // </IconButton>,
-      !isOwner && <Tooltip key={'groups_leave'} title="Leave"><IconButton onClick={() => {
+      gr && !isOwner && <Tooltip key={'groups_leave'} title="Leave"><IconButton onClick={() => {
         void act(OPEN_CONFIRM, {
           isConfirming: true,
-          confirmEffect: 'Leave the group ' + selected[0].name + ' and refresh the session.',
+          confirmEffect: 'Leave the group ' + gr.name + ' and refresh the session.',
           confirmAction: () => {
-            const [, res] = api(GROUPS_LEAVE, { code: selected.pop()?.code }, { load: true });
+            const [, res] = api(GROUPS_LEAVE, { code: gr.code }, { load: true });
             res?.then(() => {
               keycloak.clearToken();
             }).catch(console.warn);
@@ -92,24 +80,58 @@ export function ManageGroups(props: IProps): JSX.Element {
         <Logout />
       </IconButton></Tooltip>,
       isOwner && <Tooltip key={'groups_manage'} title="Manage"><IconButton onClick={() => {
-        setGroup(selected.pop());
+        setGroup(groups.get(selected[0]));
         setDialog('groups_manage');
-        setToggle(!toggle);
+        setSelected([]);
       }}>
         <CreateIcon />
-      </IconButton></Tooltip>
+      </IconButton></Tooltip>,
+      gr && isOwner && hasRole([SiteRoles.APP_GROUP_ADMIN]) && <Button key={`group_manage_selection_${gr.name}`} onClick={() => navigate(`/group/${gr.name}/manage/users`)} >Manage</Button>
     ] : [];
 
     return [
       ...acts,
-      isOwner && <Tooltip key={'delete_group'} title="Delete"><IconButton onClick={() => {
-        const [, res] = api(deleteGroupsAction, { ids: selected.map(s => s.id).join(',') }, { load: true });
-        res?.then(() => {
-          keycloak.clearToken();
-        }).catch(console.warn);
-      }}><DeleteIcon /></IconButton></Tooltip>
+      isOwner && <Tooltip key={'delete_group'} title="Delete">
+        <IconButton onClick={() => {
+          void act(OPEN_CONFIRM, {
+            isConfirming: true,
+            confirmEffect: 'Delete the group ' + gr.name + ' and refresh the session.',
+            confirmAction: () => {
+              const [, res] = api(deleteGroupsAction, { ids: selected.join(',') }, { load: true });
+              res?.then(() => {
+                keycloak.clearToken();
+              }).catch(console.warn);
+            }
+          });
+        }}>
+          <DeleteIcon />
+        </IconButton>
+      </Tooltip>
     ];
   }, [selected]);
+
+  const GroupsGrid = useGrid({
+    rows: Array.from(groups.values()),
+    columns: [
+      { flex: 1, headerName: 'Name', field: 'name' },
+      { flex: 1, headerName: 'Code', field: 'code' },
+      { flex: 1, headerName: 'Users', field: 'usersCount', renderCell: ({ row }) => row.usersCount || 0 },
+      { flex: 1, headerName: 'Created', field: 'createdOn', renderCell: ({ row }) => dayjs().to(dayjs.utc(row.createdOn)) }
+    ],
+    selected,
+    onSelected: p => setSelected(p as string[]),
+    toolbar: () => <>
+      <Button key={'join_group_button'} onClick={() => {
+        setGroup(undefined);
+        setDialog('groups_join');
+      }}>Join</Button>
+      <Button key={'create_group_button'} onClick={() => {
+        setGroup(undefined);
+        setDialog('create_group');
+      }}>Create</Button>
+      {!!selected.length && <Box sx={{ float: 'right' }}>{actions}</Box>}
+    </>
+  })
 
   useEffect(() => {
     if (Object.keys(groups || {}).length === 1 && Object.keys(profile.availableUserGroupRoles || {}).length && util.isLoading) {
@@ -159,39 +181,8 @@ export function ManageGroups(props: IProps): JSX.Element {
       </Suspense>
     </Dialog>
 
+    <GroupsGrid />
 
-    <Card>
-      <CardContent>
-        <DataTable
-          title="Groups"
-          actions={[
-            <Button key={'join_group_button'} onClick={() => {
-              setGroup(undefined);
-              setDialog('groups_join');
-            }}>Join</Button>,
-            <Button key={'create_group_button'} onClick={() => {
-              setGroup(undefined);
-              setDialog('create_group');
-            }}>Create</Button>
-          ]}
-          contextActions={actions}
-          data={Array.from(groups.values())}
-          theme={util.theme}
-          columns={columns}
-          defaultSortFieldId="createdOn"
-          defaultSortAsc={false}
-          selectableRows
-          selectableRowsSingle
-          selectableRowsHighlight={true}
-          // selectableRowsComponent={<Checkbox />}
-          onSelectedRowsChange={updateState}
-          clearSelectedRows={toggle}
-          pagination={true}
-          paginationPerPage={5}
-          paginationRowsPerPageOptions={[5, 10, 25]}
-        />
-      </CardContent>
-    </Card>
   </>
 }
 
