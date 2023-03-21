@@ -1,7 +1,7 @@
 import { performance } from 'perf_hooks';
 import { v4 as uuid } from 'uuid';
 
-import { IGroup, IGroupRole, DbError, IUserProfile, IGroupState, IRole, IGroupActionTypes, asyncForEach, utcNowString, IPrompts } from 'awayto';
+import { IGroup, IGroupRole, DbError, IUserProfile, IGroupState, IRole, IGroupActionTypes, asyncForEach, utcNowString, IPrompts, ApiErrorResponse, ApiInternalError } from 'awayto';
 
 import { ApiModule } from '../api';
 import { buildUpdate } from '../util/db';
@@ -20,17 +20,39 @@ const groups: ApiModule = [
       try {
         const { name, purpose, allowedDomains, defaultRoleId } = props.event.body;
 
+        // Do this first for now to check if user already made a group
+        // Create a group in app db if user has no groups and name is unique
+        const { rows: [group] } = await props.db.query<IGroup>(`
+          INSERT INTO dbtable_schema.groups (external_id, code, admin_external_id, default_role_id, name, purpose, allowed_domains, created_sub)
+          VALUES ($1, $2, $3, $4::uuid, $5, $6, $7, $8::uuid)
+          RETURNING id, name
+        `, [props.event.userSub, props.event.userSub, props.event.userSub, defaultRoleId, name, props.event.userSub, allowedDomains, props.event.userSub]);
+        
 
-        const [result] = await getModerationCompletion(purpose);
+        let kcGroupExternalId = '';
 
-        if (result.flagged) {
-          logger.log('moderation event', props.event);
+        try {
+          // Create a keycloak group if the previous operation was allowed
+          const { id: kcGroupId } = await keycloak.groups.create({ name });
+          kcGroupExternalId = kcGroupId;
+        } catch (error) {
+          if (409 === (error as ApiInternalError).response.status) {
+            await props.db.query(`
+              DELETE FROM dbtable_schema.groups
+              WHERE id = $1
+            `, [group.id]);
+            throw { reason: 'The group name is in use.' }
+          }
+        }
+
+        if (true === await getModerationCompletion(purpose)) {
+          logger.log('moderation failure event', props.event.requestId);
           throw { reason: 'Moderation event flagged. Please revise the group purpose.' };
         }
 
         const convertPurpose = generatePrompt(IPrompts.CONVERT_PURPOSE, name, purpose);
-        const [convertedData] = await getChatCompletionPrompt(convertPurpose);
-        const purposeMission = convertedData.message?.content.toLowerCase().replaceAll('"', '').replaceAll('.', '');
+        const convertedPurpose = await getChatCompletionPrompt(convertPurpose);
+        const purposeMission = convertedPurpose.toLowerCase().replaceAll('"', '').replaceAll('.', '');
 
         const { groupAdminRoles, appClient, roleCall } = await redisProxy('groupAdminRoles', 'appClient', 'roleCall');
 
@@ -40,26 +62,6 @@ const groups: ApiModule = [
           INSERT INTO dbtable_schema.users (sub, username, created_on, created_sub)
           VALUES ($1::uuid, $2, $3, $1::uuid)
         `, [uuid(), 'system_group_' + name, new Date()]);
-
-        // Create a group in app db if user has no groups and name is unique
-        const { rows: [group] } = await props.db.query<IGroup>(`
-          INSERT INTO dbtable_schema.groups (external_id, code, admin_external_id, default_role_id, name, purpose, allowed_domains, created_sub)
-          VALUES ($1, $2, $3, $4::uuid, $5, $6, $7, $8::uuid)
-          ON CONFLICT (name) DO NOTHING
-          RETURNING id, name
-        `, [props.event.userSub, props.event.userSub, props.event.userSub, defaultRoleId, name, purposeMission, allowedDomains, props.event.userSub]);
-
-        if (!group?.id) throw { reason: 'Could not make the group. Name in use.' }
-
-        let kcGroupExternalId = '';
-
-        try {
-          // Create a keycloak group if the previous operation was allowed
-          const { id: kcGroupId } = await keycloak.groups.create({ name });
-          kcGroupExternalId = kcGroupId;
-        } catch (error) {
-          throw { reason: 'Could not make the group. Name in use.' }
-        }
 
         // Create an Admin subgroup in keycloak for this group
         const { id: kcAdminSubgroupExternalId } = await keycloak.groups.setOrCreateChild({ id: kcGroupExternalId }, { name: 'Admin' });
@@ -80,9 +82,9 @@ const groups: ApiModule = [
         // Update the group with keycloak reference id
         await props.db.query(`
           UPDATE dbtable_schema.groups 
-          SET external_id = $2, admin_external_id = $3
+          SET external_id = $2, admin_external_id = $3, purpose = $4
           WHERE id = $1
-        `, [group.id, kcGroupExternalId, kcAdminSubgroupExternalId]);
+        `, [group.id, kcGroupExternalId, kcAdminSubgroupExternalId, purposeMission]);
 
         // For each group role, create a keycloak subgroup and attach to group_roles
         for (const { id: roleId, name } of roles.values()) {
@@ -444,10 +446,8 @@ const groups: ApiModule = [
       try {
         const { name } = props.event.pathParameters;
 
-        const [result] = await getModerationCompletion(name.replaceAll('_', ' '));
-
-        if (result.flagged) {
-          logger.log('moderation event', props.event);
+        if (true === await getModerationCompletion(name.replaceAll('_', ' '))) {
+          logger.log('moderation failure event', props.event.requestId);
           throw { reason: 'Moderation event flagged. Please revise the group name.', checkingName: false, isValid: false };
         }
 

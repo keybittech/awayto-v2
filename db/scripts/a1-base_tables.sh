@@ -58,7 +58,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     admin_external_id TEXT NOT NULL UNIQUE,
     default_role_id uuid NOT NULL REFERENCES dbtable_schema.roles (id) ON DELETE CASCADE,
     name VARCHAR (50) NOT NULL UNIQUE,
-    purpose VARCHAR (100) NOT NULL UNIQUE,
+    purpose VARCHAR (200) NOT NULL UNIQUE,
     allowed_domains TEXT,
     code TEXT NOT NULL,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),

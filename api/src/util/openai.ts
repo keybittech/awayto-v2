@@ -33,7 +33,7 @@ export function generatePrompt(promptId: IPrompts, prompt: string, prompt2?: str
   switch (promptId) {
     case IPrompts.CONVERT_PURPOSE:
       generatedPrompt += `
-        Complete the following: A 50 character maximum gerund mission statement for a business, named "${prompt}", with the description of "${prompt2}", could be 
+        Complete the following statement: A 50 character maximum passive gerund mission statement for a business named "${prompt}" with the description of "${prompt2}", could be 
       `;
       break;
     case IPrompts.SUGGEST_ROLE:
@@ -55,11 +55,11 @@ export function generatePrompt(promptId: IPrompts, prompt: string, prompt2?: str
       generatedPrompt += `
         ${getSuggestionPrompt(`service level names for ${prompt}`)}
         ${generateExample('service level names for a generic service', 'Small|Medium|Large')}
-        ${generateExample('service level names for a writing center', 'WRI 1010|WRI 1020|WRI 2010|WRI 2020|WRI 3010')}
-        ${generateExample('service level names for a streaming service', 'Basic|Standard|Premium')}
-        ${generateExample('service level names for an educational learning center', 'ENG 1010|WRI 1010|MAT 1010|SCI 1010|HIS 1010')}
-        ${generateExample('service level names for a airline service', 'Economy|Business|First Class')}
-        ${generateExample('service level names for a reading center', 'ESL 900|ESL 990|ENG 1010|ENG 1020|ENG 2010')}
+        ${generateExample('service level names for writing tutoring at a school writing center', 'WRI 1010|WRI 1020|WRI 2010|WRI 2020|WRI 3010')}
+        ${generateExample('service level names for streaming at a web media platform', 'Basic|Standard|Premium')}
+        ${generateExample('service level names for advising at a school learning center', 'ENG 1010|WRI 1010|MAT 1010|SCI 1010|HIS 1010')}
+        ${generateExample('service level names for travelling on an airline service', 'Economy|Business|First Class')}
+        ${generateExample('service level names for reading tutoring at a school reading center', 'ESL 900|ESL 990|ENG 1010|ENG 1020|ENG 2010')}
         ${generateExample(`service level names for ${prompt}`)}`;
       break;
     case IPrompts.SUGGEST_FEATURE:
@@ -78,61 +78,65 @@ export function generatePrompt(promptId: IPrompts, prompt: string, prompt2?: str
   return generatedPrompt.replace(/\r?\n|\r-/g, ' ').trim();
 }
 
-export async function getChatCompletionPrompt(prompt: string): Promise<CreateChatCompletionResponseChoicesInner[]> {
+export async function getChatCompletionPrompt(input: string): Promise<string> {
   try {
     const completion = await openai.createChatCompletion({
       model: 'gpt-3.5-turbo',
       messages: [
-        { role: "user", content: prompt }
+        { role: "user", content: input }
       ],
       max_tokens: 512
     }, opts);
 
-    console.log(inspect({ prompt, result: inspect(completion.data.choices) }))
+    const result = completion.data.choices.at(0)?.message?.content.trim().replace(/\r?\n|\r/g, '') || '';
+    const prompt = input.split(';')[0];
 
-    for (const choice of completion.data.choices) {
-      console.log({ content: choice.message?.content, formatted: choice.message?.content.trim().replace(/\r?\n|\r/g, '') });
-    }
+    logger.log('openai chat completion prompt', { prompt, result });
+    console.log('openai chat completion prompt', { prompt, result });
 
-    return completion.data.choices || [];
+    return result;
   } catch (error) {
     handleOpenAIError(error);
+    throw { reason: 'Could not complete prompt.' }
   }
-  return [];
 }
 
-export async function getCompletionPrompt(prompt: string): Promise<CreateCompletionResponseChoicesInner[]> {
+export async function getCompletionPrompt(input: string): Promise<string> {
   try {
     const completion = await openai.createCompletion({
       model: 'ada',
-      prompt,
+      prompt: input,
       max_tokens: 512
     }, opts);
 
-    console.log(inspect({ prompt, result: inspect(completion.data.choices) }))
+    const result = completion.data.choices.at(0)?.text?.trim().replace(/\r?\n|\r/g, '') || ''
+    const prompt = input.split(';')[0];
 
-    for (const choice of completion.data.choices) {
-      console.log({ content: choice.text, formatted: choice.text?.trim().replace(/\r?\n|\r/g, '') });
-    }
+    logger.log('openai completion prompt', { prompt, result });
+    console.log('openai completion prompt', { prompt, result });
 
-    return completion.data.choices || [];
+    return result;
   } catch (error) {
     handleOpenAIError(error);
+    throw { reason: 'Could not complete prompt.' }
   }
-  return [];
 }
 
-export async function getModerationCompletion(prompt: string): Promise<CreateModerationResponseResultsInner[]> {
+export async function getModerationCompletion(input: string): Promise<boolean | undefined> {
   try {
     const completion = await openai.createModeration({
-      input: prompt
+      input
     }, opts);
 
-    console.log(inspect({ prompt, result: inspect(completion.data.results) }))
+    const result = completion.data.results.at(0)?.flagged;
+    const prompt = input.split(';')[0];
 
-    return completion.data.results || [];
+    logger.log('openai moderation', { prompt, result });
+    console.log('openai moderation', { prompt, result });
+
+    return result;
   } catch (error) {
     handleOpenAIError(error);
+    throw { reason: 'Could not complete prompt.' }
   }
-  return [];
 }

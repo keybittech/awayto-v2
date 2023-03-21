@@ -24,7 +24,7 @@ const forms: ApiModule = [
           const promptResult = await getChatCompletionPrompt(generatedPrompt);
 
           // return { promptResult: promptResult[0].text?.trim().replace(/\r?\n|\r/g, '').split('|').filter(a => !!a) };
-          return { promptResult: promptResult[0].message?.content.trim().replace(/\r?\n|\r/g, '').split('|').filter(a => !!a) };
+          return { promptResult: promptResult.split('|').filter(a => !!a) };
         } else {
           return false;
         }

@@ -43,6 +43,7 @@ import { DecodedJWTToken, UserGroupRoles, StrategyUser, ILoadedState, IActionTyp
 // import './util/twitch';
 
 export type ApiEvent = {
+  requestId: string;
   method: string;
   path: string;
   public: boolean;
@@ -361,7 +362,7 @@ async function go() {
         const requestId = uuid();
         const user = req.user as StrategyUser;
 
-        if (await rateLimitResource(user.sub, 'api', 5)) { // limit 5 general api requests per second
+        if (await rateLimitResource(user.sub, 'api', 8)) { // limit n general api requests per second
           return res.status(500).send({ reason: 'Rate limit exceeded.', requestId });
         }
 
