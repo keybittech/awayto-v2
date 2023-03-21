@@ -7,3 +7,4 @@ export { useStyles } from './useStyles';
 export { useSecure } from './useSecure';
 export { useGroupSecure } from './useGroupSecure';
 export { useSchedule } from './useSchedule';
+export { useGrid } from './useGrid';

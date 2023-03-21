@@ -1,9 +1,8 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import DataTable, { TableColumn } from 'react-data-table-component';
+import React, { useEffect, useState, useMemo, Suspense } from 'react';
 import { useParams } from 'react-router';
+import dayjs from 'dayjs';
 
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
+import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import Dialog from '@mui/material/Dialog';
 import Button from '@mui/material/Button';
@@ -13,7 +12,7 @@ import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import { IGroupForm, IActionTypes } from 'awayto';
-import { useRedux, useApi } from 'awayto-hooks';
+import { useApi, useGrid } from 'awayto-hooks';
 
 import ManageFormModal from './ManageFormModal';
 
@@ -36,27 +35,17 @@ export function ManageForms(props: IProps): JSX.Element {
 
   const { groupName } = useParams();
   const api = useApi();
-  const util = useRedux(state => state.util);
   const [form, setForm] = useState<IGroupForm>();
-  const [selected, setSelected] = useState<IGroupForm[]>([]);
-  const [toggle, setToggle] = useState(false);
+  const [selected, setSelected] = useState<string[]>([]);
   const [dialog, setDialog] = useState('');
-
-  const updateState = useCallback((state: { selectedRows: IGroupForm[] }) => setSelected(state.selectedRows), [setSelected]);
-
-  const columns = useMemo(() => [
-    { id: 'createdOn', selector: row => row.createdOn, omit: true },
-    { name: 'Name', selector: row => row.name },
-    { name: 'Created', selector: row => row.createdOn }
-  ] as TableColumn<IGroupForm>[], [])
 
   const actions = useMemo(() => {
     const { length } = selected;
     const acts = length == 1 ? [
       <IconButton key={'manage_form'} onClick={() => {
-        setForm(selected.pop());
+        setForm(groupForms.get(selected[0]));
         setDialog('manage_form');
-        setToggle(!toggle);
+        setSelected([]);
       }}>
         <CreateIcon />
       </IconButton>
@@ -65,16 +54,32 @@ export function ManageForms(props: IProps): JSX.Element {
     return [
       ...acts,
       <Tooltip key={'delete_group'} title="Delete"><IconButton onClick={() => {
-        const [, res] = api(deleteGroupFormsAction, { groupName, ids: selected.map(s => s.id).join(',') }, { load: true })
-        res?.then(() => {
-          setToggle(!toggle);
-          api(getGroupFormsAction, { groupName });
-        }).catch(console.warn);
+        if (selected.length) {
+          const [, res] = api(deleteGroupFormsAction, { groupName, ids: selected.join(',') }, { load: true })
+          res?.then(() => {
+            setSelected([]);
+            api(getGroupFormsAction, { groupName });
+          }).catch(console.warn);
+        }
       }}>
         <DeleteIcon />
       </IconButton></Tooltip>
     ]
-  }, [selected])
+  }, [selected]);
+
+  const FormGrid = useGrid<IGroupForm>({
+    rows: Array.from(groupForms.values()),
+    columns: [
+      { field: 'name', headerName: 'Name', flex: 1 },
+      { field: 'createdOn', headerName: 'Created', flex: 1, renderCell: ({ row }) => dayjs().to(dayjs.utc(row.createdOn)) }
+    ],
+    selected,
+    onSelected: selection => setSelected(selection as string[]),
+    toolbar: () => <>
+      <Button onClick={() => { setForm(undefined); setDialog('manage_form') }}>New</Button>
+      {!!selected.length && <Box sx={{ float: 'right' }}>{actions}</Box>}
+    </>
+  });
 
   useEffect(() => {
     if (groupName) {
@@ -86,35 +91,16 @@ export function ManageForms(props: IProps): JSX.Element {
 
   return <>
     <Dialog fullScreen open={dialog === 'manage_form'} fullWidth maxWidth="sm">
-      <ManageFormModal {...props} editForm={form} closeModal={() => {
-        setDialog('')
-        api(getGroupFormsAction, { groupName });
-      }} />
+      <Suspense>
+        <ManageFormModal {...props} editForm={form} closeModal={() => {
+          setDialog('')
+          api(getGroupFormsAction, { groupName });
+        }} />
+      </Suspense>
     </Dialog>
 
-    <Card>
-      <CardContent>
+    <FormGrid />
 
-        <DataTable
-          title="Forms"
-          actions={<Button onClick={() => { setForm(undefined); setDialog('manage_form') }}>New</Button>}
-          contextActions={actions}
-          data={Array.from(groupForms.values())}
-          defaultSortFieldId="createdOn"
-          defaultSortAsc={false}
-          theme={util.theme}
-          columns={columns}
-          selectableRows
-          selectableRowsHighlight={true}
-          // selectableRowsComponent={<Checkbox />}
-          onSelectedRowsChange={updateState}
-          clearSelectedRows={toggle}
-          pagination={true}
-          paginationPerPage={5}
-          paginationRowsPerPageOptions={[5, 10, 25]}
-        />
-      </CardContent>
-    </Card>
   </>
 }
 

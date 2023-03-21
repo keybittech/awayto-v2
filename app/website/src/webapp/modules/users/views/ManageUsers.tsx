@@ -1,18 +1,14 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import DataTable, { TableColumn } from 'react-data-table-component';
+import React, { useEffect, useState, useMemo, Suspense } from 'react';
 import dayjs from 'dayjs';
 
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
+import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import Dialog from '@mui/material/Dialog';
 
 import CreateIcon from '@mui/icons-material/Create';
-import LockIcon from '@mui/icons-material/Lock';
-import LockOpenIcon from '@mui/icons-material/LockOpen';
 
 import { IGroupUser, IActionTypes, IGroupRole } from 'awayto';
-import { useRedux, useApi } from 'awayto-hooks';
+import { useApi, useGrid } from 'awayto-hooks';
 
 import ManageUserModal from './ManageUserModal';
 import { useParams } from 'react-router';
@@ -35,35 +31,21 @@ declare global {
 }
 
 export function ManageUsers(props: IProps): JSX.Element {
-  const { users, getUsersAction, lockUsersAction, unlockUsersAction } = props as IProps & Required<ManageUsersProps>;
+  const { users, getUsersAction } = props as IProps & Required<ManageUsersProps>;
   const { groupName } = useParams();
   
   const api = useApi();
-  const util = useRedux(state => state.util);
   const [user, setUser] = useState<IGroupUser>();
-  const [selected, setSelected] = useState<IGroupUser[]>([]);
-  const [toggle, setToggle] = useState(false);
+  const [selected, setSelected] = useState<string[]>([]);
   const [dialog, setDialog] = useState('');
-
-  const updateSelections = useCallback((state: { selectedRows: IGroupUser[] }) => setSelected(state.selectedRows), []);
-
-  const columns = useMemo(() => [
-    { id: 'createdOn', selector: row => row.createdOn, omit: true },
-    { name: '', grow: 'unset', minWidth: '48px', cell: (user: IGroupUser) => user.locked ? <LockIcon /> : <LockOpenIcon /> },
-    { name: 'Username', selector: row => row.username },
-    { name: 'First Name', selector: row => row.firstName },
-    { name: 'Last Name', selector: row => row.lastName },
-    { name: 'Role', selector: row => row.roleName },
-    { name: 'Created', selector: (user: IGroupUser) => dayjs().to(dayjs.utc(user.createdOn)) },
-  ] as TableColumn<IGroupUser>[], undefined)
 
   const actions = useMemo(() => {
     const { length } = selected;
     const actions = length == 1 ? [
       <IconButton key={'manage_user'} onClick={() => {
-        setUser(selected.pop());
+        setUser(users.get(selected[0]));
         setDialog('manage_user');
-        setToggle(!toggle);
+        setSelected([]);
       }}>
         <CreateIcon />
       </IconButton>
@@ -71,16 +53,32 @@ export function ManageUsers(props: IProps): JSX.Element {
 
     return [
       ...actions,
-      <IconButton key={'lock_user'} onClick={() => {
-        api(lockUsersAction, { users: selected.map(u => ({ username: u.username })) }, { load: true });
-        setToggle(!toggle);
-      }}><LockIcon /></IconButton>,
-      <IconButton key={'unlock_user'} onClick={() => {
-        api(unlockUsersAction, { users: selected.map(u => ({ username: u.username })) }, { load: true });
-        setToggle(!toggle);
-      }}><LockOpenIcon /></IconButton>,
+      // <IconButton key={'lock_user'} onClick={() => {
+      //   api(lockUsersAction, { users: selected.map(u => ({ username: u.username })) }, { load: true });
+      //   setToggle(!toggle);
+      // }}><LockIcon /></IconButton>,
+      // <IconButton key={'unlock_user'} onClick={() => {
+      //   api(unlockUsersAction, { users: selected.map(u => ({ username: u.username })) }, { load: true });
+      //   setToggle(!toggle);
+      // }}><LockOpenIcon /></IconButton>,
     ];
-  }, [selected])
+  }, [selected]);
+
+  const UserGrid = useGrid<IGroupUser>({
+    rows: Array.from(users.values()),
+    columns: [
+      { flex: 1, headerName: 'Username', field: 'username' },
+      { flex: 1, headerName: 'First Name', field: 'firstName' },
+      { flex: 1, headerName: 'Last Name', field: 'lastName' },
+      { flex: 1, headerName: 'Role', field: 'roleName' },
+      { field: 'createdOn', headerName: 'Created', flex: 1, renderCell: ({ row }) => dayjs().to(dayjs.utc(row.createdOn)) }
+    ],
+    selected,
+    onSelected: selection => setSelected(selection as string[]),
+    toolbar: () => <>
+      {!!selected.length && <Box sx={{ float: 'right' }}>{actions}</Box>}
+    </>
+  });
 
   useEffect(() => {
     const [abort, res] = api(getUsersAction, { groupName });
@@ -94,32 +92,13 @@ export function ManageUsers(props: IProps): JSX.Element {
   }, [users, user]);
 
   return <>
-
     <Dialog open={dialog === 'manage_user'} fullWidth maxWidth="xs">
-      <ManageUserModal {...props} editUser={user} closeModal={() => setDialog('')} />
+      <Suspense>
+        <ManageUserModal {...props} editUser={user} closeModal={() => setDialog('')} />
+      </Suspense>
     </Dialog>
-    <Card>
-      <CardContent>
-        <DataTable
-          title="Users"
-          // actions={<Button onClick={() => { setUser(undefined); setDialog('manage_user') }}>New</Button>}
-          contextActions={actions}
-          data={Array.from(users.values())}
-          theme={util.theme}
-          columns={columns}
-          defaultSortFieldId="createdOn"
-          defaultSortAsc={false}
-          selectableRows
-          selectableRowsHighlight={true}
-          // selectableRowsComponent={<><Checkbox /></>}
-          onSelectedRowsChange={updateSelections}
-          clearSelectedRows={toggle}
-          pagination={true}
-          paginationPerPage={5}
-          paginationRowsPerPageOptions={[5, 10, 25]}
-        />
-      </CardContent>
-    </Card>
+    
+    <UserGrid />
   </>
 }
 

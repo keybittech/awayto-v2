@@ -30,14 +30,6 @@ export function Sidebar(): JSX.Element {
   const location = useLocation();
 
   return (
-    <Drawer
-      sx={{ display: { xs: 'none', md: 'flex' } }}
-      className={classes.drawer}
-      variant="permanent"
-      classes={{
-        paper: classes.drawerPaper,
-      }}
-    >
       <Grid container style={{ height: '100vh' }} alignContent="space-between">
         <Grid item xs={12} style={{ marginTop: '20px' }}>
           <Grid container justifyContent="center">
@@ -83,7 +75,6 @@ export function Sidebar(): JSX.Element {
           </List>
         </Grid>
       </Grid>
-    </Drawer>
   )
 }
 

@@ -3,19 +3,19 @@ import React, { useMemo, useState, } from 'react';
 import Box from '@mui/material/Box';
 import Switch from '@mui/material/Switch';
 import Divider from '@mui/material/Divider';
-import AppBar from '@mui/material/AppBar';
+import Grid from '@mui/material/Unstable_Grid2';
 import Badge from '@mui/material/Badge';
 import Menu from '@mui/material/Menu';
+import Typography from '@mui/material/Typography';
 import MenuList from '@mui/material/MenuList';
 import MenuItem from '@mui/material/MenuItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Tooltip from '@mui/material/Tooltip';
-import Toolbar from '@mui/material/Toolbar';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 
-import FeedbackIcon from '@mui/icons-material/Feedback';
+import CampaignIcon from '@mui/icons-material/Campaign';
 import TtyIcon from '@mui/icons-material/Tty';
 import ThreePIcon from '@mui/icons-material/ThreeP';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -23,7 +23,6 @@ import EventNoteIcon from '@mui/icons-material/EventNote';
 import MoreTimeIcon from '@mui/icons-material/MoreTime';
 import BusinessIcon from '@mui/icons-material/Business';
 import GroupIcon from '@mui/icons-material/Group';
-import MoreIcon from '@mui/icons-material/More';
 import ApprovalIcon from '@mui/icons-material/Approval';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
@@ -77,63 +76,70 @@ export function Topbar(props: IProps): JSX.Element {
     navigate(path);
   };
 
-  return <>
-    <AppBar color="secondary">
-      <Toolbar>
-        <Box>
-          <Button onClick={() => navigate('/')}>
-            <img src={Icon} alt="kbt-icon" width={48} />
-          </Button>
-        </Box>
-        <Box sx={{ flexGrow: 1 }} />
-        <Box>
-          <Tooltip title="Upcoming Appointments">
-            <IconButton
-              aria-label={`show ${upcomingBookings.length} upcoming appointments`}
-              aria-controls={upcomingBookingsMenuId}
-              aria-haspopup="true"
-              onClick={e => setUpcomingBookingsAnchorEl(e.currentTarget)}
-            >
-              <Badge badgeContent={upcomingBookings.length} color="error">
-                <ThreePIcon />
-              </Badge>
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Pending Requests">
-            <IconButton
-              aria-label={`show ${pendingQuotes.length} pending requests`}
-              aria-controls={pendingQuotesMenuId}
-              aria-haspopup="true"
-              onClick={e => setPendingQuotesAnchorEl(e.currentTarget)}
-            >
-              <Badge badgeContent={pendingQuotes.length} color="error">
-                <ApprovalIcon />
-              </Badge>
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Give Feedback">
-            <IconButton
-              aria-label={`give group feedback`}
-              aria-controls={feedbackMenuId}
-              aria-haspopup="true"
-              onClick={e => setFeedbackAnchorEl(e.currentTarget)}
-            >
-              <FeedbackIcon />
-            </IconButton>
-          </Tooltip>
-        </Box>
-        <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
+  return <Grid xs={12} container>
+    <Grid sx={{ display: { xs: 'flex', md: 'none' } }}>
+      <Tooltip title="Menu">
+        <Button
+          aria-label="show mobile main menu"
+          aria-controls={mobileMenuId}
+          aria-haspopup="true"
+          onClick={e => setMobileMoreAnchorEl(e.currentTarget)}
+        >
+          <img src={Icon} alt="kbt-icon" width={48} />
+        </Button>
+      </Tooltip>
+    </Grid>
+    <Grid container sx={{ flexGrow: 1, justifyContent: 'right', alignItems: 'center' }}>
+      <Grid>
+        <Tooltip title="View Appointments">
           <IconButton
-            aria-label="show mobile main menu"
-            aria-controls={mobileMenuId}
+            disableRipple
+            color="primary"
+            aria-label={`show ${upcomingBookings.length} upcoming appointments`}
+            aria-controls={upcomingBookingsMenuId}
             aria-haspopup="true"
-            onClick={e => setMobileMoreAnchorEl(e.currentTarget)}
+            onClick={e => setUpcomingBookingsAnchorEl(e.currentTarget)}
           >
-            <MoreIcon />
+            <Badge badgeContent={upcomingBookings.length} color="error">
+              <ThreePIcon sx={{ display: { xs: 'flex', md: 'none' } }} />
+              <Typography variant="overline" sx={{ display: { xs: 'none', md: 'flex' } }}>View Appointments</Typography>
+            </Badge>
           </IconButton>
-        </Box>
-      </Toolbar>
-    </AppBar>
+        </Tooltip>
+      </Grid>
+      <Grid>
+        <Tooltip title="Approve Requests">
+          <IconButton
+            disableRipple
+            color="primary"
+            aria-label={`show ${pendingQuotes.length} pending requests`}
+            aria-controls={pendingQuotesMenuId}
+            aria-haspopup="true"
+            onClick={e => setPendingQuotesAnchorEl(e.currentTarget)}
+          >
+            <Badge badgeContent={pendingQuotes.length} color="error">
+              <ApprovalIcon sx={{ display: { xs: 'flex', md: 'none' } }} />
+              <Typography variant="overline" sx={{ display: { xs: 'none', md: 'flex' } }}>Approve Requests</Typography>
+            </Badge>
+          </IconButton>
+        </Tooltip>
+      </Grid>
+      <Grid>
+        <Tooltip title="Give Feedback">
+          <IconButton
+            disableRipple
+            color="primary"
+            aria-label={`give group feedback`}
+            aria-controls={feedbackMenuId}
+            aria-haspopup="true"
+            onClick={e => setFeedbackAnchorEl(e.currentTarget)}
+          >
+            <CampaignIcon sx={{ display: { xs: 'flex', md: 'none' } }} />
+            <Typography variant="overline" sx={{ display: { xs: 'none', md: 'flex' } }}>Give Feedback</Typography>
+          </IconButton>
+        </Tooltip>
+      </Grid>
+    </Grid>
 
     {/** MOBILE MENU */}
     <Menu
@@ -237,7 +243,7 @@ export function Topbar(props: IProps): JSX.Element {
       isFeedbackOpen={isFeedbackOpen}
       handleMenuClose={handleMenuClose}
     />
-  </>;
+  </Grid>;
 }
 
 export default Topbar;

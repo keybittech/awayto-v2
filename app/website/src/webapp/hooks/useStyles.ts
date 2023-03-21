@@ -13,7 +13,7 @@ const drawerWidth = 175;
 /**
  * @category Style
  */
-export const useStyles = makeStyles(({ mixins, spacing }: Theme) => ({
+export const useStyles = makeStyles(({ spacing }: Theme) => ({
 
   appLogo: { width: '64px' },
   logo: { width: '64px' },
@@ -27,14 +27,6 @@ export const useStyles = makeStyles(({ mixins, spacing }: Theme) => ({
   colorBox: { width: '30px', height: '30px', display: 'block', margin: '12px', border: '1px solid #333', cursor: 'pointer', '&:hover': { opacity: .5 } },
 
   appBar: { width: `calc(100% - ${drawerWidth}px)`, marginLeft: drawerWidth, backgroundColor: '#666' },
-  drawer: { width: drawerWidth },
-  drawerPaper: {
-    width: drawerWidth,
-    // backgroundColor: '#121f31',
-  },
-  // necessary for content to be below app bar
-  toolbar: mixins.toolbar,
-  content: { flexGrow: 1, padding: spacing(3) },
 
   menuIcon: { "&:hover svg": { color: 'rgb(39 109 129)' }, width: '100%' },
 
@@ -183,7 +175,7 @@ export const getDesignTokens: (mode: PaletteMode) => ThemeOptions = (mode) => ({
         // palette values for light mode
         primary: {
           main: '#121f31',
-          dark: '#aaa',
+          dark: '#ddeeff',
           contrastText: '#333'
         },
         secondary: { main: 'rgb(0 191 255)' }
@@ -195,7 +187,10 @@ export const getDesignTokens: (mode: PaletteMode) => ThemeOptions = (mode) => ({
           contrastText: '#333',
           dark: '#203040'
         },
-        secondary: { main: '#009cc8' }
+        secondary: {
+          main: '#009cc8',
+          dark: '#1c1d1e'          
+        }
       }
       : {
         // palette for blue
