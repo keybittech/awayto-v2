@@ -95,7 +95,7 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
         const [, res] = api(postGroupSchedulesAction, { ...schedule, groupName });
         res?.then(() => {
           api(getGroupSchedulesAction, { groupName });
-          act(SET_SNACK, { snackOn: 'Successfully added ' + name + 'as a master schedule!', snackType: 'info' });
+          act(SET_SNACK, { snackOn: 'Successfully added ' + name + ' as a master schedule!', snackType: 'info' });
           if (closeModal)
             closeModal();
         }).catch(console.warn);

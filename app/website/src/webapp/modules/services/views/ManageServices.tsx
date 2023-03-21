@@ -1,13 +1,14 @@
 import React, { useEffect, useState, useMemo, Suspense } from 'react';
 import dayjs from 'dayjs';
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 
 import Box from '@mui/material/Box';
-import IconButton from '@mui/material/IconButton';
-import Dialog from '@mui/material/Dialog';
+import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
 import Tooltip from '@mui/material/Tooltip';
 
+import DomainAddIcon from '@mui/icons-material/DomainAdd';
 import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 
@@ -40,6 +41,7 @@ export function ManageServices(props: IProps): JSX.Element {
 
   const act = useAct();
   const api = useApi();
+  const navigate = useNavigate();
   const [service, setService] = useState<IService>();
   const [selected, setSelected] = useState<string[]>([]);
   const [dialog, setDialog] = useState('');
@@ -48,34 +50,40 @@ export function ManageServices(props: IProps): JSX.Element {
   const actions = useMemo(() => {
     const { length } = selected;
     const acts = length == 1 ? [
-      <IconButton key={'manage_service'} onClick={() => {
-        setService(services.get(selected[0]));
-        setDialog('manage_service');
-        setSelected([]);
-      }}>
-        <CreateIcon />
-      </IconButton>
+      <Tooltip key={'manage_service'} title="Edit">
+        <Button onClick={() => {
+          setService(services.get(selected[0]));
+          setDialog('manage_service');
+          setSelected([]);
+        }}>
+          <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Edit</Typography>
+          <CreateIcon sx={{ display: { xs: 'flex', md: 'none' } }} />
+        </Button>
+      </Tooltip>
     ] : [];
 
     return [
       ...acts,
-      <Tooltip key={'delete_service'} title="Delete"><IconButton onClick={() => {
-        if (groupName) {
-          void act(OPEN_CONFIRM, {
-            isConfirming: true,
-            confirmEffect: 'Are you sure you want to delete these services? This cannot be undone.',
-            confirmAction: () => {
-              const [, res] = api(deleteGroupServicesAction, { groupName, ids: selected.join(',') }, { load: true })
-              res?.then(() => {
-                api(getServicesAction, { groupName });
-                setSelected([]);
-              }).catch(console.warn);
-            }
-          });
-        }
-      }}>
-        <DeleteIcon />
-      </IconButton></Tooltip>
+      <Tooltip key={'delete_service'} title="Delete">
+        <Button onClick={() => {
+          if (groupName) {
+            void act(OPEN_CONFIRM, {
+              isConfirming: true,
+              confirmEffect: 'Are you sure you want to delete these services? This cannot be undone.',
+              confirmAction: () => {
+                const [, res] = api(deleteGroupServicesAction, { groupName, ids: selected.join(',') }, { load: true })
+                res?.then(() => {
+                  api(getServicesAction, { groupName });
+                  setSelected([]);
+                }).catch(console.warn);
+              }
+            });
+          }
+        }}>
+          <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Delete</Typography>
+          <DeleteIcon sx={{ display: { xs: 'flex', md: 'none' } }} />
+        </Button>
+      </Tooltip>
     ]
   }, [selected]);
 
@@ -96,8 +104,14 @@ export function ManageServices(props: IProps): JSX.Element {
     selected,
     onSelected: selection => setSelected(selection as string[]),
     toolbar: () => <>
-      <Button onClick={() => { setService(undefined); setDialog('manage_service') }}>New</Button>
-      {!!selected.length && <Box sx={{ float: 'right' }}>{actions}</Box>}
+      <Typography variant="button">Services:</Typography>
+      <Tooltip key={'create_service'} title="Create">
+        <Button onClick={() => navigate('/service')}>
+          <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Create</Typography>
+          <DomainAddIcon sx={{ display: { xs: 'flex', md: 'none' } }} />
+        </Button>
+      </Tooltip>
+      {!!selected.length && <Box sx={{ flexGrow: 1, textAlign: 'right' }}>{actions}</Box>}
     </>
   })
 

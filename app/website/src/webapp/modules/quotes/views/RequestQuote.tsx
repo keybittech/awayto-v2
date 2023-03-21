@@ -115,7 +115,7 @@ export function RequestQuote(props: IProps): JSX.Element {
   const TierGrid = useGrid({
     rows: serviceTierAddons.map(name => ({ name })),
     columns: [
-      { headerName: '', field: '', renderCell: ({ row }) => row.name },
+      { type: 'string', field: 'name', headerName: '' },
       ...serviceTiers.reduce((memo, { name, addons }) => {
         memo.push({
           headerName: name,

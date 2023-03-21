@@ -2,11 +2,15 @@ import React, { useEffect, useState, useMemo, Suspense } from 'react';
 import dayjs from 'dayjs';
 
 import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Dialog from '@mui/material/Dialog';
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 
+import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
+import DomainAddIcon from '@mui/icons-material/DomainAdd';
+import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Logout from '@mui/icons-material/Logout';
@@ -65,34 +69,47 @@ export function ManageGroups(props: IProps): JSX.Element {
       // }}>
       //   <GroupAdd />
       // </IconButton>,
-      gr && !isOwner && <Tooltip key={'groups_leave'} title="Leave"><IconButton onClick={() => {
-        void act(OPEN_CONFIRM, {
-          isConfirming: true,
-          confirmEffect: 'Leave the group ' + gr.name + ' and refresh the session.',
-          confirmAction: () => {
-            const [, res] = api(GROUPS_LEAVE, { code: gr.code }, { load: true });
-            res?.then(() => {
-              keycloak.clearToken();
-            }).catch(console.warn);
-          }
-        });
-      }}>
-        <Logout />
-      </IconButton></Tooltip>,
-      isOwner && <Tooltip key={'groups_manage'} title="Manage"><IconButton onClick={() => {
-        setGroup(groups.get(selected[0]));
-        setDialog('groups_manage');
-        setSelected([]);
-      }}>
-        <CreateIcon />
-      </IconButton></Tooltip>,
-      gr && isOwner && hasRole([SiteRoles.APP_GROUP_ADMIN]) && <Button key={`group_manage_selection_${gr.name}`} onClick={() => navigate(`/group/${gr.name}/manage/users`)} >Manage</Button>
+      gr && !isOwner && <Tooltip key={'leave_group'} title="Leave">
+        <Button onClick={() => {
+          void act(OPEN_CONFIRM, {
+            isConfirming: true,
+            confirmEffect: 'Leave the group ' + gr.name + ' and refresh the session.',
+            confirmAction: () => {
+              const [, res] = api(GROUPS_LEAVE, { code: gr.code }, { load: true });
+              res?.then(() => {
+                keycloak.clearToken();
+              }).catch(console.warn);
+            }
+          });
+        }}>
+          <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Leave</Typography>
+          <Logout sx={{ display: { xs: 'flex', md: 'none' } }} />
+        </Button>
+      </Tooltip>,
+      gr && isOwner && hasRole([SiteRoles.APP_GROUP_ADMIN]) && <Tooltip key={'view_group_details'} title="Details">
+        <Button onClick={() => {
+          navigate(`/group/${gr.name}/manage/users`)
+        }}>
+          <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Details</Typography>
+          <ManageAccountsIcon sx={{ display: { xs: 'flex', md: 'none' } }} />
+        </Button>
+      </Tooltip>,
+      isOwner && <Tooltip key={'manage_group'} title="Edit">
+        <Button onClick={() => {
+          setGroup(groups.get(selected[0]));
+          setDialog('manage_group');
+          setSelected([]);
+        }}>
+          <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Edit</Typography>
+          <CreateIcon sx={{ display: { xs: 'flex', md: 'none' } }} />
+        </Button>
+      </Tooltip>
     ] : [];
 
     return [
       ...acts,
       isOwner && <Tooltip key={'delete_group'} title="Delete">
-        <IconButton onClick={() => {
+        <Button onClick={() => {
           void act(OPEN_CONFIRM, {
             isConfirming: true,
             confirmEffect: 'Delete the group ' + gr.name + ' and refresh the session.',
@@ -104,8 +121,9 @@ export function ManageGroups(props: IProps): JSX.Element {
             }
           });
         }}>
-          <DeleteIcon />
-        </IconButton>
+          <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Delete</Typography>
+          <DeleteIcon sx={{ display: { xs: 'flex', md: 'none' } }} />
+        </Button>
       </Tooltip>
     ];
   }, [selected]);
@@ -121,15 +139,26 @@ export function ManageGroups(props: IProps): JSX.Element {
     selected,
     onSelected: p => setSelected(p as string[]),
     toolbar: () => <>
-      <Button key={'join_group_button'} onClick={() => {
-        setGroup(undefined);
-        setDialog('groups_join');
-      }}>Join</Button>
-      <Button key={'create_group_button'} onClick={() => {
-        setGroup(undefined);
-        setDialog('create_group');
-      }}>Create</Button>
-      {!!selected.length && <Box sx={{ float: 'right' }}>{actions}</Box>}
+      <Typography variant="button">Groups:</Typography>
+      <Tooltip key={'join_group'} title="Join">
+        <Button key={'join_group_button'} onClick={() => {
+          setGroup(undefined);
+          setDialog('join_group');
+        }}>
+          <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Join</Typography>
+          <DomainAddIcon sx={{ display: { xs: 'flex', md: 'none' } }} />
+        </Button>
+      </Tooltip>
+      <Tooltip key={'create_group'} title="Create">
+        <Button key={'create_group_button'} onClick={() => {
+          setGroup(undefined);
+          setDialog('create_group');
+        }}>
+          <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Create</Typography>
+          <GroupAddIcon sx={{ display: { xs: 'flex', md: 'none' } }} />
+        </Button>
+      </Tooltip>
+      {!!selected.length && <Box sx={{ flexGrow: 1, textAlign: 'right' }}>{actions}</Box>}
     </>
   })
 
@@ -163,7 +192,7 @@ export function ManageGroups(props: IProps): JSX.Element {
       </Suspense>
     </Dialog> */}
 
-    <Dialog open={dialog === 'groups_join'} fullWidth maxWidth="sm">
+    <Dialog open={dialog === 'join_group'} fullWidth maxWidth="sm">
       <Suspense>
         <JoinGroupModal {...props} editGroup={group} closeModal={() => {
           setDialog('');
@@ -172,7 +201,7 @@ export function ManageGroups(props: IProps): JSX.Element {
       </Suspense>
     </Dialog>
 
-    <Dialog open={dialog === 'groups_manage'} fullWidth maxWidth="sm">
+    <Dialog open={dialog === 'manage_group'} fullWidth maxWidth="sm">
       <Suspense>
         <ManageGroupModal {...props} editGroup={group} closeModal={() => {
           setDialog('');

@@ -22,10 +22,10 @@ const Layout = (props: IProps): JSX.Element => {
     <CssBaseline />
 
     <Grid container direction="row">
-      <Grid md={2} maxWidth={175} sx={{ bgcolor: 'primary.dark', display: { xs: 'none', md: 'flex' } }}>
+      <Grid  width={175} sx={{ bgcolor: 'primary.dark', position: 'fixed', minWidth: '175px', display: { xs: 'none', md: 'flex' } }}>
         <Sidebar />
       </Grid>
-      <Grid xs={12} md={10} container direction="column">
+      <Grid xs={12} container direction="column" sx={{ marginLeft: { xs: 0, md: '175px' } }}>
         <Grid px={1} sx={{ bgcolor: 'primary.dark' }}>
           <Topbar {...props} />
         </Grid>

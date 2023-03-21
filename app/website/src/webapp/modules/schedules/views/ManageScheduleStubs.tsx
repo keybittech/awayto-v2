@@ -4,7 +4,7 @@ import { useParams } from 'react-router';
 import IconButton from '@mui/material/IconButton';
 import Dialog from '@mui/material/Dialog';
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
 import Tooltip from '@mui/material/Tooltip';
 
 import CreateIcon from '@mui/icons-material/Create';
@@ -62,8 +62,8 @@ export function ManageSchedules(props: IProps): JSX.Element {
     selected,
     onSelected: selection => setSelected(selection as string[]),
     toolbar: () => <>
-      <Button onClick={() => { setStub(undefined); setDialog('manage_schedule') }}>New</Button>
-      {!!selected.length && <Box sx={{ float: 'right' }}>{actions}</Box>}
+      <Typography variant="button">Appointment Issues</Typography>
+      {!!selected.length && <Box sx={{ flexGrow: 1, textAlign: 'right' }}>{actions}</Box>}
     </>
   })
 

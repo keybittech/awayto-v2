@@ -20,6 +20,9 @@ const profileReducer: Reducer<Partial<IUserProfileState>, IUserProfileActions> =
     case IUserProfileActionTypes.GET_USER_PROFILE_DETAILS:
       if (action.payload) {
         action.payload.groups = new Map(Object.entries(action.payload.groups || {}) as Iterable<readonly [string, IGroup]>);
+        for (const group of action.payload.groups.values()) {
+          group.roles = new Map(Object.entries(group.roles || {}) as Iterable<readonly [string, IRole]>);
+        }
         action.payload.roles = new Map(Object.entries(action.payload.roles || {}) as Iterable<readonly [string, IRole]>);
         action.payload.quotes = new Map(Object.entries(action.payload.quotes || {}) as Iterable<readonly [string, IQuote]>);
         action.payload.bookings = new Map(Object.entries(action.payload.bookings || {}) as Iterable<readonly [string, IBooking]>);

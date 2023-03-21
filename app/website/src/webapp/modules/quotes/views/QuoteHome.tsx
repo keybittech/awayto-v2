@@ -1,6 +1,7 @@
 import React, { useMemo, useContext } from "react";
 
 import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 
@@ -52,7 +53,8 @@ function QuoteHome(): JSX.Element {
     selected: selectedPendingQuotes,
     onSelected: selection => setSelectedPendingQuotes(selection as string[]),
     toolbar: () => <>
-      {!!selectedPendingQuotes.length && <Box sx={{ float: 'right' }}>{actions}</Box>}
+      <Typography variant="button">Pending Requests</Typography>
+      {!!selectedPendingQuotes.length && <Box sx={{ flexGrow: 1, textAlign: 'right' }}>{actions}</Box>}
     </>
   });
   return <QuoteGrid />

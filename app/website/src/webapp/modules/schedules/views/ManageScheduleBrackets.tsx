@@ -2,14 +2,12 @@ import React, { useState, useMemo, useEffect, Suspense } from 'react';
 import dayjs from 'dayjs';
 
 import IconButton from '@mui/material/IconButton';
+import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import CardActionArea from '@mui/material/CardActionArea';
 import TextField from '@mui/material/TextField';
-import Grid from '@mui/material/Grid';
 import MenuItem from '@mui/material/MenuItem';
 
 import CreateIcon from '@mui/icons-material/Create';
@@ -55,7 +53,7 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
   const { groups } = useRedux(state => state.profile);
   const [group, setGroup] = useState({ id: '' } as IGroup);
 
-  if (groups.size) {
+  if (groups.size && !group.id) {
     setGroup(groups.values().next().value as IGroup);
   }
 
@@ -123,22 +121,31 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
     selected,
     onSelected: selection => setSelected(selection as string[]),
     toolbar: () => <>
-      <Box key={'schedule_bracket_group_select'}>
-        <TextField
-          select
-          fullWidth
-          value={group.id}
-          label="Group"
-          variant="standard"
-          onChange={e => {
-            const gr = groups.get(e.target.value);
-            if (gr) setGroup(gr);
-          }}
-        >
-          {Array.from(groups.values()).map(group => <MenuItem key={`group-select${group.id}`} value={group.id}>{group.name}</MenuItem>)}
-        </TextField>
+      
+      <TextField
+        select
+        value={group.id}
+        label="Group"
+        variant="standard"
+        onChange={e => {
+          const gr = groups.get(e.target.value);
+          if (gr) setGroup(gr);
+        }}
+      >
+        {Array.from(groups.values()).map(group => <MenuItem key={`group-select${group.id}`} value={group.id}>{group.name}</MenuItem>)}
+      </TextField>
+      <Box pt={2} sx={{ width: '100%' }}>
+        <Typography variant="button">Schedules:</Typography>
+        <Button key={'join_group_button'} onClick={() => {
+          if (schedules.size) {
+            setSchedule(undefined);
+            setDialog('manage_schedule');
+          } else {
+            act(SET_SNACK, { snackType: 'warning', snackOn: 'There are no active group schedules.' })
+          }
+        }}>Create</Button>
+        {!!selected.length && <Box sx={{ flexGrow: 1, textAlign: 'right' }}>{actions}</Box>}
       </Box>
-      {!!selected.length && <Box sx={{ float: 'right' }}>{actions}</Box>}
     </>
   })
 
@@ -151,25 +158,7 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
       </Suspense>
     </Dialog>
 
-    <Grid container spacing={2}>
-      <Grid item xs={12}>
-        <Card>
-          <CardActionArea onClick={() => {
-            setSchedule(undefined);
-            setDialog('manage_schedule');
-          }}>
-            <Box m={2} sx={{ display: 'flex' }}>
-              <Typography color="secondary" variant="button">
-                Create Schedule
-              </Typography>
-            </Box>
-          </CardActionArea>
-        </Card>
-      </Grid>
-      <Grid item xs={12}>
-        <ScheduleBracketGrid />
-      </Grid>
-    </Grid>
+    <ScheduleBracketGrid />
   </>
 }
 

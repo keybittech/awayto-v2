@@ -34,7 +34,7 @@ export function FileManager(): JSX.Element {
     onSelected: selection => setSelected(selection as string[]),
     toolbar: () => <>
       <Button onClick={addFiles}>Add</Button>
-      {!!selected.length && <Box sx={{ float: 'right' }}>{actions}</Box>}
+      {!!selected.length && <Box sx={{ flexGrow: 1, textAlign: 'right' }}>{actions}</Box>}
     </>
   })
 

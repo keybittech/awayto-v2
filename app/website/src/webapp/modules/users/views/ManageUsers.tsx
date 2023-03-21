@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo, Suspense } from 'react';
 import dayjs from 'dayjs';
 
 import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import Dialog from '@mui/material/Dialog';
 
@@ -38,6 +39,12 @@ export function ManageUsers(props: IProps): JSX.Element {
   const [user, setUser] = useState<IGroupUser>();
   const [selected, setSelected] = useState<string[]>([]);
   const [dialog, setDialog] = useState('');
+
+  useEffect(() => {
+    const [abort, res] = api(getUsersAction, { groupName });
+    res?.catch(console.warn);
+    return () => abort();
+  }, []);
 
   const actions = useMemo(() => {
     const { length } = selected;
@@ -76,15 +83,10 @@ export function ManageUsers(props: IProps): JSX.Element {
     selected,
     onSelected: selection => setSelected(selection as string[]),
     toolbar: () => <>
-      {!!selected.length && <Box sx={{ float: 'right' }}>{actions}</Box>}
+      <Typography variant="button">Users</Typography>
+      {!!selected.length && <Box sx={{ flexGrow: 1, textAlign: 'right' }}>{actions}</Box>}
     </>
   });
-
-  useEffect(() => {
-    const [abort, res] = api(getUsersAction, { groupName });
-    res?.catch(console.warn);
-    return () => abort();
-  }, []);
 
   // When we update a user's profile, this will refresh their state in the table once the API has updated manageUsers redux state
   useEffect(() => {

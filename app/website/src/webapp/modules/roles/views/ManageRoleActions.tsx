@@ -64,28 +64,36 @@ export function ManageRoleActions(): JSX.Element {
   const columns = useMemo(() => {
     if (groups.size && groupName) {
       const group = Array.from(groups.values()).find(g => g.name === groupName);
-      if (group) {
-        const roles = new Map(Object.entries(group.roles || {}) as Iterable<readonly [string, IRole]>);
-        if (roles.size && Object.keys(assignments).length) {
-          return [
-            { field: '', renderCell: ({ row }) => row.name } as GridColDef<{ name: string }>,
-            ...Array.from(roles.values()).reduce((memo, { name }) => {
-              const subgroup = `/${groupName}/${name}`;
-              memo.push({ headerName: name, field: name, renderCell: ({ row }) => <Checkbox checked={assignments[subgroup] ? assignments[subgroup].actions.some(a => a.name === row.name) : false} onChange={e => handleCheck(subgroup, row.name, e.target.checked)} /> });
-              return memo;
-            }, [] as GridColDef<{ name: string }>[])
-          ]
+      if (group && group.roles.size) {
+
+        const cols: GridColDef<{ name: string }>[] = [{ width: 200, field: 'id', headerName: '', renderCell: ({ row }) => row.name } as GridColDef<{ name: string }>];
+        
+        for (const { name } of group.roles.values()) {
+          const subgroup = `/${groupName}/${name}`;
+          cols.push({
+            flex: 1,
+            minWidth: 75,
+            headerName: name,
+            field: name,
+            renderCell: ({ row }) => <Checkbox
+              checked={assignments[subgroup] ? assignments[subgroup].actions.some(a => a.name === row.name) : false}
+              onChange={e => handleCheck(subgroup, row.name, e.target.checked)}
+            />
+          });
         }
+        
+        return cols;
       }
     }
     return [];
   }, [groups, assignments, groupName]);
 
-  const options = useMemo(() => Object.values(SiteRoles).filter(r => ![SiteRoles.APP_ROLE_CALL, SiteRoles.APP_GROUP_ADMIN].includes(r)).map(name => ({ name })), []);
+  const options = useMemo(() => Object.values(SiteRoles).filter(r => ![SiteRoles.APP_ROLE_CALL, SiteRoles.APP_GROUP_ADMIN].includes(r)).map((name, id) => ({ id, name })), []);
 
   const RoleActionGrid = useGrid({
     rows: options,
-    columns
+    columns,
+    noPagination: true
   });
 
   return <>
@@ -111,11 +119,7 @@ export function ManageRoleActions(): JSX.Element {
       </Grid>
     </Grid>
 
-    <Card>
-      <CardContent>
-        <RoleActionGrid />
-      </CardContent>
-    </Card>
+    <RoleActionGrid />
 
   </>
 }

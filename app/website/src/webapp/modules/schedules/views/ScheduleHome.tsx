@@ -14,6 +14,7 @@ export const scheduleSchema = {
   name: '',
   startTime: '',
   endTime: '',
+  timezone: '',
   slotDuration: 30,
   scheduleTimeUnitId: '',
   scheduleTimeUnitName: '',

@@ -3,12 +3,13 @@ import { useParams } from 'react-router';
 import dayjs from 'dayjs';
 
 import Box from '@mui/material/Box';
-import IconButton from '@mui/material/IconButton';
-import Dialog from '@mui/material/Dialog';
+import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
 import Tooltip from '@mui/material/Tooltip';
 
 import CreateIcon from '@mui/icons-material/Create';
+import NoteAddIcon from '@mui/icons-material/NoteAdd';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import { IGroupForm, IActionTypes } from 'awayto';
@@ -42,28 +43,34 @@ export function ManageForms(props: IProps): JSX.Element {
   const actions = useMemo(() => {
     const { length } = selected;
     const acts = length == 1 ? [
-      <IconButton key={'manage_form'} onClick={() => {
-        setForm(groupForms.get(selected[0]));
-        setDialog('manage_form');
-        setSelected([]);
-      }}>
-        <CreateIcon />
-      </IconButton>
+      <Tooltip key={'manage_form'} title="Edit">
+        <Button onClick={() => {
+          setForm(groupForms.get(selected[0]));
+          setDialog('manage_form');
+          setSelected([]);
+        }}>
+          <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Edit</Typography>
+          <CreateIcon sx={{ display: { xs: 'flex', md: 'none' } }} />
+        </Button>
+      </Tooltip> 
     ] : [];
 
     return [
       ...acts,
-      <Tooltip key={'delete_group'} title="Delete"><IconButton onClick={() => {
-        if (selected.length) {
-          const [, res] = api(deleteGroupFormsAction, { groupName, ids: selected.join(',') }, { load: true })
-          res?.then(() => {
-            setSelected([]);
-            api(getGroupFormsAction, { groupName });
-          }).catch(console.warn);
-        }
-      }}>
-        <DeleteIcon />
-      </IconButton></Tooltip>
+      <Tooltip key={'delete_group'} title="Delete">
+        <Button onClick={() => {
+          if (selected.length) {
+            const [, res] = api(deleteGroupFormsAction, { groupName, ids: selected.join(',') }, { load: true })
+            res?.then(() => {
+              setSelected([]);
+              api(getGroupFormsAction, { groupName });
+            }).catch(console.warn);
+          }
+        }}>
+          <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Delete</Typography>
+          <DeleteIcon sx={{ display: { xs: 'flex', md: 'none' } }} />
+        </Button>
+      </Tooltip>
     ]
   }, [selected]);
 
@@ -76,8 +83,18 @@ export function ManageForms(props: IProps): JSX.Element {
     selected,
     onSelected: selection => setSelected(selection as string[]),
     toolbar: () => <>
-      <Button onClick={() => { setForm(undefined); setDialog('manage_form') }}>New</Button>
-      {!!selected.length && <Box sx={{ float: 'right' }}>{actions}</Box>}
+      <Typography variant="button">Forms:</Typography>
+      <Tooltip key={'manage_form'} title="Create">
+        <Button onClick={() => {
+          setForm(undefined);
+          setDialog('manage_form')
+        }}
+        >
+          <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Create</Typography>
+          <NoteAddIcon sx={{ display: { xs: 'flex', md: 'none' } }} />
+        </Button>
+      </Tooltip>
+      {!!selected.length && <Box sx={{ flexGrow: 1, textAlign: 'right' }}>{actions}</Box>}
     </>
   });
 

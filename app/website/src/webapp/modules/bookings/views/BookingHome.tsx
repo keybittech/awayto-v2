@@ -17,7 +17,7 @@ export function BookingHome(): JSX.Element {
   }, []);
 
 
-  return <>suh</>;
+  return <></>;
 }
 
 export default BookingHome;

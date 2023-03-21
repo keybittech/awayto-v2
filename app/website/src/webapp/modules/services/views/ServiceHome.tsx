@@ -108,7 +108,7 @@ export function ServiceHome(props: IProps): JSX.Element {
               label="Group"
               onChange={e => setGroup(Array.from(groups.values()).filter(g => g.id === e.target.value)[0])}
             >
-              {Array.from(groups.values()).map(group => <MenuItem key={`group-select${group.id}`} value={group.id}>{group.name}</MenuItem>)}
+              {Array.from(groups.values()).map(group => <MenuItem key={`group-select${group.id}`} value={group.id}>{group.name.replaceAll('_', ' ')}</MenuItem>)}
             </TextField>
           }
         />
@@ -124,7 +124,7 @@ export function ServiceHome(props: IProps): JSX.Element {
                   onChange={e => setNewService({ ...newService, name: e.target.value })}
                   onBlur={() => {
                     // When this service name changes, let's get a new prompt for tier name suggestions
-                    const [, res] = api(GET_PROMPT, { id: IPrompts.SUGGEST_TIER, prompt: `${newService.name} at ${group.name}, a group interested in ${group.purpose}`}, { useParams: true })
+                    const [, res] = api(GET_PROMPT, { id: IPrompts.SUGGEST_TIER, prompt: `${newService.name.toLowerCase()} at ${group.name.replaceAll('_', ' ')}`}, { useParams: true })
                     res?.then(tierSuggestionData => {
                       const { promptResult } = tierSuggestionData;
                       if (promptResult) setTierSuggestions(promptResult.join(', '))
@@ -297,7 +297,7 @@ export function ServiceHome(props: IProps): JSX.Element {
               const [, rez] = api(POST_GROUP_SERVICE, { serviceId: service.id, groupName: group.name }, { load: true });
               rez?.then(() => {
                 api(GET_GROUP_SERVICES, { groupName: group.name });
-                act(SET_SNACK, { snackOn: `Successfully added ${service.name} to ${group.name}`, snackType: 'info' });
+                act(SET_SNACK, { snackOn: `Successfully added ${service.name} to ${group.name.replaceAll('_', ' ')}`, snackType: 'info' });
                 setNewService({ ...serviceSchema, tiers: {} } as IService);
                 setServiceTierAddonIds([]);
               });
