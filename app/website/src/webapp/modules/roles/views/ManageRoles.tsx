@@ -46,7 +46,7 @@ export function ManageRoles(props: IProps): JSX.Element {
           setSelected([]);
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Edit</Typography>
-          <CreateIcon sx={{ display: { xs: 'flex', md: 'none' } }} />
+          <CreateIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
         </Button>
       </Tooltip>
     ] : [];
@@ -62,7 +62,7 @@ export function ManageRoles(props: IProps): JSX.Element {
         }).catch(console.warn);
       }}>
         <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Delete</Typography>
-        <DeleteIcon sx={{ display: { xs: 'flex', md: 'none' } }} />
+        <DeleteIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
       </Button>
       </Tooltip>
     ]
@@ -90,7 +90,7 @@ export function ManageRoles(props: IProps): JSX.Element {
           setDialog('manage_role')
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Create</Typography>
-          <GroupAddIcon sx={{ display: { xs: 'flex', md: 'none' } }} />
+          <GroupAddIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
         </Button>
       </Tooltip>
       {!!selected.length && <Box sx={{ flexGrow: 1, textAlign: 'right' }}>{actions}</Box>}

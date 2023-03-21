@@ -83,7 +83,7 @@ export function ManageGroups(props: IProps): JSX.Element {
           });
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Leave</Typography>
-          <Logout sx={{ display: { xs: 'flex', md: 'none' } }} />
+          <Logout sx={{ fontSize: { xs: '24px', md: '12px' } }} />
         </Button>
       </Tooltip>,
       gr && isOwner && hasRole([SiteRoles.APP_GROUP_ADMIN]) && <Tooltip key={'view_group_details'} title="Details">
@@ -91,7 +91,7 @@ export function ManageGroups(props: IProps): JSX.Element {
           navigate(`/group/${gr.name}/manage/users`)
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Details</Typography>
-          <ManageAccountsIcon sx={{ display: { xs: 'flex', md: 'none' } }} />
+          <ManageAccountsIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
         </Button>
       </Tooltip>,
       isOwner && <Tooltip key={'manage_group'} title="Edit">
@@ -101,7 +101,7 @@ export function ManageGroups(props: IProps): JSX.Element {
           setSelected([]);
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Edit</Typography>
-          <CreateIcon sx={{ display: { xs: 'flex', md: 'none' } }} />
+          <CreateIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
         </Button>
       </Tooltip>
     ] : [];
@@ -122,7 +122,7 @@ export function ManageGroups(props: IProps): JSX.Element {
           });
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Delete</Typography>
-          <DeleteIcon sx={{ display: { xs: 'flex', md: 'none' } }} />
+          <DeleteIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
         </Button>
       </Tooltip>
     ];
@@ -146,7 +146,7 @@ export function ManageGroups(props: IProps): JSX.Element {
           setDialog('join_group');
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Join</Typography>
-          <DomainAddIcon sx={{ display: { xs: 'flex', md: 'none' } }} />
+          <DomainAddIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
         </Button>
       </Tooltip>
       <Tooltip key={'create_group'} title="Create">
@@ -155,7 +155,7 @@ export function ManageGroups(props: IProps): JSX.Element {
           setDialog('create_group');
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Create</Typography>
-          <GroupAddIcon sx={{ display: { xs: 'flex', md: 'none' } }} />
+          <GroupAddIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
         </Button>
       </Tooltip>
       {!!selected.length && <Box sx={{ flexGrow: 1, textAlign: 'right' }}>{actions}</Box>}

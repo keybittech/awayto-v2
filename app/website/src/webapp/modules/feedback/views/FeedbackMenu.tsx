@@ -30,6 +30,7 @@ export function FeedbackMenu ({ handleMenuClose, feedbackAnchorEl, feedbackMenuI
   if (!groups.size) return <></>;
 
   const [group, setGroup] = useState(groups.values().next().value as IGroup);
+  const [feedbackTarget, setFeedbackTarget] = useState('site');
   const [message, setMessage] = useState('');
 
   const handleSubmit = useCallback(function() {
@@ -59,28 +60,33 @@ export function FeedbackMenu ({ handleMenuClose, feedbackAnchorEl, feedbackMenuI
       <Grid spacing={2} container direction="row">
         <Grid item xs={12}>
           <TextField
+            select
+            fullWidth
+            value={feedbackTarget}
+            label="Group or Site"
+            variant="standard"
+            onChange={e => setFeedbackTarget(e.target.value) }
+          >
+            <MenuItem key={`site-select-give-feedback`} value={'site'}>Site</MenuItem>
+            {Array.from(groups.values()).map(group => <MenuItem key={`group-select${group.id}`} value={group.id}>{group.name}</MenuItem>)}
+          </TextField>
+        </Grid>
+        {'site' !== feedbackTarget && <>
+          <pre>{JSON.stringify(groups.get(feedbackTarget), null, 2)}</pre>
+        </>}
+        <Grid item xs={12}>
+          <TextField
             fullWidth
             multiline
             autoFocus
             rows={4}
             inputProps={{ maxLength: 300 }}
+            helperText={`${300 - message.length}/300`}
             value={message}
             onChange={e => setMessage(e.target.value)}
           />
         </Grid>
-        <Grid item>
-          <TextField
-            select
-            fullWidth
-            value={group.id}
-            label="Group"
-            variant="standard"
-            onChange={e => setGroup(groups.get(e.target.value) as IGroup) }
-          >
-            {Array.from(groups.values()).map(group => <MenuItem key={`group-select${group.id}`} value={group.id}>{group.name}</MenuItem>)}
-          </TextField>
-        </Grid>
-        <Grid item alignSelf="end">
+        <Grid item xs={12}>
           <Button fullWidth onClick={handleSubmit}>Submit Feedback</Button>
         </Grid>
       </Grid>

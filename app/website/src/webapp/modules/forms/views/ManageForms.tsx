@@ -50,7 +50,7 @@ export function ManageForms(props: IProps): JSX.Element {
           setSelected([]);
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Edit</Typography>
-          <CreateIcon sx={{ display: { xs: 'flex', md: 'none' } }} />
+          <CreateIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
         </Button>
       </Tooltip> 
     ] : [];
@@ -68,7 +68,7 @@ export function ManageForms(props: IProps): JSX.Element {
           }
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Delete</Typography>
-          <DeleteIcon sx={{ display: { xs: 'flex', md: 'none' } }} />
+          <DeleteIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
         </Button>
       </Tooltip>
     ]
@@ -91,7 +91,7 @@ export function ManageForms(props: IProps): JSX.Element {
         }}
         >
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Create</Typography>
-          <NoteAddIcon sx={{ display: { xs: 'flex', md: 'none' } }} />
+          <NoteAddIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
         </Button>
       </Tooltip>
       {!!selected.length && <Box sx={{ flexGrow: 1, textAlign: 'right' }}>{actions}</Box>}

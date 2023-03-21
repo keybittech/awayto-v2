@@ -77,7 +77,7 @@ export function Topbar(props: IProps): JSX.Element {
   };
 
   return <Grid xs={12} container>
-    <Grid sx={{ display: { xs: 'flex', md: 'none' } }}>
+    <Grid sx={{ display:{ xs: 'flex', md: 'none' } }}>
       <Tooltip title="Menu">
         <Button
           aria-label="show mobile main menu"
@@ -101,7 +101,7 @@ export function Topbar(props: IProps): JSX.Element {
             onClick={e => setUpcomingBookingsAnchorEl(e.currentTarget)}
           >
             <Badge badgeContent={upcomingBookings.length} color="error">
-              <ThreePIcon sx={{ display: { xs: 'flex', md: 'none' } }} />
+              <ThreePIcon sx={{ display:{ xs: 'flex', md: 'none' } }} />
               <Typography variant="overline" sx={{ display: { xs: 'none', md: 'flex' } }}>View Appointments</Typography>
             </Badge>
           </IconButton>
@@ -118,7 +118,7 @@ export function Topbar(props: IProps): JSX.Element {
             onClick={e => setPendingQuotesAnchorEl(e.currentTarget)}
           >
             <Badge badgeContent={pendingQuotes.length} color="error">
-              <ApprovalIcon sx={{ display: { xs: 'flex', md: 'none' } }} />
+              <ApprovalIcon sx={{ display:{ xs: 'flex', md: 'none' } }} />
               <Typography variant="overline" sx={{ display: { xs: 'none', md: 'flex' } }}>Approve Requests</Typography>
             </Badge>
           </IconButton>
@@ -134,7 +134,7 @@ export function Topbar(props: IProps): JSX.Element {
             aria-haspopup="true"
             onClick={e => setFeedbackAnchorEl(e.currentTarget)}
           >
-            <CampaignIcon sx={{ display: { xs: 'flex', md: 'none' } }} />
+            <CampaignIcon sx={{ display:{ xs: 'flex', md: 'none' } }} />
             <Typography variant="overline" sx={{ display: { xs: 'none', md: 'flex' } }}>Give Feedback</Typography>
           </IconButton>
         </Tooltip>
