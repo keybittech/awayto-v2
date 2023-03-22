@@ -39,6 +39,7 @@ services:
     #   - 9001:9000
     #   - 8443:8443
     environment:
+      - KC_FEATURES=declarative-user-profile,pages
       - KC_SPI_TRUSTSTORE_FILE_FILE=/opt/keycloak/conf/KeyStore.jks
       - KC_SPI_TRUSTSTORE_FILE_PASSWORD=123456
       - KC_SPI_TRUSTSTORE_FILE_HOSTNAME_VERIFICATION_POLICY=ANY

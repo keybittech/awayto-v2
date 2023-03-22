@@ -8,6 +8,83 @@ import Divider from '@mui/material/Divider';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 
+// text
+
+// Single line text input.
+
+// textarea
+
+// Multiple line text input.
+
+// textarea
+
+// select
+
+// Common single select input. See description how to configure options below.
+
+// select
+
+// select-radiobuttons
+
+// Single select input through group of radio buttons. See description how to configure options below.
+
+// group of input
+
+// multiselect
+
+// Common multiselect input. See description how to configure options below.
+
+// select
+
+// multiselect-checkboxes
+
+// Multiselect input through group of checkboxes. See description how to configure options below.
+
+// group of input
+
+// html5-email
+
+// Single line text input for email address based on HTML 5 spec.
+
+// html5-tel
+
+// Single line text input for phone number based on HTML 5 spec.
+
+// html5-url
+
+// Single line text input for URL based on HTML 5 spec.
+
+// html5-number
+
+// Single line input for number (integer or float depending on step) based on HTML 5 spec.
+
+// html5-range
+
+// Slider for number entering based on HTML 5 spec.
+
+// html5-datetime-local
+
+// Date Time input based on HTML 5 spec.
+
+// html5-date
+
+// Date input based on HTML 5 spec.
+
+// html5-month
+
+// Month input based on HTML 5 spec.
+
+// html5-week
+
+// Week input based on HTML 5 spec.
+
+// html5-time
+
+// Time input based on HTML 5 spec.
+
+
+
+
 import { IField, IFormVersion } from 'awayto';
 
 import Field from './Field';
