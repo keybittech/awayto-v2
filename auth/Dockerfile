@@ -18,5 +18,6 @@ RUN /opt/keycloak/bin/kc.sh build
 FROM quay.io/keycloak/keycloak:20.0.3
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
 COPY ./app/server/KeyStore.jks /opt/keycloak/conf
+COPY ./auth/themes/base /opt/keycloak/themes/site
 
 ENTRYPOINT [ "/opt/keycloak/bin/kc.sh", "start", "--optimized" ]

@@ -28,6 +28,42 @@ export const passwordGen = (): string => {
   return pass.join('');
 }
 
+// XOR encryption
+// Example string
+// const str = 'group_name_here=38fjs9ed';
+
+// // Generate a random byte
+// const randomByte = Math.floor(Math.random() * 256);
+
+// // Convert string to array of character codes
+// const charCodes = str.split('').map((char) => char.charCodeAt(0));
+
+// // XOR each character code with the random byte
+// const encryptedCharCodes = charCodes.map((charCode) => charCode ^ randomByte);
+
+// // Convert the encrypted character codes back to a string
+// let encryptedStr = String.fromCharCode(...encryptedCharCodes);
+
+// // Use Base64 encoding to make the string URL-safe
+// encryptedStr = btoa(encryptedStr).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+// XOR Decryption
+// // Encrypted URL-safe string (from previous example)
+// const encryptedStr = 'YWp7ZHsnLn10KWZzbCkjZWAj';
+
+// // Convert the URL-safe string to Base64
+// let decryptedStr = atob(encryptedStr.replace(/-/g, '+').replace(/_/g, '/'));
+
+// // Convert the decrypted string to an array of character codes
+// const decryptedCharCodes = decryptedStr.split('').map((char) => char.charCodeAt(0));
+
+// // XOR each character code with the random byte to decrypt
+// const randomByte = 149; // Random byte used for encryption (from previous example)
+// const charCodes = decryptedCharCodes.map((charCode) => charCode ^ randomByte);
+
+// // Convert the decrypted character codes back to a string
+// decryptedStr = String.fromCharCode(...charCodes);
+
 // throttle
 
 type ThrottleFunction<T extends unknown[]> = (this: void, ...args: T) => void;

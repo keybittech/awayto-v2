@@ -66,7 +66,7 @@
                     <div class="${properties.kcLabelWrapperClass!} subtitle">
                         <span class="subtitle"><span class="required">*</span> ${msg("requiredFields")}</span>
                     </div>
-                    <div class="col-md-10">
+                    <div class="col-md-12">
                         <h1 id="kc-page-title"><#nested "header"></h1>
                     </div>
                 </div>

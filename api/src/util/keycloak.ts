@@ -3,13 +3,15 @@
 import KcAdminClient from '@keycloak/keycloak-admin-client';
 import { BaseClient, Issuer } from 'openid-client';
 import { Credentials } from '@keycloak/keycloak-admin-client/lib/utils/auth';
-import ClientRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientRepresentation';
 import { RoleMappingPayload } from '@keycloak/keycloak-admin-client/lib/defs/roleRepresentation';
 import GroupRepresentation from '@keycloak/keycloak-admin-client/lib/defs/groupRepresentation';
 import { performance } from 'perf_hooks';
 
-import { IGroupRoleAuthActions, SiteRoles, asyncForEach } from 'awayto';
+import fetch from 'node-fetch';
+
+import { IGroupRoleAuthActions, SiteRoles, asyncForEach, IGroup } from 'awayto';
 import redis, { clearLocalCache, redisProxy } from './redis';
+import { Client } from 'pg';
 
 let keycloakClient: BaseClient;
 
@@ -100,7 +102,7 @@ async function go() {
 
     while (false === redis.isReady) {
       console.error('redis is not ready')
-      await new Promise<void>(res => setTimeout(() => res(), 250))
+      await new Promise<void>(res => setTimeout(() => res(), 1000))
     }
 
     // API Client admin keycloak login
@@ -148,8 +150,26 @@ async function go() {
     response_types: ['code']
   });
 
+}
 
+export async function getGroupRegistrationRedirectParts(groupCode: string, db: Client): Promise<[string, string[]]> {
+  try {
+    // Make a request to the Keycloak login page to retrieve the tab_id parameter
+    const loginUrl = `https://${CUST_APP_HOSTNAME}/auth/realms/${KC_REALM}/protocol/openid-connect/auth?client_id=${KC_CLIENT}&redirect_uri=https://${CUST_APP_HOSTNAME}/api/auth/login/callback&response_type=code&scope=openid`;
+    const loginPageResponse = await fetch(loginUrl, { redirect: 'manual' });
 
+    // Extract tab_id from response body using regex
+    const html = await loginPageResponse.text();
+    const match = html.match(/tab_id=([\w-]+)"/);
+    const tabId = match ? match[1] : null;
+
+    const registrationUrl = `https://${CUST_APP_HOSTNAME}/auth/realms/${KC_REALM}/login-actions/registration?client_id=${KC_CLIENT}&tab_id=${tabId}&group_code=${groupCode}`;
+    const loginCookies = loginPageResponse.headers.raw()['set-cookie'].map(c => c.split(';')[0]);
+
+    return [registrationUrl, loginCookies];
+  } catch (error) {
+    throw { reason: 'Unexpected error, try again later.' };
+  }
 }
 
 

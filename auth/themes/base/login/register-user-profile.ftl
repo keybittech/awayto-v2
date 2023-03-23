@@ -2,14 +2,31 @@
 <#import "user-profile-commons.ftl" as userProfileCommons>
 <@layout.registrationLayout displayMessage=messagesPerField.exists('global') displayRequiredFields=true; section>
     <#if section = "header">
-        ${msg("registerTitle")}
+        ${msg("registerTitle")} <#if groupName??>with <span id="group-name">${groupName}</span></#if>
     <#elseif section = "form">
         <form id="kc-register-form" class="${properties.kcFormClass!}" action="${url.registrationAction}" method="post">
-        
+
+						<div class="${properties.kcFormGroupClass!}">
+								<div class="${properties.kcLabelWrapperClass!}">
+										<label for="groupCode" class="${properties.kcLabelClass!}">${msg("groupCode")}</label>
+
+										<input type="text" id="groupCode" class="${properties.kcInputClass!}" name="groupCode"
+														value="${(register.formData.groupCode!'')}" autocomplete="groupCode"
+														aria-invalid="<#if messagesPerField.existsError('groupCode')>true</#if>"
+										/>
+										
+										<#if messagesPerField.existsError('groupCode')>
+											<span id="input-error-groupCode" class="${properties.kcInputErrorMessageClass!}" aria-live="polite">
+												${kcSanitize(messagesPerField.get('groupCode'))?no_esc}
+											</span>
+										</#if>
+								</div>
+						</div>
+
             <@userProfileCommons.userProfileFormFields; callback, attribute>
                 <#if callback = "afterField">
 	                <#-- render password fields just under the username or email (if used as username) -->
-		            <#if passwordRequired?? && (attribute.name == 'username' || (attribute.name == 'email' && realm.registrationEmailAsUsername))>
+		            	<#if passwordRequired?? && (attribute.name == 'username' || (attribute.name == 'email' && realm.registrationEmailAsUsername))>
 		                <div class="${properties.kcFormGroupClass!}">
 		                    <div class="${properties.kcLabelWrapperClass!}">
 		                        <label for="password" class="${properties.kcLabelClass!}">${msg("password")}</label> *
@@ -46,10 +63,10 @@
 		                        </#if>
 		                    </div>
 		                </div>
-		            </#if>
+		            	</#if>
                 </#if>  
             </@userProfileCommons.userProfileFormFields>
-            
+
             <#if recaptchaRequired??>
                 <div class="form-group">
                     <div class="${properties.kcInputWrapperClass!}">

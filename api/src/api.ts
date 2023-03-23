@@ -29,7 +29,7 @@ import passport from 'passport';
 
 import APIs from './apis/index';
 import WebHooks from './webhooks/index';
-import { keycloakClient } from './util/keycloak';
+import { getGroupRegistrationRedirectParts, keycloakClient } from './util/keycloak';
 
 import { IdTokenClaims, Strategy, StrategyVerifyCallbackUserInfo } from 'openid-client';
 
@@ -37,7 +37,7 @@ import { db, connected as dbConnected } from './util/db';
 import redis, { rateLimitResource, RedisClient, redisProxy } from './util/redis';
 import logger from './util/logger';
 
-import { DecodedJWTToken, UserGroupRoles, StrategyUser, ILoadedState, IActionTypes, ApiErrorResponse } from 'awayto';
+import { DecodedJWTToken, UserGroupRoles, StrategyUser, ILoadedState, IActionTypes, ApiErrorResponse, IGroup } from 'awayto';
 
 
 // import './util/twitch';
@@ -124,7 +124,8 @@ const pathMatcher = new PathMatcher(routeCollection);
 
 const {
   SOCK_HOST,
-  SOCK_PORT
+  SOCK_PORT,
+  KC_API_CLIENT_SECRET
 } = process.env as { [prop: string]: string } & { PG_PORT: number };
 
 let connections: Map<string, boolean> = new Map();
@@ -166,6 +167,11 @@ async function go() {
       maxAge: 24 * 60 * 60 * 1000
     }));
 
+    // Enable cookie parsing to read keycloak token
+    app.use(cookieParser());
+
+    app.use(express.json());
+
     // Fix for passport/express cookie issue
     app.use((req: Request, res: Response, next: NextFunction) => {
       if (req.session && !req.session.regenerate) {
@@ -182,9 +188,6 @@ async function go() {
       }
       next()
     });
-
-    // Enable cookie parsing to read keycloak token
-    app.use(cookieParser());
 
     app.use(passport.initialize());
 
@@ -215,17 +218,61 @@ async function go() {
       done(null, user);
     });
 
-    // Set all api to be JSON consuming
+    var checkBackchannel = (req: Request, res: Response, next: NextFunction) => {
+      if (req.header('x-backchannel-id') === KC_API_CLIENT_SECRET) {
+        return next()
+      } else {
+        res.status(404).send();
+      }
+    }
+
+    // default protected route /test
+    app.get('/api/group/register/:groupCode', async (req, res) => {
+      if (await rateLimitResource(req.body.ipAddress, 'group/register', 10, 'minute')) {
+        return res.status(500).send({ reason: 'Rate limit exceeded. Try again in a minute.' });
+      }
+
+      try {
+        const [registrationUrl, loginCookies] = await getGroupRegistrationRedirectParts(req.params.groupCode, db);
+        for (const cookie of loginCookies) {
+          const [name, value] = cookie.split('=');
+          res.cookie(name.trim(), value.trim());
+        }
+        res.set('Referrer-Policy', 'same-origin');
+        res.redirect(registrationUrl);
+      } catch (error) {
+        res.status(500).send((error as ApiErrorResponse).reason);
+      }
+    });
+
+    app.post('/api/auth/register/validate', checkBackchannel, async (req, res) => {
+      try {
+        const { rows: [group] } = await db.query<IGroup>(`
+          SELECT "allowedDomains", name
+          FROM dbview_schema.enabled_groups
+          WHERE code = $1
+        `, [req.body.groupCode.toLowerCase()]);
+        if (!group) throw { reason: 'BAD_GROUP' };
+        res.status(200).send(group);
+      } catch (error) {
+        res.status(500).send(error)
+      }
+    });
 
     app.get('/api/auth/checkin', (req, res, next) => {
       passport.authenticate('oidc')(req, res, next);
     });
 
     app.get('/api/auth/login/callback', (req, res, next) => {
-      passport.authenticate('oidc', {
-        successRedirect: '/api/auth/checkok',
-        failureRedirect: '/api/auth/checkfail',
-      })(req, res, next);
+      //@ts-ignore
+      if (!req.session['oidc:wcapp.site.com']) {
+        res.redirect('/app');
+      } else {
+        passport.authenticate('oidc', {
+          successRedirect: '/api/auth/checkok',
+          failureRedirect: '/api/auth/checkfail',
+        })(req, res, next);
+      }
     });
 
     var checkAuthenticated = (req: Request, res: Response, next: NextFunction) => {
@@ -243,12 +290,7 @@ async function go() {
       res.status(403).end();
     });
 
-    app.use(express.json());
-
-    app.post('/api/auth/webhook', async (req, res, next) => {
-
-      // TODO send secret from auth in header to reject unauth'd public calls
-
+    app.post('/api/auth/webhook', checkBackchannel, async (req, res) => {
       const requestId = uuid();
       try {
         const body = req.body as AuthBody;
@@ -268,8 +310,6 @@ async function go() {
           queryParameters: req.query as Record<string, string>,
           body
         };
-
-        logger.log('webhook received', event);
 
         await WebHooks[`AUTH_${type}`]({ event, db, redis });
 

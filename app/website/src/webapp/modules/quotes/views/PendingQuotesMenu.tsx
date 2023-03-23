@@ -101,10 +101,10 @@ export function PendingQuotesMenu({ handleMenuClose, pendingQuotesAnchorEl, pend
             key={`pending_quotes_pqs_${i}`}
             disablePadding
           >
-            <ListItemButton role={undefined} onClick={() => handleSelectPendingQuote(pq)} dense>
+            <ListItemButton role={undefined} onClick={() => handleSelectPendingQuote(pq.id)} dense>
               <ListItemIcon>
                 <Checkbox
-                  checked={selectedPendingQuotes.indexOf(pq) !== -1}
+                  checked={selectedPendingQuotes.indexOf(pq.id) !== -1}
                   tabIndex={-1}
                   disableRipple
                   inputProps={{ 'aria-labelledby': `checkbox-list-label-${i}` }}
