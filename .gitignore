@@ -3,6 +3,7 @@ build
 landing_build
 web_build
 target
+.htpasswd
 *.env
 *.cert
 *.crt
