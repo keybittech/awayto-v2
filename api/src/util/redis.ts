@@ -4,11 +4,19 @@ import RoleRepresentation, { RoleMappingPayload } from '@keycloak/keycloak-admin
 import ClientRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientRepresentation';
 import { IGroupRoleAuthActions, millisTimeUnits } from 'awayto';
 
-export const redis = createClient();
+const {
+  REDIS_HOST
+} = process.env as { [prop: string]: string };
+
+export const redis = createClient({
+  socket: {
+    host: REDIS_HOST
+  }
+});
 
 export type RedisClient = typeof redis;
 
-redis.on('error', console.error)
+redis.on('error', console.error);
 
 type ProxyKeys = Record<string, unknown> & {
   adminSub: string;
@@ -58,6 +66,7 @@ export async function rateLimitResource(resource: string, context: string, limit
 async function go() {
   try {
     await redis.connect();
+    console.log('redis connected');
   } catch (error) {
     console.log('caught redis connect error', error);
   }

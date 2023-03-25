@@ -50,7 +50,8 @@ async function go() {
     }
 
     await db.connect();
-    
+    console.log('db connected');
+
     try {
       // Set admin sub
       const { rows: [{ sub }] } = await db.query<IUserProfile>(`

@@ -29,7 +29,7 @@ import passport from 'passport';
 
 import APIs from './apis/index';
 import WebHooks from './webhooks/index';
-import { getGroupRegistrationRedirectParts, keycloakClient } from './util/keycloak';
+import { getGroupRegistrationRedirectParts, keycloakClient, ready as keycloakConnected } from './util/keycloak';
 
 import { IdTokenClaims, Strategy, StrategyVerifyCallbackUserInfo } from 'openid-client';
 
@@ -39,6 +39,7 @@ import logger from './util/logger';
 
 import { DecodedJWTToken, UserGroupRoles, StrategyUser, ILoadedState, IActionTypes, ApiErrorResponse, IGroup } from 'awayto';
 
+console.log(JSON.stringify(process.env, null, 2))
 
 // import './util/twitch';
 
@@ -131,17 +132,21 @@ const {
 let connections: Map<string, boolean> = new Map();
 
 function setConnections() {
-  connections.set('keycloak', !!keycloakClient);
+  console.log({ keycloakConnected });
+  connections.set('keycloak', keycloakConnected);
+  console.log({ dbConnected });
   connections.set('db', dbConnected);
+  console.log({ redisConnected: redis.isReady });
   connections.set('redis', redis.isReady);
+  console.log({ loggerConnected: !!logger });
   connections.set('logger', !!logger);
 };
 
-setConnections();
 
 async function go() {
 
   try {
+    setConnections();
 
     // Gracefully wait for connections to start
     while (Array.from(connections.values()).includes(false)) {
@@ -227,9 +232,9 @@ async function go() {
     }
 
     // default protected route /test
-    app.get('/api/group/register/:groupCode', async (req, res) => {
+    app.get('/api/join/:groupCode', async (req, res) => {
       if (await rateLimitResource(req.body.ipAddress, 'group/register', 10, 'minute')) {
-        return res.status(500).send({ reason: 'Rate limit exceeded. Try again in a minute.' });
+        return res.status(429).send({ reason: 'Rate limit exceeded. Try again in a minute.' });
       }
 
       try {
@@ -402,8 +407,8 @@ async function go() {
         const requestId = uuid();
         const user = req.user as StrategyUser;
 
-        if (await rateLimitResource(user.sub, 'api', 8)) { // limit n general api requests per second
-          return res.status(500).send({ reason: 'Rate limit exceeded.', requestId });
+        if (await rateLimitResource(user.sub, 'api', 10)) { // limit n general api requests per second
+          return res.status(429).send({ reason: 'Rate limit exceeded.', requestId });
         }
 
         const { groupRoleActions } = await redisProxy('groupRoleActions');

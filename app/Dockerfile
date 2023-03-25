@@ -42,6 +42,7 @@ COPY ./app/server/server.crt /etc/ssl/certs/
 COPY ./app/server/server.key /etc/ssl/private/
 COPY ./app/server/ssl-redirect.conf /etc/nginx/default.d/
 COPY ./app/server/nginx.conf /etc/nginx/nginx.conf
+COPY ./app/server/.htpasswd /conf/htpasswd
 
 # with ngrok
 # COPY ./app/server/ngrok/default.conf.template /etc/nginx/templates/default.conf

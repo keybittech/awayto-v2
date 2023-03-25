@@ -46,39 +46,18 @@ public class CustomEventListenerProvider implements EventListenerProvider {
 
     if (Arrays.stream(eventTypes).anyMatch(e -> e == event.getType())) {
 
-
       JSONObject eventPayload = new JSONObject(event);
-      String realmId = event.getRealmId();
-      RealmModel realm = session.realms().getRealm(realmId);
 
       log.infof("## NEW %s EVENT", event.getType() + ": " + eventPayload.toString());
 
-      HttpPost request = new HttpPost("https://127.0.0.1/api/auth/webhook");
-      request.setHeader("x-backchannel-id", BackchannelAuth.getClientSecret(realm));
-      request.setEntity(EntityBuilder.create().setText(eventPayload.toString())
-          .setContentType(ContentType.APPLICATION_JSON).build());
+      // Get group information for registration
+      JSONObject response = BackchannelAuth.postApi("/auth/webhook", eventPayload, session.realms().getRealm(event.getRealmId()), session);
 
-      try (CloseableHttpResponse response = session
-        .getProvider(org.keycloak.connections.httpclient.HttpClientProvider.class)
-        .getHttpClient()
-        .execute(request)) {
-        try {
-          if (response.getStatusLine().getStatusCode() == HttpURLConnection.HTTP_OK) {
-            log.infof("XXXXXXXXXXXXXX Sent %s into webhook SUCCESS", event.getId());
-          } else {
-            HttpEntity entity = response.getEntity();
-            if (entity != null) {
-              String responseBody = EntityUtils.toString(entity);
-              JSONObject json = new JSONObject(responseBody);
-              String reason = json.getString("reason");
-              log.infof("XXXXXXXXXXXXXX Webhook failure " + event.getId() + " " + reason);
-            }
-          }
-        } finally {
-          EntityUtils.consumeQuietly(response.getEntity());
-        }
-      } catch (Exception e) {
-        log.warn(e.getMessage(), e);
+      if (false == response.getBoolean("success")) {
+        String reason = response.getString("reason");
+        log.info("The event was not successful: " + reason);
+      } else {
+        log.info("The event was a success!");
       }
     }
   }

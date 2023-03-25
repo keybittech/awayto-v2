@@ -10,12 +10,12 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.util.EntityUtils;
 import org.jboss.logging.Logger;
 import org.json.JSONObject;
-import org.keycloak.authentication.FormContext;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 
 public final class BackchannelAuth {
+
   private BackchannelAuth() {
   }
 
@@ -37,7 +37,7 @@ public final class BackchannelAuth {
     
     try {
       
-      HttpPost httpPost = new HttpPost("https://127.0.0.1/api" + endpoint);
+      HttpPost httpPost = new HttpPost("https://" + System.getenv("KC_API_HOST") + endpoint);
       httpPost.setHeader("x-backchannel-id", getClientSecret(realm));
       httpPost.setEntity(EntityBuilder.create().setText(payload.toString())
           .setContentType(ContentType.APPLICATION_JSON).build());

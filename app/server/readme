@@ -16,3 +16,6 @@ keytool -keystore KeyStore.jks -alias bmc -import -file cert-signed
 # keytool -keystore truststore.jks -alias bmc -import -file ca-cert-s
 # 8.Copy ca-cert into client machine and generate truststore: (At server)
 # keytool -keystore truststore.jks -alias bmc -import -file ca-cert-c
+
+
+rate limit test: ab -n 20 -c 5 -H "Host: wcapp.site.com" https://wcapp.site.com/join/afcfcca7

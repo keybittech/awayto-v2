@@ -9,16 +9,19 @@ import { performance } from 'perf_hooks';
 
 import fetch from 'node-fetch';
 
-import { IGroupRoleAuthActions, SiteRoles, asyncForEach, IGroup } from 'awayto';
+import { IGroupRoleAuthActions, SiteRoles, asyncForEach, ApiErrorResponse } from 'awayto';
 import redis, { clearLocalCache, redisProxy } from './redis';
 import { Client } from 'pg';
 
 let keycloakClient: BaseClient;
+let ready: boolean = false;
 
 const { APP_ROLE_CALL } = SiteRoles;
 
 const {
   CUST_APP_HOSTNAME,
+  KEYCLOAK_HOST,
+  KEYCLOAK_PORT,
   KC_REALM,
   KC_CLIENT,
   KC_API_CLIENT_ID,
@@ -27,7 +30,7 @@ const {
 
 // KC Admin
 const keycloak = new KcAdminClient({
-  baseUrl: `https://${CUST_APP_HOSTNAME}/auth`,
+  baseUrl: `https://${KEYCLOAK_HOST}:${KEYCLOAK_PORT}`,
   realmName: KC_REALM
 });
 
@@ -38,60 +41,63 @@ const credentials: Credentials = {
 }
 
 const regroup = async function (groupId?: string) {
+  try {
+    let groups: GroupRepresentation[] = [];
 
-  let groups: GroupRepresentation[] = [];
+    const { groupRoleActions } = await redisProxy('groupRoleActions');
+    const oldGroupRoleActions = (await groupRoleActions || {}) as Record<string, IGroupRoleAuthActions>;
 
-  const { groupRoleActions } = await redisProxy('groupRoleActions');
-  const oldGroupRoleActions = (await groupRoleActions || {}) as Record<string, IGroupRoleAuthActions>;
+    if (groupId) {
+      performance.mark("regroupOneGroupStart");
+      const group = await keycloak.groups.findOne({ id: groupId });
+      groups = group ? [group] : [];
+    } else {
+      performance.mark("regroupAllGroupsStart");
+      groups = groups.length ? groups : await keycloak.groups.find();
+    }
 
-  if (groupId) {
-    performance.mark("regroupOneGroupStart");
-    const group = await keycloak.groups.findOne({ id: groupId });
-    groups = group ? [group] : [];
-  } else {
-    performance.mark("regroupAllGroupsStart");
-    groups = groups.length ? groups : await keycloak.groups.find();
-  }
+    const newGroupRoleActions: Record<string, IGroupRoleAuthActions> = {};
 
-  const newGroupRoleActions: Record<string, IGroupRoleAuthActions> = {};
+    await asyncForEach(groups, async group => {
+      if (!group.subGroups) return;
+      await asyncForEach(group.subGroups, async ({ path, id: subgroupId }) => {
+        if (!path || !subgroupId) return;
+        if (!oldGroupRoleActions[path] || oldGroupRoleActions[path].fetch as boolean || groupId) {
 
-  await asyncForEach(groups, async group => {
-    if (!group.subGroups) return;
-    await asyncForEach(group.subGroups, async ({ path, id: subgroupId }) => {
-      if (!path || !subgroupId) return;
-      if (!oldGroupRoleActions[path] || oldGroupRoleActions[path].fetch as boolean || groupId) {
-
-        const roleMappings = await keycloak.groups.listRoleMappings({ id: subgroupId }) as {
-          clientMappings: {
-            [prop: string]: {
-              mappings: {
-                id: string;
-                name: string
-              }[]
+          const roleMappings = await keycloak.groups.listRoleMappings({ id: subgroupId }) as {
+            clientMappings: {
+              [prop: string]: {
+                mappings: {
+                  id: string;
+                  name: string
+                }[]
+              }
             }
+          };
+
+          if (roleMappings.clientMappings) {
+            newGroupRoleActions[path] = roleMappings.clientMappings[KC_CLIENT].mappings.reduce((m: Record<string, string | boolean | Record<string, string>[]>, { id: actionId, name }) => ({ ...m, id: subgroupId, fetch: false, actions: [...(m.actions || []) as Record<string, string>[], { id: actionId, name }] }), {}) as IGroupRoleAuthActions;
           }
-        };
 
-        if (roleMappings.clientMappings) {
-          newGroupRoleActions[path] = roleMappings.clientMappings[KC_CLIENT].mappings.reduce((m: Record<string, string | boolean | Record<string, string>[]>, { id: actionId, name }) => ({ ...m, id: subgroupId, fetch: false, actions: [...(m.actions || []) as Record<string, string>[], { id: actionId, name }] }), {}) as IGroupRoleAuthActions;
+        } else {
+          console.log(' using cache for ', path);
+          newGroupRoleActions[path as string] = oldGroupRoleActions[path as string];
         }
-
-      } else {
-        console.log(' using cache for ', path);
-        newGroupRoleActions[path as string] = oldGroupRoleActions[path as string];
-      }
+      });
     });
-  });
 
-  await redis.set('groupRoleActions', JSON.stringify(newGroupRoleActions));
-  clearLocalCache('groupRoleActions');
+    await redis.set('groupRoleActions', JSON.stringify(newGroupRoleActions));
+    clearLocalCache('groupRoleActions');
 
-  if (groupId) {
-    performance.mark("regroupOneGroupEnd");
-    performance.measure("regroupOneGroupStart to regroupOneGroupEnd", "regroupOneGroupStart", "regroupOneGroupEnd");
-  } else {
-    performance.mark("regroupAllGroupsEnd");
-    performance.measure("regroupAllGroupsStart to regroupAllGroupsEnd", "regroupAllGroupsStart", "regroupAllGroupsEnd");
+    if (groupId) {
+      performance.mark("regroupOneGroupEnd");
+      performance.measure("regroupOneGroupStart to regroupOneGroupEnd", "regroupOneGroupStart", "regroupOneGroupEnd");
+    } else {
+      performance.mark("regroupAllGroupsEnd");
+      performance.measure("regroupAllGroupsStart to regroupAllGroupsEnd", "regroupAllGroupsStart", "regroupAllGroupsEnd");
+    }
+  } catch (error) {
+    console.log('regroup failed', error);
   }
 
 }
@@ -101,18 +107,25 @@ async function go() {
   try {
 
     while (false === redis.isReady) {
-      console.error('redis is not ready')
-      await new Promise<void>(res => setTimeout(() => res(), 1000))
+      console.error('redis is not ready');
+      await new Promise<void>(res => setTimeout(() => res(), 1000));
     }
 
     // API Client admin keycloak login
     await keycloak.auth(credentials);
+    console.log('keycloak connected');
     await regroup();
 
     // Refresh api credentials/groups every 58 seconds
     setInterval(async () => {
-      await keycloak.auth(credentials);
-      await regroup();
+      try {
+        await keycloak.auth(credentials);
+        await regroup();
+        ready = true;
+      } catch (error) {
+        console.log('Could not auth with keycloak and regroup. Will try again in 1 minute.');
+        ready = false;
+      }
     }, 58 * 1000); // 58 seconds
 
     // Get a reference to the realm we're connected to
@@ -136,12 +149,16 @@ async function go() {
         }
       }
     }
+
   } catch (error) {
-    console.log('init error', error)
+    const err = error as ApiErrorResponse;
+    await new Promise<void>(res => setTimeout(() => res(), 1000));
+    console.log('Could not connect to keycloak ', err.message);
+    await go();
   }
 
   // KC Passport & OIDC Client
-  const keycloakIssuer = await Issuer.discover(`https://${CUST_APP_HOSTNAME}/auth/realms/${KC_REALM}`);
+  const keycloakIssuer = await Issuer.discover(`https://${KEYCLOAK_HOST}:${KEYCLOAK_PORT}/realms/${KC_REALM}`);
   keycloakClient = new keycloakIssuer.Client({
     client_id: KC_API_CLIENT_ID,
     client_secret: KC_API_CLIENT_SECRET,
@@ -150,6 +167,8 @@ async function go() {
     response_types: ['code']
   });
 
+
+  ready = true;
 }
 
 export async function getGroupRegistrationRedirectParts(groupCode: string, db: Client): Promise<[string, string[]]> {
@@ -176,6 +195,7 @@ export async function getGroupRegistrationRedirectParts(groupCode: string, db: C
 void go();
 
 export {
+  ready,
   keycloak,
   keycloakClient,
   regroup
