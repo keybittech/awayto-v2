@@ -2,26 +2,7 @@ import { IUserProfile, PayloadAction } from '.';
 import { Merge } from '../util';
 
 declare global {
-  /**
-   * @category Awayto Redux
-   */
-  interface ISharedState { 
-    user: IUserState
-  }
-
-  interface IMergedState extends Merge<unknown, IUserState> {}
-
-  /**
-   * @category Awayto Redux
-   */
-  type IUserModuleActions = IUserActions;
-
-  /**
-   * @category Awayto Redux
-   */
-  interface ISharedActionTypes {
-    user: IUserActionTypes;
-  }
+  interface IMergedState extends Merge<IUserState> {}
 }
 
 /**

@@ -1,63 +1,10 @@
-import {
-  IFileActionTypes,
-  IFeedbackActionTypes,
-  IScheduleActionTypes,
-  IServiceActionTypes,
-  IQuoteActionTypes,
-  IManageUsersActionTypes,
-  IManageGroupsActionTypes,
-  IManageRolesActionTypes,
-  IUserProfileActionTypes,
-  IGroupActionTypes,
-  IGroupServiceActionTypes,
-  IGroupServiceAddonActionTypes,
-  IGroupScheduleActionTypes,
-  IGroupUserScheduleActionTypes,
-  IGroupUserActionTypes,
-  IGroupFormActionTypes,
-  IGroupRoleActionTypes,
-  IRoleActionTypes,
-  IUserActionTypes,
-  IServiceAddonActionTypes,
-  IAssistActionTypes,
-  IFormActionTypes
-} from '.';
-
-export const IActions = Object.assign(
-  IFileActionTypes,
-  IScheduleActionTypes,
-  IServiceActionTypes,
-  IFeedbackActionTypes,
-  IServiceAddonActionTypes,
-  IQuoteActionTypes,
-  IManageUsersActionTypes,
-  IManageGroupsActionTypes,
-  IManageRolesActionTypes,
-  IUserProfileActionTypes,
-  IGroupActionTypes,
-  IGroupServiceActionTypes,
-  IGroupServiceAddonActionTypes,
-  IGroupScheduleActionTypes,
-  IGroupUserScheduleActionTypes,
-  IGroupUserActionTypes,
-  IGroupFormActionTypes,
-  IGroupRoleActionTypes,
-  IRoleActionTypes,
-  IUserActionTypes,
-  IAssistActionTypes,
-  IFormActionTypes
-) as IActionTypes;
-
-IActions
+import { IActionTypes } from './actionTypes';
 
 declare global {
   /**
    * @category Awayto Redux
    */
-  type ISharedActions =  ICommonModuleActions | IManageModuleActions | IProfileModuleActions;
-
   interface IMergedState {}
-
 }
 
 export type PaletteMode = 'light' | 'dark';
@@ -80,19 +27,9 @@ export type PayloadAction<Type, Payload, Meta = void> = MetaAction<Type, Meta> &
   readonly payload: Payload;
 };
 
-/**
- * @category Awayto Redux
- */
-export type ILoadedState = ISharedState[keyof ISharedState];
-
 export type ValueOf<T> = T[keyof T];
 
-export type StatePayloadValues = Record<string, ValueOf<ISharedState>>
-
-/**
- * @category Action Types
- */
-export type IActionTypes = ISharedActionTypes[keyof ISharedActionTypes];
+export type StatePayloadValues = Record<string, IMergedState>;
 
 /**
  * @category Build
@@ -252,3 +189,5 @@ export * from './payment';
 export * from './quote';
 export * from './schedule';
 export * from './service';
+
+export * from './actionTypes';

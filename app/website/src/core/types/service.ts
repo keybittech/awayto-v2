@@ -1,31 +1,9 @@
 import { Merge } from 'awayto';
-import { PayloadAction } from '.';
+import { PayloadAction} from '.';
+import { IActions } from './actionTypes';
 
 declare global {
-  /**
-   * @category Awayto Redux
-   */
-  interface ISharedState { 
-    service: IServiceState;
-    serviceAddon: IServiceAddonState;
-    serviceTier: IServiceTierState;
-  }
-
-  interface IMergedState extends Merge<Merge<Merge<unknown, IServiceState>, IServiceAddonState>, IServiceTierState> {}
-
-  /**
-   * @category Awayto Redux
-   */
-  type IServiceModuleActions = IServiceActions | IServiceAddonActions | IServiceTierActions;
-
-  /**
-   * @category Awayto Redux
-   */
-  interface ISharedActionTypes {
-    service: IServiceActionTypes;
-    serviceAddon: IServiceAddonActionTypes;
-    serviceTier: IServiceTierActionTypes;
-  }
+  interface IMergedState extends Merge<IServiceState & IServiceAddonState & IServiceTierState> {}
 }
 
 
@@ -37,14 +15,14 @@ export type IService = {
   name: string;
   cost: string;
   tiers: Record<string, IServiceTier>;
-  formId?: string;
+  formId: string;
   createdOn: string;
 };
 
 /**
  * @category Service
  */
-export type IServiceState = Partial<IService> & {
+export type IServiceState = IService & {
   services: Map<string, IService>;
 };
 
@@ -59,6 +37,8 @@ export enum IServiceActionTypes {
   DELETE_SERVICE = "DELETE/services/:ids",
   DISABLE_SERVICE = "PUT/services/:ids/disable"
 }
+
+IActions['service'] = IServiceActionTypes;
 
 /**
  * @category Service
@@ -115,7 +95,7 @@ export type IServiceActions = IPostServiceAction
 /**
  * @category Service
  */
- export type IServiceAddonState = {
+ export type IServiceAddonState = IServiceAddon & {
    serviceAddons: Map<string, IServiceAddon>;
  };
 
@@ -179,7 +159,7 @@ export type IServiceActions = IPostServiceAction
  export type IServiceTier = {
   id: string;
   serviceId: string;
-  formId?: string;
+  formId: string;
   name: string;
   multiplier: string;
   addons: Record<string, IServiceAddon>;

@@ -2,26 +2,7 @@ import { PayloadAction } from '.';
 import { Merge } from '../util';
 
 declare global {
-  /**
-   * @category Awayto Redux
-   */
-  interface ISharedState { 
-    contacts: IContactState
-  }
-
-  interface IMergedState extends Merge<unknown, IContactState> {}
-
-  /**
-   * @category Awayto Redux
-   */
-  type IContactModuleActions = IContactActions;
-
-  /**
-   * @category Awayto Redux
-   */
-  interface ISharedActionTypes {
-    contacts: IContactActionTypes;
-  }
+  interface IMergedState extends Merge<IContactState> {}
 }
 
 

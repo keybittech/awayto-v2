@@ -2,26 +2,7 @@ import { PayloadAction, IGroup, IRole, IQuote, IBooking } from '.';
 import { Merge } from '../util';
 
 declare global {
-  /**
-   * @category Awayto Redux
-   */
-  interface ISharedState { 
-    profile: IUserProfileState
-  }
-
-  interface IMergedState extends Merge<unknown, IUserProfileState> {}
-
-  /**
-   * @category Awayto Redux
-   */
-  type IProfileModuleActions = IUserProfileActions;
-
-  /**
-   * @category Awayto Redux
-   */
-  interface ISharedActionTypes {
-    userProfile: IUserProfileActionTypes;
-  }
+  interface IMergedState extends Merge<IUserProfileState> {}
 }
 
 export type UserGroupRoles = Record<string, Record<string, string | string[]>>;

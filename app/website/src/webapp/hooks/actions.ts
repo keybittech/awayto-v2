@@ -20,7 +20,7 @@ const createAction = <Type extends string, Meta>(type: Type, meta?: Meta): MetaA
  * ```
  * @category Awayto
  * @param type {@link IActionTypes} The const form of an action type, i.e. {@link IUtilActionTypes.SET_SNACK}
- * @param payload {@link ILoadedState} The payload should match at least a partial of one of the state models.. {@link IUtil}, {@link IUserProfile}, etc..
+ * @param payload {@link IMergedState} The payload should match at least a partial of one of the state models.. {@link IUtil}, {@link IUserProfile}, etc..
  * @param meta {any} Unused. Could be used for passing auditing info.
  * @returns {@link PayloadAction}
  */

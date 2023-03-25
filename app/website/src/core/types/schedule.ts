@@ -3,26 +3,7 @@ import { ITimeUnitNames } from './time_unit';
 import { PayloadAction } from '.';
 
 declare global {
-  /**
-   * @category Awayto Redux
-   */
-  interface ISharedState { 
-    schedule: IScheduleState;
-  }
-
-  interface IMergedState extends Merge<Merge<unknown, IScheduleState>, IScheduleBracketState> {}
-
-  /**
-   * @category Awayto Redux
-   */
-  type IScheduleModuleActions = IScheduleActions;
-
-  /**
-   * @category Awayto Redux
-   */
-  interface ISharedActionTypes {
-    schedules: IScheduleActionTypes;
-  }
+  interface IMergedState extends Merge<IScheduleState & IScheduleBracketState> {}
 }
 
 /**

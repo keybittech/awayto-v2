@@ -2,26 +2,7 @@ import { PayloadAction } from '.';
 import { Merge } from '../util';
 
 declare global {
-  /**
-   * @category Awayto Redux
-   */
-  interface ISharedState { 
-    assist: IAssistState
-  }
-
-  interface IMergedState extends Merge<unknown, IAssistState> {}
-
-  /**
-   * @category Awayto Redux
-   */
-  type IAssistModuleActions = IAssistActions;
-
-  /**
-   * @category Awayto Redux
-   */
-  interface ISharedActionTypes {
-    assist: IAssistActionTypes;
-  }
+  interface IMergedState extends Merge<IAssistState> {}
 }
 
 export enum IPrompts {

@@ -1,0 +1,248 @@
+
+import { createStore, applyMiddleware, compose, combineReducers, Reducer, ReducersMapObject } from 'redux';
+import storage from 'redux-persist/lib/storage'
+import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
+import { persistReducer } from 'redux-persist'
+import createDebounce from 'redux-debounced';
+import thunk, { ThunkMiddleware } from 'redux-thunk';
+import logger from 'redux-logger';
+import persistStore from 'redux-persist/es/persistStore';
+import { ThunkDispatch } from 'redux-thunk';
+import { AnyAction, Store } from 'redux';
+import { useDispatch as dispatch } from 'react-redux';
+
+
+type ICommonModuleActions = ITestActions;
+
+export type ITest = {
+  id: string;
+  value: string;
+}
+
+export type ITestState = Partial<ITest>;
+
+export enum ITestActionTypes {
+  POST_TEST = "POST/test",
+  PUT_TEST = "PUT/test",
+  GET_TEST = "GET/test",
+  GET_TEST_BY_ID = "GET/test/:id",
+  DELETE_TEST = "DELETE/test/:id",
+  DISABLE_TEST = "PUT/test/disable"
+}
+
+export interface Action<T = unknown> {
+  type: T
+}
+
+export type MetaAction<Type, Meta> = Action<Type> & {
+  meta?: Meta;
+};
+
+export type PayloadAction<Type, Payload, Meta = void> = MetaAction<Type, Meta> & {
+  readonly payload: Payload;
+};
+
+export type IPostTestAction = PayloadAction<ITestActionTypes.POST_TEST, ITestState>;
+export type IPutTestAction = PayloadAction<ITestActionTypes.PUT_TEST, ITestState>;
+export type IGetTestAction = PayloadAction<ITestActionTypes.GET_TEST, ITestState>;
+export type IGetTestByIdAction = PayloadAction<ITestActionTypes.GET_TEST_BY_ID, ITestState>;
+export type IDeleteTestAction = PayloadAction<ITestActionTypes.DELETE_TEST, ITestState>;
+export type IDisableTestAction = PayloadAction<ITestActionTypes.DISABLE_TEST, ITestState[]>;
+
+export type ITestActions = IPostTestAction
+  | IPutTestAction
+  | IGetTestAction
+  | IGetTestByIdAction
+  | IDeleteTestAction
+  | IDisableTestAction;
+
+const initialTestState: ITestState = {};
+
+const testReducer: Reducer<ITestState, ITestActions> = (state = initialTestState, action) => {
+  switch (action.type) {
+    case ITestActionTypes.POST_TEST:
+    case ITestActionTypes.PUT_TEST:
+    case ITestActionTypes.DISABLE_TEST:
+      return { ...state, ...action.payload };
+    default:
+      return { ...state };
+  }
+};
+
+
+type ISharedActions =  Record<string, IMergedState>;
+
+const initialRootState = {} as IMergedState;
+const rootReducer: Reducer<IMergedState, ISharedActions> = (state = initialRootState) => {
+  return state as IMergedState;
+}
+export type IReducers = ReducersMapObject<IMergedState, ISharedActions>;
+export type ILoadedReducers = Partial<IReducers>;
+
+type RootLoadedReducers = {
+  [prop: string]: Reducer<IMergedState, ISharedActions>
+} & {
+  root?: Reducer<IMergedState, ISharedActions>
+};
+
+export let loadedReducers = {
+  root: rootReducer
+} as RootLoadedReducers;
+
+const createRootReducer = (): Reducer<IMergedState, ISharedActions> => {
+  return combineReducers(loadedReducers) as Reducer;
+};
+
+const persistConfig = {
+  key: 'root',
+  storage,
+  stateReconciler: autoMergeLevel2
+}
+
+const persistedReducer = persistReducer(persistConfig, createRootReducer);
+
+export let store = createStore(
+  persistedReducer,
+  initialRootState,
+  compose(
+    applyMiddleware(
+      createDebounce(),
+      thunk as ThunkMiddleware<IMergedState, ISharedActions>,
+      logger
+    )
+  )
+) as ThunkStore;
+
+
+export const setStore = (newStore: ThunkStore): void => {
+  store = newStore
+}
+
+setStore(store);
+
+export const persistor = persistStore(store);
+
+export const addReducer = (reducers: RootLoadedReducers): void => {
+  loadedReducers = { ...loadedReducers, ...reducers };
+  store.replaceReducer(createRootReducer() as Reducer);
+}
+
+
+export type ThunkStore = Store<IMergedState, ISharedActions> & {
+  dispatch: ThunkDispatch<IMergedState, undefined, ISharedActions>;
+}
+
+
+export type IActionTypes = string;
+
+export const useDispatch = (): ThunkDispatch<IMergedState, undefined, AnyAction> => dispatch<ThunkDispatch<ISharedState, undefined, AnyAction>>();
+
+type Primitive = Map<string, unknown> | string | number | boolean | bigint | symbol | null | undefined;
+type Expand<T> = T extends Primitive ? T : { [K in keyof T]: T[K] };
+
+type OptionalKeys<T> = {
+    [K in keyof T]-?: T extends Record<K, T[K]> ? never : K;
+}[keyof T];
+
+type RequiredKeys<T> = {
+    [K in keyof T]-?: T extends Record<K, T[K]> ? K : never;
+}[keyof T] &
+    keyof T;
+
+type RequiredMergeKeys<T, U> = RequiredKeys<T> & RequiredKeys<U>;
+
+type OptionalMergeKeys<T, U> =
+    | OptionalKeys<T>
+    | OptionalKeys<U>
+    | Exclude<RequiredKeys<T>, RequiredKeys<U>>
+    | Exclude<RequiredKeys<U>, RequiredKeys<T>>;
+
+type MergeNonUnionObjects<T, U> = Expand<
+    {
+        [K in RequiredMergeKeys<T, U>]: Expand<Merge<T[K], U[K]>>;
+    } & {
+        [K in OptionalMergeKeys<T, U>]?: K extends keyof T
+            ? K extends keyof U
+                ? Expand<Merge<
+                    Exclude<T[K], undefined>,
+                    Exclude<U[K], undefined>
+                >>
+                : T[K]
+            : K extends keyof U
+            ? U[K]
+            : never;
+    }
+>;
+
+type MergeNonUnionArrays<T extends readonly unknown[], U extends readonly unknown[]> = Array<Expand<Merge<T[number], U[number]>>>
+
+type MergeArrays<T extends readonly unknown[], U extends readonly unknown[]> = [T] extends [never]
+    ? U extends unknown
+        ? MergeNonUnionArrays<T, U>
+        : never
+    : [U] extends [never]
+    ? T extends unknown
+        ? MergeNonUnionArrays<T, U>
+        : never
+    : T extends unknown
+    ? U extends unknown
+        ? MergeNonUnionArrays<T, U>
+        : never
+    : never;
+
+type MergeObjects<T, U> = [T] extends [never]
+    ? U extends unknown
+        ? MergeNonUnionObjects<T, U>
+        : never
+    : [U] extends [never]
+    ? T extends unknown
+        ? MergeNonUnionObjects<T, U>
+        : never
+    : T extends unknown
+    ? U extends unknown
+        ? MergeNonUnionObjects<T, U>
+        : never
+    : never;
+
+export type Merge<T, U> =
+    | Extract<T | U, Primitive>
+    | MergeArrays<Extract<T, readonly unknown[]>, Extract<U, readonly unknown[]>>
+    | MergeObjects<Exclude<T, Primitive | readonly unknown[]>, Exclude<U, Primitive | readonly unknown[]>>;
+
+
+interface IMergedState extends Merge<unknown, ITestState> {}
+
+const createAction = <Type extends string, Meta>(type: Type, meta?: Meta): MetaAction<Type, Meta> =>
+  ({ type, meta });
+
+export const act = <Type extends string, Payload, Meta>(
+  type: Type,
+  payload: Payload,
+  meta?: Meta,
+): PayloadAction<Type, Payload, Meta> => ({
+  ...createAction(type, meta),
+  payload,
+});
+
+const build: Record<string, Record<string, string>> = {"reducers": {"test": "common/reducers/test"} };
+
+export function useAct(): (actionType: IActionTypes, state: IMergedState, meta?: unknown) => void {
+  const dispatch = useDispatch();
+  return (actionType, state, meta) => {
+    dispatch(act(actionType, state, meta));
+  };
+}
+
+// A reducer can be loaded asynchronously like this for example
+async function exampleReducerLoad(reducer: string) {
+  if (!loadedReducers[reducer]) {
+    const r = await import('../modules/' + build[reducer]) as { default: Reducer<IMergedState, ISharedActions> };
+    addReducer({ [reducer]: r.default });
+  }
+}
+
+// At any time after the application has started, we will want to take actions, but if the reducer doesn't exist yet, obviously this will fail
+function exampleUseActCall() {
+  const act = useAct();
+  act(ITestActionTypes.GET_TEST, { id: 'test_id' })
+}

@@ -16,8 +16,8 @@ import keycloak from '../keycloak';
 
 const { Route, RouteCollection, PathGenerator } = routeMatch as RouteMatch;
 
-const paths = Object.keys(IActions).map(key => {
-  return new Route(key, IActions[key as keyof typeof IActions] as string)
+const paths = Object.keys(IActions).flatMap(module => {
+  return Object.keys(IActions[module]).map(path => new Route(IActions[module][path], IActions[module][path]));
 });
 
 const routeCollection = new RouteCollection(paths);
@@ -65,10 +65,10 @@ type ApiMeta = {
  * @category Hooks
  */
 
-export function useApi(): <T extends { [prop: string]: unknown}, R = IMergedState>(actionType: IActionTypes, body?: Partial<T | StatePayloadValues>, meta?: Partial<ApiMeta>) => [(reason?: string)=> void, Promise<R> | undefined] {
+export function useApi(): <T extends { [prop: string]: unknown}, R = IMergedState>(actionType: IActionTypes, body?: Partial<T | StatePayloadValues>, meta?: Partial<ApiMeta>) => [(reason?: string)=> void, Promise<R | R[]> | undefined] {
   const act = useAct();
 
-  const api = useCallback(<T extends { [prop: string]: unknown}, R = IMergedState>(actionType: IActionTypes, body?: Partial<T | StatePayloadValues>, meta = {} as Partial<ApiMeta>): [(reason?: string)=> void, Promise<R> | undefined] => {
+  const api = useCallback(<T extends { [prop: string]: unknown}, R = IMergedState>(actionType: IActionTypes, body?: Partial<T | StatePayloadValues>, meta = {} as Partial<ApiMeta>): [(reason?: string)=> void, Promise<R | R[]> | undefined] => {
 
     const abortController: AbortController = new AbortController();
     function abort(reason?: string) {
@@ -88,11 +88,11 @@ export function useApi(): <T extends { [prop: string]: unknown}, R = IMergedStat
       let jsonBody: string | undefined = JSON.stringify(body);
 
       if ((path.includes('/:') || meta.useParams) && body) {
+        console.log({ NEED: actionType, IActions })
         // Get the key of the enum from IActions based on the path (actionType)
-        const pathKey = Object.keys(IActions).filter(key => IActions[key as keyof typeof IActions] == actionType)[0];
 
         if (meta.useParams) {
-          path = generator.generate(pathKey, body as Record<string, string>).slice(method.length + 1);
+          path = generator.generate(actionType, body as Record<string, string>).slice(method.length + 1);
         } else {
           // Only access body keys that are part of the action param string (GET/path/:id/subpath/:subId will expect id and subId in the body and only try to get them)
           const keys = [...actionType.matchAll(/(?<=\/:)(\w*)/g)];
@@ -103,7 +103,7 @@ export function useApi(): <T extends { [prop: string]: unknown}, R = IMergedStat
 
           // When "generator.generate" takes more keys than it requires for the base path, it turns those extras into query parameters, so we either do want that or don't and it needs to be set with { useParams: true } as a meta option, allowing for GET/path?some=param&array=values
           // This will automatically be handled in the express controller and the query params available in props.event.queryParameters
-          path = generator.generate(pathKey, keyBody).slice(method.length + 1);
+          path = generator.generate(actionType, keyBody).slice(method.length + 1);
         }
       }
 
@@ -127,7 +127,7 @@ export function useApi(): <T extends { [prop: string]: unknown}, R = IMergedStat
       .then((data: R) => {
         act(actionType || API_SUCCESS, data as IMergedState, { ...meta, method, path, body: body && body as Partial<StatePayloadValues> });
         if (load) act(SET_LOADING, { isLoading: false });
-        return data;
+        return data as R | R[];
       })
       .catch(err => {
         const { name, requestId, reason, ...actionProps } = err as ApiErrorResponse;

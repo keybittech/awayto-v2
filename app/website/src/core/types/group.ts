@@ -3,40 +3,7 @@ import { PayloadAction, IRole, IUserProfile, IService, IServiceAddon, ISchedule,
 import { Merge } from '../util';
 
 declare global {
-  /**
-   * @category Awayto Redux
-   */
-  interface ISharedState {
-    group: IGroupState;
-    groupService: IGroupServiceState;
-    groupServiceAddon: IGroupServiceAddonState;
-    groupSchedule: IGroupScheduleState;
-    groupForm: IGroupFormState;
-    groupUserSchedule: IGroupUserScheduleState;
-    groupUser: IGroupUserState;
-    groupRole: IGroupRoleState;
-  }
-
-
-  interface IMergedState extends Merge<Merge<Merge<Merge<Merge<Merge<Merge<Merge<Merge<unknown, IGroupRoleActionState>, IGroupState>, IGroupServiceState>, IGroupServiceAddonState>, IGroupScheduleState>, IGroupFormState>, IGroupUserScheduleState>, IGroupUserState>, IGroupRoleState> { }
-  /**
-   * @category Awayto Redux
-   */
-  type IGroupModuleActions = IGroupActions | IGroupServiceActions | IGroupServiceAddonActions | IGroupScheduleActions | IGroupFormActions | IGroupUserScheduleActions | IGroupUserActions | IGroupRoleActions;
-
-  /**
-   * @category Awayto Redux
-   */
-  interface ISharedActionTypes {
-    group: IGroupActionTypes;
-    groupService: IGroupServiceActionTypes;
-    groupServiceAddon: IGroupServiceAddonActionTypes;
-    groupSchedule: IGroupScheduleActionTypes;
-    groupForm: IGroupFormActionTypes;
-    groupUserSchedule: IGroupUserScheduleActionTypes;
-    groupUser: IGroupUserActionTypes;
-    groupRole: IGroupRoleActionTypes;
-  }
+  interface IMergedState extends Merge<IGroupRoleActionState & IGroupState & IGroupServiceState & IGroupServiceAddonState & IGroupScheduleState & IGroupFormState & IGroupUserScheduleState & IGroupUserState & IGroupRoleState> { }
 }
 
 /**
@@ -184,7 +151,7 @@ export type IGroupServiceAddon = IServiceAddon & {
 /**
  * @category Group
  */
-export type IGroupServiceAddonState = {
+export type IGroupServiceAddonState = IGroupServiceAddon & {
   groupServiceAddons: Map<string, IGroupServiceAddon>;
 };
 

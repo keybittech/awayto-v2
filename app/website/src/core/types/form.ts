@@ -2,26 +2,7 @@ import { PayloadAction } from '.';
 import { Merge } from '../util'
 
 declare global {
-  /**
-   * @category Awayto Redux
-   */
-  interface ISharedState { 
-    form: IFormState
-  }
-
-  interface IMergedState extends Merge<unknown, IFormState> {}
-
-  /**
-   * @category Awayto Redux
-   */
-  type IFormModuleActions = IFormActions;
-
-  /**
-   * @category Awayto Redux
-   */
-  interface ISharedActionTypes {
-    form: IFormActionTypes;
-  }
+  interface IMergedState extends Merge<IFormState> {}
 }
 
 
@@ -80,7 +61,7 @@ export type IForm = {
 /**
  * @category Form
  */
-export type IFormState = Partial<IForm> & {
+export type IFormState = IForm & {
   forms: Map<string, IForm>
 };
 

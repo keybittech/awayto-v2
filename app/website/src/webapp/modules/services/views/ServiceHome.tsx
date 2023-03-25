@@ -13,7 +13,7 @@ import CardHeader from '@mui/material/CardHeader';
 import Grid from '@mui/material/Grid';
 import Chip from '@mui/material/Chip';
 
-import { IAssistActionTypes, IService, IServiceActionTypes, IServiceTier, IGroupFormActionTypes, IGroupServiceAddonActionTypes, IServiceAddonActionTypes, IGroupServiceActionTypes, IUtilActionTypes, IGroup, IForm, IPrompts } from 'awayto';
+import { IAssistActionTypes, IService, IServiceActionTypes, IServiceTier, IGroupFormActionTypes, IGroupServiceAddonActionTypes, IServiceAddonActionTypes, IGroupServiceActionTypes, IUtilActionTypes, IGroup, IForm, IPrompts, IAssist } from 'awayto';
 import { useApi, useRedux, useComponents, useAct, useStyles } from 'awayto-hooks';
 
 const { POST_SERVICE } = IServiceActionTypes;
@@ -66,7 +66,7 @@ export function ServiceHome(props: IProps): JSX.Element {
       const gr = groups.values().next().value as IGroup;
       const [, res] = api(GET_PROMPT, { id: IPrompts.SUGGEST_SERVICE, prompt: gr.purpose }, { useParams: true })
       res?.then(serviceSuggestionData => {
-        const { promptResult } = serviceSuggestionData;
+        const { promptResult } = serviceSuggestionData as IAssist;
         if (promptResult) setServiceSuggestions(promptResult.join(', '))
         setGroup(gr);
       })
@@ -126,7 +126,7 @@ export function ServiceHome(props: IProps): JSX.Element {
                     // When this service name changes, let's get a new prompt for tier name suggestions
                     const [, res] = api(GET_PROMPT, { id: IPrompts.SUGGEST_TIER, prompt: `${newService.name.toLowerCase()} at ${group.name.replaceAll('_', ' ')}`}, { useParams: true })
                     res?.then(tierSuggestionData => {
-                      const { promptResult } = tierSuggestionData;
+                      const { promptResult } = tierSuggestionData as IAssist;
                       if (promptResult) setTierSuggestions(promptResult.join(', '))
                     })
                   }}
@@ -147,7 +147,9 @@ export function ServiceHome(props: IProps): JSX.Element {
                   helperText="Optional."
                   onChange={async e => {
                     const form = await getGroupFormById(e.target.value);
-                    setNewService({ ...newService, formId: form?.id })
+                    if (form) {
+                      setNewService({ ...newService, formId: form.id })
+                    }
                   }}
                 >
                   {Array.from(groupForms.values()).map(form => <MenuItem key={`form-version-select${form.id}`} value={form.id}>{form.name}</MenuItem>)}
@@ -176,7 +178,7 @@ export function ServiceHome(props: IProps): JSX.Element {
                     // When this tier name changes, let's get a new prompt for feature name suggestions
                     const [, res] = api(GET_PROMPT, { id: IPrompts.SUGGEST_FEATURE, prompt: `${newServiceTier.name} ${newService.name}`}, { useParams: true })
                     res?.then(featureSuggestionData => {
-                      const { promptResult } = featureSuggestionData;
+                      const { promptResult } = featureSuggestionData as IAssist;
                       if (promptResult) setFeatureSuggestions(promptResult.join(', '))
                     });
                   }}
@@ -218,7 +220,9 @@ export function ServiceHome(props: IProps): JSX.Element {
                   helperText="Optional."
                   onChange={async e => {
                     const form = await getGroupFormById(e.target.value);
-                    setNewServiceTier({ ...newServiceTier, formId: form?.id })
+                    if (form) {
+                      setNewServiceTier({ ...newServiceTier, formId: form.id })
+                    }
                   }}
                 >
                   {Array.from(groupForms.values()).map(form => <MenuItem key={`form-version-select${form.id}`} value={form.id}>{form.name}</MenuItem>)}

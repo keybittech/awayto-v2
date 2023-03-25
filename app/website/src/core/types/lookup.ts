@@ -2,26 +2,7 @@ import { ITimeUnit, PayloadAction } from '.';
 import { Merge } from '../util'
 
 declare global {
-  /**
-   * @category Awayto Redux
-   */
-  interface ISharedState { 
-    lookup: ILookupState
-  }
-
-  interface IMergedState extends Merge<unknown, ILookupState> {}
-
-  /**
-   * @category Awayto Redux
-   */
-  type ILookupModuleActions = ILookupActions;
-
-  /**
-   * @category Awayto Redux
-   */
-  interface ISharedActionTypes {
-    lookup: ILookupActionTypes;
-  }
+  interface IMergedState extends Merge<ILookupState> {}
 }
 
 /**
@@ -35,7 +16,7 @@ export type ILookup = {
 /**
  * @category Lookup
  */
-export type ILookupState = Partial<ILookup> & {
+export type ILookupState = ILookup & {
   budgets: ILookup[];
   timelines: ILookup[];
   timeUnits: ITimeUnit[];

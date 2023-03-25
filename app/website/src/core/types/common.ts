@@ -2,33 +2,7 @@ import { PayloadAction } from '.';
 import { Merge } from '../util';
 
 declare global {
-  /**
-   * @category Awayto Redux
-   */
-  interface ISharedState {
-    util: IUtilState,
-    uuidFiles: IUuidFilesState;
-    file: IFileState;
-    feedback: IFeedbackState;
-  }
-
-  interface IMergedState extends Merge<Merge<Merge<Merge<Merge<unknown, IFileState>, IUuidFilesState>, IUtilState>, IUuidNotesState>, IFeedbackState> {}
-
-  /**
-   * @category Awayto Redux
-   */
-  type ICommonModuleActions = IUtilActions | IUuidNotesActions | IUuidFilesActions | IFileActions | IFeedbackActions;
-
-  /**
-   * @category Awayto Redux
-   */
-  interface ISharedActionTypes {
-    util: IUtilActionTypes;
-    uuidNotes: IUuidNotesActionTypes;
-    uuidFiles: IUuidFilesActionTypes;
-    file: IFileActionTypes;
-    feedback: IFeedbackActionTypes;
-  }
+  interface IMergedState extends Merge<IFileState & IUuidFilesState & IUtilState & IUuidNotesState & IFeedbackState> {}
 }
 
 type ConfirmActionProps = [

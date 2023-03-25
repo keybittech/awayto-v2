@@ -3,28 +3,7 @@ import { PayloadAction } from '.';
 import { Merge } from '../util';
 
 declare global {
-  /**
-   * @category Awayto Redux
-   */
-  interface ISharedState { 
-    booking: IBookingState;
-    bookingTranscript: IBookingTranscriptState;
-  }
-
-  interface IMergedState extends Merge<Merge<unknown, IBookingState>, IBookingTranscriptState> {}
-
-  /**
-   * @category Awayto Redux
-   */
-  type IBookingModuleActions = IBookingActions;
-
-  /**
-   * @category Awayto Redux
-   */
-  interface ISharedActionTypes {
-    booking: IBookingActionTypes;
-    bookingTranscript: IBookingTranscriptActionTypes;
-  }
+  interface IMergedState extends Merge<IBookingState & IBookingTranscriptState> {}
 }
 
 export type IBookingScheduleBracket = {

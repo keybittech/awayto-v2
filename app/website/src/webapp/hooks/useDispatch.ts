@@ -1,12 +1,14 @@
 import { AnyAction, Store } from 'redux';
 import { useDispatch as dispatch } from 'react-redux';
 import { ThunkDispatch } from 'redux-thunk';
+import { PayloadAction } from '@reduxjs/toolkit';
+import { IActionTypes } from 'awayto';
 
 /**
 * @category Awayto Redux
 */
-export type ThunkStore = Store<ISharedState, ISharedActions> & {
-  dispatch: ThunkDispatch<ISharedState, undefined, ISharedActions>;
+export type ThunkStore = Store<IMergedState, PayloadAction<IActionTypes, IMergedState & string>> & {
+  dispatch: ThunkDispatch<IMergedState, undefined, PayloadAction<IActionTypes, IMergedState & string>>;
 }
 
 export let store: ThunkStore;
@@ -29,4 +31,4 @@ export const setStore = (newStore: ThunkStore): void => {
  * @deprecated
  * @category Hooks
  */
-export const useDispatch = (): ThunkDispatch<ISharedState, undefined, AnyAction> => dispatch<ThunkDispatch<ISharedState, undefined, AnyAction>>();
+export const useDispatch = (): ThunkDispatch<IMergedState, undefined, AnyAction> => dispatch<ThunkDispatch<IMergedState, undefined, AnyAction>>();

@@ -37,7 +37,7 @@ import { db, connected as dbConnected } from './util/db';
 import redis, { rateLimitResource, RedisClient, redisProxy } from './util/redis';
 import logger from './util/logger';
 
-import { DecodedJWTToken, UserGroupRoles, StrategyUser, ILoadedState, IActionTypes, ApiErrorResponse, IGroup } from 'awayto';
+import { DecodedJWTToken, UserGroupRoles, StrategyUser, IActionTypes, ApiErrorResponse, IGroup } from 'awayto';
 
 console.log(JSON.stringify(process.env, null, 2))
 
@@ -82,7 +82,7 @@ export type IWebhooks = {
  */
 export type ApiModule = ApiModulet[];
 
-export type ApiResponseBody = Partial<ILoadedState> | Partial<ILoadedState>[] | boolean;
+export type ApiResponseBody = Partial<IMergedState> | Partial<IMergedState>[] | boolean;
 
 /**
  * @category API

@@ -2,32 +2,7 @@ import { PayloadAction, IUserProfile, IGroup, IRole, } from '.';
 import { Merge } from '../util';
 
 declare global {
-  /**
-   * @category Awayto Redux
-   */
-  interface ISharedState { 
-    manage: IManageState
-    manageUsers: IManageUsersState;
-    manageRoles: IManageRolesState;
-    manageGroups: IManageGroupsState;
-  }
-
-  interface IMergedState extends Merge<Merge<Merge<Merge<unknown, IManageState>, IManageUsersState>, IManageRolesState>, IManageGroupsState> {}
-
-  /**
-   * @category Awayto Redux
-   */
-  type IManageModuleActions = IManageActions | IManageUsersActions | IManageRolesActions | IManageGroupsActions;
-
-  /**
-   * @category Awayto Redux
-   */
-  interface ISharedActionTypes {
-    manage: IManageActionTypes;
-    manageUsers: IManageUsersActionTypes;
-    manageRoles: IManageRolesActionTypes;
-    manageGroups: IManageGroupsActionTypes;
-  }
+  interface IMergedState extends Merge<IManageState & IManageUsersState & IManageRolesState & IManageGroupsState> {}
 }
 
 /**
@@ -42,7 +17,7 @@ export type IManage = {
 /**
  * @category Manage
  */
-export type IManageState = Partial<IManage>;
+export type IManageState = IManage;
 
 /**
  * @category Action Types
@@ -71,7 +46,7 @@ export type IManageUsers = unknown;
 /**
  * @category Manage Users
  */
-export type IManageUsersState = Partial<IManageUsers> & {
+export type IManageUsersState = IManageUsers & {
   users: Map<string, IUserProfile>;
 };
 
@@ -166,8 +141,8 @@ export type IManageRoles = unknown;
 /**
  * @category Manage Roles
  */
-export type IManageRolesState = Partial<IManageRoles> & {
-  roles: Map<string, IRole>
+export type IManageRolesState = IManageRoles & {
+  roles: Map<string, IRole>;
 };
 
 /**
@@ -218,12 +193,12 @@ export type IManageGroups = unknown;
 /**
  * @category Manage Groups
  */
-export type IManageGroupsState = Partial<IManageGroups> & {
-  groups: Map<string, IGroup>,
-  isValid: boolean,
-  needCheckName: boolean,
-  checkingName: boolean,
-  checkedName: string
+export type IManageGroupsState = IManageGroups & {
+  groups: Map<string, IGroup>;
+  isValid: boolean;
+  needCheckName: boolean;
+  checkingName: boolean;
+  checkedName: string;
 };
 
 /**

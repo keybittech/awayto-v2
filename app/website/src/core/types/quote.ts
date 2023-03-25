@@ -2,26 +2,7 @@ import { PayloadAction, IFormVersionSubmission } from '.';
 import { Merge } from '../util';
 
 declare global {
-  /**
-   * @category Awayto Redux
-   */
-  interface ISharedState { 
-    quote: IQuoteState
-  }
-
-  interface IMergedState extends Merge<unknown, IQuoteState> {}
-
-  /**
-   * @category Awayto Redux
-   */
-  type IQuoteModuleActions = IQuoteActions;
-
-  /**
-   * @category Awayto Redux
-   */
-  interface ISharedActionTypes {
-    quote: IQuoteActionTypes;
-  }
+  interface IMergedState extends Merge<IQuoteState> {}
 }
 
 

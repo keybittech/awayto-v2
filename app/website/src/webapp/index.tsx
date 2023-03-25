@@ -15,7 +15,6 @@ import storage from 'redux-persist/lib/storage'
 import persistStore from 'redux-persist/es/persistStore';
 import { Theme } from '@mui/material/styles/createTheme';
 import { setStore, ThunkStore } from './hooks/useDispatch';
-import { ILoadedState } from 'awayto';
 
 import build from './build.json';
 import reportWebVitals from './reportWebVitals';
@@ -42,15 +41,14 @@ import './index.css';
 import './App.css';
 
 import App from './App';
+import { IActionTypes, Merge } from 'awayto';
+import { PayloadAction } from '@reduxjs/toolkit';
 
 declare global {
   /**
    * @category Awayto Redux
    */
-  interface ISharedState {
-    components: IBaseComponents;
-    _persist: PersistState;
-  }
+  interface IMergedState extends Merge<BaseState> {}
 
   type BaseComponentProps = {
     store?: ThunkStore;
@@ -69,10 +67,17 @@ declare global {
   }
 }
 
+type BaseState = {
+  components: IBaseComponents;
+  _persist: PersistState;
+}
+
+type ISharedActions = PayloadAction<IActionTypes, IMergedState & string>;
+
 /**
  * @category Awayto Redux
  */
-export type IReducers = ReducersMapObject<ISharedState, ISharedActions>;
+export type IReducers = ReducersMapObject<IMergedState, ISharedActions>;
 
 /**
  * @category Awayto Redux
@@ -100,12 +105,12 @@ export type LazyComponentPromise = Promise<{ default: IBaseComponent }>
  */
 export type TempComponent = IBaseComponent | string | undefined
 
-const initialRootState = {} as ISharedState;
-const rootReducer: Reducer<ILoadedState, ISharedActions> = (state = initialRootState) => {
-  return state as ISharedState;
+const initialRootState = {} as IMergedState;
+const rootReducer: Reducer<IMergedState, ISharedActions> = (state = initialRootState) => {
+  return state;
 }
 
-type RootLoadedReducers = ILoadedReducers & { root: Reducer<ILoadedState, ISharedActions> };
+type RootLoadedReducers = ILoadedReducers & { root: Reducer<IMergedState, ISharedActions> };
 
 /**
  * @category Redux
@@ -114,7 +119,7 @@ let initialReducers = {
   root: rootReducer
 } as RootLoadedReducers;
 
-const createRootReducer = (): Reducer<ILoadedState, ISharedActions> => {
+const createRootReducer = (): Reducer<IMergedState, ISharedActions> => {
   return combineReducers(initialReducers) as Reducer;
 };
 
@@ -135,7 +140,7 @@ export const store = createStore(
   compose(
     applyMiddleware(
       createDebounce(),
-      thunk as ThunkMiddleware<ISharedState, ISharedActions>,
+      thunk as ThunkMiddleware<IMergedState, ISharedActions>,
       logger
     )
   )

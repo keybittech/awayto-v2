@@ -2,26 +2,7 @@ import { IBooking, PayloadAction } from '.';
 import { Merge } from '../util';
 
 declare global {
-  /**
-   * @category Awayto Redux
-   */
-  interface ISharedState { 
-    exchanges: IExchangeState
-  }
-
-  interface IMergedState extends Merge<unknown, IExchangeState> {}
-
-  /**
-   * @category Awayto Redux
-   */
-  type IExchangeModuleActions = IExchangeActions;
-
-  /**
-   * @category Awayto Redux
-   */
-  interface ISharedActionTypes {
-    exchanges: IExchangeActionTypes;
-  }
+  interface IMergedState extends Merge<IExchangeState> {}
 }
 
 

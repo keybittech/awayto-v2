@@ -2,26 +2,7 @@ import { PayloadAction } from '.';
 import { Merge } from '../util';
 
 declare global {
-  /**
-   * @category Awayto Redux
-   */
-  interface ISharedState { 
-    role: IRoleState
-  }
-
-  interface IMergedState extends Merge<unknown, IRoleState> {}
-
-  /**
-   * @category Awayto Redux
-   */
-  type IRoleModuleActions = IRoleActions;
-
-  /**
-   * @category Awayto Redux
-   */
-  interface ISharedActionTypes {
-    role: IRoleActionTypes;
-  }
+  interface IMergedState extends Merge<IRoleState> {}
 }
 
 /**

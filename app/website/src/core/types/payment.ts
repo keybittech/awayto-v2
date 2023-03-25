@@ -2,26 +2,7 @@ import { PayloadAction } from '.';
 import { Merge } from '../util';
 
 declare global {
-  /**
-   * @category Awayto Redux
-   */
-  interface ISharedState { 
-    payments: IPaymentState
-  }
-
-  interface IMergedState extends Merge<unknown, IPaymentState> {}
-
-  /**
-   * @category Awayto Redux
-   */
-  type IPaymentModuleActions = IPaymentActions;
-
-  /**
-   * @category Awayto Redux
-   */
-  interface ISharedActionTypes {
-    payments: IPaymentActionTypes;
-  }
+  interface IMergedState extends Merge<IPaymentState> {}
 }
 
 
@@ -37,7 +18,7 @@ export type IPayment = {
 /**
  * @category Payment
  */
-export type IPaymentState = Partial<IPayment>;
+export type IPaymentState = IPayment;
 
 /**
  * @category Action Types

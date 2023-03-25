@@ -13,4 +13,4 @@ import { TypedUseSelectorHook, useSelector } from 'react-redux';
  * 
  * @category Hooks
  */
-export const useRedux: TypedUseSelectorHook<ISharedState> = useSelector;
+export const useRedux: TypedUseSelectorHook<Record<string, IMergedState>> = useSelector;

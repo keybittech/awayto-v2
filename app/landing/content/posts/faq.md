@@ -47,18 +47,6 @@ Types are used in multiple contexts to accomplish different functionalities in A
 ```ts
 // src/core/types/common.ts
 
-declare global {
-  interface ISharedState {
-    test: ITestState;
-  }
-
-  type ICommonModuleActions = ITestActions | ....;
-
-  interface ISharedActionTypes {
-    test: ITestActionTypes;
-  }
-}
-
 export type ITest = {
   id: string;
   value: string;
