@@ -6,7 +6,7 @@ import Grid from '@mui/material/Unstable_Grid2';
 
 import CssBaseline from '@mui/material/CssBaseline';
 
-import { useComponents, useStyles } from 'awayto-hooks';
+import { useComponents } from 'awayto-hooks';
 
 import Home from './Home';
 import Topbar from './Topbar';
@@ -14,7 +14,6 @@ import Sidebar from './Sidebar';
 
 const Layout = (props: IProps): JSX.Element => {
 
-  const classes = useStyles();
 
   const { Exchange, ExchangeProvider, Profile, GroupPaths, ServiceHome, ScheduleHome, RequestQuote } = useComponents();
 

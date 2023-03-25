@@ -3,71 +3,21 @@ import { useCallback } from 'react';
 import routeMatch, { RouteMatch } from 'route-match';
 
 import {
+  IActions,
   IActionTypes,
   IUtilActionTypes,
-  IFileActionTypes,
-  IFeedbackActionTypes,
-  IScheduleActionTypes,
-  IServiceActionTypes,
-  IQuoteActionTypes,
-  IManageUsersActionTypes,
-  IManageGroupsActionTypes,
-  IManageRolesActionTypes,
-  IUserProfileActionTypes,
-  IGroupActionTypes,
-  IGroupServiceActionTypes,
-  IGroupServiceAddonActionTypes,
-  IGroupScheduleActionTypes,
-  IGroupUserScheduleActionTypes,
-  IGroupUserActionTypes,
-  IGroupFormActionTypes,
-  IGroupRoleActionTypes,
-  IRoleActionTypes,
-  IUserActionTypes,
   ApiErrorResponse,
-  IServiceAddonActionTypes,
-  IAssistActionTypes,
   StatePayloadValues,
-  IFormActionTypes
 } from 'awayto';
 
 import { useAct } from './useAct';
 
 import keycloak from '../keycloak';
 
-export function registerApi(api: IActionTypes): void {
-  ApiActions = Object.assign(ApiActions, api);
-}
-
-let ApiActions = Object.assign(
-  IFileActionTypes,
-  IScheduleActionTypes,
-  IServiceActionTypes,
-  IFeedbackActionTypes,
-  IServiceAddonActionTypes,
-  IQuoteActionTypes,
-  IManageUsersActionTypes,
-  IManageGroupsActionTypes,
-  IManageRolesActionTypes,
-  IUserProfileActionTypes,
-  IGroupActionTypes,
-  IGroupServiceActionTypes,
-  IGroupServiceAddonActionTypes,
-  IGroupScheduleActionTypes,
-  IGroupUserScheduleActionTypes,
-  IGroupUserActionTypes,
-  IGroupFormActionTypes,
-  IGroupRoleActionTypes,
-  IRoleActionTypes,
-  IUserActionTypes,
-  IAssistActionTypes,
-  IFormActionTypes
-) as Record<string, string>;
-
 const { Route, RouteCollection, PathGenerator } = routeMatch as RouteMatch;
 
-const paths = Object.keys(ApiActions).map(key => {
-  return new Route(key, ApiActions[key])
+const paths = Object.keys(IActions).map(key => {
+  return new Route(key, IActions[key as keyof typeof IActions] as string)
 });
 
 const routeCollection = new RouteCollection(paths);
@@ -138,8 +88,8 @@ export function useApi(): <T extends { [prop: string]: unknown}, R = IMergedStat
       let jsonBody: string | undefined = JSON.stringify(body);
 
       if ((path.includes('/:') || meta.useParams) && body) {
-        // Get the key of the enum from ApiActions based on the path (actionType)
-        const pathKey = Object.keys(ApiActions).filter((x) => ApiActions[x] == actionType)[0];
+        // Get the key of the enum from IActions based on the path (actionType)
+        const pathKey = Object.keys(IActions).filter(key => IActions[key as keyof typeof IActions] == actionType)[0];
 
         if (meta.useParams) {
           path = generator.generate(pathKey, body as Record<string, string>).slice(method.length + 1);

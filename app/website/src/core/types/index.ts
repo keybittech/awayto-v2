@@ -1,3 +1,55 @@
+import {
+  IFileActionTypes,
+  IFeedbackActionTypes,
+  IScheduleActionTypes,
+  IServiceActionTypes,
+  IQuoteActionTypes,
+  IManageUsersActionTypes,
+  IManageGroupsActionTypes,
+  IManageRolesActionTypes,
+  IUserProfileActionTypes,
+  IGroupActionTypes,
+  IGroupServiceActionTypes,
+  IGroupServiceAddonActionTypes,
+  IGroupScheduleActionTypes,
+  IGroupUserScheduleActionTypes,
+  IGroupUserActionTypes,
+  IGroupFormActionTypes,
+  IGroupRoleActionTypes,
+  IRoleActionTypes,
+  IUserActionTypes,
+  IServiceAddonActionTypes,
+  IAssistActionTypes,
+  IFormActionTypes
+} from '.';
+
+export const IActions = Object.assign(
+  IFileActionTypes,
+  IScheduleActionTypes,
+  IServiceActionTypes,
+  IFeedbackActionTypes,
+  IServiceAddonActionTypes,
+  IQuoteActionTypes,
+  IManageUsersActionTypes,
+  IManageGroupsActionTypes,
+  IManageRolesActionTypes,
+  IUserProfileActionTypes,
+  IGroupActionTypes,
+  IGroupServiceActionTypes,
+  IGroupServiceAddonActionTypes,
+  IGroupScheduleActionTypes,
+  IGroupUserScheduleActionTypes,
+  IGroupUserActionTypes,
+  IGroupFormActionTypes,
+  IGroupRoleActionTypes,
+  IRoleActionTypes,
+  IUserActionTypes,
+  IAssistActionTypes,
+  IFormActionTypes
+) as IActionTypes;
+
+IActions
+
 declare global {
   /**
    * @category Awayto Redux
@@ -103,12 +155,6 @@ export declare function parseResource(path: string): Record<string, string>;
  * @param {app.next} next The next function from express app
  */
 export declare function checkWriteBuildFile(next: () => unknown): void;
-
-
-
-
-
-
 
 
 
