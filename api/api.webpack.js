@@ -14,7 +14,7 @@ module.exports = {
   },
   resolve: {
     alias: {
-      awayto: `${'development' === BUILD_ENV ? '../../../app/website/src/core/index.ts' : '/api/src/core/index.ts'}`
+      'awayto/core': `${'development' === BUILD_ENV ? '../../../core/index.ts' : '/api/src/core/index.ts'}`
     },
     extensions: ['.ts', '.js'],
   },

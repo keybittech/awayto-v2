@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "dayjs": "^1.11.7"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.6.6",
+    "@types/pg-promise": "^5.4.3",
+    "@types/redis": "^4.0.11"
+  }
+}

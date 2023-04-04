@@ -9,7 +9,7 @@ import { performance } from 'perf_hooks';
 
 import fetch from 'node-fetch';
 
-import { IGroupRoleAuthActions, SiteRoles, asyncForEach, ApiErrorResponse } from 'awayto';
+import { IGroupRoleAuthActions, SiteRoles, asyncForEach, ApiErrorResponse } from 'awayto/core';
 import redis, { clearLocalCache, redisProxy } from './redis';
 import { Client } from 'pg';
 
@@ -171,7 +171,7 @@ async function go() {
   ready = true;
 }
 
-export async function getGroupRegistrationRedirectParts(groupCode: string, db: Client): Promise<[string, string[]]> {
+export async function getGroupRegistrationRedirectParts(groupCode: string): Promise<[string, string[]]> {
   try {
     // Make a request to the Keycloak login page to retrieve the tab_id parameter
     const loginUrl = `https://${CUST_APP_HOSTNAME}/auth/realms/${KC_REALM}/protocol/openid-connect/auth?client_id=${KC_CLIENT}&redirect_uri=https://${CUST_APP_HOSTNAME}/api/auth/login/callback&response_type=code&scope=openid`;

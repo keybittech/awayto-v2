@@ -1,7 +1,8 @@
 {
   "extends": "./tsconfig.paths.json",
   "include": [
-    "./src"
+    "./src",
+    "../../core"
   ],
   "compilerOptions": {
     "target": "es6",
@@ -12,6 +13,7 @@
     ],
     "allowJs": true,
     "skipLibCheck": true,
+    "noErrorTruncation": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,

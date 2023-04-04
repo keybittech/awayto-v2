@@ -1,4 +1,4 @@
-import { IWebhooks } from '../api';
+import { IWebhooks } from 'awayto/core';
 import { OpenAIApi } from 'openai';
 
 const openai = new OpenAIApi();

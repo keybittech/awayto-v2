@@ -48,6 +48,7 @@ services:
       - KC_CLIENT=devel-client
       - KC_API_CLIENT_ID=api-client
       - KC_API_CLIENT_SECRET=kymZrZ5lxC7HpP8pW37t8fsD2SAXH77i
+      - DB_URL=jdbc:postgresql://postgres:postgres@172.20.0.5:5432/sysmaindb #NONSECRET
       - PG_HOST=172.20.0.5 #NONSECRET
       - PG_PORT=5432 #NONSECRET
       - PG_USER=postgres #SECRET

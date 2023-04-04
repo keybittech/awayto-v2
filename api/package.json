@@ -29,6 +29,7 @@
     "passport": "^0.6.0",
     "pg": "^8.8.0",
     "pg-native": "^3.0.1",
+    "pg-promise": "^11.4.3",
     "redis": "^4.6.4",
     "route-match": "^0.1.6",
     "twitch": "^4.6.7",

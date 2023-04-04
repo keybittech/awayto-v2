@@ -4,9 +4,11 @@ hugo buildlet
 
 
 
+need to check on user registration full flow using code
 
 read roles from api Objects and check roles before cmnd (role auto-checker)
-
+make the rate limiter a configurable api thing
+can potentially make a plugin system to hook in 3rd party functionality
 
 group user role assignment automated via invite method.. different invite urls can place users in different subgroups, but first need to set "staff" and "user" role on group
 
@@ -14,3 +16,50 @@ group user role assignment automated via invite method.. different invite urls c
 change feedback api to be group centric at the type name level
 
 do the delete lock unlock apis for group_users
+
+
+
+
+
+Write an explanation around the following with respect to the API:
+
+
+interface BEEP {
+  endpoints: {
+    bop: {
+      typer: IUserProfile,
+      bopper: put
+    }
+    bap: {
+      typer: IUserProfile,
+      bopper: post
+    }
+  }
+}
+
+type put = 'PUT'
+type post = 'POST'
+
+type Tester<T> = T extends {
+  [prop in T as keyof T]: { typer: infer Q, bopper: infer B }
+} ? {
+  [K in keyof T] : T[K] extends {
+    bopper: put
+  } ? { foo: 'PUT', bar: Q, baz: B } : T[K] extends {
+    bopper: post
+  } ? { foo: 'POST', bar: Q, baz: B} : never
+} : never;
+
+type Tested = Tester<BEEP['endpoints']> /* {
+  bop: {
+      foo: 'PUT';
+      bar: IUserProfile;
+      baz: "PUT" | "POST";
+  };
+  bap: {
+      foo: 'POST';
+      bar: IUserProfile;
+      baz: "PUT" | "POST";
+  };
+}
+*/

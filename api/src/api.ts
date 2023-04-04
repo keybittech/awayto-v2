@@ -27,85 +27,21 @@ import { v4 as uuid } from 'uuid';
 
 import passport from 'passport';
 
-import APIs from './apis/index';
+// import APIs from './apis/index';
 import WebHooks from './webhooks/index';
 import { getGroupRegistrationRedirectParts, keycloakClient, ready as keycloakConnected } from './util/keycloak';
 
 import { IdTokenClaims, Strategy, StrategyVerifyCallbackUserInfo } from 'openid-client';
 
 import { db, connected as dbConnected } from './util/db';
-import redis, { rateLimitResource, RedisClient, redisProxy } from './util/redis';
+import redis, { rateLimitResource, redisProxy } from './util/redis';
 import logger from './util/logger';
 
-import { DecodedJWTToken, UserGroupRoles, StrategyUser, IActionTypes, ApiErrorResponse, IGroup } from 'awayto';
+import { DecodedJWTToken, UserGroupRoles, StrategyUser, IActionTypes, ApiErrorResponse, IGroup, ApiResponseBody, AuthBody } from 'awayto/core'
 
 console.log(JSON.stringify(process.env, null, 2))
 
 // import './util/twitch';
-
-export type ApiEvent = {
-  requestId: string;
-  method: string;
-  path: string;
-  public: boolean;
-  username?: string;
-  userSub: string;
-  sourceIp: string;
-  groups?: string[];
-  availableUserGroupRoles: UserGroupRoles;
-  pathParameters: Record<string, string>,
-  queryParameters: Record<string, string>,
-  body: Required<IMergedState>
-}
-
-/**
- * @category API
- */
-export type ApiProps = {
-  event: ApiEvent;
-  db: Client;
-  redis: RedisClient;
-}
-
-export type AuthProps = {
-  event: Omit<ApiEvent, 'body'> & { body: AuthBody };
-  db: Client;
-  redis: RedisClient;
-}
-
-export type IWebhooks = {
-  [prop: string]: (event: AuthProps) => Promise<void>;
-};
-
-/**
- * @category API
- */
-export type ApiModule = ApiModulet[];
-
-export type ApiResponseBody = Partial<IMergedState> | Partial<IMergedState>[] | boolean;
-
-/**
- * @category API
- */
-export type ApiModulet = {
-  roles?: string;
-  inclusive?: boolean;
-  cache?: 'skip' | number | null;
-  action: IActionTypes;
-  cmnd(props: ApiProps, meta?: string): Promise<ApiResponseBody>;
-}
-
-export type AuthBody = {
-  id: string;
-  clientId: string;
-  realmId: string;
-  ipAddress: string;
-  sessionId: string;
-  userId: string;
-  time: string;
-  type: string;
-  details: Record<string, string>
-};
 
 export function getActionParts(action: IActionTypes): [string, string] {
   const method = action.substring(0, action.indexOf('/'));
@@ -116,11 +52,11 @@ export function getActionParts(action: IActionTypes): [string, string] {
 const { Route, RouteCollection, PathMatcher } = routeMatch as RouteMatch;
 
 
-const paths = APIs.protected.map(api => {
-  return new Route(api.action, api.action);
-});
-const routeCollection = new RouteCollection(paths);
-const pathMatcher = new PathMatcher(routeCollection);
+// const paths = APIs.protected.map(api => {
+//   return new Route(api.action, api.action);
+// });
+// const routeCollection = new RouteCollection(paths);
+// const pathMatcher = new PathMatcher(routeCollection);
 
 
 const {
@@ -238,7 +174,7 @@ async function go() {
       }
 
       try {
-        const [registrationUrl, loginCookies] = await getGroupRegistrationRedirectParts(req.params.groupCode, db);
+        const [registrationUrl, loginCookies] = await getGroupRegistrationRedirectParts(req.params.groupCode);
         for (const cookie of loginCookies) {
           const [name, value] = cookie.split('=');
           res.cookie(name.trim(), value.trim());
@@ -250,19 +186,19 @@ async function go() {
       }
     });
 
-    app.post('/api/auth/register/validate', checkBackchannel, async (req, res) => {
-      try {
-        const { rows: [group] } = await db.query<IGroup>(`
-          SELECT "allowedDomains", name
-          FROM dbview_schema.enabled_groups
-          WHERE code = $1
-        `, [req.body.groupCode.toLowerCase()]);
-        if (!group) throw { reason: 'BAD_GROUP' };
-        res.status(200).send(group);
-      } catch (error) {
-        res.status(500).send(error)
-      }
-    });
+    // app.post('/api/auth/register/validate', checkBackchannel, async (req, res) => {
+    //   try {
+    //     const { rows: [group] } = await db.query<IGroup>(`
+    //       SELECT "allowedDomains", name
+    //       FROM dbview_schema.enabled_groups
+    //       WHERE code = $1
+    //     `, [req.body.groupCode.toLowerCase()]);
+    //     if (!group) throw { reason: 'BAD_GROUP' };
+    //     res.status(200).send(group);
+    //   } catch (error) {
+    //     res.status(500).send(error)
+    //   }
+    // });
 
     app.get('/api/auth/checkin', (req, res, next) => {
       passport.authenticate('oidc')(req, res, next);
@@ -333,168 +269,104 @@ async function go() {
       }
     });
 
-
-    // app.all(`/api/v1/:code`, checkAuthenticated, async (req: Request, res: Response) => {
-
-    //   assert(req.headers.authorization, 'No auth header.');
-
-    //   const requestId = uuid();
-
-    //   const user = req.user as StrategyUser;
-    //   const token = jwtDecode<DecodedJWTToken & IdTokenClaims>(req.headers.authorization);
-    //   const method = req.method;
-    //   const path = Buffer.from(req.params.code, 'base64').toString();
-
-    //   const tokenGroupRoles = {} as UserGroupRoles;
-    //   token.groups.forEach(subgroupPath => {
-    //     const [groupName, subgroupName] = subgroupPath.slice(1).split('/');
-    //     tokenGroupRoles[groupName] = tokenGroupRoles[groupName] || {};
-    //     tokenGroupRoles[groupName][subgroupName] = groupRoleActions[subgroupPath]?.actions.map(a => a.name) || []
-    //   });
-
-    //   // Create trace event
-    //   const event = {
-    //     requestId,
-    //     method,
-    //     path,
-    //     public: false,
-    //     groups: token.groups,
-    //     availableUserGroupRoles: tokenGroupRoles,
-    //     username: user.username,
-    //     userSub: user.sub,
-    //     sourceIp: req.headers['x-forwarded-for'] as string,
-    //     pathParameters: req.params,
-    //     queryParameters: req.query as Record<string, string>,
-    //     body: req.body
-    //   }
-
-    //   try {
-    //     const pathMatch = pathMatcher.match(`${method}/${path}`);
-    //     event.pathParameters = pathMatch._params;
-
-    //     const route = pathMatch._route.split(/\/(.*)/s)[1];
-
-    //     const [{ cmnd }] = APIs.protected.filter(o => o.action === `${method}/${route}`);
-
-    //     // Handle request
-    //     logger.log('App API Request', event);
-    //     const result = await cmnd({ event, db, redis });
-
-    //     // Respond
-    //     res.status(200).json(result);
-
-    //   } catch (error) {
-    //     const err = error as Error & { reason: string };
-
-    //     console.log('protected error', err.message);
-    //     logger.log('error response', { requestId, error: err });
-
-    //     // Handle failures
-    //     res.status(500).send({
-    //       requestId,
-    //       reason: err.reason || err.message
-    //     });
-    //   }
-    // });
-
     // Define protected routes
-    APIs.protected.forEach(({ action, cmnd, cache }) => {
-      const [method, path] = getActionParts(action);
+    // APIs.protected.forEach(({ action, cmnd, cache }) => {
+    //   const [method, path] = getActionParts(action);
 
-      // Here we make use of the extra /api from the reverse proxy
-      app[method.toLowerCase() as keyof Express](`/api/${path}`, checkAuthenticated, async (req: Request & { headers: { authorization: string } }, res: Response) => {
+    //   // Here we make use of the extra /api from the reverse proxy
+    //   app[method.toLowerCase() as keyof Express](`/api/${path}`, checkAuthenticated, async (req: Request & { headers: { authorization: string } }, res: Response) => {
 
-        const requestId = uuid();
-        const user = req.user as StrategyUser;
+    //     const requestId = uuid();
+    //     const user = req.user as StrategyUser;
 
-        if (await rateLimitResource(user.sub, 'api', 10)) { // limit n general api requests per second
-          return res.status(429).send({ reason: 'Rate limit exceeded.', requestId });
-        }
+    //     if (await rateLimitResource(user.sub, 'api', 10)) { // limit n general api requests per second
+    //       return res.status(429).send({ reason: 'Rate limit exceeded.', requestId });
+    //     }
 
-        const { groupRoleActions } = await redisProxy('groupRoleActions');
-        let response: ApiResponseBody = false;
+    //     const { groupRoleActions } = await redisProxy('groupRoleActions');
+    //     let response = {} as ApiResponseBody;
 
-        const cacheKey = user.sub + req.originalUrl.slice(5); // remove /api/
+    //     const cacheKey = user.sub + req.originalUrl.slice(5); // remove /api/
 
-        if ('get' === method.toLowerCase() && 'skip' !== cache) {
-          const value = await redis.get(cacheKey);
-          if (value) {
-            response = JSON.parse(value);
-            res.header('x-of-cache', 'true');
-          }
-        }
+    //     if ('get' === method.toLowerCase() && 'skip' !== cache) {
+    //       const value = await redis.get(cacheKey);
+    //       if (value) {
+    //         response = JSON.parse(value);
+    //         res.header('x-of-cache', 'true');
+    //       }
+    //     }
 
-        if (!response) {
+    //     if (!Object.keys(response).length) {
 
-          try {
+    //       try {
 
-            const token = jwtDecode<DecodedJWTToken & IdTokenClaims>(req.headers.authorization);
-            const tokenGroupRoles = {} as UserGroupRoles;
+    //         const token = jwtDecode<DecodedJWTToken & IdTokenClaims>(req.headers.authorization);
+    //         const tokenGroupRoles = {} as UserGroupRoles;
 
-            for (const subgroupPath of token.groups) {
-              const [groupName, subgroupName] = subgroupPath.slice(1).split('/');
-              tokenGroupRoles[groupName] = tokenGroupRoles[groupName] || {};
-              tokenGroupRoles[groupName][subgroupName] = groupRoleActions[subgroupPath]?.actions.map(a => a.name) || []
-            }
+    //         for (const subgroupPath of token.groups) {
+    //           const [groupName, subgroupName] = subgroupPath.slice(1).split('/');
+    //           tokenGroupRoles[groupName] = tokenGroupRoles[groupName] || {};
+    //           tokenGroupRoles[groupName][subgroupName] = groupRoleActions[subgroupPath]?.actions.map(a => a.name) || []
+    //         }
 
-            // Create trace event
-            const event = {
-              requestId,
-              method,
-              path,
-              public: false,
-              groups: token.groups,
-              availableUserGroupRoles: tokenGroupRoles,
-              username: user.username,
-              userSub: user.sub,
-              sourceIp: req.headers['x-forwarded-for'] as string,
-              pathParameters: req.params,
-              queryParameters: req.query as Record<string, string>,
-              body: req.body
-            }
-            // Handle request
-            logger.log('App API Request', event);
-            response = await cmnd({ event, db, redis });
+    //         // Create trace event
+    //         const event = {
+    //           requestId,
+    //           method,
+    //           path,
+    //           public: false,
+    //           groups: token.groups,
+    //           availableUserGroupRoles: tokenGroupRoles,
+    //           username: user.username,
+    //           userSub: user.sub,
+    //           sourceIp: req.headers['x-forwarded-for'] as string,
+    //           pathParameters: req.params,
+    //           queryParameters: req.query as Record<string, string>,
+    //           body: req.body
+    //         }
+    //         // Handle request
+    //         logger.log('App API Request', event);
+    //         response = await cmnd({ event, db, redis });
 
-            if ('skip' !== cache) {
-              if ('get' === method.toLowerCase()) {
-                if (null === cache) { // null means the item is never removed from the cache
-                  await redis.set(cacheKey, JSON.stringify(response))
-                } else {
-                  await redis.setEx(cacheKey, cache || 180, JSON.stringify(response));
-                }
-                res.header('x-in-cache', 'true');
-              } else {
-                if (null !== cache) {
-                  await redis.del(cacheKey);
-                }
-              }
-            }
+    //         if ('skip' !== cache) {
+    //           if ('get' === method.toLowerCase()) {
+    //             if (null === cache) { // null means the item is never removed from the cache
+    //               await redis.set(cacheKey, JSON.stringify(response))
+    //             } else {
+    //               await redis.setEx(cacheKey, cache || 180, JSON.stringify(response));
+    //             }
+    //             res.header('x-in-cache', 'true');
+    //           } else {
+    //             if (null !== cache) {
+    //               await redis.del(cacheKey);
+    //             }
+    //           }
+    //         }
 
-          } catch (error) {
-            const { message, reason, requestId: _, ...actionProps } = error as Error & ApiErrorResponse;
+    //       } catch (error) {
+    //         const { message, reason, requestId: _, ...actionProps } = error as Error & ApiErrorResponse;
 
-            console.log('protected error', message || reason);
-            logger.log('error response', { requestId, message, reason });
+    //         console.log('protected error', message || reason);
+    //         logger.log('error response', { requestId, message, reason });
 
-            // Handle failures
-            res.status(500).send({
-              requestId,
-              reason: reason || message,
-              ...actionProps
-            });
-            return;
-          }
-        }
+    //         // Handle failures
+    //         res.status(500).send({
+    //           requestId,
+    //           reason: reason || message,
+    //           ...actionProps
+    //         });
+    //         return;
+    //       }
+    //     }
 
-        if (response) {
-          // Respond
-          res.status(200).json(response);
-        } else {
-          res.status(500).send({ reason: 'Cannot process request', requestId })
-        }
-      });
-    });
+    //     if (Object.keys(response).length) {
+    //       // Respond
+    //       res.status(200).json(response);
+    //     } else {
+    //       res.status(500).send({ reason: 'Cannot process request', requestId })
+    //     }
+    //   });
+    // });
 
     // Define public routes
     // APIs.public.forEach((route) => {

@@ -1,8 +1,8 @@
-import { createClient } from 'redis';
+import { RedisClientType, createClient } from 'redis';
 import dayjs from 'dayjs';
 import RoleRepresentation, { RoleMappingPayload } from '@keycloak/keycloak-admin-client/lib/defs/roleRepresentation';
 import ClientRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientRepresentation';
-import { IGroupRoleAuthActions, millisTimeUnits } from 'awayto';
+import { ApiProps, IGroupRoleAuthActions, millisTimeUnits } from 'awayto/core';
 
 const {
   REDIS_HOST
@@ -12,7 +12,7 @@ export const redis = createClient({
   socket: {
     host: REDIS_HOST
   }
-});
+}) as RedisClientType;
 
 export type RedisClient = typeof redis;
 

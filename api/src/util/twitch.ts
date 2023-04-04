@@ -2,7 +2,7 @@ import WebSocket from 'ws';
 import WebHooks from '../webhooks/index';
 import { v4 as uuid } from 'uuid';
 import fetch from 'node-fetch';
-import { ApiProps, AuthBody, AuthProps } from 'src/api';
+import { AuthBody, AuthProps } from 'awayto/core';
 
 import redis from './redis';
 import { db } from './db';
@@ -111,7 +111,7 @@ async function go() {
     
             if (rewards[contents.customRewardId]) {
               
-              await WebHooks[`CHANNEL_POINT_REDEMPTION`]({ event, db, redis } as AuthProps);
+              // await WebHooks[`CHANNEL_POINT_REDEMPTION`]({ event, db, redis } as AuthProps);
             }
     
     

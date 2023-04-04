@@ -1,10 +1,8 @@
 
-import { CreateChatCompletionResponseChoicesInner, CreateCompletionResponseChoicesInner, CreateModerationResponseResultsInner, OpenAIApi } from 'openai';
-import { RequiredError } from 'openai/dist/base';
-import { inspect } from 'util';
+import { OpenAIApi } from 'openai';
 import logger from './logger';
 
-import { IPrompts } from 'awayto';
+import { IPrompts } from 'awayto/core';
 
 const openai = new OpenAIApi();
 const opts = {
@@ -15,7 +13,7 @@ const opts = {
 };
 
 function handleOpenAIError(error: unknown): void {
-  const err = error as RequiredError;
+  const err = error as Error & { field: string };
   console.log('openai error', err.message + ' ' + err.field + ' ' + err.stack);
   logger.log('openai error', err.message);
 }
