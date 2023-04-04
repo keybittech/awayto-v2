@@ -1,11 +1,14 @@
 {
   "dependencies": {
-    "dayjs": "^1.11.7"
+    "dayjs": "^1.11.7",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@keycloak/keycloak-admin-client": "^21.0.2",
+    "@types/graylog2": "^0.2.2",
     "@types/pg": "^8.6.6",
     "@types/pg-promise": "^5.4.3",
-    "@types/redis": "^4.0.11"
+    "@types/redis": "^4.0.11",
+    "@types/uuid": "^9.0.1"
   }
 }

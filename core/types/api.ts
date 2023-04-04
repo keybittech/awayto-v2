@@ -3,9 +3,11 @@ import RoleRepresentation, { RoleMappingPayload } from '@keycloak/keycloak-admin
 import ClientRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientRepresentation';
 import { IDatabase } from 'pg-promise';
 import { RedisClientType } from 'redis';
+import { graylog } from 'graylog2';
 import { UserGroupRoles } from './profile';
 import { IGroupRoleAuthActions } from './group';
-import { AnyRecord } from '../util';
+import { AnyRecord, Void } from '../util';
+import { KcSiteOpts } from './auth';
 
 declare global {
   /**
@@ -45,7 +47,7 @@ export enum EndpointType {
 /**
  * @category API
  */
-export type ApiEvent<T extends AnyRecord & Partial<Error>> = {
+export type ApiEvent<T extends AnyRecord> = {
   requestId: string;
   method: string;
   url: string;
@@ -64,7 +66,7 @@ export type ApiEvent<T extends AnyRecord & Partial<Error>> = {
  * @category API
  */
 export type ApiHandler<T> = {
-  [K in keyof T]: T[K] extends { queryArg: infer QA extends AnyRecord, resultType: infer RT} ?  (props: ApiProps<QA>) => Promise<ApiResponseBody<RT>> : never
+  [K in keyof T]: T[K] extends { queryArg: infer QA extends AnyRecord, resultType: infer RT } ?  (props: ApiProps<QA>) => Promise<RT extends Void ? void : Partial<RT>> : never
 }
 
 type CompletionApis = {
@@ -80,9 +82,10 @@ type CompletionApis = {
 export type ApiProps<T extends AnyRecord> = {
   event: ApiEvent<T>;
   db: IDatabase<unknown>;
+  logger: graylog;
   redis: RedisClientType;
   redisProxy: RedisProxy;
-  keycloak: KeycloakAdminClient;
+  keycloak: KeycloakAdminClient & KcSiteOpts;
   completions: CompletionApis;
 }
 
@@ -94,7 +97,7 @@ export type AuthProps = {
   db: IDatabase<unknown>;
   redis: RedisClientType;
   redisProxy: RedisProxy;
-  keycloak: KeycloakAdminClient;
+  keycloak: KeycloakAdminClient & KcSiteOpts;
   completions: CompletionApis;
 }
 
@@ -104,17 +107,6 @@ export type AuthProps = {
 export type IWebhooks = {
   [prop: string]: (event: AuthProps) => Promise<void>;
 };
-
-/**
- * @category Awayto
- */
-export type ApiResponseBody<T> = T | Partial<T & {
-  error: Error | string;
-  type: string;
-  message: string;
-  statusCode: number;
-  requestId: string;
-}>
 
 /**
  * @category API

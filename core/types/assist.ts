@@ -35,7 +35,7 @@ const assistApi = {
       prompt: '' as string,
       prompt2: '' as string
     },
-    resultType: {} as IAssist
+    resultType: { promptResult: [] as string[] }
   },
 } as const;
 
@@ -50,9 +50,16 @@ const assistApiHandlers: ApiHandler<typeof assistApi> = {
     // return { promptResult: promptResult[0].text?.trim().replace(/\r?\n|\r/g, '').split('|').filter(a => !!a) };
     return { promptResult: promptResult.split('|').filter(a => !!a) };
   },
-}
+} as const;
 
+/**
+ * @category Assist
+ */
 type AssistApi = typeof assistApi;
+
+/**
+ * @category Assist
+ */
 type AssistApiHandler = typeof assistApiHandlers;
 
 declare module './api' {

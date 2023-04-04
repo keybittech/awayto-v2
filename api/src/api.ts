@@ -27,8 +27,8 @@ import passport from 'passport';
 
 // import APIs from './apis/index';
 import WebHooks from './webhooks/index';
-import { keycloak as kcAdminClient, getGroupRegistrationRedirectParts, keycloakClient, ready as keycloakConnected } from './util/keycloak';
-const keycloak = kcAdminClient as unknown;
+import keycloak, { getGroupRegistrationRedirectParts } from './util/keycloak';
+
 
 import { IdTokenClaims, Strategy, StrategyVerifyCallbackUserInfo } from 'openid-client';
 
@@ -37,13 +37,7 @@ import redis, { rateLimitResource, redisProxy } from './util/redis';
 import logger from './util/logger';
 import completions from './util/openai';
 
-import { DecodedJWTToken, UserGroupRoles, StrategyUser, IActionTypes, ApiErrorResponse, IGroup, ApiResponseBody, AuthBody, siteApiRef, AuthProps, siteApiHandlerRef, ApiProps, hasRequiredArgs, AnyRecord } from 'awayto/core'
-
-export function getActionParts(action: IActionTypes): [string, string] {
-  const method = action.substring(0, action.indexOf('/'));
-  const path = action.substring(action.indexOf('/') + 1);
-  return [method, path];
-}
+import { DecodedJWTToken, UserGroupRoles, StrategyUser, ApiErrorResponse, IGroup, AuthBody, siteApiRef, AuthProps, siteApiHandlerRef, ApiProps, hasRequiredArgs, AnyRecord } from 'awayto/core'
 
 const {
   SOCK_HOST,
@@ -54,8 +48,8 @@ const {
 let connections: Map<string, boolean> = new Map();
 
 function setConnections() {
-  console.log({ keycloakConnected });
-  connections.set('keycloak', keycloakConnected);
+  console.log({ keycloakConnected: keycloak.ready });
+  connections.set('keycloak', keycloak.ready);
   console.log({ dbConnected });
   connections.set('db', dbConnected);
   console.log({ redisConnected: redis.isReady });
@@ -135,7 +129,7 @@ async function go() {
       return done(null, userProfileClaims);
     }
 
-    passport.use('oidc', new Strategy<StrategyUser>({ client: keycloakClient }, strategyResponder));
+    passport.use('oidc', new Strategy<StrategyUser>({ client: keycloak.apiClient }, strategyResponder));
 
     passport.serializeUser(function (user, done) {
       done(null, user);
@@ -238,7 +232,7 @@ async function go() {
           body
         };
 
-        await WebHooks[`AUTH_${type}`]({ event, db, redis, redisProxy, keycloak } as AuthProps);
+        await WebHooks[`AUTH_${type}`]({ event, db, redis, redisProxy, keycloak: keycloak as unknown } as AuthProps);
 
         res.status(200).end();
       } catch (error) {
@@ -280,7 +274,7 @@ async function go() {
         }
 
         const { groupRoleActions } = await redisProxy('groupRoleActions');
-        let response = {} as ApiResponseBody<typeof resultType>;
+        let response = {} as typeof resultType;
 
         const cacheKey = user.sub + req.originalUrl.slice(5); // remove /api/
 
@@ -309,9 +303,10 @@ async function go() {
             const requestParams = {
               db,
               redis,
-              keycloak,
+              keycloak: keycloak as unknown,
               redisProxy,
               completions,
+              logger,
               event: {
                 requestId,
                 method,
@@ -329,10 +324,10 @@ async function go() {
             };
 
             logger.log('App API Request', requestParams.event);
-            const handler = siteApiHandlerRef[apiRefId as keyof typeof siteApiHandlerRef] as (params: ApiProps<typeof queryArg>) => Promise<ApiResponseBody<typeof resultType>>;
+            const handler = siteApiHandlerRef[apiRefId as keyof typeof siteApiHandlerRef] as (params: ApiProps<typeof queryArg>) => Promise<typeof resultType>;
             response = await handler(requestParams as ApiProps<typeof queryArg>);
 
-            if ('skip' !== cache) {
+            if (response && 'boolean' !== typeof response && 'skip' !== cache) {
               if ('get' === method.toLowerCase()) {
                 if (null === cache) { // null means the item is never removed from the cache
                   await redis.set(cacheKey, JSON.stringify(response))
@@ -363,7 +358,7 @@ async function go() {
           }
         }
 
-        if (Object.keys(response).length) {
+        if (!!response || 'object' === typeof response && Object.keys(response).length) {
           // Respond
           res.status(200).json(response);
         } else {
@@ -388,7 +383,7 @@ async function go() {
     //     }
 
     //     const { groupRoleActions } = await redisProxy('groupRoleActions');
-    //     let response = {} as ApiResponseBody;
+    //     let response = {};
 
     //     const cacheKey = user.sub + req.originalUrl.slice(5); // remove /api/
 

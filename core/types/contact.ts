@@ -146,9 +146,16 @@ const contactApiHandlers: ApiHandler<typeof contactApi> = {
     `, [id, utcNowString(), props.event.userSub]);
     return { id };
   },
-}
+} as const;
 
+/**
+ * @category Contact
+ */
 type ContactApi = typeof contactApi;
+
+/**
+ * @category Contact
+ */
 type ContactApiHandler = typeof contactApiHandlers;
 
 declare module './api' {

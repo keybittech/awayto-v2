@@ -1,5 +1,11 @@
 import { UserGroupRoles } from "./profile";
 
+/**
+ * @category Authorization
+ */
+export type KcSiteOpts = {
+  regroup: (groupId?: string) => Promise<void>;
+}
 
 /**
  * @category Authorization

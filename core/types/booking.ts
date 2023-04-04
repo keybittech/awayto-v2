@@ -142,9 +142,16 @@ const bookingApiHandlers: ApiHandler<typeof bookingApi> = {
     `, [id, utcNowString(), props.event.userSub]);
     return { id };
   },
-}
+} as const;
 
+/**
+ * @category Booking
+ */
 type BookingApi = typeof bookingApi;
+
+/**
+ * @category Booking
+ */
 type BookingApiHandler = typeof bookingApiHandlers;
 
 declare module './api' {

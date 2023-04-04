@@ -10,11 +10,8 @@ import { performance } from 'perf_hooks';
 
 import fetch from 'node-fetch';
 
-import { IGroupRoleAuthActions, SiteRoles, asyncForEach, ApiErrorResponse } from 'awayto/core';
+import { IGroupRoleAuthActions, SiteRoles, asyncForEach, ApiErrorResponse, KcSiteOpts } from 'awayto/core';
 import redis, { clearLocalCache, redisProxy } from './redis';
-
-let keycloakClient: BaseClient;
-let ready: boolean = false;
 
 const { APP_ROLE_CALL } = SiteRoles;
 
@@ -32,7 +29,10 @@ const {
 const keycloak = new KcAdminClient({
   baseUrl: `https://${KEYCLOAK_HOST}:${KEYCLOAK_PORT}`,
   realmName: KC_REALM
-}) as KeycloakAdminClient
+}) as KeycloakAdminClient & KcSiteOpts & {
+  apiClient: BaseClient;
+  ready: boolean;
+}
 
 const credentials: Credentials = {
   clientId: KC_API_CLIENT_ID,
@@ -40,7 +40,13 @@ const credentials: Credentials = {
   grantType: 'client_credentials'
 }
 
-const regroup = async function (groupId?: string) {
+let regrouping = false;
+
+keycloak.regroup = async function (groupId?: string): Promise<void> {
+
+  if (regrouping) return;
+  regrouping = true;
+
   try {
     let groups: GroupRepresentation[] = [];
 
@@ -100,6 +106,7 @@ const regroup = async function (groupId?: string) {
     console.log('regroup failed', error);
   }
 
+  regrouping = false;
 }
 
 async function go() {
@@ -114,17 +121,17 @@ async function go() {
     // API Client admin keycloak login
     await keycloak.auth(credentials);
     console.log('keycloak connected');
-    await regroup();
+    await keycloak.regroup();
 
     // Refresh api credentials/groups every 58 seconds
     setInterval(async () => {
       try {
         await keycloak.auth(credentials);
-        await regroup();
-        ready = true;
+        await keycloak.regroup();
+        keycloak.ready = true;
       } catch (error) {
         console.log('Could not auth with keycloak and regroup. Will try again in 1 minute.');
-        ready = false;
+        keycloak.ready = false;
       }
     }, 58 * 1000); // 58 seconds
 
@@ -159,7 +166,8 @@ async function go() {
 
   // KC Passport & OIDC Client
   const keycloakIssuer = await Issuer.discover(`https://${KEYCLOAK_HOST}:${KEYCLOAK_PORT}/realms/${KC_REALM}`);
-  keycloakClient = new keycloakIssuer.Client({
+  
+  keycloak.apiClient = new keycloakIssuer.Client({
     client_id: KC_API_CLIENT_ID,
     client_secret: KC_API_CLIENT_SECRET,
     redirect_uris: [`https://${CUST_APP_HOSTNAME}/api/auth/login/callback`],
@@ -167,8 +175,7 @@ async function go() {
     response_types: ['code']
   });
 
-
-  ready = true;
+  keycloak.ready = true;
 }
 
 export async function getGroupRegistrationRedirectParts(groupCode: string): Promise<[string, string[]]> {
@@ -191,12 +198,6 @@ export async function getGroupRegistrationRedirectParts(groupCode: string): Prom
   }
 }
 
-
 void go();
 
-export {
-  ready,
-  keycloak,
-  keycloakClient,
-  regroup
-}
+export default keycloak;

@@ -62,7 +62,7 @@ const bookingTranscriptApi = {
     method: 'DELETE',
     cache: true,
     queryArg: { id: '' as string },
-    resultType: { id: '' as string }
+    resultType: {} as IBookingTranscript
   },
   disableBookingTranscript: {
     kind: EndpointType.MUTATION,
@@ -104,9 +104,16 @@ const bookingTranscriptApiHandlers: ApiHandler<typeof bookingTranscriptApi> = {
 
     return { id };
   },
-}
+} as const;
 
+/**
+ * @category Booking Transcript
+ */
 type BookingTranscriptApi = typeof bookingTranscriptApi;
+
+/**
+ * @category Booking Transcript
+ */
 type BookingTranscriptApiHandler = typeof bookingTranscriptApiHandlers;
 
 declare module './api' {
