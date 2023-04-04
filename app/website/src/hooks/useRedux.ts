@@ -1,4 +1,5 @@
 import { TypedUseSelectorHook, useSelector } from 'react-redux';
+import { RootState } from './store';
 
 /**
  * 
@@ -13,4 +14,4 @@ import { TypedUseSelectorHook, useSelector } from 'react-redux';
  * 
  * @category Hooks
  */
-export const useRedux: TypedUseSelectorHook<IMergedState> = useSelector;
+export const useRedux: TypedUseSelectorHook<RootState> = useSelector;

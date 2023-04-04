@@ -3,6 +3,7 @@
     "dayjs": "^1.11.7"
   },
   "devDependencies": {
+    "@keycloak/keycloak-admin-client": "^21.0.2",
     "@types/pg": "^8.6.6",
     "@types/pg-promise": "^5.4.3",
     "@types/redis": "^4.0.11"

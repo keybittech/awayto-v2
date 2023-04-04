@@ -1,5 +1,5 @@
 import { asyncForEach, IGroup, IGroupRole, IGroupRoleActionTypes, IGroupService, IGroupServiceAddon, IForm, IFormActionTypes, IUserProfile, IFormVersion } from 'awayto/core';
-import { ApiEvent, ApiModule } from '../api';
+import { ApiModule } from '../api';
 
 const groupRoles: ApiModule = [
 

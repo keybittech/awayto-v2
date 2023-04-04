@@ -9,7 +9,7 @@ const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 
-const { getLoaders, loaderByName, addBeforeLoader, } = require('@craco/craco');
+const { getLoaders, loaderByName, addBeforeLoader, ESLINT_MODES, } = require('@craco/craco');
 
 const crypto = require('crypto');
 const glob = require('glob');
@@ -117,6 +117,10 @@ const appDirectory = fs.realpathSync(process.cwd());
 const resolveApp = (relativePath) => path.resolve(appDirectory, relativePath);
 
 module.exports = {
+  eslint: {
+    enable: false,
+    mode: ESLINT_MODES.NONE
+  },
   webpack: {
     alias: {
       'awayto/core': resolveApp(AWAYTO_CORE + '/index.ts'),

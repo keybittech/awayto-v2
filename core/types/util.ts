@@ -1,9 +1,3 @@
-import { Merge } from '../util';
-
-declare global {
-  interface IMergedState extends Merge<IUtilState> {}
-}
-
 type ConfirmActionProps = [
   approval?: boolean,
 ]
@@ -54,16 +48,13 @@ export enum IUtilActionTypes {
   SET_UPDATE_ASSIGNMENTS = "util/SET_UPDATE_ASSIGNMENTS",
 }
 
-const kbtTheme = localStorage.getItem('kbt_theme');
-
 export const utilConfig = {
   name: 'util',
   initialState: {
     snackOn: '',
     isLoading: false,
     isConfirming: false,
-    canSubmitAssignments: true,
-    theme: kbtTheme !== 'undefined' && kbtTheme ? kbtTheme : 'dark',
+    canSubmitAssignments: true
   } as IUtilState,
   reducers: {
     setTheme: (state: IUtilState, action: { payload: { theme: 'dark' | 'light' } }) => {

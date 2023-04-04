@@ -1,9 +1,11 @@
-import { Client as PGClient } from 'pg';
-import { RedisClientType } from 'redis';
-import { IActionTypes } from './action_types';
-import { UserGroupRoles } from './profile';
-
+import { KeycloakAdminClient } from '@keycloak/keycloak-admin-client/lib/client';
+import RoleRepresentation, { RoleMappingPayload } from '@keycloak/keycloak-admin-client/lib/defs/roleRepresentation';
+import ClientRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientRepresentation';
 import { IDatabase } from 'pg-promise';
+import { RedisClientType } from 'redis';
+import { UserGroupRoles } from './profile';
+import { IGroupRoleAuthActions } from './group';
+import { AnyRecord } from '../util';
 
 declare global {
   /**
@@ -25,7 +27,12 @@ export const siteApiRef = {} as SiteApiRef;
 /**
  * @category API
  */
-export type ExtendApi<T> = { [K in keyof T]: T[K] };
+export interface SiteApiHandlerRef { }
+
+/**
+ * @category API
+ */
+export const siteApiHandlerRef = {} as SiteApiHandlerRef;
 
 /**
  * @category API
@@ -35,57 +42,60 @@ export enum EndpointType {
   MUTATION = "mutation"
 }
 
-// Following types are used to determine available @reduxjs/toolkit auto generated hooks
-export type Void = { _void: never };
-export type ReplaceVoid<T> = T extends Void ? void : T;
-
 /**
  * @category API
  */
-export type ApiHandler<
-  TBody extends undefined | Record<string, string | number | boolean | Record<string, unknown> | unknown[]> = undefined,
-  TPathParams extends undefined | Record<string, string> = undefined,
-  TQueryParams extends undefined | Record<string, string> = undefined
-> = {
-  event: ApiEvent<TBody, TPathParams, TQueryParams>;
-  db: IDatabase<unknown>;
-  redis: RedisClientType;
-}
-
-/**
- * @category API
- */
-export type ApiEvent<T = IMergedState & Error, P = Record<string, string>, Q = Record<string, string>> = {
+export type ApiEvent<T extends AnyRecord & Partial<Error>> = {
   requestId: string;
   method: string;
-  path: string;
+  url: string;
   public: boolean;
   username?: string;
   userSub: string;
   sourceIp: string;
   groups?: string[];
   availableUserGroupRoles: UserGroupRoles;
-  pathParameters: P,
-  queryParameters: Q,
-  body: T
+  pathParameters: Record<string, string>;
+  queryParameters: Record<string, string>;
+  body: T;
 }
 
 /**
  * @category API
  */
-export type ApiProps<T> = {
+export type ApiHandler<T> = {
+  [K in keyof T]: T[K] extends { queryArg: infer QA extends AnyRecord, resultType: infer RT} ?  (props: ApiProps<QA>) => Promise<ApiResponseBody<RT>> : never
+}
+
+type CompletionApis = {
+  generatePrompt: (promptId: string, ...prompts: string[]) => string;
+  getChatCompletionPrompt: (input: string) => Promise<string>;
+  getCompletionPrompt: (input: string) => Promise<string>;
+  getModerationCompletion: (input: string) => Promise<boolean | undefined>;
+}
+
+/**
+ * @category API
+ */
+export type ApiProps<T extends AnyRecord> = {
   event: ApiEvent<T>;
   db: IDatabase<unknown>;
   redis: RedisClientType;
+  redisProxy: RedisProxy;
+  keycloak: KeycloakAdminClient;
+  completions: CompletionApis;
 }
 
 /**
  * @category API
  */
 export type AuthProps = {
-  event: Omit<ApiEvent, 'body'> & { body: AuthBody };
+  event: Omit<ApiEvent<AnyRecord>, 'body'> & { body: AuthBody };
   db: IDatabase<unknown>;
   redis: RedisClientType;
+  redisProxy: RedisProxy;
+  keycloak: KeycloakAdminClient;
+  completions: CompletionApis;
 }
 
 /**
@@ -96,40 +106,15 @@ export type IWebhooks = {
 };
 
 /**
- * @category API
- */
-export type ApiModule = ApiModulet[];
-
-/**
  * @category Awayto
  */
-export class ApiResponse {
-  responseText?: string;
-  responseString?: string;
-  responseBody?: Response;
-}
-
-/**
- * @category Awayto
- */
-export interface ApiResponseBody extends IMergedState {
+export type ApiResponseBody<T> = T | Partial<T & {
   error: Error | string;
   type: string;
   message: string;
   statusCode: number;
   requestId: string;
-}
-
-/**
- * @category API
- */
-export type ApiModulet = {
-  roles?: string;
-  inclusive?: boolean;
-  cache?: 'skip' | number | null;
-  action: IActionTypes;
-  cmnd(props: ApiProps<Record<string, string>>, meta?: string): Promise<Partial<ApiResponseBody>>;
-}
+}>
 
 /**
  * @category API
@@ -188,12 +173,10 @@ export class ErrorType extends Error {
   }
 }
 
-
 /**
  * @category API
  */
 type BuildParamTypes = string | number | boolean | null;
-
 
 /**
  * @category API
@@ -213,3 +196,20 @@ export const buildUpdate = (params: BuildUpdateParams) => {
     array: keySet.reduce((memo, param: BuildParamTypes) => memo.concat(params[param as keyof BuildUpdateParams]), buildParams)
   }
 };
+
+/**
+ * @category Redis
+ */
+export type ProxyKeys = {
+  adminSub: string;
+  appClient: ClientRepresentation;
+  groupRoleActions: Record<string, IGroupRoleAuthActions>;
+  groupAdminRoles: RoleMappingPayload[];
+  appRoles: RoleRepresentation[];
+  roleCall: RoleMappingPayload[];
+}
+
+/**
+ * @category Redis
+ */
+export type RedisProxy = (...args: string[]) => Promise<ProxyKeys>;

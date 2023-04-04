@@ -1,8 +1,6 @@
 import { RedisClientType, createClient } from 'redis';
 import dayjs from 'dayjs';
-import RoleRepresentation, { RoleMappingPayload } from '@keycloak/keycloak-admin-client/lib/defs/roleRepresentation';
-import ClientRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientRepresentation';
-import { ApiProps, IGroupRoleAuthActions, millisTimeUnits } from 'awayto/core';
+import { millisTimeUnits, ProxyKeys } from 'awayto/core';
 
 const {
   REDIS_HOST
@@ -18,14 +16,7 @@ export type RedisClient = typeof redis;
 
 redis.on('error', console.error);
 
-type ProxyKeys = Record<string, unknown> & {
-  adminSub: string;
-  appClient: ClientRepresentation;
-  groupRoleActions: Record<string, IGroupRoleAuthActions>;
-  groupAdminRoles: RoleMappingPayload[];
-  appRoles: RoleRepresentation[];
-  roleCall: RoleMappingPayload[];
-}
+
 
 const cache = new Map<string, { value: unknown, timestamp: number }>();
 

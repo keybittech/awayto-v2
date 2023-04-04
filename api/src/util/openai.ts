@@ -26,48 +26,49 @@ function generateExample(prompt: string, result: string = '') {
   return `Phrase: ${prompt}\nResult: ${result}`;
 }
 
-export function generatePrompt(promptId: IPrompts, prompt: string, prompt2?: string): string {
+export function generatePrompt(promptId: IPrompts, ...prompts: string[]): string {
+  const [prompt1, prompt2] = prompts;
   let generatedPrompt = ``;
   switch (promptId) {
     case IPrompts.CONVERT_PURPOSE:
       generatedPrompt += `
-        Complete the following statement: A 50 character maximum passive gerund mission statement for a business named "${prompt}" with the description of "${prompt2}", could be 
+        Complete the following statement: A 50 character maximum passive gerund mission statement for a business named "${prompt1}" with the description of "${prompt2}", could be 
       `;
       break;
     case IPrompts.SUGGEST_ROLE:
       generatedPrompt += `
-        ${getSuggestionPrompt(`role names for a group named ${prompt} which is interested in ${prompt2}`)}
+        ${getSuggestionPrompt(`role names for a group named ${prompt1} which is interested in ${prompt2}`)}
         ${generateExample('role names for a group named writing center which is interested in consulting on writing', 'Tutor|Student|Advisor|Administrator|Consultant')}
         ${generateExample('role names for a group named city maintenance department which is interested in maintaining the facilities in the city', 'Dispatcher|Engineer|Administrator|Technician|Manager')}
-        ${generateExample(`role names for a group named "${prompt}" which is interested in ${prompt2}`)}
+        ${generateExample(`role names for a group named "${prompt1}" which is interested in ${prompt2}`)}
       `;
       break;
     case IPrompts.SUGGEST_SERVICE:
       generatedPrompt += `
-        ${getSuggestionPrompt(`gerund verbs performed for the purpose of ${prompt}`)}
+        ${getSuggestionPrompt(`gerund verbs performed for the purpose of ${prompt1}`)}
         ${generateExample('gerund verbs performed for the purpose of offering educational services to community college students', 'Tutoring|Advising|Consulting|Instruction|Mentoring')}
         ${generateExample('gerund verbs performed for the purpose of providing banking services to the local area', 'Accounting|Financing|Securities|Financial Planning|Investing')}
-        ${generateExample(`gerund verbs performed for the purpose of ${prompt}`)}`;
+        ${generateExample(`gerund verbs performed for the purpose of ${prompt1}`)}`;
       break;
     case IPrompts.SUGGEST_TIER:
       generatedPrompt += `
-        ${getSuggestionPrompt(`service level names for ${prompt}`)}
+        ${getSuggestionPrompt(`service level names for ${prompt1}`)}
         ${generateExample('service level names for a generic service', 'Small|Medium|Large')}
         ${generateExample('service level names for writing tutoring at a school writing center', 'WRI 1010|WRI 1020|WRI 2010|WRI 2020|WRI 3010')}
         ${generateExample('service level names for streaming at a web media platform', 'Basic|Standard|Premium')}
         ${generateExample('service level names for advising at a school learning center', 'ENG 1010|WRI 1010|MAT 1010|SCI 1010|HIS 1010')}
         ${generateExample('service level names for travelling on an airline service', 'Economy|Business|First Class')}
         ${generateExample('service level names for reading tutoring at a school reading center', 'ESL 900|ESL 990|ENG 1010|ENG 1020|ENG 2010')}
-        ${generateExample(`service level names for ${prompt}`)}`;
+        ${generateExample(`service level names for ${prompt1}`)}`;
       break;
     case IPrompts.SUGGEST_FEATURE:
       generatedPrompt += `
-        ${getSuggestionPrompt(`features of ${prompt}`)}
+        ${getSuggestionPrompt(`features of ${prompt1}`)}
         ${generateExample('features of ENGL 1010 writing tutoring', 'Feedback|Revisions|Brainstorming|Discussion')}
         ${generateExample('features of Standard gym membership', 'Full Gym Equipment|Limited Training|Half-Day Access')}
         ${generateExample('features of Pro web hosting service', 'Unlimited Sites|Unlimited Storage|1TB Bandwidth|Daily Backups')}
         ${generateExample('features of professional photography service', 'Next-Day Prints|High-quality digital photos|Retouching and editing|Choice of location|Choice of outfit changes')}
-        ${generateExample(`features of ${prompt}`)}`;
+        ${generateExample(`features of ${prompt1}`)}`;
       break;
     default:
       break;
@@ -137,4 +138,11 @@ export async function getModerationCompletion(input: string): Promise<boolean | 
     handleOpenAIError(error);
     throw { reason: 'Could not complete prompt.' }
   }
+}
+
+export default {
+  generatePrompt,
+  getChatCompletionPrompt,
+  getCompletionPrompt,
+  getModerationCompletion
 }

@@ -1,13 +1,13 @@
-import { Merge } from '../util';
+import { Extend, Merge, Void } from '../util';
 import { IQuote } from './quote';
 import { IBooking } from './booking';
 import { IGroup } from './group';
 import { IRole } from './role';
-import { ApiHandler, EndpointType, siteApiRef, Void } from './api';
+import { ApiHandler, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
 
-declare global {
-  interface IMergedState extends Merge<IUserProfileState> {}
-}
+// declare global {
+//   interface IMergedState extends Merge<IUserProfileState> {}
+// }
 
 /**
  * @category User Profile
@@ -80,13 +80,10 @@ const userProfileApi = {
   getUserProfileDetails: {
     kind: EndpointType.QUERY,
     url: 'profile/details',
-    method: 'GET',    
+    method: 'GET',
+    cache: 'skip',
     queryArg: { _void: null as never },
-    resultType: {} as IUserProfile,
-    // apiHandler: async (props: ApiHandler<IUserProfile>) => {
-      
-    //   return true;
-    // }
+    resultType: {} as IUserProfile
     // transformResponse: transformProfile
   },
   // getUserProfileDetailsBySub: {
@@ -105,10 +102,36 @@ const userProfileApi = {
   // }
 } as const;
 
-type UserProfileApi = typeof userProfileApi;
+const userProfileApiHandlers: ApiHandler<typeof userProfileApi> = {
+  getUserProfileDetails: async props => {
+    const { roleCall, appClient } = await props.redisProxy('roleCall', 'appClient');
 
+    const [user] = await props.db.query<IUserProfile[]>(`
+      SELECT * 
+      FROM dbview_schema.enabled_users_ext
+      WHERE sub = $1
+    `, [props.event.userSub]);
+
+    user.availableUserGroupRoles = props.event.availableUserGroupRoles;
+    user.username = ' suhd00d'
+    try {
+      await props.keycloak.users.delClientRoleMappings({
+        id: user.sub,
+        clientUniqueId: appClient.id!,
+        roles: roleCall
+      });
+    } catch (error) {}
+
+    return user;
+  }
+} as const;
+
+type UserProfileApi = typeof userProfileApi;
+type UserProfileApiHandlers = typeof userProfileApiHandlers;
 declare module './api' {
-  interface SiteApiRef extends ExtendApi<UserProfileApi> {}
+  interface SiteApiRef extends Extend<UserProfileApi> {}
+  interface SiteApiHandlerRef extends Extend<UserProfileApiHandlers> {}
 }
 
 Object.assign(siteApiRef, userProfileApi);
+Object.assign(siteApiHandlerRef, userProfileApiHandlers);

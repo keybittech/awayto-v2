@@ -19,7 +19,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import ArrowRightAlt from '@mui/icons-material/ArrowRightAlt';
 import NotInterestedIcon from '@mui/icons-material/NotInterested';
 
-import { IGroup, IUtilActionTypes, IGroupActionTypes, IAssistActionTypes, IRole, IPrompts, IAssistState } from 'awayto/core';
+import { IGroup, IUtilActionTypes, IGroupActionTypes, IAssistActionTypes, IRole, IPrompts } from 'awayto/core';
 import { useAct, useApi, useRedux, useComponents, storeApi } from 'awayto/hooks';
 import { ManageGroupsActions } from './ManageGroups';
 import keycloak from '../../../keycloak';
@@ -99,7 +99,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
   const handleContinue = useCallback(() => {
     const [, res] = api(GET_PROMPT, { id: IPrompts.SUGGEST_ROLE, prompt: group.name, prompt2: group.purpose }, { load: true, useParams: true })
     res?.then(featureSuggestionData => {
-      const { promptResult } = featureSuggestionData as IMergedState;
+      const { promptResult } = featureSuggestionData as { promptResult: string[] };
       if (promptResult) setRoleSuggestions(promptResult)
       setViewStep(2);
     });

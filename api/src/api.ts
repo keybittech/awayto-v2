@@ -17,8 +17,6 @@ import 'dayjs/locale/en';
 import fs from 'fs';
 import https from 'https';
 import express, { Express, NextFunction, Request, Response } from 'express';
-import { Client } from 'pg';
-import routeMatch, { RouteMatch } from 'route-match';
 import cookieSession from 'cookie-session';
 import cookieParser from 'cookie-parser';
 import httpProxy from 'http-proxy';
@@ -29,35 +27,23 @@ import passport from 'passport';
 
 // import APIs from './apis/index';
 import WebHooks from './webhooks/index';
-import { getGroupRegistrationRedirectParts, keycloakClient, ready as keycloakConnected } from './util/keycloak';
+import { keycloak as kcAdminClient, getGroupRegistrationRedirectParts, keycloakClient, ready as keycloakConnected } from './util/keycloak';
+const keycloak = kcAdminClient as unknown;
 
 import { IdTokenClaims, Strategy, StrategyVerifyCallbackUserInfo } from 'openid-client';
 
 import { db, connected as dbConnected } from './util/db';
 import redis, { rateLimitResource, redisProxy } from './util/redis';
 import logger from './util/logger';
+import completions from './util/openai';
 
-import { DecodedJWTToken, UserGroupRoles, StrategyUser, IActionTypes, ApiErrorResponse, IGroup, ApiResponseBody, AuthBody } from 'awayto/core'
-
-console.log(JSON.stringify(process.env, null, 2))
-
-// import './util/twitch';
+import { DecodedJWTToken, UserGroupRoles, StrategyUser, IActionTypes, ApiErrorResponse, IGroup, ApiResponseBody, AuthBody, siteApiRef, AuthProps, siteApiHandlerRef, ApiProps, hasRequiredArgs, AnyRecord } from 'awayto/core'
 
 export function getActionParts(action: IActionTypes): [string, string] {
   const method = action.substring(0, action.indexOf('/'));
   const path = action.substring(action.indexOf('/') + 1);
   return [method, path];
 }
-
-const { Route, RouteCollection, PathMatcher } = routeMatch as RouteMatch;
-
-
-// const paths = APIs.protected.map(api => {
-//   return new Route(api.action, api.action);
-// });
-// const routeCollection = new RouteCollection(paths);
-// const pathMatcher = new PathMatcher(routeCollection);
-
 
 const {
   SOCK_HOST,
@@ -186,19 +172,19 @@ async function go() {
       }
     });
 
-    // app.post('/api/auth/register/validate', checkBackchannel, async (req, res) => {
-    //   try {
-    //     const { rows: [group] } = await db.query<IGroup>(`
-    //       SELECT "allowedDomains", name
-    //       FROM dbview_schema.enabled_groups
-    //       WHERE code = $1
-    //     `, [req.body.groupCode.toLowerCase()]);
-    //     if (!group) throw { reason: 'BAD_GROUP' };
-    //     res.status(200).send(group);
-    //   } catch (error) {
-    //     res.status(500).send(error)
-    //   }
-    // });
+    app.post('/api/auth/register/validate', checkBackchannel, async (req, res) => {
+      try {
+        const group = await db.one<IGroup>(`
+          SELECT "allowedDomains", name
+          FROM dbview_schema.enabled_groups
+          WHERE code = $1
+        `, [req.body.groupCode.toLowerCase()]);
+        if (!group) throw { reason: 'BAD_GROUP' };
+        res.status(200).send(group);
+      } catch (error) {
+        res.status(500).send(error)
+      }
+    });
 
     app.get('/api/auth/checkin', (req, res, next) => {
       passport.authenticate('oidc')(req, res, next);
@@ -241,7 +227,7 @@ async function go() {
         const event = {
           requestId,
           method: 'POST',
-          path: '/api/auth/webhook',
+          url: '/api/auth/webhook',
           username: details.username || '',
           public: false,
           userSub: userId,
@@ -252,7 +238,7 @@ async function go() {
           body
         };
 
-        await WebHooks[`AUTH_${type}`]({ event, db, redis });
+        await WebHooks[`AUTH_${type}`]({ event, db, redis, redisProxy, keycloak } as AuthProps);
 
         res.status(200).end();
       } catch (error) {
@@ -268,6 +254,124 @@ async function go() {
         });
       }
     });
+
+    function validateRequestBody(queryArg: AnyRecord) {
+      return (req: Request, res: Response, next: NextFunction) => {
+        const issue = hasRequiredArgs(queryArg, req.body);
+        if (true === issue) {
+          next();
+        } else if ('string' === typeof issue) {
+          res.status(400).json({ message: 'Badly formed request. Issue - ' + issue  });
+        }
+      };
+    }
+    
+    for (const apiRefId in siteApiRef) {
+      const { method, url, queryArg, resultType, cache } = siteApiRef[apiRefId as keyof typeof siteApiRef];
+
+      // Here we make use of the extra /api from the reverse proxy
+      app[method.toLowerCase() as keyof Express](`/api/${url}`, checkAuthenticated, validateRequestBody(queryArg as AnyRecord), async (req: Request & { headers: { authorization: string } }, res: Response) => {
+
+        const requestId = uuid();
+        const user = req.user as StrategyUser;
+
+        if (await rateLimitResource(user.sub, 'api', 10)) { // limit n general api requests per second
+          return res.status(429).send({ reason: 'Rate limit exceeded.', requestId });
+        }
+
+        const { groupRoleActions } = await redisProxy('groupRoleActions');
+        let response = {} as ApiResponseBody<typeof resultType>;
+
+        const cacheKey = user.sub + req.originalUrl.slice(5); // remove /api/
+
+        if ('get' === method.toLowerCase() && 'skip' !== cache) {
+          const value = await redis.get(cacheKey);
+          if (value) {
+            response = JSON.parse(value);
+            res.header('x-of-cache', 'true');
+          }
+        }
+
+        if (!Object.keys(response).length) {
+
+          try {
+
+            const token = jwtDecode<DecodedJWTToken & IdTokenClaims>(req.headers.authorization);
+            const tokenGroupRoles = {} as UserGroupRoles;
+
+            for (const subgroupPath of token.groups) {
+              const [groupName, subgroupName] = subgroupPath.slice(1).split('/');
+              tokenGroupRoles[groupName] = tokenGroupRoles[groupName] || {};
+              tokenGroupRoles[groupName][subgroupName] = groupRoleActions[subgroupPath]?.actions.map(a => a.name) || []
+            }
+
+            // Create trace event
+            const requestParams = {
+              db,
+              redis,
+              keycloak,
+              redisProxy,
+              completions,
+              event: {
+                requestId,
+                method,
+                url,
+                public: false,
+                groups: token.groups,
+                availableUserGroupRoles: tokenGroupRoles,
+                username: user.username,
+                userSub: user.sub,
+                sourceIp: req.headers['x-forwarded-for'] as string,
+                pathParameters: req.params as Record<string, string>,
+                queryParameters: req.query as Record<string, string>,
+                body: req.body as typeof queryArg
+              }
+            };
+
+            logger.log('App API Request', requestParams.event);
+            const handler = siteApiHandlerRef[apiRefId as keyof typeof siteApiHandlerRef] as (params: ApiProps<typeof queryArg>) => Promise<ApiResponseBody<typeof resultType>>;
+            response = await handler(requestParams as ApiProps<typeof queryArg>);
+
+            if ('skip' !== cache) {
+              if ('get' === method.toLowerCase()) {
+                if (null === cache) { // null means the item is never removed from the cache
+                  await redis.set(cacheKey, JSON.stringify(response))
+                } else {
+                  await redis.setEx(cacheKey, cache as number || 180, JSON.stringify(response));
+                }
+                res.header('x-in-cache', 'true');
+              } else {
+                if (null !== cache) {
+                  await redis.del(cacheKey);
+                }
+              }
+            }
+
+          } catch (error) {
+            const { message, reason, requestId: _, ...actionProps } = error as Error & ApiErrorResponse;
+
+            console.log('protected error', message || reason);
+            logger.log('error response', { requestId, message, reason });
+
+            // Handle failures
+            res.status(500).send({
+              requestId,
+              reason: reason || message,
+              ...actionProps
+            });
+            return;
+          }
+        }
+
+        if (Object.keys(response).length) {
+          // Respond
+          res.status(200).json(response);
+        } else {
+          res.status(500).send({ reason: 'Cannot process request', requestId })
+        }
+      });
+    }
+
 
     // Define protected routes
     // APIs.protected.forEach(({ action, cmnd, cache }) => {

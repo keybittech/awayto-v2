@@ -1,11 +1,5 @@
-import dayjs from 'dayjs';
-import { Merge } from '../util';
 import { IUserProfile } from './profile';
 import { IRole } from './role';
-
-declare global {
-  interface IMergedState extends Merge<IGroupRoleActionState & IGroupState> { }
-}
 
 /**
  * @category Authorization

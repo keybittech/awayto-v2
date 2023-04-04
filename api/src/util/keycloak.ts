@@ -1,6 +1,7 @@
 
 
 import KcAdminClient from '@keycloak/keycloak-admin-client';
+import { KeycloakAdminClient } from '@keycloak/keycloak-admin-client/lib/client';
 import { BaseClient, Issuer } from 'openid-client';
 import { Credentials } from '@keycloak/keycloak-admin-client/lib/utils/auth';
 import { RoleMappingPayload } from '@keycloak/keycloak-admin-client/lib/defs/roleRepresentation';
@@ -11,7 +12,6 @@ import fetch from 'node-fetch';
 
 import { IGroupRoleAuthActions, SiteRoles, asyncForEach, ApiErrorResponse } from 'awayto/core';
 import redis, { clearLocalCache, redisProxy } from './redis';
-import { Client } from 'pg';
 
 let keycloakClient: BaseClient;
 let ready: boolean = false;
@@ -32,7 +32,7 @@ const {
 const keycloak = new KcAdminClient({
   baseUrl: `https://${KEYCLOAK_HOST}:${KEYCLOAK_PORT}`,
   realmName: KC_REALM
-});
+}) as KeycloakAdminClient
 
 const credentials: Credentials = {
   clientId: KC_API_CLIENT_ID,

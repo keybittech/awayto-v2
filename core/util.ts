@@ -100,12 +100,56 @@ export function getMapFromArray<T extends { id: string }>(state: Map<string, T>,
   }, new Map(state))
 }
 
+export type UnionToIntersection<U> = 
+  (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never;
 type DistributeKey<K, T> = T extends infer U ? K extends keyof U ? U[K] : unknown : never;
 
-export type Merge<T> = T extends Record<string, unknown>
+export type Merge<T> = T extends AnyRecord
   ? {
-    [K in keyof T]: T[K] extends Record<string, unknown>
+    [K in keyof T]: T[K] extends AnyRecord
     ? DistributeKey<string, T[K]>
     : T[K];
   }
   : never;
+
+export interface AnyRecord { [prop: string]: (string | number | boolean | Partial<Void> | unknown[] | AnyRecord) extends infer U ? U : never; }
+
+export type Void = { _void: never };
+export type ReplaceVoid<T> = T extends Void ? void : T;
+export type Extend<T> = { [K in keyof T]: T[K] };
+
+export function hasRequiredArgs(targetType: AnyRecord, sourceType: AnyRecord): boolean | string {
+  const targetTypeKeys = Object.keys(targetType).filter(key => key !== '_void').sort();
+  const sourceTypeKeys = Object.keys(sourceType).sort();
+
+  const extraKeys = sourceTypeKeys.filter((key) => !targetTypeKeys.includes(key));
+
+  if (extraKeys.length > 0) {
+    return 'params not allowed: ' + extraKeys.join(', ');
+  }
+
+  const missingKeys = targetTypeKeys.filter((key) => !sourceTypeKeys.includes(key));
+
+  if (missingKeys.length > 0) {
+    return 'missing params: ' + missingKeys;
+  }
+
+  return targetTypeKeys.every((key) => {
+    const value1 = targetType[key];
+    const value2 = sourceType[key];
+
+    if (typeof value1 !== typeof value2) {
+      return `param mismatch: ${key} expected type: ${typeof value1}, type received ${typeof value2}`;
+    }
+
+    if (Array.isArray(value1) && Array.isArray(value2)) {
+      return true;
+    }
+
+    if (typeof value1 === 'object' && typeof value2 === 'object') {
+      return hasRequiredArgs(value1 as AnyRecord, value2 as AnyRecord) === true;
+    }
+
+    return true;
+  });
+}

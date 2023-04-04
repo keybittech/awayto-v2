@@ -1,11 +1,8 @@
-import { Merge } from '../util';
+import { Void, Extend } from '../util';
 import { IQuote } from './quote';
-import { siteApiRef, EndpointType, ApiProps, Void } from './api';
+import { siteApiRef, EndpointType, ApiHandler, buildUpdate, siteApiHandlerRef } from './api';
 import { IBookingTranscript } from './booking_transcript';
-
-declare global {
-  interface IMergedState extends Merge<IBookingState> {}
-}
+import { utcNowString } from './time_unit';
 
 /**
  * @category Booking
@@ -19,115 +16,141 @@ export type IBooking = IQuote & {
 /**
  * @category Booking
  */
-export type IBookingState = IBooking & {
-  bookings: Record<string, IBooking>;
-};
-
-/**
- * @category Action Types
- */
-export enum IBookingActionTypes {
-  POST_BOOKING = "POST/bookings",
-  PUT_BOOKING = "PUT/bookings",
-  GET_BOOKINGS = "GET/bookings",
-  GET_BOOKING_BY_ID = "GET/bookings/:id",
-  DELETE_BOOKING = "DELETE/bookings/:id",
-  DISABLE_BOOKING = "PUT/bookings/:id/disable"
-}
-
-
-
-type ApiEndpointConfig<QA, RT> = {
-  kind: EndpointType;
-  url: string;
-  method: string;
-  queryArg: QA;
-  resultType: RT;
-  apiHandler: (props: ApiProps<QA>) => Promise<RT>;
-};
-
 const bookingApi = {
-  getBooking: {
+  postBooking: {
+    kind: EndpointType.MUTATION,
+    url: 'bookings',
+    method: 'POST',
+    cache: true,
+    queryArg: { bookings: [] as IBooking[] },
+    resultType: [] as IBooking[]
+  },
+  putBooking: {
+    kind: EndpointType.MUTATION,
+    url: 'bookings',
+    method: 'PUT',
+    cache: true,
+    queryArg: {} as IBooking,
+    resultType: {} as IBooking
+  },
+  getBookings: {
     kind: EndpointType.QUERY,
     url: 'bookings',
     method: 'GET',
+    cache: 180,
     queryArg: {} as Void,
-    resultType: {} as IBooking,
-    // apiHandler: async props => {
-    //   const response = await props.db.query<IBooking>(`
-    //     SELECT eb.*
-    //     FROM dbview_schema.enabled_bookings eb
-    //     JOIN dbtable_schema.schedule_bracket_slots sbs ON sbs.id = eb."scheduleBracketSlotId"
-    //     WHERE eb."createdSub" = $1 OR sbs.created_sub = $1
-    //   `, [props.event.userSub]);
-    //   return response;
-    // }
+    resultType: [] as IBooking[]
+  },
+  getBookingById: {
+    kind: EndpointType.QUERY,
+    url: 'bookings/:id',
+    method: 'GET',
+    cache: true,
+    queryArg: { id: '' as string },
+    resultType: {} as IBooking
+  },
+  deleteBooking: {
+    kind: EndpointType.MUTATION,
+    url: 'bookings/:id',
+    method: 'DELETE',
+    cache: true,
+    queryArg: { id: '' as string },
+    resultType: { id : '' as string }
+  },
+  disableBooking: {
+    kind: EndpointType.MUTATION,
+    url: 'bookings/:id/disable',
+    method: 'PUT',
+    cache: true,
+    queryArg: { id: '' as string },
+    resultType: { id: '' as string }
   }
-} as const
+} as const;
 
+/**
+ * @category Booking
+ */
+const bookingApiHandlers: ApiHandler<typeof bookingApi> = {
+  postBooking: async props => {
+    const { bookings } = props.event.body;
 
-// const bookingApi = {
-//   getBooking: {
-//     kind: EndpointType.QUERY,
-//     url: 'bookings',
-//     method: 'GET',
-//     queryArg: { _void: null as never },
-//     resultType: {} as IBooking[],
-//     apiHandler: async (props: ApiHandler) => {
-//       const response = await props.db.query<IBooking>(`
-//         SELECT eb.*
-//         FROM dbview_schema.enabled_bookings eb
-//         JOIN dbtable_schema.schedule_bracket_slots sbs ON sbs.id = eb."scheduleBracketSlotId"
-//         WHERE eb."createdSub" = $1 OR sbs.created_sub = $1
-//       `, [props.event.userSub]);
-//       return response.rows;
-//     }
-//   },
-//   getBookingById: {
-//     kind: EndpointType.QUERY,
-//     url: 'bookings/:id',
-//     method: 'GET',
-//     queryArg: { id: '' as string },
-//     resultType: {} as IBooking,
-//     apiHandler: async (props: ApiHandler<undefined, { id: string }>) => {
-//       const response = await props.db.query<IBooking>(`
-//         SELECT * FROM dbview_schema.enabled_bookings_ext
-//         WHERE id = $1
-//       `, [props.event.pathParameters.id]);
-//       return response.rows;
-//     }
-//   },
-//   putBooking: {
-//     kind: EndpointType.MUTATION,
-//     url: 'bookings',
-//     method: 'PUT',
-//     queryArg: { groupName: '' as string },
-//     resultType: {} as IBooking,
-//     apiHandler: async (props: ApiHandler<IBooking>) => {
-//       const { id, serviceTierId } = props.event.body;
-//       if (!id) throw new Error('invalid request, no booking id');
-//       const updateProps = buildUpdate({
-//         id,
-//         service_tier_id: serviceTierId,
-//         updated_sub: props.event.userSub,
-//         updated_on: utcNowString()
-//       });
-//       const response = await props.db.query<IBooking>(`
-//         UPDATE dbtable_schema.bookings
-//         SET ${updateProps.string}
-//         WHERE id = $1
-//         RETURNING id, serviceTierId, paymentId, agreement, description
-//       `, updateProps.array);
+    const newBookings: IBooking[] = [];
+    for (const bookingTempId in bookings) {
+      const booking = bookings[bookingTempId];
+      const { quoteId, slotDate, scheduleBracketSlotId } = booking;
 
-//       return response.rows[0];
-//     }
-//   }
-// } as const;
+      const { id: bookingId } = await props.db.one<IBooking>(`
+        INSERT INTO dbtable_schema.bookings (quote_id, slot_date, schedule_bracket_slot_id, created_sub)
+        VALUES ($1::uuid, $2::date, $3::uuid, $4::uuid)
+        RETURNING id
+      `, [quoteId, slotDate, scheduleBracketSlotId, props.event.userSub]);
+
+      booking.id = bookingId;
+      newBookings.push(booking);
+    }
+
+    await props.redis.del(`${props.event.userSub}profile/details`);
+    return newBookings;
+  },
+  putBooking: async props => {
+    const { id, serviceTierId } = props.event.body;
+    const updateProps = buildUpdate({
+      id,
+      service_tier_id: serviceTierId,
+      updated_sub: props.event.userSub,
+      updated_on: utcNowString()
+    });
+    const booking = await props.db.one<IBooking>(`
+      UPDATE dbtable_schema.bookings
+      SET ${updateProps.string}
+      WHERE id = $1
+      RETURNING id, serviceTierId, paymentId, agreement, description
+    `, updateProps.array);
+    return booking;
+  },
+  getBookings: async props => {
+    const response = await props.db.manyOrNone<IBooking>(`
+      SELECT eb.*
+      FROM dbview_schema.enabled_bookings eb
+      JOIN dbtable_schema.schedule_bracket_slots sbs ON sbs.id = eb."scheduleBracketSlotId"
+      WHERE eb."createdSub" = $1 OR sbs.created_sub = $1
+    `, [props.event.userSub]);
+    return response;
+  },
+  getBookingById: async props => {
+    const { id } = props.event.pathParameters;
+    const booking = await props.db.one<IBooking>(`
+      SELECT * FROM dbview_schema.enabled_bookings_ext
+      WHERE id = $1
+    `, [id]);
+    return booking;
+  },
+  deleteBooking: async props => {
+    const { id } = props.event.pathParameters;
+    await props.db.none(`
+      DELETE FROM dbtable_schema.bookings
+      WHERE id = $1
+    `, [id]);
+    return { id };
+  },
+  disableBooking: async props => {
+    const { id } = props.event.pathParameters;
+    await props.db.none(`
+      UPDATE dbtable_schema.bookings
+      SET enabled = false, updated_on = $2, updated_sub = $3
+      WHERE id = $1
+    `, [id, utcNowString(), props.event.userSub]);
+    return { id };
+  },
+}
 
 type BookingApi = typeof bookingApi;
+type BookingApiHandler = typeof bookingApiHandlers;
 
 declare module './api' {
-  interface SiteApiRef extends ExtendApi<BookingApi> {}
+  interface SiteApiRef extends Extend<BookingApi> { }
+  interface SiteApiHandlerRef extends Extend<BookingApiHandler> { }
 }
 
 Object.assign(siteApiRef, bookingApi);
+Object.assign(siteApiHandlerRef, bookingApiHandlers);
