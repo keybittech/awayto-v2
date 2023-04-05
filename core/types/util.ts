@@ -27,27 +27,6 @@ export type IUtil = {
   test: { objectUrl: string };
 }
 
-/**
- * @category Util
- */
-export type IUtilState = IUtil;
-
-/**
- * @category Action Types
- */
-export enum IUtilActionTypes {
-  CLEAR_REDUX = "util/CLEAR_REDUX",
-  OPEN_CONFIRM = "util/OPEN_CONFIRM",
-  CLOSE_CONFIRM = "util/CLOSE_CONFIRM",
-  SET_LOADING = "util/SET_LOADING",
-  SET_THEME = "util/SET_THEME",
-  SET_SNACK = "util/SET_SNACK",
-  TEST_API = "util/TEST_API",
-  API_ERROR = "util/API_ERROR",
-  API_SUCCESS = "util/API_SUCCESS",
-  SET_UPDATE_ASSIGNMENTS = "util/SET_UPDATE_ASSIGNMENTS",
-}
-
 export const utilConfig = {
   name: 'util',
   initialState: {
@@ -55,38 +34,32 @@ export const utilConfig = {
     isLoading: false,
     isConfirming: false,
     canSubmitAssignments: true
-  } as IUtilState,
+  } as IUtil,
   reducers: {
-    setTheme: (state: IUtilState, action: { payload: { theme: 'dark' | 'light' } }) => {
+    setTheme: (state: IUtil, action: { payload: { theme: 'dark' | 'light' } }) => {
       const { theme } = action.payload;
       localStorage.setItem('kbt_theme', theme);
       state.theme = theme;
     },
-    openConfirm: (state: IUtilState) => {
+    openConfirm: (state: IUtil) => {
       state.isConfirming = true;
     },
-    closeConfirm: (state: IUtilState) => {
+    closeConfirm: (state: IUtil) => {
       state.isConfirming = false;
     },
-    setLoading: (state: IUtilState, action: { payload: { isLoading: boolean } }) => {
+    setLoading: (state: IUtil, action: { payload: { isLoading: boolean } }) => {
       state.isLoading = action.payload.isLoading;
     },
-    setSnack: (state: IUtilState, action: { payload: { snackOn: string, snackType?: 'success' | 'info' | 'warning' | 'error', snackRequestId?: string } }) => {
+    setSnack: (state: IUtil, action: { payload: { snackOn: string, snackType?: 'success' | 'info' | 'warning' | 'error', snackRequestId?: string } }) => {
       state.snackOn = action.payload.snackOn;
       state.snackType = action.payload.snackType || 'info';
       state.snackRequestId = action.payload.snackRequestId || '';
     },
-    apiError: (state: IUtilState, action: { payload: { error: Error } }) => {
+    apiError: (state: IUtil, action: { payload: { error: Error } }) => {
       state.snackOn = action.payload.error.message;
     },
-    setUpdateAssignments: (state: IUtilState, action: { payload: { canSubmitAssignments: boolean } }) => {
+    setUpdateAssignments: (state: IUtil, action: { payload: { canSubmitAssignments: boolean } }) => {
       state.canSubmitAssignments = action.payload.canSubmitAssignments;
     },
   },
 } as const;
-
-declare module '.' {
-  export interface AppState {
-    util: IUtilState;
-  }
-}

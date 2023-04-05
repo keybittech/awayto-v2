@@ -17,7 +17,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 
 import { getBaseComponents, getDesignTokens, getThemedComponents } from './hooks/useStyles';
 import { SiteRoles } from 'awayto/core';
-import { useComponents, useUtil, useStore, storeApi } from 'awayto/hooks';
+import { useUtil, storeApi, useAppSelector } from 'awayto/hooks';
 
 import './App.css';
 
@@ -37,7 +37,7 @@ const {
 export default function App (props: IProps): JSX.Element {
 
   // const { Onboard, ConfirmAction } = useComponents();
-  const { theme, snackOn, snackType, snackRequestId, isConfirming, isLoading, loadingMessage } = useStore(state => state.util);
+  const { theme, snackOn, snackType, snackRequestId, isConfirming, isLoading, loadingMessage } = useAppSelector(state => state.util);
   const { data: profile, refetch } = storeApi.useGetUserProfileDetailsQuery();
 
   const [ready, setReady] = useState(false);

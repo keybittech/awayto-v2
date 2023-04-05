@@ -6,5 +6,4 @@ export * from './useSecure';
 export * from './useGroupSecure';
 export * from './useSchedule';
 export * from './useGrid';
-export * from './useStore';
 export * from './useUtil';

@@ -1,5 +1,3 @@
-export interface AppState {}
-
 export type PaletteMode = 'light' | 'dark';
 
 /**
