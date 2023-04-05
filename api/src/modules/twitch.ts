@@ -1,11 +1,7 @@
 import WebSocket from 'ws';
-import WebHooks from '../webhooks/index';
 import { v4 as uuid } from 'uuid';
 import fetch from 'node-fetch';
-import { AuthBody, AuthProps } from 'awayto/core';
-
-import redis from './redis';
-import { db } from './db';
+import { AuthBody } from 'awayto/core';
 
 const {
   TWITCH_CLIENT_ID,

@@ -94,7 +94,6 @@ export * from './service_addon';
 export * from './service_tier';
 export * from './service';
 export * from './time_unit';
-export * from './user';
 export * from './util';
 export * from './uuid_files';
 export * from './uuid_notes';

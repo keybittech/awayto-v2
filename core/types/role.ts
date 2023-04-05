@@ -1,4 +1,3 @@
-import { redisProxy } from "src/modules/redis";
 import { asyncForEach, Extend, Void } from "../util";
 import { ApiHandler, ApiOptions, buildUpdate, EndpointType, siteApiHandlerRef, siteApiRef } from "./api";
 import { IUserProfile } from "./profile";
@@ -65,7 +64,7 @@ const roleApi = {
 const roleApiHandlers: ApiHandler<typeof roleApi> = {
   postRole: async props => {
     const { name } = props.event.body;
-    const { adminSub } = await redisProxy('adminSub');
+    const { adminSub } = await props.redisProxy('adminSub');
 
     const role = await props.tx.one<IRole>(`
       WITH input_rows(name, created_sub) as (VALUES ($1, $2::uuid)), ins AS (
