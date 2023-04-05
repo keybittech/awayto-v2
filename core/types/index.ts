@@ -64,6 +64,16 @@ export declare function parseResource(path: string): Record<string, string>;
  */
 export declare function checkWriteBuildFile(next: () => unknown): void;
 
+
+// temp
+declare global {
+  export interface IMergedState {}
+}
+export interface IActionTypes {}
+export const IActions: Record<string, IActionTypes> = {
+  test: 'what'
+}
+
 export * from './auth';
 export * from './api';
 export * from './assist';
