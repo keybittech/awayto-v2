@@ -26,8 +26,8 @@ import GroupIcon from '@mui/icons-material/Group';
 import ApprovalIcon from '@mui/icons-material/Approval';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
-import Icon from '../../../img/kbt-icon.png';
-import keycloak from '../../../keycloak';
+import Icon from '../../img/kbt-icon.png';
+import keycloak from '../../keycloak';
 
 import { useLocation, useNavigate } from 'react-router';
 import { SiteRoles, IUtilActionTypes, PaletteMode } from 'awayto/core';

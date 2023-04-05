@@ -22,7 +22,7 @@ import NotInterestedIcon from '@mui/icons-material/NotInterested';
 import { IGroup, IUtilActionTypes, IGroupActionTypes, IAssistActionTypes, IRole, IPrompts } from 'awayto/core';
 import { useAct, useApi, useRedux, useComponents, storeApi } from 'awayto/hooks';
 import { ManageGroupsActions } from './ManageGroups';
-import keycloak from '../../../keycloak';
+import keycloak from '../../keycloak';
 
 const { SET_SNACK } = IUtilActionTypes;
 const { CHECK_GROUPS_NAME } = IGroupActionTypes;

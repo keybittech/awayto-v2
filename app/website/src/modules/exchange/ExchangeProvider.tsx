@@ -11,7 +11,7 @@ import { asyncForEach, IUtilActionTypes, Sender, SenderStreams, SocketResponseMe
 import { useAct, useComponents } from "awayto/hooks";
 
 import { ExchangeContext, ExchangeContextType } from "./ExchangeContext";
-import keycloak from '../../../keycloak';
+import keycloak from '../../keycloak';
 
 const { SET_SNACK } = IUtilActionTypes;
 

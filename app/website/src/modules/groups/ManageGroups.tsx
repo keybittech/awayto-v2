@@ -22,7 +22,7 @@ import ManageGroupModal from './ManageGroupModal';
 import JoinGroupModal from './JoinGroupModal';
 import { useNavigate } from 'react-router';
 
-import keycloak from '../../../keycloak';
+import keycloak from '../../keycloak';
 
 const { OPEN_CONFIRM, SET_LOADING } = IUtilActionTypes;
 const { GROUPS_LEAVE } = IGroupActionTypes;

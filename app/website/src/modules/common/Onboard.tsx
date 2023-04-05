@@ -8,10 +8,10 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 
-import Icon from '../../../img/kbt-icon.png';
+import Icon from '../../img/kbt-icon.png';
 import { useApi, useAct, useComponents } from 'awayto/hooks';
 import { IGroupActionTypes, IRoleActionTypes, IUserProfileActionTypes, IUtilActionTypes } from 'awayto/core';
-import keycloak from '../../../keycloak';
+import keycloak from '../../keycloak';
 
 const { GET_USER_PROFILE_DETAILS } = IUserProfileActionTypes;
 const { POST_ROLES, DELETE_ROLES } = IRoleActionTypes;

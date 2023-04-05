@@ -75,14 +75,14 @@ let oldRolesOutputHash;
 function checkWriteBuildFile(next) {
   try {
     const files = {
-      views: parseResource('.' + AWAYTO_WEBAPP_MODULES + '/**/views/*.tsx'),
-      reducers: parseResource('.' + AWAYTO_WEBAPP_MODULES + '/**/reducers/*.ts')
+      views: parseResource('.' + AWAYTO_WEBAPP_MODULES + '/**/*.tsx'),
+      // reducers: parseResource('.' + AWAYTO_WEBAPP_MODULES + '/**/reducers/*.ts')
     };
     const filesString = JSON.stringify(files);
 
     const roles = {};
     Object.values(files.views).forEach(file => {
-      const fileString = fs.readFileSync('.' + AWAYTO_WEBAPP_MODULES + '/' + file + '.tsx').toString();
+      const fileString = fs.readFileSync('.' + AWAYTO_WEBAPP + '/' + file + '.tsx').toString();
       const found = fileString.match(/(?<=export const roles = )(\[.*\])/igm);
       if (found?.length) {
         roles[file] = JSON.parse(found[0].replaceAll('\'', '"'));

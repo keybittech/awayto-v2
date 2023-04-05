@@ -17,9 +17,9 @@ import BusinessIcon from '@mui/icons-material/Business';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-import Icon from '../../../img/kbt-icon.png';
+import Icon from '../../img/kbt-icon.png';
 
-import keycloak from '../../../keycloak';
+import keycloak from '../../keycloak';
 import { useSecure, useStyles } from 'awayto/hooks';
 import { SiteRoles } from 'awayto/core';
 

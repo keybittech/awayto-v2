@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 
 import { IBooking } from 'awayto/core';
-import { storeApi, useRedux } from 'awayto/hooks';
+import { storeApi } from 'awayto/hooks';
 
 import { BookingContext, BookingContextType } from "./BookingContext";
 

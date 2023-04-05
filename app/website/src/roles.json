@@ -1,1 +1,1 @@
-{"roles":{"groups/views/ManageGroupHome":[],"services/views/ServiceHome":[]}}
+{"roles":{"modules/groups/ManageGroupHome":[],"modules/services/ServiceHome":[]}}
