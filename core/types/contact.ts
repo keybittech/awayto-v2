@@ -1,5 +1,5 @@
 import { Extend, Merge, Void } from '../util';
-import { ApiHandler, buildUpdate, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
+import { ApiHandler, ApiOptions, buildUpdate, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
 import { utcNowString } from './time_unit';
 
 declare global {
@@ -31,7 +31,7 @@ const contactApi = {
     kind: EndpointType.MUTATION,
     url: 'contacts',
     method: 'POST',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { name: '' as string, email: '' as string, phone: '' as string },
     resultType: {} as IContact
   },
@@ -39,7 +39,7 @@ const contactApi = {
     kind: EndpointType.MUTATION,
     url: 'contacts',
     method: 'PUT',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { id: '' as string, name: '' as string, email: '' as string, phone: '' as string },
     resultType: {} as IContact
   },
@@ -47,7 +47,7 @@ const contactApi = {
     kind: EndpointType.QUERY,
     url: 'contacts',
     method: 'GET',
-    cache: 180,
+    opts: {} as ApiOptions,
     queryArg: {} as Void,
     resultType: [] as IContact[]
   },
@@ -55,7 +55,7 @@ const contactApi = {
     kind: EndpointType.QUERY,
     url: 'contacts/:id',
     method: 'GET',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { id: '' as string },
     resultType: {} as IContact
   },
@@ -63,7 +63,7 @@ const contactApi = {
     kind: EndpointType.MUTATION,
     url: 'contacts/:id',
     method: 'DELETE',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { id: '' as string },
     resultType: { id: '' as string }
   },
@@ -71,7 +71,7 @@ const contactApi = {
     kind: EndpointType.MUTATION,
     url: 'contacts/:id/disable',
     method: 'PUT',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { id: '' as string },
     resultType: { id: '' as string }
   }

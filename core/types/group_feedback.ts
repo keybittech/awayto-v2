@@ -1,5 +1,5 @@
 import { Extend } from '../util';
-import { ApiHandler, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
+import { ApiHandler, ApiOptions, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
 import { IFeedback } from './feedback';
 
 /**
@@ -10,7 +10,7 @@ const groupFeedbackApi = {
     kind: EndpointType.MUTATION,
     url: 'feedback',
     method: 'POST',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { message: '' as string, groupName: '' as string },
     resultType: {} as boolean
   },
@@ -18,7 +18,7 @@ const groupFeedbackApi = {
     kind: EndpointType.QUERY,
     url: 'feedback/:groupName',
     method: 'GET',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { groupName: '' as string },
     resultType: [] as IFeedback[]
   },

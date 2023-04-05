@@ -1,7 +1,7 @@
 
 
 import { asyncForEach, Extend } from '../util';
-import { ApiHandler, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
+import { ApiHandler, ApiOptions, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
 import { IGroup } from './group';
 import { IGroupRole } from './group_role';
 import { IUserProfile } from './profile';
@@ -33,7 +33,7 @@ const groupUsersApi = {
     kind: EndpointType.MUTATION,
     url: 'group/:groupName/users',
     method: 'PUT',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { groupName: '' as string, userId: '' as string, roleId: '' as string, roleName: '' as string },
     resultType: [{ id: '' as string, roleId: '' as string, roleName: '' as string }]
   },
@@ -41,7 +41,7 @@ const groupUsersApi = {
     kind: EndpointType.QUERY,
     url: 'group/:groupName/users',
     method: 'GET',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { groupName: '' as string },
     resultType: [] as IGroupUser[]
   },
@@ -49,7 +49,7 @@ const groupUsersApi = {
     kind: EndpointType.QUERY,
     url: 'group/:groupName/users/:userId',
     method: 'GET',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { groupName: '' as string, userId: '' as string },
     resultType: {} as IGroupUser
   },
@@ -57,7 +57,7 @@ const groupUsersApi = {
     kind: EndpointType.MUTATION,
     url: 'group/:groupName/users/:ids',
     method: 'DELETE',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { groupName: '' as string, ids: [] as string[] },
     resultType: [] as { id: string }[]
   },
@@ -65,7 +65,7 @@ const groupUsersApi = {
     kind: EndpointType.MUTATION,
     url: 'group/:groupName/users/:ids/lock',
     method: 'PUT',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { groupName: '' as string, ids: [] as string[] },
     resultType: [] as { id: string }[]
   },
@@ -73,7 +73,7 @@ const groupUsersApi = {
     kind: EndpointType.MUTATION,
     url: 'group/:groupName/users/:ids/unlock',
     method: 'PUT',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { groupName: '' as string, ids: [] as string[] },
     resultType: [] as { id: string }[]
   }

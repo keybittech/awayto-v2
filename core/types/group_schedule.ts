@@ -2,7 +2,7 @@
 
 import dayjs from 'dayjs';
 import { asyncForEach, Extend } from '../util';
-import { ApiHandler, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
+import { ApiHandler, ApiOptions, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
 import { IGroup } from './group';
 import { IUserProfile } from './profile';
 import { ISchedule } from './schedule';
@@ -38,7 +38,7 @@ const groupSchedulesApi = {
     kind: EndpointType.MUTATION,
     url: 'group/:groupName/schedules',
     method: 'POST',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { groupName: '' as string },
     resultType: {} as IGroupSchedule
   },
@@ -46,7 +46,7 @@ const groupSchedulesApi = {
     kind: EndpointType.MUTATION,
     url: 'group/:groupName/schedules',
     method: 'PUT',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { groupName: '' as string },
     resultType: {} as IGroupSchedule
   },
@@ -54,7 +54,7 @@ const groupSchedulesApi = {
     kind: EndpointType.QUERY,
     url: 'group/:groupName/schedules',
     method: 'GET',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { groupName: '' as string },
     resultType: [] as IGroupSchedule[]
   },
@@ -62,7 +62,7 @@ const groupSchedulesApi = {
     kind: EndpointType.QUERY,
     url: 'group/:groupName/schedules/master/:scheduleId',
     method: 'GET',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { groupName: '' as string, scheduleId: '' as string },
     resultType: {} as ISchedule
   },
@@ -70,7 +70,7 @@ const groupSchedulesApi = {
     kind: EndpointType.QUERY,
     url: 'group/:groupName/schedules/:scheduleId/:date',
     method: 'GET',
-    cache: false,
+    opts: { cache: 'skip' } as ApiOptions,
     queryArg: { groupName: '' as string, scheduleId: '' as string, date: '' as string, timezone: '' as string },
     resultType: [] as IGroupScheduleDateSlots[]
   },
@@ -78,7 +78,7 @@ const groupSchedulesApi = {
     kind: EndpointType.MUTATION,
     url: 'group/:groupName/schedules/:ids',
     method: 'DELETE',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { groupName: '' as string, ids: '' as string },
     resultType: [] as { id: string }[]
   },

@@ -1,6 +1,6 @@
 
 import { asyncForEach, Extend } from '../util';
-import { ApiHandler, buildUpdate, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
+import { ApiHandler, ApiOptions, buildUpdate, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
 import { ISchedule, ScheduledParts } from './schedule';
 import { IService } from './service';
 import { utcNowString } from './time_unit';
@@ -49,7 +49,7 @@ const groupUserSchedulesApi = {
     kind: EndpointType.MUTATION,
     url: 'group/:groupName/user_schedules',
     method: 'POST',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { groupName: '' as string, groupScheduleId: '' as string, userScheduleId: '' as string },
     resultType: [] as any[]
   },
@@ -57,7 +57,7 @@ const groupUserSchedulesApi = {
     kind: EndpointType.QUERY,
     url: 'group/:groupName/user_schedules/:groupScheduleId',
     method: 'GET',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { groupName: '' as string, groupScheduleId: '' as string },
     resultType: [] as IGroupUserSchedule[]
   },
@@ -65,7 +65,7 @@ const groupUserSchedulesApi = {
     kind: EndpointType.QUERY,
     url: 'group/:groupName/user_schedules/stubs',
     method: 'GET',
-    cache: 'skip',
+    opts: { cache: 'skip' } as ApiOptions,
     queryArg: { groupName: '' as string },
     resultType: { stubs: [] as IGroupUserScheduleStub[] }
   },
@@ -73,7 +73,7 @@ const groupUserSchedulesApi = {
     kind: EndpointType.QUERY,
     url: 'group/:groupName/user_schedules/stub_replacement/:userScheduleId',
     method: 'GET',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { groupName: '' as string, userScheduleId: '' as string, slotDate: '' as string, startTime: '' as string, tierName: '' as string },
     resultType: { stubs: [] as IGroupUserScheduleStub[] }
   },
@@ -81,7 +81,7 @@ const groupUserSchedulesApi = {
     kind: EndpointType.MUTATION,
     url: 'group/:groupName/user_schedules/stub_replacement',
     method: 'PUT',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { groupName: '' as string, quoteId: '' as string, slotDate: '' as string, scheduleBracketSlotId: '' as string, serviceTierId: '' as string },
     resultType: true as boolean
   },
@@ -89,7 +89,7 @@ const groupUserSchedulesApi = {
     kind: EndpointType.MUTATION,
     url: 'group/:groupName/user_schedules/:ids',
     method: 'DELETE',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { groupName: '' as string, ids: '' as string },
     resultType: [] as { id: string }[]
   },

@@ -37,7 +37,7 @@ import redis, { rateLimitResource, redisProxy } from './util/redis';
 import logger from './util/logger';
 import completions from './util/openai';
 
-import { DecodedJWTToken, UserGroupRoles, StrategyUser, ApiErrorResponse, IGroup, AuthBody, siteApiRef, AuthProps, siteApiHandlerRef, ApiProps, hasRequiredArgs, AnyRecord } from 'awayto/core'
+import { DecodedJWTToken, UserGroupRoles, StrategyUser, ApiErrorResponse, IGroup, AuthBody, siteApiRef, AuthProps, siteApiHandlerRef, ApiProps, hasRequiredArgs, AnyRecord, EndpointType } from 'awayto/core'
 
 const {
   SOCK_HOST,
@@ -259,9 +259,9 @@ async function go() {
         }
       };
     }
-    
+
     for (const apiRefId in siteApiRef) {
-      const { method, url, queryArg, resultType, cache } = siteApiRef[apiRefId as keyof typeof siteApiRef];
+      const { method, url, queryArg, resultType, kind, opts: { cache } } = siteApiRef[apiRefId as keyof typeof siteApiRef];
 
       // Here we make use of the extra /api from the reverse proxy
       app[method.toLowerCase() as keyof Express](`/api/${url}`, checkAuthenticated, validateRequestBody(queryArg as AnyRecord), async (req: Request & { headers: { authorization: string } }, res: Response) => {
@@ -321,15 +321,34 @@ async function go() {
                 queryParameters: req.query as Record<string, string>,
                 body: req.body as typeof queryArg
               }
-            };
+            } as ApiProps<typeof queryArg>;
 
-            logger.log('App API Request', requestParams.event);
+            logger.log('Handling api request', requestParams.event);
+
             const handler = siteApiHandlerRef[apiRefId as keyof typeof siteApiHandlerRef] as (params: ApiProps<typeof queryArg>) => Promise<typeof resultType>;
-            response = await handler(requestParams as ApiProps<typeof queryArg>);
+            
+            const txHandler = async (props: ApiProps<typeof queryArg>): Promise<typeof resultType> => {
+              if (EndpointType.MUTATION === kind) {
+                return await db.tx(async trx => {
+                  requestParams.tx = trx;
+                  return await handler(props);
+                })
+              }
+              return await handler(props);
+            }
+            
+            response = await txHandler(requestParams);
+
+            /**
+            * Cache settings:
+            * 'skip' - Bypasses caching entirely
+            * null - GET: Stores indefinitely; Non-GET: Deletes if exists
+            * true/number - GET: Stores with 180s (or custom) expiry; Non-GET: Deletes if exists
+            */
 
             if (response && 'boolean' !== typeof response && 'skip' !== cache) {
               if ('get' === method.toLowerCase()) {
-                if (null === cache) { // null means the item is never removed from the cache
+                if (null === cache) {
                   await redis.set(cacheKey, JSON.stringify(response))
                 } else {
                   await redis.setEx(cacheKey, cache as number || 180, JSON.stringify(response));

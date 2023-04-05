@@ -1,7 +1,7 @@
 
 
 import { asyncForEach, Extend, Void } from '../util';
-import { ApiHandler, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
+import { ApiHandler, ApiOptions, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
 import { IGroup } from './group';
 import { IService } from './service';
 
@@ -23,7 +23,7 @@ const groupServicesApi = {
     kind: EndpointType.MUTATION,
     url: 'group/:groupName/services',
     method: 'POST',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { groupName: '' as string, serviceId: '' as string },
     resultType: [] as IGroupService[]
   },
@@ -31,7 +31,7 @@ const groupServicesApi = {
     kind: EndpointType.QUERY,
     url: 'group/:groupName/services',
     method: 'GET',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { groupName: '' as string },
     resultType: [] as IGroupService[]
   },
@@ -39,7 +39,7 @@ const groupServicesApi = {
     kind: EndpointType.MUTATION,
     url: 'group/:groupName/services/:ids',
     method: 'DELETE',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { groupName: '' as string, ids: '' as string },
     resultType: [] as { id: string }[]
   }

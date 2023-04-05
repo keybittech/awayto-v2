@@ -1,5 +1,5 @@
 import { Extend } from '../util';
-import { ApiHandler, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
+import { ApiHandler, ApiOptions, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
 import { IGroup } from './group';
 import { IServiceAddon } from './service_addon';
 
@@ -19,7 +19,7 @@ const groupServiceAddonApi = {
     kind: EndpointType.MUTATION,
     url: 'group/:groupName/service_addons/:serviceAddonId',
     method: 'POST',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: {
       groupName: '' as string,
       serviceAddonId: '' as string
@@ -30,7 +30,7 @@ const groupServiceAddonApi = {
     kind: EndpointType.QUERY,
     url: 'group/:groupName/service_addons',
     method: 'GET',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: {
       groupName: '' as string
     },
@@ -40,7 +40,7 @@ const groupServiceAddonApi = {
     kind: EndpointType.MUTATION,
     url: 'group/:groupName/service_addons/:serviceAddonId',
     method: 'DELETE',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: {
       groupName: '' as string,
       serviceAddonId: '' as string

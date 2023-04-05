@@ -1,5 +1,5 @@
 import { Extend, Void } from '../util';
-import { ApiHandler, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
+import { ApiHandler, ApiOptions, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
 import { utcNowString } from './time_unit';
 
 /**
@@ -28,7 +28,7 @@ const bookingTranscriptApi = {
     kind: EndpointType.MUTATION,
     url: 'booking_transcripts',
     method: 'POST',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { bookingTranscripts: [] as IBookingTranscript[] },
     resultType: [] as IBookingTranscript[]
   },
@@ -36,7 +36,7 @@ const bookingTranscriptApi = {
     kind: EndpointType.MUTATION,
     url: 'booking_transcripts',
     method: 'PUT',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: {} as IBookingTranscript,
     resultType: {} as IBookingTranscript
   },
@@ -44,7 +44,7 @@ const bookingTranscriptApi = {
     kind: EndpointType.QUERY,
     url: 'booking_transcripts',
     method: 'GET',
-    cache: 180,
+    opts: { cache: 180 } as ApiOptions,
     queryArg: {} as Void,
     resultType: [] as IBookingTranscript[]
   },
@@ -52,7 +52,7 @@ const bookingTranscriptApi = {
     kind: EndpointType.QUERY,
     url: 'booking_transcripts/:id',
     method: 'GET',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { id: '' as string },
     resultType: {} as IBookingTranscript
   },
@@ -60,7 +60,7 @@ const bookingTranscriptApi = {
     kind: EndpointType.MUTATION,
     url: 'booking_transcripts/:id',
     method: 'DELETE',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { id: '' as string },
     resultType: {} as IBookingTranscript
   },
@@ -68,7 +68,7 @@ const bookingTranscriptApi = {
     kind: EndpointType.MUTATION,
     url: 'booking_transcripts/:id/disable',
     method: 'PUT',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { id: '' as string },
     resultType: { id: '' as string }
   }
@@ -96,7 +96,7 @@ const bookingTranscriptApiHandlers: ApiHandler<typeof bookingTranscriptApi> = {
   disableBookingTranscript: async props => {
     const { id } = props.event.pathParameters;
 
-    await props.db.none(`
+    await props.tx.none(`
       UPDATE dbtable_schema.bookings
       SET enabled = false, updated_on = $2, updated_sub = $3
       WHERE id = $1

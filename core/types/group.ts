@@ -1,6 +1,6 @@
 import { v4 as uuid } from 'uuid';
 import { asyncForEach, Extend, Void } from '../util';
-import { ApiHandler, ApiInternalError, buildUpdate, DbError, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
+import { ApiHandler, ApiInternalError, ApiOptions, buildUpdate, DbError, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
 import { IPrompts } from './assist';
 import { IGroupRole } from './group_role';
 import { IUserProfile } from './profile';
@@ -59,7 +59,7 @@ const groupApi = {
     kind: EndpointType.MUTATION,
     url: 'group',
     method: 'POST',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: {
       name: '' as string,
       purpose: '' as string,
@@ -73,7 +73,7 @@ const groupApi = {
     kind: EndpointType.MUTATION,
     url: 'group',
     method: 'PUT',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: {
       id: '' as string,
       name: '' as string,
@@ -86,7 +86,7 @@ const groupApi = {
     kind: EndpointType.MUTATION,
     url: 'group/:groupName/assignments',
     method: 'PUT',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: {
       groupName: '' as string,
       assignments: {} as Record<string, { actions: { name: string }[] }>,
@@ -97,7 +97,7 @@ const groupApi = {
     kind: EndpointType.QUERY,
     url: 'group',
     method: 'GET',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: {} as Void,
     resultType: [] as IGroup[]
   },
@@ -105,7 +105,7 @@ const groupApi = {
     kind: EndpointType.QUERY,
     url: 'group/:groupName/assignments',
     method: 'GET',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { groupName: '' as string },
     resultType: {} as IGroup
   },
@@ -113,7 +113,7 @@ const groupApi = {
     kind: EndpointType.QUERY,
     url: 'group/:id',
     method: 'GET',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { id: '' as string },
     resultType: {} as IGroup
   },
@@ -121,7 +121,7 @@ const groupApi = {
     kind: EndpointType.MUTATION,
     url: 'group',
     method: 'DELETE',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { ids: '' as string },
     resultType: [] as { id: string }[]
   },
@@ -129,7 +129,7 @@ const groupApi = {
     kind: EndpointType.QUERY,
     url: 'group/valid/:name',
     method: 'GET',
-    cache: null,
+    opts: { cache: null } as ApiOptions,
     queryArg: { name: '' as string },
     resultType: { checkingName: false as boolean, isValid: false as boolean }
   },
@@ -137,7 +137,7 @@ const groupApi = {
     kind: EndpointType.MUTATION,
     url: 'group/users/invite',
     method: 'POST',
-    cache: 60,
+    opts: {} as ApiOptions,
     queryArg: { users: [] as { email: string }[] },
     resultType: { users: [] as { email: string }[] }
   },
@@ -145,7 +145,7 @@ const groupApi = {
     kind: EndpointType.MUTATION,
     url: 'group/join/:code',
     method: 'POST',
-    cache: 'skip',
+    opts: { cache: 'skip' } as ApiOptions,
     queryArg: { code: '' as string },
     resultType: true
   },
@@ -153,7 +153,7 @@ const groupApi = {
     kind: EndpointType.MUTATION,
     url: 'group/leave/:code',
     method: 'POST',
-    cache: 'skip',
+    opts: { cache: 'skip' } as ApiOptions,
     queryArg: { code: '' as string },
     resultType: true
   }

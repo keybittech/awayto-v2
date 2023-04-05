@@ -1,5 +1,5 @@
 import { Extend, Void } from '../util';
-import { ApiHandler, buildUpdate, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
+import { ApiHandler, ApiOptions, buildUpdate, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
 import { utcNowString } from './time_unit';
 
 /**
@@ -65,7 +65,7 @@ const formApi = {
     kind: EndpointType.MUTATION,
     url: 'forms',
     method: 'POST',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: {} as IForm,
     resultType: {} as IForm
   },
@@ -73,7 +73,7 @@ const formApi = {
     kind: EndpointType.MUTATION,
     url: 'forms/:formId/versions',
     method: 'POST',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { version: {} as IFormVersion },
     resultType: {} as IFormVersion
   },
@@ -81,7 +81,7 @@ const formApi = {
     kind: EndpointType.MUTATION,
     url: 'forms',
     method: 'PUT',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { id: '' as string, name: '' as string },
     resultType: { id: '' as string }
   },
@@ -89,7 +89,7 @@ const formApi = {
     kind: EndpointType.QUERY,
     url: 'forms',
     method: 'GET',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: {} as Void,
     resultType: [] as IForm[]
   },
@@ -97,7 +97,7 @@ const formApi = {
     kind: EndpointType.QUERY,
     url: 'forms/:id',
     method: 'GET',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { id: '' as string },
     resultType: {} as IForm
   },
@@ -105,7 +105,7 @@ const formApi = {
     kind: EndpointType.MUTATION,
     url: 'forms/:id',
     method: 'DELETE',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { id: '' as string },
     resultType: {} as IForm
   },
@@ -113,7 +113,7 @@ const formApi = {
     kind: EndpointType.MUTATION,
     url: 'forms/:id/disable',
     method: 'PUT',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { id: '' as string },
     resultType: { id: '' as string }
   }

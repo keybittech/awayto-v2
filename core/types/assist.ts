@@ -1,5 +1,5 @@
 import { Extend } from '../util';
-import { ApiHandler, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
+import { ApiHandler, ApiOptions, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
 
 /**
  * @category Assist
@@ -29,7 +29,7 @@ const assistApi = {
     kind: EndpointType.MUTATION,
     url: 'assist/prompt',
     method: 'GET',
-    cache: null,
+    opts: { cache: null } as ApiOptions,
     queryArg: {
       id: '' as string,
       prompt: '' as string,

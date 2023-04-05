@@ -1,7 +1,7 @@
 import { KeycloakAdminClient } from '@keycloak/keycloak-admin-client/lib/client';
 import RoleRepresentation, { RoleMappingPayload } from '@keycloak/keycloak-admin-client/lib/defs/roleRepresentation';
 import ClientRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientRepresentation';
-import { IDatabase } from 'pg-promise';
+import { IDatabase, ITask } from 'pg-promise';
 import { RedisClientType } from 'redis';
 import { graylog } from 'graylog2';
 import { UserGroupRoles } from './profile';
@@ -65,6 +65,13 @@ export type ApiEvent<T extends AnyRecord> = {
 /**
  * @category API
  */
+export type ApiOptions = {
+  readonly cache?: string | number | boolean | null | undefined
+}
+
+/**
+ * @category API
+ */
 export type ApiHandler<T> = {
   [K in keyof T]: T[K] extends { queryArg: infer QA extends AnyRecord, resultType: infer RT } ?  (props: ApiProps<QA>) => Promise<RT extends Void ? void : Partial<RT>> : never
 }
@@ -87,6 +94,7 @@ export type ApiProps<T extends AnyRecord> = {
   redisProxy: RedisProxy;
   keycloak: KeycloakAdminClient & KcSiteOpts;
   completions: CompletionApis;
+  tx: ITask<unknown>;
 }
 
 /**
@@ -99,6 +107,7 @@ export type AuthProps = {
   redisProxy: RedisProxy;
   keycloak: KeycloakAdminClient & KcSiteOpts;
   completions: CompletionApis;
+  tx: ITask<unknown>;
 }
 
 /**

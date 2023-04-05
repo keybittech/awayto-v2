@@ -64,7 +64,6 @@ export declare function parseResource(path: string): Record<string, string>;
  */
 export declare function checkWriteBuildFile(next: () => unknown): void;
 
-export * from './action_types';
 export * from './auth';
 export * from './api';
 export * from './assist';
@@ -99,61 +98,3 @@ export * from './user';
 export * from './util';
 export * from './uuid_files';
 export * from './uuid_notes';
-
-
-
-
-/*
-const xyzApi = {
-  getXYZ: {
-    kind: EndpointType.QUERY,
-    url: 'xyz',
-    method: 'GET',
-    queryArg: { _void: null as never },
-    resultType: {} as IXYZ,
-    apiHandler: async (props: ApiHandler<XYZ>) => {
-      return true;
-    }
-  },
-  postXYZ: {
-    kind: EndpointType.MUTATION,
-    url: 'xyz',
-    method: 'POST',
-    queryArg: { _void: null as never },
-    resultType: {} as IXYZ,
-    apiHandler: async (props: ApiHandler<XYZ>) => {
-      return true;
-    }
-  },
-  putXYZ: {
-    kind: EndpointType.MUTATION,
-    url: 'xyz',
-    method: 'PUT',
-    queryArg: { _void: null as never },
-    resultType: {} as IXYZ,
-    apiHandler: async (props: ApiHandler<XYZ>) => {
-      return true;
-    }
-  },
-  deleteXYZ: {
-    kind: EndpointType.QUERY,
-    url: 'xyz',
-    method: 'GET',
-    queryArg: { _void: null as never },
-    resultType: {} as IXYZ,
-    apiHandler: async (props: ApiHandler<XYZ>) => {
-      return true;
-    }
-  },
-  disableXYZ: {},
-} as const;
-
-type BookingApi = typeof bookingApi;
-
-declare module './api' {
-  interface SiteApiRef extends ExtendApi<BookingApi> {}
-}
-
-Object.assign(siteApiRef, bookingApi);
-
-*/

@@ -1,6 +1,6 @@
 import { v4 as uuid } from 'uuid';
 import { Extend, Void } from '../util';
-import { ApiHandler, buildUpdate, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
+import { ApiHandler, ApiOptions, buildUpdate, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
 import { utcNowString } from './time_unit';
 
 /**
@@ -37,7 +37,7 @@ const fileApi = {
     kind: EndpointType.MUTATION,
     url: 'files',
     method: 'POST',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { name: '' as string, fileTypeId: '' as string, location: '' as string },
     resultType: { id: '' as string, newUuid: '' as string }
   },
@@ -45,7 +45,7 @@ const fileApi = {
     kind: EndpointType.MUTATION,
     url: 'files',
     method: 'PUT',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { id: '' as string, name: '' as string, fileTypeId: '' as string, location: '' as string },
     resultType: { id: '' as string }
   },
@@ -53,7 +53,7 @@ const fileApi = {
     kind: EndpointType.QUERY,
     url: 'files',
     method: 'GET',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: {} as Void,
     resultType: [] as IFile[]
   },
@@ -61,7 +61,7 @@ const fileApi = {
     kind: EndpointType.QUERY,
     url: 'files/:id',
     method: 'GET',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { id: '' as string },
     resultType: {} as IFile
   },
@@ -69,7 +69,7 @@ const fileApi = {
     kind: EndpointType.MUTATION,
     url: 'files/:id',
     method: 'DELETE',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { id: '' as string },
     resultType: { id: '' as string }
   },
@@ -77,7 +77,7 @@ const fileApi = {
     kind: EndpointType.MUTATION,
     url: 'files/:id/disable',
     method: 'PUT',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { id: '' as string },
     resultType: { id: '' as string }
   }

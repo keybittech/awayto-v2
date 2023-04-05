@@ -3,7 +3,7 @@ import { IQuote } from './quote';
 import { IBooking } from './booking';
 import { IGroup } from './group';
 import { IRole } from './role';
-import { ApiHandler, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
+import { ApiHandler, ApiOptions, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
 
 // declare global {
 //   interface IMergedState extends Merge<IUserProfileState> {}
@@ -81,8 +81,8 @@ const userProfileApi = {
     kind: EndpointType.QUERY,
     url: 'profile/details',
     method: 'GET',
-    cache: 'skip',
-    queryArg: { _void: null as never },
+    opts: { cache: 30 } as ApiOptions,
+    queryArg: {} as Void,
     resultType: {} as IUserProfile
     // transformResponse: transformProfile
   },

@@ -1,6 +1,6 @@
 import { Void, Extend } from '../util';
 import { IQuote } from './quote';
-import { siteApiRef, EndpointType, ApiHandler, buildUpdate, siteApiHandlerRef } from './api';
+import { siteApiRef, EndpointType, ApiHandler, buildUpdate, siteApiHandlerRef, ApiOptions } from './api';
 import { IBookingTranscript } from './booking_transcript';
 import { utcNowString } from './time_unit';
 
@@ -21,7 +21,7 @@ const bookingApi = {
     kind: EndpointType.MUTATION,
     url: 'bookings',
     method: 'POST',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { bookings: [] as IBooking[] },
     resultType: [] as IBooking[]
   },
@@ -29,7 +29,7 @@ const bookingApi = {
     kind: EndpointType.MUTATION,
     url: 'bookings',
     method: 'PUT',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: {} as IBooking,
     resultType: {} as IBooking
   },
@@ -37,7 +37,7 @@ const bookingApi = {
     kind: EndpointType.QUERY,
     url: 'bookings',
     method: 'GET',
-    cache: 180,
+    opts: {} as ApiOptions,
     queryArg: {} as Void,
     resultType: [] as IBooking[]
   },
@@ -45,7 +45,7 @@ const bookingApi = {
     kind: EndpointType.QUERY,
     url: 'bookings/:id',
     method: 'GET',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { id: '' as string },
     resultType: {} as IBooking
   },
@@ -53,7 +53,7 @@ const bookingApi = {
     kind: EndpointType.MUTATION,
     url: 'bookings/:id',
     method: 'DELETE',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { id: '' as string },
     resultType: { id : '' as string }
   },
@@ -61,7 +61,7 @@ const bookingApi = {
     kind: EndpointType.MUTATION,
     url: 'bookings/:id/disable',
     method: 'PUT',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { id: '' as string },
     resultType: { id: '' as string }
   }

@@ -1,5 +1,5 @@
 import { asyncForEach, Extend } from '../util';
-import { ApiHandler, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
+import { ApiHandler, ApiOptions, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
 import { IForm, IFormVersion } from './form';
 import { IGroup } from './group';
 import { IUserProfile } from './profile';
@@ -27,7 +27,7 @@ const groupFormApi = {
     kind: EndpointType.MUTATION,
     url: 'group/:groupName/forms',
     method: 'POST',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: {} as IGroupForm,
     resultType: [] as IGroupForm[]
   },
@@ -35,7 +35,7 @@ const groupFormApi = {
     kind: EndpointType.MUTATION,
     url: 'group/:groupName/forms/:id',
     method: 'POST',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: {} as IGroupForm,
     resultType: [] as IGroupForm[]
   },
@@ -43,7 +43,7 @@ const groupFormApi = {
     kind: EndpointType.MUTATION,
     url: 'group/:groupName/forms',
     method: 'PUT',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: {} as IGroupForm,
     resultType: {} as IGroupForm
   },
@@ -51,7 +51,7 @@ const groupFormApi = {
     kind: EndpointType.QUERY,
     url: 'group/:groupName/forms',
     method: 'GET',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { groupName: '' as string },
     resultType: [] as IGroupForm[]
   },
@@ -59,7 +59,7 @@ const groupFormApi = {
     kind: EndpointType.QUERY,
     url: 'group/:groupName/forms/:formId',
     method: 'GET',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { groupName: '' as string, formId: '' as string },
     resultType: {} as IGroupForm
   },
@@ -67,7 +67,7 @@ const groupFormApi = {
     kind: EndpointType.MUTATION,
     url: 'group/:groupName/forms/:ids',
     method: 'DELETE',
-    cache: true,
+    opts: {} as ApiOptions,
     queryArg: { groupName: '' as string, ids: '' as string },
     resultType: [] as { id: string }[]
   },
