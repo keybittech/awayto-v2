@@ -24,7 +24,7 @@ const groupServiceAddonApi = {
       groupName: '' as string,
       serviceAddonId: '' as string
     },
-    resultType: [] as any[]
+    resultType: [] as IGroupServiceAddon[]
   },
   getGroupServiceAddons: {
     kind: EndpointType.QUERY,
@@ -56,13 +56,13 @@ const groupServiceAddonApiHandlers: ApiHandler<typeof groupServiceAddonApi> = {
   postGroupServiceAddon: async props => {
     const { groupName, serviceAddonId } = props.event.pathParameters;
 
-    const { id: groupId } = await props.db.query<IGroup>(`
+    const { id: groupId } = await props.tx.one<IGroup>(`
       SELECT id
       FROM dbview_schema.enabled_groups
       WHERE name = $1
     `, [groupName]);
 
-    await props.db.none(`
+    await props.tx.none(`
       INSERT INTO dbtable_schema.uuid_service_addons (parent_uuid, service_addon_id, created_sub)
       VALUES ($1, $2, $3::uuid)
       ON CONFLICT (parent_uuid, service_addon_id) DO NOTHING
@@ -93,13 +93,13 @@ const groupServiceAddonApiHandlers: ApiHandler<typeof groupServiceAddonApi> = {
   deleteGroupServiceAddon: async props => {
     const { groupName, serviceAddonId } = props.event.pathParameters;
 
-    const { id: groupId } = await props.db.one<IGroup>(`
+    const { id: groupId } = await props.tx.one<IGroup>(`
       SELECT id
       FROM dbview_schema.enabled_groups
       WHERE name = $1
     `, [groupName]);
 
-    await props.db.query<IGroupServiceAddon>(`
+    await props.tx.none(`
       DELETE FROM dbtable_schema.uuid_service_addons
       WHERE parent_uuid = $1 AND service_addon_id = $2
       RETURNING id

@@ -90,7 +90,7 @@ const fileApiHandlers: ApiHandler<typeof fileApi> = {
   postFile: async props => {
     const newUuid = uuid();
     const { name, fileTypeId: file_type_id, location } = props.event.body;
-    const file = await props.db.one<{ id: string }>(`
+    const file = await props.tx.one<{ id: string }>(`
       INSERT INTO dbtable_schema.files (uuid, name, file_type_id, location, created_on, created_sub)
       VALUES ($1, $2, $3, $4, $5, $6::uuid)
       RETURNING id
@@ -107,7 +107,7 @@ const fileApiHandlers: ApiHandler<typeof fileApi> = {
       updated_on: utcNowString(),
       updated_sub: props.event.userSub
     });
-    const file = await props.db.one(`
+    const file = await props.tx.one(`
       UPDATE dbtable_schema.files
       SET ${updateProps.string}
       WHERE id = $1
@@ -131,7 +131,7 @@ const fileApiHandlers: ApiHandler<typeof fileApi> = {
   },
   deleteFile: async props => {
     const { id } = props.event.pathParameters;
-    await props.db.none(`
+    await props.tx.none(`
       DELETE FROM dbtable_schema.files
       WHERE id = $1
     `, [id]);
@@ -139,7 +139,7 @@ const fileApiHandlers: ApiHandler<typeof fileApi> = {
   },
   disableFile: async props => {
     const { id } = props.event.pathParameters;
-    await props.db.none(`
+    await props.tx.none(`
       UPDATE dbtable_schema.files
       SET enabled = false, updated_on = $2, updated_sub = $3
       WHERE id = $1

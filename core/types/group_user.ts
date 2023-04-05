@@ -89,7 +89,7 @@ const groupUsersApiHandlers: ApiHandler<typeof groupUsersApi> = {
 
     const { roleCall, appClient } = await props.redisProxy('roleCall', 'appClient');
 
-    const { externalId: kcOldSubgroupExternalId, groupExternalId, groupId, userSub } = await props.db.one<IGroupUser>(`
+    const { externalId: kcOldSubgroupExternalId, groupExternalId, groupId, userSub } = await props.tx.one<IGroupUser>(`
       SELECT g.external_id as "groupExternalId", gu.external_id as "externalId", gu.group_id as "groupId", u.sub as "userSub"
       FROM dbtable_schema.group_users gu
       JOIN dbtable_schema.users u ON u.id = gu.user_id
@@ -97,7 +97,7 @@ const groupUsersApiHandlers: ApiHandler<typeof groupUsersApi> = {
       WHERE g.name = $1 AND gu.user_id = $2
     `, [groupName, userId]);
 
-    const { externalId: kcNewSubgroupExternalId } = await props.db.one<IGroupRole>(`
+    const { externalId: kcNewSubgroupExternalId } = await props.tx.one<IGroupRole>(`
       SELECT external_id as "externalId"
       FROM dbtable_schema.group_roles
       WHERE group_id = $1 AND role_id = $2
@@ -106,7 +106,7 @@ const groupUsersApiHandlers: ApiHandler<typeof groupUsersApi> = {
     await props.keycloak.users.delFromGroup({ id: userSub, groupId: kcOldSubgroupExternalId });
     await props.keycloak.users.addToGroup({ id: userSub, groupId: kcNewSubgroupExternalId });
 
-    await props.db.none(`
+    await props.tx.none(`
       UPDATE dbtable_schema.group_users
       SET external_id = $3
       WHERE group_id = $1 AND user_id = $2
@@ -158,7 +158,7 @@ const groupUsersApiHandlers: ApiHandler<typeof groupUsersApi> = {
       WHERE name = $1
     `, [groupName]);
 
-    const user = await props.db.query<IGroupUser>(`
+    const user = await props.db.one<IGroupUser>(`
       SELECT
         eu.id,
         egu."groupId",
@@ -189,7 +189,7 @@ const groupUsersApiHandlers: ApiHandler<typeof groupUsersApi> = {
 
     const idsSplit = ids.split(',');
 
-    const { id: groupId, externalId: kcGroupExternalId } = await props.db.one<IGroup>(`
+    const { id: groupId, externalId: kcGroupExternalId } = await props.tx.one<IGroup>(`
       SELECT id, external_id as "externalId"
       FROM dbview_schema.enabled_groups
       WHERE name = $1
@@ -197,12 +197,12 @@ const groupUsersApiHandlers: ApiHandler<typeof groupUsersApi> = {
 
     await asyncForEach(idsSplit, async userId => {
 
-      await props.db.none(`
+      await props.tx.none(`
         DELETE FROM dbtable_schema.group_users
         WHERE group_id = $1 AND user_id = $2
       `, [groupId, userId]);
 
-      const { externalId: kcSubgroupExternalId, userSub } = await props.db.one<IGroupUser>(`
+      const { externalId: kcSubgroupExternalId, userSub } = await props.tx.one<IGroupUser>(`
         SELECT gu.external_id as "externalId", u.sub as "userSub"
         FROM dbtable_schema.group_users gu
         JOIN dbtable_schema.users u ON u.id = gu.user_id
@@ -234,14 +234,14 @@ const groupUsersApiHandlers: ApiHandler<typeof groupUsersApi> = {
 
     const { roleCall, appClient } = await props.redisProxy('roleCall', 'appClient');
 
-    const { id: groupId } = await props.db.one<IGroup>(`
+    const { id: groupId } = await props.tx.one<IGroup>(`
       SELECT id
       FROM dbview_schema.enabled_groups
       WHERE name = $1
     `, [groupName]);
 
     await asyncForEach(idsSplit, async userId => {
-      await props.db.none(`
+      await props.tx.none(`
         UPDATE dbtable_schema.group_users
         SET locked = true
         WHERE group_id = $1 AND user_id = $2
@@ -249,7 +249,7 @@ const groupUsersApiHandlers: ApiHandler<typeof groupUsersApi> = {
 
       // Add role call and force role change
 
-      const { externalId: kcSubgroupExternalId, userSub } = await props.db.one<IGroupUser>(`
+      const { externalId: kcSubgroupExternalId, userSub } = await props.tx.one<IGroupUser>(`
         SELECT gu.external_id as "externalId", u.sub as "userSub"
         FROM dbtable_schema.group_users gu
         JOIN dbtable_schema.users u ON u.id = gu.user_id
@@ -275,7 +275,7 @@ const groupUsersApiHandlers: ApiHandler<typeof groupUsersApi> = {
     const { groupName, ids } = props.event.pathParameters;
     const idsSplit = ids.split(',');
 
-    const { id: groupId } = await props.db.one<IGroup>(`
+    const { id: groupId } = await props.tx.one<IGroup>(`
       SELECT id
       FROM dbview_schema.enabled_groups
       WHERE name = $1
@@ -283,7 +283,7 @@ const groupUsersApiHandlers: ApiHandler<typeof groupUsersApi> = {
 
     await asyncForEach(idsSplit, async userId => {
       // Detach user from group
-      await props.db.none(`
+      await props.tx.none(`
         UPDATE dbtable_schema.group_users
         SET locked = false
         WHERE group_id = $1 AND user_id = $2

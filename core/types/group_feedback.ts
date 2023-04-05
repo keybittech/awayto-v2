@@ -1,6 +1,7 @@
 import { Extend } from '../util';
 import { ApiHandler, ApiOptions, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
 import { IFeedback } from './feedback';
+import { IGroup } from './group';
 
 /**
  * @category Group Feedback
@@ -31,12 +32,12 @@ const groupFeedbackApiHandlers: ApiHandler<typeof groupFeedbackApi> = {
   postGroupFeedback: async props => {
     const { message, groupName } = props.event.body;
 
-    const { rows: [{ id: groupId }] } = await props.db.one(`
+    const { id: groupId } = await props.tx.one<IGroup>(`
       SELECT id FROM dbtable_schema.groups
       WHERE name = $1
     `, [groupName]);
 
-    await props.db.none(`
+    await props.tx.none(`
       INSERT INTO dbtable_schema.group_feedback (message, group_id, created_sub, created_on)
       VALUES ($1, $2::uuid, $3::uuid, $4)
     `, [message, groupId, props.event.userSub, new Date()]);
@@ -46,7 +47,7 @@ const groupFeedbackApiHandlers: ApiHandler<typeof groupFeedbackApi> = {
   getGroupFeedback: async props => {
     const { groupName } = props.event.pathParameters;
 
-    const { rows: [{ id: groupId }] } = await props.db.query(`
+    const { id: groupId } = await props.db.one<IGroup>(`
       SELECT id FROM dbtable_schema.groups
       WHERE name = $1
     `, [groupName]);

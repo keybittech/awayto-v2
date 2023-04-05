@@ -80,13 +80,13 @@ const groupFormApiHandlers: ApiHandler<typeof groupFormApi> = {
   postGroupForm: async props => {
     const { groupName } = props.event.pathParameters;
 
-    const { id: groupId } = await props.db.one<IGroup>(`
+    const { id: groupId } = await props.tx.one<IGroup>(`
       SELECT id
       FROM dbview_schema.enabled_groups
       WHERE name = $1
     `, [groupName]);
 
-    const { sub: groupSub } = await props.db.one<IUserProfile>(`
+    const { sub: groupSub } = await props.tx.one<IUserProfile>(`
       SELECT sub
       FROM dbview_schema.enabled_users
       WHERE username = $1
@@ -115,7 +115,7 @@ const groupFormApiHandlers: ApiHandler<typeof groupFormApi> = {
     formVersion.formId = form.id;
     form.version = formVersion;
 
-    await props.db.none(`
+    await props.tx.none(`
       INSERT INTO dbtable_schema.group_forms (group_id, form_id, created_sub)
       VALUES ($1::uuid, $2::uuid, $3::uuid)
       ON CONFLICT (group_id, form_id) DO NOTHING
@@ -186,15 +186,15 @@ const groupFormApiHandlers: ApiHandler<typeof groupFormApi> = {
     const idsSplit = ids.split(',');
 
     await asyncForEach(idsSplit, async formId => {
-      await props.db.none(`
+      await props.tx.none(`
         DELETE FROM dbtable_schema.group_forms
         WHERE form_id = $1
       `, [formId]);
-      await props.db.none(`
+      await props.tx.none(`
         DELETE FROM dbtable_schema.form_versions
         WHERE form_id = $1
       `, [formId]);
-      await props.db.none(`
+      await props.tx.none(`
         DELETE FROM dbtable_schema.forms
         WHERE id = $1
       `, [formId]);

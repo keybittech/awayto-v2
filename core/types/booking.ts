@@ -79,7 +79,7 @@ const bookingApiHandlers: ApiHandler<typeof bookingApi> = {
       const booking = bookings[bookingTempId];
       const { quoteId, slotDate, scheduleBracketSlotId } = booking;
 
-      const { id: bookingId } = await props.db.one<IBooking>(`
+      const { id: bookingId } = await props.tx.one<IBooking>(`
         INSERT INTO dbtable_schema.bookings (quote_id, slot_date, schedule_bracket_slot_id, created_sub)
         VALUES ($1::uuid, $2::date, $3::uuid, $4::uuid)
         RETURNING id
@@ -100,7 +100,7 @@ const bookingApiHandlers: ApiHandler<typeof bookingApi> = {
       updated_sub: props.event.userSub,
       updated_on: utcNowString()
     });
-    const booking = await props.db.one<IBooking>(`
+    const booking = await props.tx.one<IBooking>(`
       UPDATE dbtable_schema.bookings
       SET ${updateProps.string}
       WHERE id = $1
@@ -127,7 +127,7 @@ const bookingApiHandlers: ApiHandler<typeof bookingApi> = {
   },
   deleteBooking: async props => {
     const { id } = props.event.pathParameters;
-    await props.db.none(`
+    await props.tx.none(`
       DELETE FROM dbtable_schema.bookings
       WHERE id = $1
     `, [id]);
@@ -135,7 +135,7 @@ const bookingApiHandlers: ApiHandler<typeof bookingApi> = {
   },
   disableBooking: async props => {
     const { id } = props.event.pathParameters;
-    await props.db.none(`
+    await props.tx.none(`
       UPDATE dbtable_schema.bookings
       SET enabled = false, updated_on = $2, updated_sub = $3
       WHERE id = $1

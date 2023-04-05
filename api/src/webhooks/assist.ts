@@ -1,15 +1,4 @@
 import { IWebhooks } from 'awayto/core';
-import { OpenAIApi } from 'openai';
-
-const openai = new OpenAIApi();
-
-function generatePrompt(input: string) {
-  const prompt = `${input}`;
-
-  return prompt;
-}
-
-
 
 export const AssistWebhooks: IWebhooks = { 
   CHANNEL_POINT_REDEMPTION: async (props) => {

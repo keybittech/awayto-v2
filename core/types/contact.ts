@@ -1,10 +1,6 @@
-import { Extend, Merge, Void } from '../util';
+import { Extend, Void } from '../util';
 import { ApiHandler, ApiOptions, buildUpdate, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
 import { utcNowString } from './time_unit';
-
-declare global {
-  interface IMergedState extends Merge<IContactState> { }
-}
 
 /**
  * @category Contact
@@ -14,13 +10,6 @@ export type IContact = {
   name: string;
   email: string;
   phone: string;
-};
-
-/**
- * @category Contact
- */
-export type IContactState = IContact & {
-  contacts: Record<string, IContact>;
 };
 
 /**
@@ -84,7 +73,7 @@ const contactApiHandlers: ApiHandler<typeof contactApi> = {
   postContact: async props => {
     const { name, email, phone } = props.event.body;
 
-    const contact = await props.db.one<IContact>(`
+    const contact = await props.tx.one<IContact>(`
       INSERT INTO dbtable_schema.contacts (name, email, phone, created_sub)
       VALUES ($1, $2, $3, $4)
       RETURNING id, name, email, phone
@@ -106,7 +95,7 @@ const contactApiHandlers: ApiHandler<typeof contactApi> = {
       updated_on: utcNowString()
     });
 
-    const contact = await props.db.one<IContact>(`
+    const contact = await props.tx.one<IContact>(`
       UPDATE dbtable_schema.contacts
       SET ${updateProps.string}
       WHERE id = $1
@@ -131,15 +120,15 @@ const contactApiHandlers: ApiHandler<typeof contactApi> = {
   },
   deleteContact: async props => {
     const { id } = props.event.pathParameters;
-    const contact = await props.db.query<IContact>(`
+    await props.tx.none(`
       DELETE FROM dbtable_schema.contacts
       WHERE id = $1
     `, [id]);
-    return contact;
+    return { id };
   },
   disableContact: async props => {
     const { id } = props.event.pathParameters;
-    await props.db.query(`
+    await props.tx.none(`
       UPDATE dbtable_schema.contacts
       SET enabled = false, updated_on = $2, updated_sub = $3
       WHERE id = $1

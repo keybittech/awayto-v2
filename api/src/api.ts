@@ -24,18 +24,15 @@ import jwtDecode from 'jwt-decode';
 import { v4 as uuid } from 'uuid';
 
 import passport from 'passport';
-
-// import APIs from './apis/index';
-import WebHooks from './webhooks/index';
-import keycloak, { getGroupRegistrationRedirectParts } from './util/keycloak';
-
-
 import { IdTokenClaims, Strategy, StrategyVerifyCallbackUserInfo } from 'openid-client';
 
-import { db, connected as dbConnected } from './util/db';
-import redis, { rateLimitResource, redisProxy } from './util/redis';
-import logger from './util/logger';
-import completions from './util/openai';
+import WebHooks from './webhooks/index';
+
+import keycloak, { getGroupRegistrationRedirectParts } from './modules/keycloak';
+import { db, connected as dbConnected } from './modules/db';
+import redis, { rateLimitResource, redisProxy } from './modules/redis';
+import logger from './modules/logger';
+import completions from './modules/openai';
 
 import { DecodedJWTToken, UserGroupRoles, StrategyUser, ApiErrorResponse, IGroup, AuthBody, siteApiRef, AuthProps, siteApiHandlerRef, ApiProps, hasRequiredArgs, AnyRecord, EndpointType } from 'awayto/core'
 

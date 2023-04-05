@@ -1,4 +1,4 @@
-import { ApiEvent, AuthBody, IWebhooks, IUserProfile, IUserProfileActionTypes } from 'awayto/core';
+import { ApiEvent, AuthBody, IWebhooks, IUserProfile } from 'awayto/core';
 // import profiles from '../apis/profiles';
 
 export const AuthWebhooks: IWebhooks = {

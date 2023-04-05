@@ -9,13 +9,6 @@ import { IGroupRoleAuthActions } from './group';
 import { AnyRecord, Void } from '../util';
 import { KcSiteOpts } from './auth';
 
-declare global {
-  /**
-   * @category API
-   */
-  export interface IMergedState { }
-}
-
 /**
  * @category API
  */
@@ -66,7 +59,7 @@ export type ApiEvent<T extends AnyRecord> = {
  * @category API
  */
 export type ApiOptions = {
-  readonly cache?: string | number | boolean | null | undefined
+  readonly cache?: 'skip' | number | boolean | null | undefined
 }
 
 /**

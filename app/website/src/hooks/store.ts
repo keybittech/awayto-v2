@@ -119,33 +119,6 @@ export async function loadSlice(moduleName: string): Promise<void> {
   }
 }
 
-// export const storeApi = createApi({
-//   baseQuery: getQueryAuth,
-//   endpoints: builder => Object.keys(siteApiRef).reduce((m, endpointName) => {
-//     const endpointKey = endpointName as keyof SiteApiRef;
-//     type BuiltEndpoint = typeof siteApiRef[typeof endpointKey];
-//     const { method, queryArg, resultType, kind, url } = siteApiRef[endpointName as keyof SiteApiRef] as BuiltEndpoint;
-//     const { transformResponse } = siteApiRef[endpointName as keyof SiteApiRef] as BuiltEndpoint & { transformResponse: undefined | (prop: typeof resultType) => typeof resultType };
-//     const builderPayload = {
-//       transformResponse,
-//       query: (args: typeof queryArg) => {
-//         const processedUrl = url.replace(/:(\w+)/g, (_, key) => args[key as keyof typeof queryArg]);
-//         if (kind === EndpointType.QUERY) {
-//           return processedUrl;
-//         }
-//         return { url: processedUrl, method, body: args };
-//       }
-//     } as const;
-
-//     return {
-//       ...m,
-//       [endpointName]: kind === EndpointType.QUERY ?
-//         builder.query<typeof resultType, typeof queryArg>(builderPayload) :
-//         builder.mutation<typeof resultType, typeof queryArg>(builderPayload),
-//     };
-//   }, {})
-// }) as EndpointInfo<SiteApiRef> & ReturnType<typeof createApi>;
-
 export const storeApi = createApi({
   baseQuery: getQueryAuth,
   endpoints: builder => Object.keys(siteApiRef).reduce((m, endpointName) => {

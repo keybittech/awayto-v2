@@ -94,7 +94,7 @@ const groupRoleApiHandlers: ApiHandler<typeof groupRoleApi> = {
     const idsSplit = ids.split(',');
 
     await asyncForEach(idsSplit, async roleId => {
-      await props.db.query<IGroupService>(`
+      await props.tx.none(`
         DELETE FROM dbtable_schema.group_roles
         WHERE role_id = $1
       `, [roleId]);

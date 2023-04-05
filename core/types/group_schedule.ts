@@ -39,7 +39,7 @@ const groupSchedulesApi = {
     url: 'group/:groupName/schedules',
     method: 'POST',
     opts: {} as ApiOptions,
-    queryArg: { groupName: '' as string },
+    queryArg: {} as IGroupSchedule,
     resultType: {} as IGroupSchedule
   },
   putGroupSchedule: {
@@ -47,7 +47,7 @@ const groupSchedulesApi = {
     url: 'group/:groupName/schedules',
     method: 'PUT',
     opts: {} as ApiOptions,
-    queryArg: { groupName: '' as string },
+    queryArg: {} as IGroupSchedule,
     resultType: {} as IGroupSchedule
   },
   getGroupSchedules: {
@@ -91,63 +91,49 @@ const groupSchedulesApiHandlers: ApiHandler<typeof groupSchedulesApi> = {
   postGroupSchedule: async props => {
     const { groupName } = props.event.pathParameters;
 
-    const { id: groupId } = await props.db.one<IGroup>(`
+    const { id: groupId } = await props.tx.one<IGroup>(`
       SELECT id
       FROM dbview_schema.enabled_groups
       WHERE name = $1
     `, [groupName]);
 
-    const { sub: groupSub } = await props.db.one<IUserProfile>(`
+    const { sub: groupSub } = await props.tx.one<IUserProfile>(`
       SELECT sub
       FROM dbview_schema.enabled_users
       WHERE username = $1
     `, ['system_group_' + groupName]);
 
-    const postSchedule = schedules.find(api => api.action === IScheduleActionTypes.POST_SCHEDULE);
-
-    const [schedule] = await postSchedule?.cmnd({
+    const groupSchedule = siteApiHandlerRef.postSchedule({
+      ... props,
       event: {
         ...props.event,
         userSub: groupSub,
         body: props.event.body
-      },
-      db: props.db,
-      redis: props.redis
-    }) as [IGroupSchedule];
+      }
+    }) as Partial<IGroupSchedule>;
 
-    schedule.groupId = groupId;
+    groupSchedule.groupId = groupId;
 
     // Attach schedule to group
-    await props.db.query(`
+    await props.tx.none(`
       INSERT INTO dbtable_schema.group_schedules (group_id, schedule_id, created_sub)
       VALUES ($1, $2, $3::uuid)
-      ON CONFLICT (group_id, schedule_id) DO NOTHING
       RETURNING id
-      `, [groupId, schedule.id, groupSub]);
+      `, [groupId, groupSchedule.id, groupSub]);
 
     await props.redis.del(`${props.event.userSub}group/${groupName}/schedules`);
 
-    return [schedule];
+    return groupSchedule;
   },
   putGroupSchedule: async props => {
     const { groupName } = props.event.pathParameters;
 
-
-    const postSchedule = schedules.find(api => api.action === IScheduleActionTypes.PUT_SCHEDULE);
-
-    const [schedule] = await postSchedule?.cmnd({
-      event: {
-        ...props.event,
-        body: props.event.body
-      },
-      db: props.db,
-      redis: props.redis
-    }) as [IGroupSchedule];
+    const groupSchedule = siteApiHandlerRef.putSchedule(props) as Partial<IGroupSchedule>;
 
     await props.redis.del(`${props.event.userSub}group/${groupName}/schedules`);
-    await props.redis.del(`${props.event.userSub}group/${groupName}/schedulemaster/${schedule.id}`);
+    await props.redis.del(`${props.event.userSub}group/${groupName}/schedulemaster/${groupSchedule.id}`);
 
-    return [schedule];
+    return groupSchedule;
   },
   getGroupSchedules: async props => {
     const { groupName } = props.event.pathParameters;
@@ -188,14 +174,14 @@ const groupSchedulesApiHandlers: ApiHandler<typeof groupSchedulesApi> = {
   deleteGroupSchedule: async props => {
     const { groupName, ids } = props.event.pathParameters;
     const idsSplit = ids.split(',');
-    const { id: groupId } = await props.db.one<IGroup>(`
+    const { id: groupId } = await props.tx.one<IGroup>(`
       SELECT id
       FROM dbview_schema.enabled_groups
       WHERE name = $1
     `, [groupName]);
 
     await asyncForEach(idsSplit, async scheduleId => {
-      await props.db.none(`
+      await props.tx.none(`
         DELETE FROM dbtable_schema.group_schedules
         WHERE group_id = $1 AND schedule_id = $2
         RETURNING id

@@ -125,7 +125,7 @@ const formApi = {
 const formApiHandlers: ApiHandler<typeof formApi> = {
   postForm: async (props) => {
     const form = props.event.body;
-    const { id: formId } = await props.db.one<{ id: string }>(`
+    const { id: formId } = await props.tx.one<{ id: string }>(`
       INSERT INTO dbtable_schema.forms (name, created_on, created_sub)
       VALUES ($1, $2, $3::uuid)
       RETURNING id
@@ -139,7 +139,7 @@ const formApiHandlers: ApiHandler<typeof formApi> = {
   postFormVersion: async (props) => {
     const { version } = props.event.body;
     const { formId } = props.event.pathParameters;
-    const { id: versionId } = await props.db.one<{ id: string }>(`
+    const { id: versionId } = await props.tx.one<{ id: string }>(`
       INSERT INTO dbtable_schema.form_versions (form_id, form, created_on, created_sub)
       VALUES ($1::uuid, $2::jsonb, $3, $4::uuid)
       RETURNING id
@@ -151,7 +151,7 @@ const formApiHandlers: ApiHandler<typeof formApi> = {
       updated_sub: props.event.userSub
     });
 
-    await props.db.none(`
+    await props.tx.none(`
       UPDATE dbtable_schema.forms
       SET ${updateProps.string}
       WHERE id = $1
@@ -173,7 +173,7 @@ const formApiHandlers: ApiHandler<typeof formApi> = {
       updated_sub: props.event.userSub
     });
 
-    await props.db.none(`
+    await props.tx.none(`
       UPDATE dbtable_schema.forms
       SET ${updateProps.string}
       WHERE id = $1
@@ -201,12 +201,12 @@ const formApiHandlers: ApiHandler<typeof formApi> = {
   deleteForm: async (props) => {
     try {
       const { id } = props.event.pathParameters;
-      const form = await props.db.query<IForm>(`
+      await props.tx.none(`
         DELETE FROM dbtable_schema.forms
         WHERE id = $1
       `, [id]);
 
-      return form;
+      return { id };
 
     } catch (error) {
       throw error;
@@ -217,7 +217,7 @@ const formApiHandlers: ApiHandler<typeof formApi> = {
     try {
       const { id } = props.event.pathParameters;
 
-      await props.db.query(`
+      await props.tx.none(`
         UPDATE dbtable_schema.forms
         SET enabled = false, updated_on = $2, updated_sub = $3
         WHERE id = $1

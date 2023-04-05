@@ -52,13 +52,13 @@ const groupServicesApiHandlers: ApiHandler<typeof groupServicesApi> = {
   postGroupService: async props => {
     const { groupName, serviceId } = props.event.pathParameters;
 
-    const { id: groupId } = await props.db.one<IGroup>(`
+    const { id: groupId } = await props.tx.one<IGroup>(`
       SELECT id
       FROM dbview_schema.enabled_groups
       WHERE name = $1
     `, [groupName]);
 
-    await props.db.none(`
+    await props.tx.none(`
       INSERT INTO dbtable_schema.group_services (group_id, service_id, created_sub)
       VALUES ($1, $2, $3::uuid)
       ON CONFLICT (group_id, service_id) DO NOTHING
@@ -90,14 +90,14 @@ const groupServicesApiHandlers: ApiHandler<typeof groupServicesApi> = {
     const { groupName, ids } = props.event.pathParameters;
     const idsSplit = ids.split(',');
 
-    const { id: groupId } = await props.db.one<IGroup>(`
+    const { id: groupId } = await props.tx.one<IGroup>(`
       SELECT id
       FROM dbview_schema.enabled_groups
       WHERE name = $1
     `, [groupName]);
 
     await asyncForEach(idsSplit, async serviceId => {
-      await props.db.query<IGroupService>(`
+      await props.tx.none(`
         DELETE FROM dbtable_schema.group_services
         WHERE group_id = $1 AND service_id = $2
         RETURNING id

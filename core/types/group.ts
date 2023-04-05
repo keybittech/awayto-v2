@@ -134,7 +134,7 @@ const groupApi = {
     resultType: { checkingName: false as boolean, isValid: false as boolean }
   },
   postGroupsUsersInvite: {
-    kind: EndpointType.MUTATION,
+    kind: EndpointType.QUERY,
     url: 'group/users/invite',
     method: 'POST',
     opts: {} as ApiOptions,
@@ -167,7 +167,7 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
 
       // Do this first for now to check if user already made a group
       // Create a group in app db if user has no groups and name is unique
-      const group = await props.db.one<IGroup>(`
+      const group = await props.tx.one<IGroup>(`
         INSERT INTO dbtable_schema.groups (external_id, code, admin_external_id, default_role_id, name, purpose, allowed_domains, created_sub)
         VALUES ($1, $2, $3, $4::uuid, $5, $6, $7, $8::uuid)
         RETURNING id, name
@@ -181,7 +181,7 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
         kcGroupExternalId = kcGroupId;
       } catch (error) {
         if (409 === (error as ApiInternalError).response.status) {
-          await props.db.none(`
+          await props.tx.none(`
             DELETE FROM dbtable_schema.groups
             WHERE id = $1
           `, [group.id]);
@@ -200,7 +200,7 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
 
       const { groupAdminRoles, appClient, roleCall } = await props.redisProxy('groupAdminRoles', 'appClient', 'roleCall');
 
-      await props.db.none(`
+      await props.tx.none(`
         INSERT INTO dbtable_schema.users (sub, username, created_on, created_sub)
         VALUES ($1::uuid, $2, $3, $1::uuid)
       `, [uuid(), 'system_group_' + name, new Date()]);
@@ -222,7 +222,7 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
       });
 
       // Update the group with keycloak reference id
-      await props.db.none(`
+      await props.tx.none(`
         UPDATE dbtable_schema.groups 
         SET external_id = $2, admin_external_id = $3, purpose = $4
         WHERE id = $1
@@ -233,7 +233,7 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
         const { name: roleName } = roles[roleId];
         if (name.toLowerCase() === 'admin') continue;
         const { id: kcSubgroupId } = await props.keycloak.groups.setOrCreateChild({ id: kcGroupExternalId }, { name: roleName });
-        await props.db.none(`
+        await props.tx.none(`
           INSERT INTO dbtable_schema.group_roles (group_id, role_id, external_id, created_on, created_sub)
           VALUES ($1, $2, $3, $4, $5::uuid)
           ON CONFLICT (group_id, role_id) DO NOTHING
@@ -241,12 +241,12 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
       }
 
       // Get the group admin's id
-      const { id: userId } = await props.db.one<IUserProfile>(`
+      const { id: userId } = await props.tx.one<IUserProfile>(`
         SELECT id FROM dbview_schema.enabled_users WHERE sub = $1
       `, [props.event.userSub]);
 
       // Attach the group admin to the group in the app db
-      await props.db.none(`
+      await props.tx.none(`
         INSERT INTO dbtable_schema.group_users (user_id, group_id, external_id, created_sub)
         VALUES ($1, $2, $3, $4::uuid)
         ON CONFLICT (user_id, group_id) DO NOTHING
@@ -289,7 +289,7 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
     });
 
     // Update the basic info about the group in the app DB
-    const group = await props.db.one<IGroup>(`
+    const group = await props.tx.one<IGroup>(`
       UPDATE dbtable_schema.groups
       SET ${updateProps.string}
       WHERE id = $1
@@ -300,7 +300,7 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
     const roleIds = Object.keys(roles);
 
     // Get all the group_roles by the group's id
-    const diffs = (await props.db.manyOrNone<IGroupRole>(`
+    const diffs = (await props.tx.manyOrNone<IGroupRole>(`
       SELECT id, "roleId" 
       FROM dbview_schema.enabled_group_roles 
       WHERE "groupId" = $1
@@ -312,7 +312,7 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
       // Delete keycloak subgroups under the parent group which are no longer present
       const externalGroup = await props.keycloak.groups.findOne({ id: group.externalId });
       if (externalGroup?.subGroups) {
-        const roleNames = (await props.db.manyOrNone<IRole>(`
+        const roleNames = (await props.tx.manyOrNone<IRole>(`
           SELECT name 
           FROM dbview_schema.enabled_roles 
           WHERE id = ANY($1::uuid[])
@@ -326,7 +326,7 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
       }
 
       // Remove the role associations from the group
-      await props.db.query(`
+      await props.tx.none(`
         DELETE FROM dbtable_schema.group_roles
         WHERE id = ANY($1::uuid[]) 
       `, [diffs.map(r => r.id)]);
@@ -336,7 +336,7 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
     for (const roleId in Object.keys(roles)) {
       const role = roles[roleId];
       const { id: kcSubgroupId } = await props.keycloak.groups.setOrCreateChild({ id: group.externalId }, { name: role.name });
-      await props.db.query(`
+      await props.tx.none(`
         INSERT INTO dbtable_schema.group_roles (group_id, role_id, external_id, created_on, created_sub)
         VALUES ($1, $2, $3, $4, $5::uuid)
         ON CONFLICT (group_id, role_id) DO NOTHING
@@ -354,7 +354,7 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
     const { assignments } = props.event.body;
 
     // Get the group external ID for now by owner
-    const { externalId: groupExternalId } = await props.db.one<IGroup>(`
+    const { externalId: groupExternalId } = await props.tx.one<IGroup>(`
       SELECT "externalId" FROM dbview_schema.enabled_groups WHERE "createdSub" = $1
     `, [props.event.userSub]);
 
@@ -410,7 +410,7 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
     });
 
     // Assign APP_ROLE_CALL to group users
-    const users = await props.db.manyOrNone<IUserProfile>(`
+    const users = await props.tx.manyOrNone<IUserProfile>(`
       SELECT eu.sub
       FROM dbview_schema.enabled_groups g
       LEFT JOIN dbview_schema.enabled_group_users egu ON egu."groupId" = g.id
@@ -470,7 +470,7 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
 
     await asyncForEach(idsSplit, async id => {
 
-      const { externalId } = await props.db.one<IGroup>(`
+      const { externalId } = await props.tx.one<IGroup>(`
         SELECT external_id as "externalId"
         FROM dbtable_schema.groups
         WHERE id = $1 
@@ -479,13 +479,13 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
       await props.keycloak.groups.del({ id: externalId });
 
       // Delete roles assigned to the group
-      await props.db.none(`
+      await props.tx.none(`
         DELETE FROM dbtable_schema.group_roles
         WHERE group_id = $1
       `, [id]);
 
       // Delete group
-      await props.db.none(`
+      await props.tx.none(`
         DELETE FROM dbtable_schema.groups
         WHERE id = $1
       `, [id]);
@@ -503,7 +503,7 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
       throw { reason: 'Moderation event flagged. Please revise the group name.', checkingName: false, isValid: false };
     }
 
-    const { count } = await props.db.query<{ count: string }>(`
+    const { count } = await props.db.one<{ count: string }>(`
       SELECT COUNT(*) as count
       FROM dbtable_schema.groups
       WHERE name = $1
@@ -548,7 +548,7 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
       `, [code]);
 
       // Get joining user's id
-      const { id: userId, username } = await props.db.one<IUserProfile>(`
+      const { id: userId, username } = await props.tx.one<IUserProfile>(`
         SELECT id, username FROM dbtable_schema.users WHERE sub = $1
       `, [props.event.userSub]);
 
@@ -557,14 +557,14 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
       }
 
       // Get the role's subgroup external id
-      const { externalId: kcRoleSubgroupExternalId } = await props.db.one<IGroupRole>(`
+      const { externalId: kcRoleSubgroupExternalId } = await props.tx.one<IGroupRole>(`
         SELECT "externalId"
         FROM dbview_schema.enabled_group_roles
         WHERE "groupId" = $1 AND "roleId" = $2
       `, [groupId, defaultRoleId]);
 
       // Add the joining user to the group in the app db
-      await props.db.none(`
+      await props.tx.none(`
         INSERT INTO dbtable_schema.group_users (user_id, group_id, external_id, created_sub)
         VALUES ($1, $2, $3, $4::uuid);
       `, [userId, groupId, kcRoleSubgroupExternalId, props.event.userSub]);
@@ -604,18 +604,18 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
     const { code } = props.event.body;
 
     // Get group id and default role based on the group code
-    const { id: groupId, name, externalId: kcGroupExternalId } = await props.db.one<IGroup>(`
+    const { id: groupId, name, externalId: kcGroupExternalId } = await props.tx.one<IGroup>(`
       SELECT id, name, external_id as "externalId"
       FROM dbtable_schema.groups WHERE code = $1
     `, [code]);
 
     // Get the leaving user's id
-    const { id: userId } = await props.db.one<IUserProfile>(`
+    const { id: userId } = await props.tx.one<IUserProfile>(`
       SELECT id FROM dbtable_schema.users WHERE sub = $1
     `, [props.event.userSub]);
 
     // Remove the leaving user from the group in the app db
-    await props.db.none(`
+    await props.tx.none(`
       DELETE FROM dbtable_schema.group_users
       WHERE user_id = $1 AND group_id = $2;
     `, [userId, groupId]);

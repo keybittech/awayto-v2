@@ -51,7 +51,7 @@ const groupUserSchedulesApi = {
     method: 'POST',
     opts: {} as ApiOptions,
     queryArg: { groupName: '' as string, groupScheduleId: '' as string, userScheduleId: '' as string },
-    resultType: [] as any[]
+    resultType: [] as IGroupUserSchedule[]
   },
   getGroupUserSchedules: {
     kind: EndpointType.QUERY,
@@ -102,7 +102,7 @@ const groupUserSchedulesApiHandlers: ApiHandler<typeof groupUserSchedulesApi> = 
   postGroupUserSchedule: async (props) => {
     const { groupName, groupScheduleId, userScheduleId } = props.event.pathParameters;
 
-    await props.db.none(`
+    await props.tx.none(`
       INSERT INTO dbtable_schema.group_user_schedules (group_schedule_id, user_schedule_id, created_sub)
       VALUES ($1::uuid, $2::uuid, $3::uuid)
       ON CONFLICT (group_schedule_id, user_schedule_id) DO NOTHING
@@ -159,7 +159,7 @@ const groupUserSchedulesApiHandlers: ApiHandler<typeof groupUserSchedulesApi> = 
       updated_on: utcNowString()
     });
 
-    await props.db.query(`
+    await props.tx.none(`
       UPDATE dbtable_schema.quotes
       SET ${updateProps.string}
       WHERE id = $1
@@ -172,20 +172,20 @@ const groupUserSchedulesApiHandlers: ApiHandler<typeof groupUserSchedulesApi> = 
     const idsSplit = ids.split(',');
 
     await asyncForEach(idsSplit, async userScheduleId => {
-      const parts = await props.db.manyOrNone<ScheduledParts>(`
+      const parts = await props.tx.manyOrNone<ScheduledParts>(`
         SELECT * FROM dbfunc_schema.get_scheduled_parts($1);
       `, [userScheduleId]);
 
       const hasParts = parts.some(p => p.ids?.length);
 
       if (!hasParts) {
-        await props.db.none(`
+        await props.tx.none(`
           DELETE FROM dbtable_schema.group_user_schedules
           WHERE user_schedule_id = $1
           RETURNING id
         `, [userScheduleId]);
       } else {
-        await props.db.none(`
+        await props.tx.none(`
           UPDATE dbtable_schema.group_user_schedules
           SET enabled = false
           WHERE user_schedule_id = $1
