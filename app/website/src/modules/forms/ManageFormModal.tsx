@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useCallback } from "react";
-import { useParams } from "react-router";
+import React, { useEffect, useState, useCallback } from 'react';
+import { useParams } from 'react-router';
 
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
@@ -10,12 +10,8 @@ import CardActions from '@mui/material/CardActions';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 
-import { IForm, IUtilActionTypes, IFormVersion, IField } from "awayto/core";
-import { useApi, useAct, useComponents } from 'awayto/hooks';
-
-import { ManageFormsActions } from "./ManageForms";
-
-const { SET_SNACK } = IUtilActionTypes;
+import { IForm, IFormVersion, IField, IGroupForm } from 'awayto/core';
+import { useComponents, sh, useUtil } from 'awayto/hooks';
 
 declare global {
   interface IProps {
@@ -24,12 +20,16 @@ declare global {
 }
 
 export function ManageFormModal({ editForm, closeModal, ...props }: IProps): JSX.Element {
-  const { postFormVersionAction, postGroupFormsAction, getGroupFormByIdAction } = props as IProps & Required<ManageFormsActions>;
 
   const { groupName } = useParams();
+  if (!groupName) return <></>;
 
-  const api = useApi();
-  const act = useAct();
+  const [postGroupFormVersion] = sh.usePostGroupFormVersionMutation();
+  const [postGroupForm] = sh.usePostGroupFormMutation();
+  const [getGroupFormById] = sh.useLazyGetGroupFormByIdQuery();
+
+  const { setSnack } = useUtil();
+
   const { FormBuilder } = useComponents();
   const [version, setVersion] = useState({ form: {} } as IFormVersion);
   const [form, setForm] = useState({ name: '', ...editForm } as IForm);
@@ -37,15 +37,12 @@ export function ManageFormModal({ editForm, closeModal, ...props }: IProps): JSX
 
   useEffect(() => {
     if (editForm) {
-      const [abort, res] = api(getGroupFormByIdAction, { formId: editForm.id, groupName })
-      res?.then(forms => {
-        const [f] = forms as IForm[];
-        setForm(f);
-        if (f.version) {
-          setVersion(f.version);
+      getGroupFormById({ formId: editForm.id, groupName }).unwrap().then(res => {
+        setForm(res);
+        if (res.version) {
+          setVersion(res.version);
         }
-      }).catch(console.warn);
-      return () => abort();
+      });
     }
   }, [editForm]);
 
@@ -70,7 +67,7 @@ export function ManageFormModal({ editForm, closeModal, ...props }: IProps): JSX
     const { id, name } = form;
 
     if (!name || !Object.keys(version.form).length || Object.values(version.form).some(v => v.some(f => !f.l))) {
-      act(SET_SNACK, { snackType: 'error', snackOn: 'Forms must have a name, and at least 1 field. All fields mus have a label.' });
+      setSnack({ snackType: 'error', snackOn: 'Forms must have a name, and at least 1 field. All fields mus have a label.' });
       setEditable(true);
       return;
     }
@@ -99,12 +96,7 @@ export function ManageFormModal({ editForm, closeModal, ...props }: IProps): JSX
       }
     } as IForm;
 
-    const payload = id ? { ...formVersion, formId: id, groupName } : { ...formVersion, groupName };
-    const [, res] = api(id ? postFormVersionAction : postGroupFormsAction, payload, { load: true });
-    res?.then(() => {
-      if (closeModal)
-        closeModal();
-    }).catch(console.warn);
+    (id ? postGroupFormVersion : postGroupForm)((id ? { ...formVersion, formId: id, groupName } : { ...formVersion, groupName }) as IGroupForm).unwrap().then(() => closeModal && closeModal());
   }, [form, version.form]);
 
   return <Card sx={{ display: 'flex', flex: 1, flexDirection: 'column' }}>

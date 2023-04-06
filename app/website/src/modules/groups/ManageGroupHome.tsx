@@ -96,16 +96,7 @@ export function ManageGroupHome(props: IProps): JSX.Element {
       case 'matrix':
         return <ManageRoleActions {...props} />
       case 'forms':
-        return <ManageForms
-          groupForms={groupForms}
-          getGroupFormsAction={GET_GROUP_FORMS}
-          postGroupFormsAction={POST_GROUP_FORM}
-          postFormVersionAction={POST_GROUP_FORM_VERSION}
-          getGroupFormByIdAction={GET_GROUP_FORM_BY_ID}
-          putGroupFormsAction={PUT_GROUP_FORM}
-          deleteGroupFormsAction={DELETE_GROUP_FORM}
-          {...props}
-        />
+        return <ManageForms {...props} />
       case 'services':
         return <ManageServices
           services={groupServices}

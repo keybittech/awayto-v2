@@ -134,8 +134,8 @@ const groupApi = {
     queryArg: { name: '' as string },
     resultType: { isValid: true as boolean }
   },
-  postGroupUserInvite: {
-    kind: EndpointType.QUERY,
+  inviteGroupUser: {
+    kind: EndpointType.MUTATION,
     url: 'group/users/invite',
     method: 'POST',
     opts: {} as ApiOptions,
@@ -516,7 +516,7 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
 
     return { isValid: true };
   },
-  postGroupUserInvite: async props => {
+  inviteGroupUser: async props => {
     const { users } = props.event.body;
 
     for (const userId in users) {

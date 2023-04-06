@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, Suspense } from 'react';
+import React, { useState, useMemo, Suspense } from 'react';
 import { useParams } from 'react-router';
 import dayjs from 'dayjs';
 
@@ -12,30 +12,19 @@ import CreateIcon from '@mui/icons-material/Create';
 import NoteAddIcon from '@mui/icons-material/NoteAdd';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-import { IGroupForm, IActionTypes } from 'awayto/core';
-import { useApi, useGrid } from 'awayto/hooks';
+import { IGroupForm } from 'awayto/core';
+import { sh, useGrid } from 'awayto/hooks';
 
 import ManageFormModal from './ManageFormModal';
 
-export type ManageFormsActions = {
-  groupForms?: Record<string, IGroupForm>;
-  getGroupFormsAction?: IActionTypes;
-  getGroupFormByIdAction?: IActionTypes;
-  putGroupFormsAction?: IActionTypes;
-  postGroupFormsAction?: IActionTypes;
-  postFormVersionAction?: IActionTypes;
-  deleteGroupFormsAction?: IActionTypes;
-};
-
-declare global {
-  interface IProps extends ManageFormsActions { }
-}
-
 export function ManageForms(props: IProps): JSX.Element {
-  const { groupForms, getGroupFormsAction, deleteGroupFormsAction } = props as IProps & Required<ManageFormsActions>;
 
   const { groupName } = useParams();
-  const api = useApi();
+  if (!groupName) return <></>;
+  
+  const [deleteGroupForm] = sh.useDeleteGroupFormMutation();
+  const { data: groupForms, refetch: getGroupForms } = sh.useGetGroupFormsQuery({ groupName });
+
   const [form, setForm] = useState<IGroupForm>();
   const [selected, setSelected] = useState<string[]>([]);
   const [dialog, setDialog] = useState('');
@@ -45,7 +34,7 @@ export function ManageForms(props: IProps): JSX.Element {
     const acts = length == 1 ? [
       <Tooltip key={'manage_form'} title="Edit">
         <Button onClick={() => {
-          setForm(groupForms[selected[0]]);
+          setForm(groupForms.find(gf => gf.id === selected[0]));
           setDialog('manage_form');
           setSelected([]);
         }}>
@@ -60,11 +49,10 @@ export function ManageForms(props: IProps): JSX.Element {
       <Tooltip key={'delete_group'} title="Delete">
         <Button onClick={() => {
           if (selected.length) {
-            const [, res] = api(deleteGroupFormsAction, { groupName, ids: selected.join(',') }, { load: true })
-            res?.then(() => {
+            deleteGroupForm({ groupName, ids: selected.join(',') }).unwrap().then(() => {
               setSelected([]);
-              api(getGroupFormsAction, { groupName });
-            }).catch(console.warn);
+              getGroupForms();
+            });
           }
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Delete</Typography>
@@ -75,7 +63,7 @@ export function ManageForms(props: IProps): JSX.Element {
   }, [selected]);
 
   const FormGrid = useGrid<IGroupForm>({
-    rows: Object.values(groupForms),
+    rows: groupForms,
     columns: [
       { flex: 1, headerName: 'Name', field: 'name' },
       { flex: 1, headerName: 'Created', field: 'createdOn', renderCell: ({ row }) => dayjs().to(dayjs.utc(row.createdOn)) }
@@ -98,20 +86,12 @@ export function ManageForms(props: IProps): JSX.Element {
     </>
   });
 
-  useEffect(() => {
-    if (groupName) {
-      const [abort, res] = api(getGroupFormsAction, { groupName });
-      res?.catch(console.warn);
-      return () => abort();
-    }
-  }, [groupName]);
-
   return <>
     <Dialog fullScreen open={dialog === 'manage_form'} fullWidth maxWidth="sm">
       <Suspense>
         <ManageFormModal {...props} editForm={form} closeModal={() => {
           setDialog('')
-          api(getGroupFormsAction, { groupName });
+          getGroupForms();
         }} />
       </Suspense>
     </Dialog>

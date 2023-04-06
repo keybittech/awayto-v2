@@ -15,7 +15,7 @@ export type ILookup = {
  */
 const lookupApi = {
   getLookups: {
-    kind: EndpointType.MUTATION,
+    kind: EndpointType.QUERY,
     url: 'lookup',
     method: 'GET',
     opts: {} as ApiOptions,

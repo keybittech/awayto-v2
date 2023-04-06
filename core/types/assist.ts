@@ -26,7 +26,7 @@ export type IAssist = {
  */
 const assistApi = {
   getPrompt: {
-    kind: EndpointType.MUTATION,
+    kind: EndpointType.QUERY,
     url: 'assist/prompt',
     method: 'GET',
     opts: { cache: null } as ApiOptions,

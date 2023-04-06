@@ -7,10 +7,7 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 
-import { IFeedbackActionTypes } from 'awayto/core';
-import { storeApi, useApi, useRedux } from 'awayto/hooks';
-
-const { POST_FEEDBACK } = IFeedbackActionTypes;
+import { sh } from 'awayto/hooks';
 
 declare global {
   interface IProps {
@@ -23,14 +20,12 @@ declare global {
 
 export function FeedbackMenu ({ handleMenuClose, feedbackAnchorEl, feedbackMenuId, isFeedbackOpen }: IProps): JSX.Element {
 
-  const api = useApi();
+  const [postFeedback] = sh.usePostGroupFeedbackMutation();
 
-  const { data : profile } = storeApi.useGetUserProfileDetailsQuery();
-  if (!profile) return <></>;
+  const { data : profile } = sh.useGetUserProfileDetailsQuery();
+  if (!profile.groups) return <></>;
   
   const groupsValues = useMemo(() => Object.values(profile.groups || {}), [profile]);
-  
-  if (!profile || !groupsValues.length) return <></>;
   
   const [group, setGroup] = useState(groupsValues[0]);
   const [feedbackTarget, setFeedbackTarget] = useState('site');
@@ -38,7 +33,7 @@ export function FeedbackMenu ({ handleMenuClose, feedbackAnchorEl, feedbackMenuI
 
   const handleSubmit = useCallback(function() {
     if (message && handleMenuClose) {
-      api(POST_FEEDBACK, { message, groupName: group.name });
+      postFeedback({ message, groupName: group.name });
       setMessage('');
       handleMenuClose();
     }

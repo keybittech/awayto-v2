@@ -6,31 +6,25 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardActions from '@mui/material/CardActions';
 
-import { IGroupActionTypes, IUtilActionTypes } from 'awayto/core';
-import { useAct, useApi } from 'awayto/hooks';
+import { sh, useUtil } from 'awayto/hooks';
 import { TextField } from '@mui/material';
-
-const { SET_SNACK } = IUtilActionTypes;
-const { GROUPS_JOIN } = IGroupActionTypes;
 
 export function JoinGroupModal ({ closeModal }: IProps): JSX.Element {
 
-  const api = useApi();
-  const act = useAct();
-
+  const { setSnack } = useUtil();
+  const [joinGroup] = sh.useJoinGroupMutation();
   const [code, setCode] = useState('');
 
   const handleSubmit = useCallback(() => {
     if (!code) {
-      act(SET_SNACK, { snackType: 'error', snackOn: 'Please provide at least 1 code.' });
+      setSnack({ snackType: 'error', snackOn: 'Please provide at least 1 code.' });
       return;
     }
 
-    api(GROUPS_JOIN, { code }, { load: true });
-
-    if (closeModal)
-      closeModal();
-
+    joinGroup({ code }).unwrap().then(() => {
+      if (closeModal)
+        closeModal();
+    });
   }, [code]);
 
   return <>

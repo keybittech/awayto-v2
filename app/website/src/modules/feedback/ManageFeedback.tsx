@@ -1,26 +1,18 @@
-import React, { useEffect, useMemo } from 'react';
+import React from 'react';
 import dayjs from 'dayjs';
 
-import { IFeedbackActionTypes } from 'awayto/core';
-import { useRedux, useApi, useGrid } from 'awayto/hooks';
+import { useGrid, sh } from 'awayto/hooks';
 import { useParams } from 'react-router';
-
-const { GET_FEEDBACK } = IFeedbackActionTypes;
 
 export function ManageFeedbacks(): JSX.Element {
 
-  const api = useApi();
   const { groupName } = useParams();
-  const { feedbacks } = useRedux(state => state.feedback);
-
-  useEffect(() => {
-    const [abort, res] = api(GET_FEEDBACK, { groupName });
-    res?.catch(console.warn);
-    return () => abort();
-  }, []);
+  if (!groupName) return <></>;
+  
+  const { data: feedbacks } = sh.useGetGroupFeedbackQuery({ groupName })
 
   const FeedbackGrid = useGrid({
-    rows: Object.values(feedbacks),
+    rows: feedbacks,
     columns: [
       { flex: 1, headerName: 'User', field: 'username' },
       { flex: 1, headerName: 'Message', field: 'message' },

@@ -15,17 +15,14 @@ import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Logout from '@mui/icons-material/Logout';
 
-import { IUtilActionTypes, IGroup, IActionTypes, IGroupActionTypes, IRole, SiteRoles } from 'awayto/core';
-import { useAppSelector, useApi, useAct, useSecure, useGrid, sh, useUtil } from 'awayto/hooks';
+import { IGroup, SiteRoles } from 'awayto/core';
+import { useAppSelector, useSecure, useGrid, sh, useUtil } from 'awayto/hooks';
 
 import ManageGroupModal from './ManageGroupModal';
 import JoinGroupModal from './JoinGroupModal';
 import { useNavigate } from 'react-router';
 
 import keycloak from '../../keycloak';
-
-const { OPEN_CONFIRM, SET_LOADING } = IUtilActionTypes;
-const { GROUPS_LEAVE } = IGroupActionTypes;
 
 export function ManageGroups(props: IProps): JSX.Element {
   const [deleteGroup] = sh.useDeleteGroupMutation();

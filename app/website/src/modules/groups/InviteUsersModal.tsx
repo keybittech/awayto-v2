@@ -6,17 +6,14 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardActions from '@mui/material/CardActions';
 
-import { IUserProfile, IGroupActionTypes, IUtilActionTypes } from 'awayto/core';
-import { useAct, useApi } from 'awayto/hooks';
+import { IUserProfile } from 'awayto/core';
+import { sh, useUtil } from 'awayto/hooks';
 import { TextField } from '@mui/material';
-
-const { SET_SNACK } = IUtilActionTypes;
-const { POST_GROUPS_USERS_INVITE } = IGroupActionTypes;
 
 export function InviteUsersModal({ closeModal }: IProps): JSX.Element {
 
-  const api = useApi();
-  const act = useAct();
+  const { setSnack } = useUtil();
+  const [inviteGroupUser] = sh.useInviteGroupUserMutation();
 
   const [email, setEmail] = useState('');
   const [users, setUsers] = useState<IUserProfile[]>([]);
@@ -28,15 +25,14 @@ export function InviteUsersModal({ closeModal }: IProps): JSX.Element {
 
   const handleSubmit = useCallback(() => {
     if (!users.length) {
-      act(SET_SNACK, { snackType: 'error', snackOn: 'Please provide at least 1 email.' });
+      setSnack({ snackType: 'error', snackOn: 'Please provide at least 1 email.' });
       return;
     }
 
-    api(POST_GROUPS_USERS_INVITE, { users }, { load: true });
-
-    if (closeModal)
-      closeModal();
-
+    inviteGroupUser({ users }).unwrap().then(() => {
+      if (closeModal)
+        closeModal();
+    });
   }, [users]);
 
   return <>

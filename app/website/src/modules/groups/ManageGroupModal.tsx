@@ -40,7 +40,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
 
   const [putGroup] = sh.usePutGroupMutation();
   const [postGroup] = sh.usePostGroupMutation();
-  const [getPrompt] = sh.useGetPromptMutation();
+  const [getPrompt] = sh.useLazyGetPromptQuery();
   const [postRole] = sh.usePostRoleMutation();
   const [deleteRole] = sh.useDeleteRoleMutation();
   const [checkGroupName, { data: { isValid: groupNameValid } }] = sh.useLazyCheckGroupNameQuery();

@@ -17,7 +17,7 @@ export type IUtil = {
   };
   isLoading: boolean;
   loadingMessage: string;
-  error: Error | string;
+  error: Error;
   canSubmitAssignments: boolean;
   snackType: 'success' | 'info' | 'warning' | 'error';
   snackOn: string;
@@ -36,30 +36,32 @@ export const utilConfig = {
     canSubmitAssignments: true
   } as IUtil,
   reducers: {
-    setTheme: (state: IUtil, action: { payload: { theme: 'dark' | 'light' } }) => {
+    setTheme: (state: IUtil, action: { payload: Pick<IUtil, 'theme'> }) => {
       const { theme } = action.payload;
       localStorage.setItem('kbt_theme', theme);
       state.theme = theme;
     },
-    openConfirm: (state: IUtil) => {
+    openConfirm: (state: IUtil, action: { payload: Pick<IUtil, 'isConfirming' | 'confirmEffect' | 'confirmAction'> }) => {
       state.isConfirming = true;
+      state.confirmEffect = action.payload.confirmEffect;
+      state.confirmAction = action.payload.confirmAction;
     },
     closeConfirm: (state: IUtil) => {
       state.isConfirming = false;
     },
-    setLoading: (state: IUtil, action: { payload: { isLoading: boolean, loadingMessage: string } }) => {
+    setLoading: (state: IUtil, action: { payload: Pick<IUtil, 'isLoading' | 'loadingMessage'> }) => {
       state.isLoading = action.payload.isLoading;
       state.loadingMessage = action.payload.loadingMessage;
     },
-    setSnack: (state: IUtil, action: { payload: { snackOn: string, snackType?: 'success' | 'info' | 'warning' | 'error', snackRequestId?: string } }) => {
+    setSnack: (state: IUtil, action: { payload: Pick<IUtil, 'snackOn' | 'snackType' | 'snackRequestId'> }) => {
       state.snackOn = action.payload.snackOn;
       state.snackType = action.payload.snackType || 'info';
       state.snackRequestId = action.payload.snackRequestId || '';
     },
-    apiError: (state: IUtil, action: { payload: { error: Error } }) => {
+    apiError: (state: IUtil, action: { payload: Pick<IUtil, 'error'> }) => {
       state.snackOn = action.payload.error.message;
     },
-    setUpdateAssignments: (state: IUtil, action: { payload: { canSubmitAssignments: boolean } }) => {
+    setUpdateAssignments: (state: IUtil, action: { payload: Pick<IUtil, 'canSubmitAssignments'> }) => {
       state.canSubmitAssignments = action.payload.canSubmitAssignments;
     },
   },
