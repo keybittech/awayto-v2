@@ -8,16 +8,13 @@ import CardActions from '@mui/material/CardActions';
 import CardActionArea from '@mui/material/CardActionArea';
 import Dialog from '@mui/material/Dialog';
 
-import { IUtilActionTypes } from 'awayto/core';
-import { useRedux, useAct } from 'awayto/hooks';
+import { useAppSelector, useUtil } from 'awayto/hooks';
 import { CardHeader } from '@mui/material';
-
-const { CLOSE_CONFIRM } = IUtilActionTypes;
 
 export function ConfirmAction(): JSX.Element {
 
-  const act = useAct();
-  const util = useRedux(state => state.util);
+  const { closeConfirm } = useUtil();
+  const util = useAppSelector(state => state.util);
 
   return <>
     {util && (
@@ -28,7 +25,7 @@ export function ConfirmAction(): JSX.Element {
             <Grid item xs={util.confirmSideEffect ? 6 : 12}>
               <CardActionArea sx={{ height: '100%', padding: '50px' }} onClick={async () => {
                 await util.confirmAction(true);
-                act(CLOSE_CONFIRM, { isConfirming: false });
+                closeConfirm();
               }}>
                 <Grid container textAlign="center" justifyContent="center">
                   <Grid item>
@@ -44,7 +41,7 @@ export function ConfirmAction(): JSX.Element {
 
               <CardActionArea sx={{ height: '100%', padding: '50px' }} onClick={async () => {
                 await util.confirmAction(false);
-                act(CLOSE_CONFIRM, { isConfirming: false });
+                closeConfirm();
               }}>
                 <Grid container textAlign="center" justifyContent="center">
                   <Typography variant="button" fontSize={16}>{util.confirmSideEffect.rejectionAction}</Typography>
@@ -54,7 +51,7 @@ export function ConfirmAction(): JSX.Element {
             </Grid>}
           </Grid>
           <CardActions>
-            <Button onClick={() => { act(CLOSE_CONFIRM, { isConfirming: false }) }}>Cancel</Button>
+            <Button onClick={() => { closeConfirm(); }}>Cancel</Button>
           </CardActions>
         </Card>
       </Dialog>

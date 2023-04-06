@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
+import dayjs from 'dayjs';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -9,9 +10,9 @@ import ListItemText from '@mui/material/ListItemText';
 import Tooltip from '@mui/material/Tooltip';
 
 import JoinFullIcon from '@mui/icons-material/JoinFull';
+
 import { bookingDT, shortNSweet } from 'awayto/core';
-import { storeApi, useRedux } from 'awayto/hooks';
-import dayjs from 'dayjs';
+import { sh } from 'awayto/hooks';
 
 declare global {
   interface IProps {
@@ -24,7 +25,7 @@ declare global {
 
 export function UpcomingBookingsMenu({ handleMenuClose, upcomingBookingsAnchorEl, upcomingBookingsMenuId, isUpcomingBookingsOpen }: IProps): JSX.Element {
 
-  const { data: profile } = storeApi.useGetUserProfileDetailsQuery();
+  const { data: profile } = sh.useGetUserProfileDetailsQuery();
   if (!profile) return <></>;
 
   const minsAgo15 = dayjs.duration(-15, 'minutes');

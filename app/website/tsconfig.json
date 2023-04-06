@@ -4,9 +4,6 @@
     "./src",
     "../../core"
   ],
-  "exclude": [
-    "./src/modules"
-  ],
   "compilerOptions": {
     "target": "es6",
     "lib": [

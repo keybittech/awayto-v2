@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 
 import { IBooking } from 'awayto/core';
-import { storeApi } from 'awayto/hooks';
+import { sh } from 'awayto/hooks';
 
 import { BookingContext, BookingContextType } from "./BookingContext";
 
@@ -10,7 +10,7 @@ export function BookingProvider ({ children }: IProps): JSX.Element {
   const [bookingValuesChanged, setBookingValuesChanged] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<IBooking[]>([]);
 
-  const { data : profile } = storeApi.useGetUserProfileDetailsQuery();
+  const { data : profile } = sh.useGetUserProfileDetailsQuery();
   if (!profile) return <></>;
 
   const bookingValues = useMemo(() => Object.values(profile.bookings || {}), [profile]);

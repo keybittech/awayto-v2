@@ -4,7 +4,7 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 
-import { useRedux, useGrid } from 'awayto/hooks';
+import { sh, useGrid } from 'awayto/hooks';
 
 declare global {
   interface IProps {
@@ -14,8 +14,10 @@ declare global {
 
 export function FileManager(): JSX.Element {
 
+  const { data: files } = sh.useGetFilesQuery();
+  
   const fileSelectRef = useRef<HTMLInputElement>(null);
-  const { files } = useRedux(state => state.file);
+
   const [toggle, setToggle] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
 
@@ -26,7 +28,7 @@ export function FileManager(): JSX.Element {
   }, [selected]);
 
   const FileGrid = useGrid({
-    rows: Object.values(files),
+    rows: files,
     columns: [
       { flex: 1, headerName: 'Name', field: 'name' },
     ],

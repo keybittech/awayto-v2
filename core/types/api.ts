@@ -59,7 +59,7 @@ export type ApiEvent<T extends AnyRecord> = {
  * @category API
  */
 export type ApiOptions = {
-  readonly cache?: 'skip' | number | boolean | null | undefined
+  readonly cache?: 'skip' | number | boolean | null | undefined;
 }
 
 /**

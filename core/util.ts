@@ -117,6 +117,7 @@ export interface AnyRecord { [prop: string]: (string | number | boolean | Partia
 export type Void = { _void: never };
 export type ReplaceVoid<T> = T extends Void ? void : T;
 export type Extend<T> = { [K in keyof T]: T[K] };
+export type RemoveNever<T> = { [K in keyof T as T[K] extends never ? never : K]: T[K]; };
 
 export function hasRequiredArgs(targetType: AnyRecord, sourceType: AnyRecord): boolean | string {
   const targetTypeKeys = Object.keys(targetType).filter(key => key !== '_void').sort();

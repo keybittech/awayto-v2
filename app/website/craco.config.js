@@ -75,8 +75,7 @@ let oldRolesOutputHash;
 function checkWriteBuildFile(next) {
   try {
     const files = {
-      views: parseResource('.' + AWAYTO_WEBAPP_MODULES + '/**/*.tsx'),
-      // reducers: parseResource('.' + AWAYTO_WEBAPP_MODULES + '/**/reducers/*.ts')
+      views: parseResource('.' + AWAYTO_WEBAPP_MODULES + '/**/*.tsx')
     };
     const filesString = JSON.stringify(files);
 
@@ -117,10 +116,10 @@ const appDirectory = fs.realpathSync(process.cwd());
 const resolveApp = (relativePath) => path.resolve(appDirectory, relativePath);
 
 module.exports = {
-  eslint: {
-    enable: false,
-    mode: ESLINT_MODES.NONE
-  },
+  // eslint: {
+  //   enable: false,
+  //   mode: ESLINT_MODES.NONE
+  // },
   webpack: {
     alias: {
       'awayto/core': resolveApp(AWAYTO_CORE + '/index.ts'),
