@@ -2,33 +2,11 @@ import React from 'react';
 
 import Box from '@mui/material/Box';
 
-import { IUserProfileActionTypes, IRoleActionTypes, IGroupActionTypes } from 'awayto/core';
-import { useComponents, storeApi, useRedux } from 'awayto/hooks';
-
-const { GET_USER_PROFILE_DETAILS } = IUserProfileActionTypes;
-const { POST_ROLES, DELETE_ROLES } = IRoleActionTypes;
-const { CHECK_GROUPS_NAME, PUT_GROUPS, POST_GROUPS, DELETE_GROUPS } = IGroupActionTypes;
+import ManageGroups from './ManageGroups';
 
 export function GroupHome (props: IProps): JSX.Element {
-  const { ManageGroups } = useComponents()
-  
-  const { data: profile } = storeApi.useGetUserProfileDetailsQuery();
-
-  if (!profile) return <></>;
-
   return <Box mb={4}>
-    <ManageGroups {...props}
-      groups={profile.groups}
-      roles={profile.roles}
-      getGroupsAction={GET_USER_PROFILE_DETAILS}
-      deleteGroupsAction={DELETE_GROUPS}
-      putGroupsAction={PUT_GROUPS}
-      postGroupsAction={POST_GROUPS}
-      checkNameAction={CHECK_GROUPS_NAME}
-      getRolesAction={GET_USER_PROFILE_DETAILS}
-      deleteRolesAction={DELETE_ROLES}
-      postRolesAction={POST_ROLES}
-    />
+    <ManageGroups {...props} />
   </Box>
 }
 

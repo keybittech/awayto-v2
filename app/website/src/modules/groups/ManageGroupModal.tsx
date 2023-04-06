@@ -19,14 +19,10 @@ import InputAdornment from '@mui/material/InputAdornment';
 import ArrowRightAlt from '@mui/icons-material/ArrowRightAlt';
 import NotInterestedIcon from '@mui/icons-material/NotInterested';
 
-import { IGroup, IUtilActionTypes, IGroupActionTypes, IAssistActionTypes, IRole, IPrompts } from 'awayto/core';
-import { useAct, useApi, useRedux, useComponents, storeApi } from 'awayto/hooks';
-import { ManageGroupsActions } from './ManageGroups';
-import keycloak from '../../keycloak';
+import { IGroup, IPrompts } from 'awayto/core';
+import { useComponents, sh, useUtil } from 'awayto/hooks';
 
-const { SET_SNACK } = IUtilActionTypes;
-const { CHECK_GROUPS_NAME } = IGroupActionTypes;
-const { GET_PROMPT } = IAssistActionTypes;
+import keycloak from '../../keycloak';
 
 declare global {
   interface IProps {
@@ -35,24 +31,40 @@ declare global {
 }
 
 export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): JSX.Element {
-  const { getRolesAction, putGroupsAction, postGroupsAction, postRolesAction, deleteRolesAction } = props as Required<ManageGroupsActions>;
 
-  const api = useApi();
-  const act = useAct();
+  const { setSnack } = useUtil();
+
   const { SelectLookup } = useComponents();
 
-  const { data : profile } = storeApi.useGetUserProfileDetailsQuery();
-  if (!profile) return <></>;
+  const { data : profile, refetch: getUserProfileDetails } = sh.useGetUserProfileDetailsQuery();
 
-  const { isValid, needCheckName, checkedName, checkingName } = useRedux(state => state.group);
+  const [putGroup] = sh.usePutGroupMutation();
+  const [postGroup] = sh.usePostGroupMutation();
+  const [getPrompt] = sh.useGetPromptMutation();
+  const [postRole] = sh.usePostRoleMutation();
+  const [deleteRole] = sh.useDeleteRoleMutation();
+  const [checkGroupName, { data: { isValid: groupNameValid } }] = sh.useLazyCheckGroupNameQuery();
+
   const [defaultRoleId, setDefaultRoleId] = useState(editGroup?.defaultRoleId || '');
   const [roleIds, setRoleIds] = useState<string[]>([]);
   const [group, setGroup] = useState({ name: '', purpose: '', allowedDomains: '', ...editGroup } as IGroup);
   const [viewStep, setViewStep] = useState(1);
   const [editedPurpose, setEditedPurpose] = useState(false);
   const [roleSuggestions, setRoleSuggestions] = useState([] as string[]);
-  const [allowedDomains, setAllowedDomains] = useState([profile.username.split('@')[1]] as string[]);
+  const [allowedDomains, setAllowedDomains] = useState([profile.username?.split('@')[1]] as string[]);
   const [allowedDomain, setAllowedDomain] = useState('');
+
+  const [{ isValid, needCheckName, checkedName, checkingName }, setChecker] = useState<Partial<{
+    isValid: boolean,
+    needCheckName: boolean,
+    checkedName: string,
+    checkingName: boolean
+  }>>({
+    isValid: !!groupNameValid,
+    needCheckName: false,
+    checkedName: '',
+    checkingName: false
+  });
 
   const progressMemo = useMemo(() => <CircularProgress size="20px" />, []);
   const roleValues = useMemo(() => Object.values(profile.roles || {}), [profile]);
@@ -71,38 +83,40 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
     const { id, name, purpose } = group;
 
     if (!name || !roleIds.length || !defaultRoleId) {
-      act(SET_SNACK, { snackType: 'error', snackOn: 'All fields are required.' });
+      setSnack({ snackType: 'error', snackOn: 'All fields are required.' });
       return;
     }
-
-    const newRoles = Object.fromEntries(roleIds.map(id => [id, profile.roles[id]])) as Record<string, IRole>;
    
-    const [, res] = api(id ? putGroupsAction : postGroupsAction, { name: formatName(name), purpose, allowedDomains: allowedDomains.join(','), roles: newRoles, defaultRoleId }, { load: true });
-    res?.then(() => {
-      id && act(SET_SNACK, { snackType: 'success', snackOn: 'Group updated! Please allow up to a minute for any related permissions changes to persist.' })
+    (id ? putGroup : postGroup)({
+      id,
+      name: formatName(name),
+      purpose,
+      allowedDomains: allowedDomains.join(','),
+      roles: Object.fromEntries(roleIds.map(id => [id, profile.roles![id]])),
+      defaultRoleId
+    }).unwrap().then(() => {
+      id && setSnack({ snackType: 'success', snackOn: 'Group updated! Please allow up to a minute for any related permissions changes to persist.' })
       !id && keycloak.clearToken();
-    }).catch(console.warn);
+    });
   }, [group, profile, roleIds, defaultRoleId]);
 
 
   const handleName = useCallback((event: ChangeEvent<HTMLTextAreaElement>) => {
-    act(CHECK_GROUPS_NAME, { checkingName: true });
+    setChecker({ checkingName: true });
     const name = event.target.value;
     if (name.length <= 50) {
       setGroup({ ...group, name });
-      act(CHECK_GROUPS_NAME, { checkedName: formatName(name), needCheckName: name != editGroup?.name }, { debounce: { time: 1000 } });
+      setChecker({ checkedName: formatName(name), needCheckName: name != editGroup?.name });
     } else if (isValid) {
-      act(CHECK_GROUPS_NAME, { checkingName: false });
+      setChecker({ checkingName: false });
     }
   }, [group, editGroup]);
 
   const handleContinue = useCallback(() => {
-    const [, res] = api(GET_PROMPT, { id: IPrompts.SUGGEST_ROLE, prompt: group.name, prompt2: group.purpose }, { load: true, useParams: true })
-    res?.then(featureSuggestionData => {
-      const { promptResult } = featureSuggestionData as { promptResult: string[] };
-      if (promptResult) setRoleSuggestions(promptResult)
+    getPrompt({ id: IPrompts.SUGGEST_ROLE, prompt: group.name, prompt2: group.purpose }).unwrap().then(res => {
+      setRoleSuggestions(res.promptResult);
       setViewStep(2);
-    });
+    })
   }, [group]);
 
   if (!roleIds.length && roleValues?.length && !defaultRoleId) {
@@ -114,9 +128,9 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
   }
 
   useEffect(() => {
-    if (needCheckName && checkedName) {
-      act(CHECK_GROUPS_NAME, { checkingName: true, needCheckName: false, isValid: false });
-      api(CHECK_GROUPS_NAME, { name: checkedName });
+    if (needCheckName && checkedName?.length) {
+      setChecker({ checkingName: true, needCheckName: false, isValid: false });
+      checkGroupName({ name: checkedName });
     }
   }, [needCheckName, checkedName]);
 
@@ -134,14 +148,10 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
             if (existingId) {
               setRoleIds([...roleIds, existingId])
             } else {
-              const [, res] = api(postRolesAction, { name: s }, { load: true });
-              res?.then(roleData => {
-                const [, rez] = api(getRolesAction);
-                rez?.then(() => {
-                  const [role] = roleData as IRole[];
-                  !roleIds.includes(role.id) && setRoleIds([...roleIds, role.id]);
-                }).catch(console.warn);
-              }).catch(console.warn);
+              postRole({ name: s }).unwrap().then(async newRole => {
+                getUserProfileDetails();
+                !roleIds.includes(newRole.id) && setRoleIds([...roleIds, newRole.id]);
+              })
             }
           }
         }}>{s}</Link>{i !== roleSuggestions.length - 1 ? ',' : ''}&nbsp;
@@ -221,7 +231,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
                   color="secondary"
                   onClick={() => {
                     if (!/[a-zA-Z0-9-]+\.[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*/.test(allowedDomain)) {
-                      act(SET_SNACK, { snackType: 'info', snackOn: 'Must be an email domain, like DOMAIN.COM'})
+                      setSnack({ snackType: 'info', snackOn: 'Must be an email domain, like DOMAIN.COM'})
                     } else {
                       setAllowedDomains([ ...allowedDomains, allowedDomain ])
                       setAllowedDomain('');
@@ -252,14 +262,15 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
               <SelectLookup
                 multiple
                 helperText={!roleSuggestions.length ? 'Ex: Consultant, Project Manager, Advisor, Business Analyst' : roleSuggestionLinks}
-                lookupName="Group Role"
+                lookupName='Group Role'
                 lookups={roleValues}
                 lookupChange={setRoleIds}
                 lookupValue={roleIds}
                 invalidValues={['admin']}
-                refetchAction={getRolesAction}
-                createAction={postRolesAction}
-                deleteAction={deleteRolesAction}
+                refetchAction={getUserProfileDetails}
+                createAction={postRole}
+                deleteAction={deleteRole}
+                deleteActionIdentifier='ids'
                 {...props}
               />
             </Grid>

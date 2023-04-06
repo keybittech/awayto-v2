@@ -42,9 +42,9 @@ export type IGroup = {
   usersCount: number;
   roles: Record<string, IRole>;
   users: Record<string, IUserProfile>;
+  availableGroupAssignments: Record<string, IGroupRoleAuthActions>;
 
   isValid: boolean;
-  availableGroupAssignments: Record<string, IGroupRoleAuthActions>;
   needCheckName: boolean;
   checkingName: boolean;
   checkedName: string;
@@ -55,7 +55,7 @@ export type IGroup = {
  * @category Group
  */
 const groupApi = {
-  postGroups: {
+  postGroup: {
     kind: EndpointType.MUTATION,
     url: 'group',
     method: 'POST',
@@ -63,13 +63,13 @@ const groupApi = {
     queryArg: {
       name: '' as string,
       purpose: '' as string,
-      roles: {} as Record<string, { name: string }>,
-      allowedDomains: [] as string[],
+      roles: {} as Record<string, IRole>,
+      allowedDomains: '' as string,
       defaultRoleId: '' as string,
     },
     resultType: [] as { id: string; name: string; roles: Record<string, { name: string }> }[]
   },
-  putGroups: {
+  putGroup: {
     kind: EndpointType.MUTATION,
     url: 'group',
     method: 'PUT',
@@ -78,11 +78,12 @@ const groupApi = {
       id: '' as string,
       name: '' as string,
       roles: {} as Record<string, IRole>,
+      allowedDomains: '' as string,
       defaultRoleId: '' as string,
     },
     resultType: [] as IGroup[]
   },
-  putGroupsAssignments: {
+  putGroupAssignments: {
     kind: EndpointType.MUTATION,
     url: 'group/:groupName/assignments',
     method: 'PUT',
@@ -107,7 +108,7 @@ const groupApi = {
     method: 'GET',
     opts: {} as ApiOptions,
     queryArg: { groupName: '' as string },
-    resultType: {} as IGroup
+    resultType: {} as Record<string, IGroupRoleAuthActions>
   },
   getGroupById: {
     kind: EndpointType.QUERY,
@@ -117,7 +118,7 @@ const groupApi = {
     queryArg: { id: '' as string },
     resultType: {} as IGroup
   },
-  deleteGroups: {
+  deleteGroup: {
     kind: EndpointType.MUTATION,
     url: 'group',
     method: 'DELETE',
@@ -131,9 +132,9 @@ const groupApi = {
     method: 'GET',
     opts: { cache: null } as ApiOptions,
     queryArg: { name: '' as string },
-    resultType: { checkingName: false as boolean, isValid: false as boolean }
+    resultType: { isValid: true as boolean }
   },
-  postGroupsUsersInvite: {
+  postGroupUserInvite: {
     kind: EndpointType.QUERY,
     url: 'group/users/invite',
     method: 'POST',
@@ -141,7 +142,7 @@ const groupApi = {
     queryArg: { users: [] as { email: string }[] },
     resultType: { users: [] as { email: string }[] }
   },
-  groupsJoin: {
+  joinGroup: {
     kind: EndpointType.MUTATION,
     url: 'group/join/:code',
     method: 'POST',
@@ -149,7 +150,7 @@ const groupApi = {
     queryArg: { code: '' as string },
     resultType: true
   },
-  groupsLeave: {
+  leaveGroup: {
     kind: EndpointType.MUTATION,
     url: 'group/leave/:code',
     method: 'POST',
@@ -161,7 +162,7 @@ const groupApi = {
 
 
 const groupApiHandlers: ApiHandler<typeof groupApi> = {
-  postGroups: async props => {
+  postGroup: async props => {
     try {
       const { name, purpose, roles, allowedDomains, defaultRoleId } = props.event.body;
 
@@ -277,7 +278,7 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
       throw error;
     }
   },
-  putGroups: async props => {
+  putGroup: async props => {
     const { id, name, roles, defaultRoleId } = props.event.body;
 
     const updateProps = buildUpdate({
@@ -347,7 +348,7 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
 
     return [{ ...group, roles }];
   },
-  putGroupsAssignments: async props => {
+  putGroupAssignments: async props => {
 
     const { appRoles, appClient, groupRoleActions, roleCall } = await props.redisProxy('appRoles', 'appClient', 'groupRoleActions', 'roleCall');
 
@@ -452,7 +453,7 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
 
     const assignments = (await props.keycloak.groups.findOne({ id: externalId }))?.subGroups?.reduce((m, sg) => ({ ...m, [sg.path as string]: groupRoleActions[sg.path as string] }), {}) as Record<string, IGroupRoleAuthActions>;
 
-    return { availableGroupAssignments: assignments };
+    return assignments;
   },
   getGroupById: async props => {
     const { id } = props.event.pathParameters;
@@ -464,7 +465,7 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
 
     return group;
   },
-  deleteGroups: async props => {
+  deleteGroup: async props => {
     const { ids } = props.event.pathParameters;
     const idsSplit = ids.split(',');
 
@@ -500,7 +501,7 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
 
     if (true === await props.completions.getModerationCompletion(name.replaceAll('_', ' '))) {
       props.logger.log('moderation failure event', props.event.requestId);
-      throw { reason: 'Moderation event flagged. Please revise the group name.', checkingName: false, isValid: false };
+      throw { reason: 'Moderation event flagged. Please revise the group name.' };
     }
 
     const { count } = await props.db.one<{ count: string }>(`
@@ -510,12 +511,12 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
     `, [name]);
 
     if (parseInt(count)) {
-      throw { reason: 'Group name in use.', checkingName: false, isValid: false };
+      throw { reason: 'Group name in use.' };
     }
 
-    return { checkingName: false, isValid: true };
+    return { isValid: true };
   },
-  postGroupsUsersInvite: async props => {
+  postGroupUserInvite: async props => {
     const { users } = props.event.body;
 
     for (const userId in users) {
@@ -537,7 +538,7 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
 
     return { users };
   },
-  groupsJoin: async props => {
+  joinGroup: async props => {
     try {
       const { code } = props.event.body;
 
@@ -600,7 +601,7 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
       throw error;
     }
   },
-  groupsLeave: async props => {
+  leaveGroup: async props => {
     const { code } = props.event.body;
 
     // Get group id and default role based on the group code

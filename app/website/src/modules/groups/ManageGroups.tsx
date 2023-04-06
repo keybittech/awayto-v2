@@ -16,7 +16,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import Logout from '@mui/icons-material/Logout';
 
 import { IUtilActionTypes, IGroup, IActionTypes, IGroupActionTypes, IRole, SiteRoles } from 'awayto/core';
-import { useRedux, useApi, useAct, useSecure, useGrid, storeApi } from 'awayto/hooks';
+import { useAppSelector, useApi, useAct, useSecure, useGrid, sh, useUtil } from 'awayto/hooks';
 
 import ManageGroupModal from './ManageGroupModal';
 import JoinGroupModal from './JoinGroupModal';
@@ -27,61 +27,37 @@ import keycloak from '../../keycloak';
 const { OPEN_CONFIRM, SET_LOADING } = IUtilActionTypes;
 const { GROUPS_LEAVE } = IGroupActionTypes;
 
-export type ManageGroupsActions = {
-  getGroupsAction?: IActionTypes;
-  deleteGroupsAction?: IActionTypes;
-  putGroupsAction?: IActionTypes;
-  postGroupsAction?: IActionTypes;
-  getRolesAction?: IActionTypes;
-  checkNameAction?: IActionTypes;
-  postRolesAction?: IActionTypes;
-  deleteRolesAction?: IActionTypes;
-  groups?: Record<string, IGroup>;
-  roles?: Record<string, IRole>;
-};
-
-declare global {
-  interface IProps extends ManageGroupsActions { }
-}
-
 export function ManageGroups(props: IProps): JSX.Element {
-  const { getGroupsAction, deleteGroupsAction, groups } = props as Required<ManageGroupsActions>;
+  const [deleteGroup] = sh.useDeleteGroupMutation();
+  const [leaveGroup] = sh.useLeaveGroupMutation();
 
-  const act = useAct();
-  const api = useApi();
+  const { openConfirm, setLoading } = useUtil();
+
   const hasRole = useSecure();
   const navigate = useNavigate();
-  const util = useRedux(state => state.util);
+  const util = useAppSelector(state => state.util);
+
   const [group, setGroup] = useState<IGroup>();
   const [dialog, setDialog] = useState('');
   const [selected, setSelected] = useState<string[]>([]);
 
-  const { data: profile } = storeApi.useGetUserProfileDetailsQuery();
+  const { data: profile, refetch: getUserProfileDetails } = sh.useGetUserProfileDetailsQuery();
 
-  if (!profile) return <></>;
+  if (!profile.groups) return <></>;
+  const { groups } = profile;
 
   const actions = useMemo(() => {
     const { length } = selected;
     const gr = groups[selected[0]];
     const isOwner = gr?.createdSub === profile.sub;
     const acts = length == 1 ? [
-      // <IconButton key={'groups_users_invite'} onClick={() => {
-      //   setGroup(selected.pop());
-      //   setDialog('groups_users_invite');
-      //   setToggle(!toggle);
-      // }}>
-      //   <GroupAdd />
-      // </IconButton>,
       gr && !isOwner && <Tooltip key={'leave_group'} title="Leave">
         <Button onClick={() => {
-          void act(OPEN_CONFIRM, {
+          openConfirm({
             isConfirming: true,
             confirmEffect: 'Leave the group ' + gr.name + ' and refresh the session.',
             confirmAction: () => {
-              const [, res] = api(GROUPS_LEAVE, { code: gr.code }, { load: true });
-              res?.then(() => {
-                keycloak.clearToken();
-              }).catch(console.warn);
+              leaveGroup({ code: gr.code }).unwrap().then(() => keycloak.clearToken());
             }
           });
         }}>
@@ -113,14 +89,11 @@ export function ManageGroups(props: IProps): JSX.Element {
       ...acts,
       isOwner && <Tooltip key={'delete_group'} title="Delete">
         <Button onClick={() => {
-          void act(OPEN_CONFIRM, {
+          openConfirm({
             isConfirming: true,
             confirmEffect: 'Delete the group ' + gr.name + ' and refresh the session.',
             confirmAction: () => {
-              const [, res] = api(deleteGroupsAction, { ids: selected.join(',') }, { load: true });
-              res?.then(() => {
-                keycloak.clearToken();
-              }).catch(console.warn);
+              deleteGroup({ ids: selected.join(',') }).unwrap().then(() => keycloak.clearToken());
             }
           });
         }}>
@@ -163,43 +136,29 @@ export function ManageGroups(props: IProps): JSX.Element {
       </Tooltip>
       {!!selected.length && <Box sx={{ flexGrow: 1, textAlign: 'right' }}>{actions}</Box>}
     </>
-  })
+  });
 
   useEffect(() => {
-    if (Object.keys(groups || {}).length === 1 && Object.keys(profile.availableUserGroupRoles || {}).length && util.isLoading) {
-      act(SET_LOADING, { isLoading: false, loadingMessage: '' });
+    if (Object.keys(groups).length === 1 && Object.keys(profile.availableUserGroupRoles || {}).length && util.isLoading) {
+      setLoading({ isLoading: false, loadingMessage: '' });
     }
   }, [groups, profile.availableUserGroupRoles, util.isLoading]);
-
-  useEffect(() => {
-    const [abort, res] = api(getGroupsAction);
-    res?.catch(console.warn);
-    return () => abort();
-  }, []);
 
   return <>
     <Dialog open={dialog === 'create_group'} fullWidth maxWidth="sm">
       <Suspense>
         <ManageGroupModal {...props} editGroup={group} closeModal={() => {
           setDialog('');
-          // api(getGroupsAction);
+          getUserProfileDetails();
         }} />
       </Suspense>
     </Dialog>
-
-    {/* <Dialog open={dialog === 'groups_users_invite'} fullWidth maxWidth="sm">
-      <Suspense>
-        <InviteUsersModal {...props} editGroup={group} closeModal={() => {
-          setDialog('');
-        }} />
-      </Suspense>
-    </Dialog> */}
 
     <Dialog open={dialog === 'join_group'} fullWidth maxWidth="sm">
       <Suspense>
         <JoinGroupModal {...props} editGroup={group} closeModal={() => {
           setDialog('');
-          api(getGroupsAction);
+          getUserProfileDetails();
         }} />
       </Suspense>
     </Dialog>
@@ -208,7 +167,7 @@ export function ManageGroups(props: IProps): JSX.Element {
       <Suspense>
         <ManageGroupModal {...props} editGroup={group} closeModal={() => {
           setDialog('');
-          api(getGroupsAction);
+          getUserProfileDetails();
         }} />
       </Suspense>
     </Dialog>

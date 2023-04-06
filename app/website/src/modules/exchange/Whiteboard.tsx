@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect } from 'react';
 
 // ...
 
@@ -16,15 +16,15 @@ function useWebSocketWhiteboard(id: string, socket: WebSocket) {
   useEffect(() => {
     function handleMessage(message: { [prop: string]: string } & { type: string }): void {
       console.log({ GOTAMESSAGE: message });
-      if (message.type === "whiteboardUpdate") {
+      if (message.type === 'whiteboardUpdate') {
         setWhiteboard(JSON.parse(message.data));
       }
     }
 
-    socket.addEventListener("message", event => handleMessage(event.data));
+    socket.addEventListener('message', event => handleMessage(event.data));
 
     return () => {
-      socket.removeEventListener("message", event => handleMessage(event.data));
+      socket.removeEventListener('message', event => handleMessage(event.data));
     };
   }, [socket]);
 
@@ -37,7 +37,7 @@ function useWebSocketWhiteboard(id: string, socket: WebSocket) {
     setWhiteboard(updatedWhiteboard);
     socket.send(
       JSON.stringify({
-        type: "whiteboardUpdate",
+        type: 'whiteboardUpdate',
         data: JSON.stringify(updatedWhiteboard),
       })
     );
@@ -61,7 +61,7 @@ function Whiteboard(props: IProps): JSX.Element {
     const canvas = canvasRef.current;
     if (!canvas) return; 
 
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     function drawLine(startPoint: { x: number; y: number }, endPoint: { x: number; y: number }): void {
@@ -88,21 +88,21 @@ function Whiteboard(props: IProps): JSX.Element {
         startPoint.y = endPoint.y;
       }
 
-      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener('mousemove', handleMouseMove);
 
       document.addEventListener(
-        "mouseup",
+        'mouseup',
         function handleMouseUp(event: MouseEvent): void {
-          document.removeEventListener("mousemove", handleMouseMove);
-          document.removeEventListener("mouseup", handleMouseUp);
+          document.removeEventListener('mousemove', handleMouseMove);
+          document.removeEventListener('mouseup', handleMouseUp);
         }
       );
     }
 
-    canvas.addEventListener("mousedown", handleMouseDown);
+    canvas.addEventListener('mousedown', handleMouseDown);
 
     return () => {
-      canvas.removeEventListener("mousedown", handleMouseDown);
+      canvas.removeEventListener('mousedown', handleMouseDown);
     };
   }, [whiteboard, addLine]);
 

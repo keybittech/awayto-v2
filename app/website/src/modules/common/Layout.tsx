@@ -1,7 +1,5 @@
 import React, { Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import Skeleton from '@mui/material/Skeleton';
-import AppBar from '@mui/material/AppBar';
 import Grid from '@mui/material/Unstable_Grid2';
 
 import CssBaseline from '@mui/material/CssBaseline';
@@ -13,8 +11,6 @@ import Topbar from './Topbar';
 import Sidebar from './Sidebar';
 
 const Layout = (props: IProps): JSX.Element => {
-
-  console.log(' in layouit')
 
   const { Exchange, ExchangeProvider, Profile, GroupPaths, ServiceHome, ScheduleHome, RequestQuote } = useComponents();
 
@@ -48,10 +44,6 @@ const Layout = (props: IProps): JSX.Element => {
         </Grid>
       </Grid>
     </Grid>
-
-
-
-
   </>
 }
 

@@ -11,7 +11,6 @@ export function BookingProvider ({ children }: IProps): JSX.Element {
   const [selectedBooking, setSelectedBooking] = useState<IBooking[]>([]);
 
   const { data : profile } = sh.useGetUserProfileDetailsQuery();
-  if (!profile) return <></>;
 
   const bookingValues = useMemo(() => Object.values(profile.bookings || {}), [profile]);
 

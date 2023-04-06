@@ -1,5 +1,5 @@
-import { IBooking } from "awayto/core";
-import { createContext } from "react";
+import { IBooking } from 'awayto/core';
+import { createContext } from 'react';
 
 export type BookingContextType = {
   bookingValues: IBooking[];

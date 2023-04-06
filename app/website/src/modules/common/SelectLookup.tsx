@@ -9,8 +9,8 @@ import Grid from '@mui/material/Grid';
 import ClearIcon from '@mui/icons-material/Clear';
 import CheckIcon from '@mui/icons-material/Check';
 
-import { ILookup, IActionTypes, IUtilActionTypes } from 'awayto/core';
-import { useApi, useAct } from 'awayto/hooks';
+import { ILookup } from 'awayto/core';
+import { MutationTrigger, SiteMutation, useUtil } from 'awayto/hooks';
 
 declare global {
   interface IProps {
@@ -24,25 +24,25 @@ declare global {
     lookupValue?: string | string[];
     defaultValue?: string | string[];
     invalidValues?: string[];
-    createAction?: IActionTypes;
-    deleteAction?: IActionTypes;
-    refetchAction?: IActionTypes;
+    refetchAction?: (props?: { [prop: string]: string }) => void;
+    attachAction?: MutationTrigger<SiteMutation<{ [prop: string]: string }, ILookup>>;
+    createAction?: MutationTrigger<SiteMutation<{ readonly name: string; }, ILookup>>;
+    deleteAction?: MutationTrigger<SiteMutation<{ [prop: string]: string }, ILookup[]>>;
     parentUuidName?: string;
     parentUuid?: string;
-    attachAction?: IActionTypes;
     attachName?: string;
+    deleteActionIdentifier?: string
   }
 }
-
-const { SET_SNACK } = IUtilActionTypes;
 
 function isStringArray(str?: string | string[]): str is string[] {
   return (str as string[]).forEach !== undefined;
 }
 
-export function SelectLookup({ lookupChange, disabled = false, invalidValues = [], attachAction, attachName, refetchAction, parentUuidName, parentUuid, lookups, lookupName, helperText, lookupValue, multiple = false, noEmptyValue = false, createAction, deleteAction }: IProps): JSX.Element {
-  const api = useApi();
-  const act = useAct();
+export function SelectLookup({ lookupChange, disabled = false, invalidValues = [], attachAction, attachName, refetchAction, parentUuidName, parentUuid, lookups, lookupName, helperText, lookupValue, multiple = false, noEmptyValue = false, createAction, deleteAction, deleteActionIdentifier }: IProps): JSX.Element {
+  
+  const { setSnack } = useUtil();
+
   const [addingNew, setAddingNew] = useState<boolean | undefined>();
   const [newLookup, setNewLookup] = useState({ name: '' } as ILookup);
   const [lookupUpdater, setLookupUpdater] = useState(null as unknown as string);
@@ -53,30 +53,27 @@ export function SelectLookup({ lookupChange, disabled = false, invalidValues = [
     setAddingNew(false);
     setNewLookup({ name: '' } as ILookup)
 
-    if (refetchAction) {
-      api(refetchAction, parentUuidName && parentUuid ? { [parentUuidName]: parentUuid } : {}, { load: true });
+    if (refetchAction && parentUuidName && parentUuid) {
+      refetchAction({ [parentUuidName]: parentUuid });
     }
   }
 
   const handleSubmit = useCallback(() => {
     if (invalidValues.includes(newLookup.name)) {
-      act(SET_SNACK, { snackType: 'warning', snackOn: 'That value cannot be used here.' })
+      setSnack({ snackType: 'warning', snackOn: 'That value cannot be used here.' })
       return;
     }
 
     setLookupUpdater(newLookup.name);
     if (createAction) {
-      const [, res] = api(createAction, newLookup, { load: true } );
-
-      res?.then(lookup => {
-        const [{ id: lookupId }] = lookup as ILookup[];
+      createAction({ name: newLookup.name }).unwrap().then(res => {
+        const { id: lookupId } = res;
         if (attachAction && lookupId && parentUuid && parentUuidName && attachName) {
-          const [, rez] = api(attachAction, { [parentUuidName]: parentUuid, [attachName]: lookupId }, { load: true })
-          rez?.then(() => refresh());
+          attachAction({ [parentUuidName]: parentUuid, [attachName]: lookupId }).unwrap().then(() => refresh());
         } else {
           refresh();
         }
-      }).catch(console.warn);
+      });
     }
   }, [newLookup, createAction, attachAction, attachName, parentUuid, parentUuidName]);
 
@@ -126,7 +123,7 @@ export function SelectLookup({ lookupChange, disabled = false, invalidValues = [
                 <ClearIcon style={{ color: 'red' }} />
               </IconButton>
               <IconButton aria-label="create new record" onClick={() => {
-                newLookup.name ? handleSubmit() : void act(SET_SNACK, { snackOn: 'Provide a name for the record.', snackType: 'info' });
+                newLookup.name ? handleSubmit() : void setSnack({ snackOn: 'Provide a name for the record.', snackType: 'info' });
               }}>
                 <CheckIcon style={{ color: 'green' }} />
               </IconButton>
@@ -177,13 +174,15 @@ export function SelectLookup({ lookupChange, disabled = false, invalidValues = [
             } else if (lookupValue === lookup.id) {
               lookupChange('');
             }
-            const actionIdentifier = deleteAction.substring(deleteAction.lastIndexOf(':')+1, deleteAction.length);
-            const [, res] = api(deleteAction, parentUuidName && attachName ? { [parentUuidName]: parentUuid, [attachName]: lookup.id } : { [actionIdentifier]: lookup.id }, { load: true });
-            res?.then(() => {
-              if (refetchAction) {
-                api(refetchAction, parentUuidName && parentUuid ? { [parentUuidName]: parentUuid } : {}, { load: true });
-              }
-            }).catch(console.warn);
+
+            if (parentUuidName && parentUuid && attachName) {
+              deleteAction({ [parentUuidName]: parentUuid, [attachName]: lookup.id }).unwrap().then(() => refresh());
+            }
+
+            if (deleteActionIdentifier) {
+              deleteAction({ [deleteActionIdentifier]: lookup.id }).unwrap().then(() => refresh());
+            }
+
           }} />}
         </MenuItem>
       )) : []}

@@ -206,6 +206,7 @@ export function ServiceHome(props: IProps): JSX.Element {
                   }}
                   createAction={POST_SERVICE_ADDON}
                   deleteAction={DELETE_GROUP_SERVICE_ADDON}
+                  deleteActionIdentifier='serviceAddonId'
                   refetchAction={GET_GROUP_SERVICE_ADDONS}
                   attachAction={POST_GROUP_SERVICE_ADDON}
                   attachName='serviceAddonId'

@@ -24,7 +24,6 @@ export type IUtil = {
   snackRequestId: string;
   perPage: number;
   theme: 'light' | 'dark';
-  test: { objectUrl: string };
 }
 
 export const utilConfig = {
@@ -32,6 +31,7 @@ export const utilConfig = {
   initialState: {
     snackOn: '',
     isLoading: false,
+    loadingMessage: '',
     isConfirming: false,
     canSubmitAssignments: true
   } as IUtil,
@@ -47,8 +47,9 @@ export const utilConfig = {
     closeConfirm: (state: IUtil) => {
       state.isConfirming = false;
     },
-    setLoading: (state: IUtil, action: { payload: { isLoading: boolean } }) => {
+    setLoading: (state: IUtil, action: { payload: { isLoading: boolean, loadingMessage: string } }) => {
       state.isLoading = action.payload.isLoading;
+      state.loadingMessage = action.payload.loadingMessage;
     },
     setSnack: (state: IUtil, action: { payload: { snackOn: string, snackType?: 'success' | 'info' | 'warning' | 'error', snackRequestId?: string } }) => {
       state.snackOn = action.payload.snackOn;

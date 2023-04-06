@@ -1,4 +1,4 @@
-import React, { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
@@ -7,13 +7,11 @@ import IconButton from '@mui/material/IconButton';
 
 import Send from '@mui/icons-material/Send';
 
-import { asyncForEach, IUtilActionTypes, Sender, SenderStreams, SocketResponseMessageAttributes } from "awayto/core";
-import { useAct, useComponents } from "awayto/hooks";
+import { asyncForEach, Sender, SenderStreams, SocketResponseMessageAttributes } from 'awayto/core';
+import { useComponents, useUtil } from 'awayto/hooks';
 
-import { ExchangeContext, ExchangeContextType } from "./ExchangeContext";
+import { ExchangeContext, ExchangeContextType } from './ExchangeContext';
 import keycloak from '../../keycloak';
-
-const { SET_SNACK } = IUtilActionTypes;
 
 const peerConnectionConfig = {
   'iceServers': [
@@ -37,7 +35,7 @@ export function ExchangeProvider({ children }: IProps): JSX.Element {
 
   const localId = `test-${(new Date).getTime()}`;
 
-  const act = useAct();
+  const { setSnack } = useUtil();
 
   const { Video } = useComponents();
 
@@ -136,7 +134,7 @@ export function ExchangeProvider({ children }: IProps): JSX.Element {
         setCanStartStop('stop');
       }
     } catch (error) {
-      act(SET_SNACK, { snackOn: (error as DOMException).message, snackType: 'error' });
+      setSnack({ snackOn: (error as DOMException).message, snackType: 'error' });
     }
   }, [socket.current, localStream, canStartStop, localId]);
 
@@ -146,7 +144,7 @@ export function ExchangeProvider({ children }: IProps): JSX.Element {
     try {
       sendMessage(textMessage);
     } catch (error) {
-      act(SET_SNACK, { snackOn: error as string });
+      setSnack({ snackOn: error as string });
     }
   }, [socket.current, messages, textMessage]);
 
@@ -241,7 +239,7 @@ export function ExchangeProvider({ children }: IProps): JSX.Element {
         socket.current = new WebSocket(`wss://${location.hostname}/sock/${localId}`);
       } catch (error) {
         // console.log({ goterror: error });
-        act(SET_SNACK, { snackOn: error as string, snackType: 'error' });
+        setSnack({ snackOn: error as string, snackType: 'error' });
       }
     }
     void go();

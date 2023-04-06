@@ -9,34 +9,26 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 
 import Icon from '../../img/kbt-icon.png';
-import { useApi, useAct, useComponents } from 'awayto/hooks';
-import { IGroupActionTypes, IRoleActionTypes, IUserProfileActionTypes, IUtilActionTypes } from 'awayto/core';
+import { useComponents, useUtil, sh } from 'awayto/hooks';
 import keycloak from '../../keycloak';
-
-const { GET_USER_PROFILE_DETAILS } = IUserProfileActionTypes;
-const { POST_ROLES, DELETE_ROLES } = IRoleActionTypes;
-const { GROUPS_JOIN, POST_GROUPS } = IGroupActionTypes;
-const { SET_SNACK } = IUtilActionTypes;
 
 export function Onboard(props: IProps): JSX.Element {
 
-  const api = useApi();
-  const act = useAct();
+  const [joinGroup] = sh.useJoinGroupMutation();
+
+  const { setSnack } = useUtil();
 
   const { ManageGroupModal } = useComponents();
 
   const [groupCode, setGroupCode] = useState('');
   const [dialog, setDialog] = useState('');
 
-  const joinGroup = useCallback(() => {
+  const joinGroupCb = useCallback(() => {
     if (groupCode) {
       if (/^[a-zA-Z0-9]{8}$/.test(groupCode)) {
-        const [, res] = api(GROUPS_JOIN, { code: groupCode }, { load: true });
-        res?.then(() => {
-          keycloak.clearToken();
-        });
+        joinGroup({ code: groupCode }).unwrap().then(() => keycloak.clearToken());
       } else {
-        act(SET_SNACK, { snackType: 'warning', snackOn: 'Invalid group code.' });
+        setSnack({ snackType: 'warning', snackOn: 'Invalid group code.' });
       }
     }
   }, [groupCode]);
@@ -50,10 +42,6 @@ export function Onboard(props: IProps): JSX.Element {
             <Suspense>
               <ManageGroupModal
                 {...props}
-                getRolesAction={GET_USER_PROFILE_DETAILS}
-                postRolesAction={POST_ROLES}
-                deleteRolesAction={DELETE_ROLES}
-                postGroupsAction={POST_GROUPS}
                 closeModal={() => {
                   setDialog('');
                 }}
@@ -128,7 +116,7 @@ export function Onboard(props: IProps): JSX.Element {
             </Grid>
 
             <Grid item xs={12}>
-              <Button fullWidth variant="contained" color="secondary" onClick={joinGroup}>Join a Group</Button>
+              <Button fullWidth variant="contained" color="secondary" onClick={joinGroupCb}>Join a Group</Button>
             </Grid>
           </Grid>
         </Grid>

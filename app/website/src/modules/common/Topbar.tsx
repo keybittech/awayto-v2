@@ -30,23 +30,20 @@ import Icon from '../../img/kbt-icon.png';
 import keycloak from '../../keycloak';
 
 import { useLocation, useNavigate } from 'react-router';
-import { SiteRoles, IUtilActionTypes, PaletteMode } from 'awayto/core';
-import { useAct, useSecure, useRedux, useComponents, useStore, storeApi } from 'awayto/hooks';
-
-const { SET_THEME } = IUtilActionTypes;
+import { SiteRoles, PaletteMode } from 'awayto/core';
+import { useSecure, useComponents, sh, useAppSelector, useUtil } from 'awayto/hooks';
 
 export function Topbar(props: IProps): JSX.Element {
 
-  const act = useAct();
   const navigate = useNavigate();
   const hasRole = useSecure();
   const { FeedbackMenu, PendingQuotesMenu, PendingQuotesProvider, UpcomingBookingsMenu } = useComponents();
   const location = useLocation();
 
-  const { theme } = useStore(state => state.util);
+  const { theme } = useAppSelector(state => state.util);
+  const { setTheme } = useUtil();
 
-  const { data : profile } = storeApi.useGetUserProfileDetailsQuery();
-  if (!profile) return <></>;
+  const { data : profile } = sh.useGetUserProfileDetailsQuery();
 
   const pendingQuotes = useMemo(() => Object.values(profile.quotes || {}), [profile]);
   const upcomingBookings = useMemo(() => Object.values(profile.bookings || {}), [profile]);
@@ -177,7 +174,7 @@ export function Topbar(props: IProps): JSX.Element {
               Dark
               <Switch
                 value={theme !== 'dark'}
-                onChange={e => act(SET_THEME, { theme: (e.target.checked ? 'light' : 'dark') as PaletteMode })}
+                onChange={e => setTheme({ theme: (e.target.checked ? 'light' : 'dark') as PaletteMode })}
               />
               Light
             </ListItemText>

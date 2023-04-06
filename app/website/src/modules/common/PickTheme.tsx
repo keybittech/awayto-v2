@@ -4,11 +4,8 @@ import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 
-import { IUtilActionTypes, PaletteMode } from 'awayto/core';
-import { useAct, useStyles } from 'awayto/hooks';
-
-const { SET_THEME } = IUtilActionTypes;
-
+import { PaletteMode } from 'awayto/core';
+import { useStyles, useUtil } from 'awayto/hooks';
 declare global {
   interface IProps {
     showTitle?: boolean;
@@ -16,12 +13,14 @@ declare global {
 }
 
 export function PickTheme (props: IProps): JSX.Element {
+
+  const { setTheme } = useUtil()
+
   const { showTitle } = props;
   const classes = useStyles();
-  const act = useAct();
 
   const edit = (e: React.SyntheticEvent) => {
-    act(SET_THEME, { theme: e.currentTarget.id as PaletteMode });
+    setTheme({ theme: e.currentTarget.id as PaletteMode });
   };
 
   return <>
