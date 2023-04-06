@@ -1,24 +1,20 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState } from 'react';
 
-import { plural, shortNSweet, IQuote, IUtilActionTypes, IQuoteActionTypes, IBookingActionTypes, IBooking, IUserProfileActionTypes } from "awayto/core";
-import { storeApi, useAct, useApi, useRedux } from "awayto/hooks";
+import { plural, shortNSweet, IBooking } from 'awayto/core';
+import { sh, useUtil } from 'awayto/hooks';
 
-import { PendingQuotesContext, PendingQuotesContextType } from "./PendingQuotesContext";
-
-const { GET_USER_PROFILE_DETAILS } = IUserProfileActionTypes;
-const { SET_SNACK, OPEN_CONFIRM } = IUtilActionTypes;
-const { DISABLE_QUOTE } = IQuoteActionTypes;
-const { POST_BOOKING } = IBookingActionTypes;
+import { PendingQuotesContext, PendingQuotesContextType } from './PendingQuotesContext';
 
 export function PendingQuotesProvider ({ children }: IProps): JSX.Element {
 
-  const act = useAct();
-  const api = useApi();
+  const { setSnack, openConfirm } = useUtil();
+  const [disableQuote] = sh.useDisableQuoteMutation();
+  const [postBooking] = sh.usePostBookingMutation();
 
   const [pendingQuotesChanged, setPendingQuotesChanged] = useState(false);
   const [selectedPendingQuotes, setSelectedPendingQuotes] = useState<string[]>([]);
 
-  const { data : profile } = storeApi.useGetUserProfileDetailsQuery();
+  const { data : profile, refetch: getUserProfileDetails } = sh.useGetUserProfileDetailsQuery();
   if (!profile) return <></>;
 
   const pendingQuotes = useMemo(() => Object.values(profile.quotes || {}), [profile]);
@@ -50,7 +46,7 @@ export function PendingQuotesProvider ({ children }: IProps): JSX.Element {
     approvePendingQuotes() {
       const selectedValues = pendingQuotes.filter(pq => selectedPendingQuotes.includes(pq.id));
       if (!selectedValues.every(s => s.slotDate === selectedValues[0].slotDate && s.scheduleBracketSlotId === selectedValues[0].scheduleBracketSlotId)) {
-        act(SET_SNACK, { snackType: 'error', snackOn: 'Only appointments of the same date and time can be mass approved.' });
+        setSnack({ snackType: 'error', snackOn: 'Only appointments of the same date and time can be mass approved.' });
         return;
       }
 
@@ -58,7 +54,7 @@ export function PendingQuotesProvider ({ children }: IProps): JSX.Element {
 
       const copies = pendingQuotes.filter(q => !selectedValues.some(s => s.id === q.id)).filter(q => q.slotDate === slotDate && q.scheduleBracketSlotId === scheduleBracketSlotId);
 
-      void act(OPEN_CONFIRM, {
+      openConfirm({
         isConfirming: true,
         confirmEffect: `Approve ${plural(selectedValues.length, 'request', 'requests')}, creating ${plural(selectedValues.length, 'booking', 'bookings')}, for ${shortNSweet(slotDate, startTime)}.`,
         confirmSideEffect: !copies.length ? undefined : {
@@ -68,34 +64,36 @@ export function PendingQuotesProvider ({ children }: IProps): JSX.Element {
           rejectionEffect: 'Just submit the approvals.',
         },
         confirmAction: approval => {
-          const [, res] = api(POST_BOOKING, { bookings: selectedValues.map(s => ({ quoteId: s.id, slotDate: s.slotDate, scheduleBracketSlotId: s.scheduleBracketSlotId }) as IBooking) }, { load: true });
-          res?.then(() => {
-            const [, rez] = api(DISABLE_QUOTE, { ids: selectedValues.concat(approval ? copies : []).map(s => s.id).join(',') });
-            rez?.then(() => {
+          const newBookings = selectedValues.map(s => ({
+            quoteId: s.id,
+            slotDate: s.slotDate,
+            scheduleBracketSlotId: s.scheduleBracketSlotId
+          }) as IBooking);
+
+          postBooking({ bookings: newBookings }).unwrap().then(() => {
+            const disableQuoteIds = selectedValues.concat(approval ? copies : []).map(s => s.id).join(',');
+            
+            disableQuote({ ids: disableQuoteIds }).unwrap().then(() => {
               setSelectedPendingQuotes([]);
               setPendingQuotesChanged(!pendingQuotesChanged);
-              api(GET_USER_PROFILE_DETAILS);
-            }).catch(console.warn);
+              getUserProfileDetails();
+            });
           });
         }
       });
     },
     denyPendingQuotes() {
-      const [, res] = api(DISABLE_QUOTE, { ids: selectedPendingQuotes.join(',') });
-      res?.then(() => {
+      disableQuote({ ids: selectedPendingQuotes.join(',') }).unwrap().then(() => {
         setSelectedPendingQuotes([]);
         setPendingQuotesChanged(!pendingQuotesChanged);
-        api(GET_USER_PROFILE_DETAILS);
-      }).catch(console.warn);
+        getUserProfileDetails();
+      });
     }
   } as PendingQuotesContextType | null;
 
-  return <>
-    <PendingQuotesContext.Provider value={pendingQuotesContext}>
-      {children}
-    </PendingQuotesContext.Provider>
-  </>;
-  
+  return <PendingQuotesContext.Provider value={pendingQuotesContext}>
+    {children}
+  </PendingQuotesContext.Provider>;
 }
 
 export default PendingQuotesProvider;

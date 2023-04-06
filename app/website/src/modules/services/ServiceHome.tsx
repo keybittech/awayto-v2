@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import FormHelperText from '@mui/material/FormHelperText';
 import TextField from '@mui/material/TextField';
@@ -13,16 +13,8 @@ import CardHeader from '@mui/material/CardHeader';
 import Grid from '@mui/material/Grid';
 import Chip from '@mui/material/Chip';
 
-import { IAssistActionTypes, IService, IServiceActionTypes, IServiceTier, IGroupFormActionTypes, IGroupServiceAddonActionTypes, IServiceAddonActionTypes, IGroupServiceActionTypes, IUtilActionTypes, IGroup, IForm, IPrompts, IAssist } from 'awayto/core';
-import { storeApi, useApi, useRedux, useComponents, useAct, useStyles } from 'awayto/hooks';
-
-const { POST_SERVICE } = IServiceActionTypes;
-const { POST_SERVICE_ADDON } = IServiceAddonActionTypes;
-const { GET_GROUP_FORMS, GET_GROUP_FORM_BY_ID } = IGroupFormActionTypes;
-const { GET_GROUP_SERVICES, POST_GROUP_SERVICE } = IGroupServiceActionTypes;
-const { GET_GROUP_SERVICE_ADDONS, POST_GROUP_SERVICE_ADDON, DELETE_GROUP_SERVICE_ADDON } = IGroupServiceAddonActionTypes;
-const { SET_SNACK } = IUtilActionTypes;
-const { GET_PROMPT } = IAssistActionTypes;
+import { IService, IServiceTier, IPrompts, IAssist } from 'awayto/core';
+import { useComponents, useStyles, sh, useUtil } from 'awayto/hooks';
 
 const serviceSchema = {
   name: '',
@@ -44,60 +36,49 @@ const validCost = function (cost: string): boolean {
 
 export function ServiceHome(props: IProps): JSX.Element {
   const classes = useStyles();
-  const api = useApi();
-  const act = useAct();
+
+  const { setSnack } = useUtil();
+
   const { SelectLookup } = useComponents();
 
-  const { data : profile } = storeApi.useGetUserProfileDetailsQuery();
-  if (!profile) return <></>;
+  const [postServiceAddon] = sh.usePostServiceAddonMutation();
+  const [postGroupServiceAddon] = sh.usePostGroupServiceAddonMutation();
+  const [deleteGroupServiceAddon] = sh.useDeleteGroupServiceAddonMutation();
+  const [postService] = sh.usePostServiceMutation();
+  const [postGroupService] = sh.usePostGroupServiceMutation();
+  const [getGroupFormById] = sh.useLazyGetGroupFormByIdQuery();
+  const [getGroupServices] = sh.useLazyGetGroupServicesQuery();
+  const [getPrompt] = sh.useLazyGetPromptQuery();
+
+  const { data : profile } = sh.useGetUserProfileDetailsQuery();
+  if (!profile.groups) return <></>;
+
+  const [group, setGroup] = useState(Object.values(profile.groups)[0]);
+
+  const { data: groupServiceAddons, refetch: getGroupServiceAddons } = sh.useGetGroupServiceAddonsQuery({ groupName: group.name });
+  const { data: groupForms } = sh.useGetGroupFormsQuery({ groupName: group.name });
 
   const [newService, setNewService] = useState({ ...serviceSchema, tiers: {} } as IService);
   const [newServiceTier, setNewServiceTier] = useState({ ...serviceTierSchema, addons: {} } as IServiceTier);
   const [serviceTierAddonIds, setServiceTierAddonIds] = useState<string[]>([]);
-  const { groupServiceAddons } = useRedux(state => state);
-  const { groupForms } = useRedux(state => state.groupForm);
 
-  const [group, setGroup] = useState({ id: '' } as IGroup);
   const [serviceSuggestions, setServiceSuggestions] = useState('');
   const [tierSuggestions, setTierSuggestions] = useState('');
   const [featureSuggestions, setFeatureSuggestions] = useState('');
 
   const groupsValues = useMemo(() => Object.values(profile.groups || {}), [profile]);
-  const groupServiceAddonValues = useMemo(() => Object.values(groupServiceAddons || {}), [groupServiceAddons]);
-  const groupFormsValues = useMemo(() => Object.values(groupForms || {}), [groupForms]);
   
   useEffect(() => {
-    if (groupsValues.length) {
-      const gr = groupsValues[0];
-      const [, res] = api(GET_PROMPT, { id: IPrompts.SUGGEST_SERVICE, prompt: gr.purpose }, { useParams: true })
-      res?.then(serviceSuggestionData => {
-        const { promptResult } = serviceSuggestionData as IAssist;
-        if (promptResult) setServiceSuggestions(promptResult.join(', '))
+    async function go() {
+      if (groupsValues.length) {
+        const gr = groupsValues[0];
+        const { promptResult } = await getPrompt({ id: IPrompts.SUGGEST_SERVICE, prompt: gr.purpose } as IAssist).unwrap();
+        if (promptResult.length) setServiceSuggestions(promptResult.join(', '));
         setGroup(gr);
-      })
+      }
     }
+    void go();
   }, [groupsValues]);
-
-  useEffect(() => {
-    if (!group.name) return;
-    const [abort1] = api(GET_GROUP_SERVICES, { groupName: group.name });
-    const [abort2] = api(GET_GROUP_FORMS, { groupName: group.name });
-    const [abort3, rez] = api(GET_GROUP_SERVICE_ADDONS, { groupName: group.name });
-    rez?.then(() => setServiceTierAddonIds([]));
-    return () => {
-      abort1();
-      abort2();
-      abort3();
-    }
-  }, [group]);
-
-  const getGroupFormById = useCallback(async (formId: string): Promise<IForm | undefined> => {
-    const [, res] = api(GET_GROUP_FORM_BY_ID, { groupName: group.name, formId });
-    return await res?.then(forms => {
-      const [form] = forms as IForm[];
-      return form;
-    });
-  }, [group])
 
   return <Grid container spacing={2}>
 
@@ -129,11 +110,9 @@ export function ServiceHome(props: IProps): JSX.Element {
                   onChange={e => setNewService({ ...newService, name: e.target.value })}
                   onBlur={() => {
                     // When this service name changes, let's get a new prompt for tier name suggestions
-                    const [, res] = api(GET_PROMPT, { id: IPrompts.SUGGEST_TIER, prompt: `${newService.name.toLowerCase()} at ${group.name.replaceAll('_', ' ')}`}, { useParams: true })
-                    res?.then(tierSuggestionData => {
-                      const { promptResult } = tierSuggestionData as IAssist;
-                      if (promptResult) setTierSuggestions(promptResult.join(', '))
-                    })
+                    getPrompt({ id: IPrompts.SUGGEST_TIER, prompt: `${newService.name.toLowerCase()} at ${group.name.replaceAll('_', ' ')}`} as IAssist).unwrap().then(({ promptResult }) => {
+                      if (promptResult.length) setTierSuggestions(promptResult.join(', '));
+                    });
                   }}
                   helperText={`${serviceSuggestions ? `AI: ${serviceSuggestions}` : 'Ex: Website Hosting, Yard Maintenance, Automotive Repair'}`}
                 />
@@ -151,13 +130,13 @@ export function ServiceHome(props: IProps): JSX.Element {
                   label="Form"
                   helperText="Optional."
                   onChange={async e => {
-                    const form = await getGroupFormById(e.target.value);
+                    const form = await getGroupFormById({ groupName: group.name, formId: e.target.value }).unwrap();
                     if (form) {
                       setNewService({ ...newService, formId: form.id })
                     }
                   }}
                 >
-                  {groupFormsValues.map(form => <MenuItem key={`form-version-select${form.id}`} value={form.id}>{form.name}</MenuItem>)}
+                  {groupForms.map(form => <MenuItem key={`form-version-select${form.id}`} value={form.id}>{form.name}</MenuItem>)}
                 </TextField>
               </Box>
             </Grid>
@@ -181,10 +160,8 @@ export function ServiceHome(props: IProps): JSX.Element {
                   value={newServiceTier.name}
                   onBlur={() => {
                     // When this tier name changes, let's get a new prompt for feature name suggestions
-                    const [, res] = api(GET_PROMPT, { id: IPrompts.SUGGEST_FEATURE, prompt: `${newServiceTier.name} ${newService.name}`}, { useParams: true })
-                    res?.then(featureSuggestionData => {
-                      const { promptResult } = featureSuggestionData as IAssist;
-                      if (promptResult) setFeatureSuggestions(promptResult.join(', '))
+                    getPrompt({ id: IPrompts.SUGGEST_FEATURE, prompt: `${newServiceTier.name} ${newService.name}`} as IAssist).unwrap().then(({ promptResult }) => {
+                      if (promptResult.length) setFeatureSuggestions(promptResult.join(', '));
                     });
                   }}
                   onChange={e => setNewServiceTier({ ...newServiceTier, name: e.target.value })}
@@ -196,19 +173,19 @@ export function ServiceHome(props: IProps): JSX.Element {
                 <SelectLookup
                   multiple
                   lookupName='Feature'
-                  lookups={groupServiceAddonValues}
+                  lookups={groupServiceAddons}
                   lookupValue={serviceTierAddonIds}
                   parentUuid={group.name}
                   parentUuidName='groupName'
                   lookupChange={(val: string[]) => {
-                    const gsa = groupServiceAddonValues.filter(s => val.includes(s.id)).map(s => s.id);
+                    const gsa = groupServiceAddons.filter(s => val.includes(s.id)).map(s => s.id);
                     setServiceTierAddonIds(gsa);
                   }}
-                  createAction={POST_SERVICE_ADDON}
-                  deleteAction={DELETE_GROUP_SERVICE_ADDON}
+                  createAction={postServiceAddon}
+                  deleteAction={deleteGroupServiceAddon}
                   deleteActionIdentifier='serviceAddonId'
-                  refetchAction={GET_GROUP_SERVICE_ADDONS}
-                  attachAction={POST_GROUP_SERVICE_ADDON}
+                  refetchAction={getGroupServiceAddons}
+                  attachAction={postGroupServiceAddon}
                   attachName='serviceAddonId'
                   {...props}
                 />
@@ -225,13 +202,13 @@ export function ServiceHome(props: IProps): JSX.Element {
                   label="Form"
                   helperText="Optional."
                   onChange={async e => {
-                    const form = await getGroupFormById(e.target.value);
+                    const form = await getGroupFormById({ groupName: group.name, formId: e.target.value }).unwrap();
                     if (form) {
                       setNewServiceTier({ ...newServiceTier, formId: form.id })
                     }
                   }}
                 >
-                  {groupFormsValues.map(form => <MenuItem key={`form-version-select${form.id}`} value={form.id}>{form.name}</MenuItem>)}
+                  {groupForms.map(form => <MenuItem key={`form-version-select${form.id}`} value={form.id}>{form.name}</MenuItem>)}
                 </TextField>
               </Box>
 
@@ -252,7 +229,7 @@ export function ServiceHome(props: IProps): JSX.Element {
             newServiceTier.createdOn = created;
             newServiceTier.order = Object.keys(newService.tiers).length + 1;
             newServiceTier.addons = serviceTierAddonIds.reduce((m, id, i) => {
-              const addon = groupServiceAddons[id];
+              const addon = groupServiceAddons.find(gs => gs.id === id) || { name: '' };
               return {
                 ...m,
                 [id]: addon && {
@@ -266,7 +243,7 @@ export function ServiceHome(props: IProps): JSX.Element {
             setNewServiceTier({ ...serviceTierSchema, addons: {} } as IServiceTier);
             setServiceTierAddonIds([]);
           } else {
-            void act(SET_SNACK, { snackOn: 'Provide a tier name and at least 1 feature.', snackType: 'info' });
+            void setSnack({ snackOn: 'Provide a tier name and at least 1 feature.', snackType: 'info' });
           }
         }}>
           <Box m={2} sx={{ display: 'flex', alignItems: 'center' }}>
@@ -298,22 +275,16 @@ export function ServiceHome(props: IProps): JSX.Element {
 
     <Grid item xs={12}>
       <Card>
-        <CardActionArea onClick={() => {
+        <CardActionArea onClick={async () => {
           if (newService.name && group.name && Object.keys(newService.tiers)?.length) {
-            const [, res] = api(POST_SERVICE, { ...newService }, { load: true });
-
-            res?.then(services => {
-              const [service] = services as IService[];
-              const [, rez] = api(POST_GROUP_SERVICE, { serviceId: service.id, groupName: group.name }, { load: true });
-              rez?.then(() => {
-                api(GET_GROUP_SERVICES, { groupName: group.name });
-                act(SET_SNACK, { snackOn: `Successfully added ${service.name} to ${group.name.replaceAll('_', ' ')}`, snackType: 'info' });
-                setNewService({ ...serviceSchema, tiers: {} } as IService);
-                setServiceTierAddonIds([]);
-              });
-            }).catch(console.warn);
+            const postedService = await postService({ ...newService }).unwrap();
+            await postGroupService({ serviceId: postedService.id, groupName: group.name }).unwrap();
+            await getGroupServices({ groupName: group.name }).unwrap();
+            setSnack({ snackOn: `Successfully added ${newService.name} to ${group.name.replaceAll('_', ' ')}`, snackType: 'info' });
+            setNewService({ ...serviceSchema, tiers: {} } as IService);
+            setServiceTierAddonIds([]);
           } else {
-            void act(SET_SNACK, { snackOn: 'Provide the service name, cost and at least 1 tier.', snackType: 'info' });
+            void setSnack({ snackOn: 'Provide the service name, cost and at least 1 tier.', snackType: 'info' });
           }
         }}>
           <Box m={2} sx={{ display: 'flex' }}>

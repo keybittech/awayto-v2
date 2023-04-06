@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { GridColDef } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router';
 import dayjs from 'dayjs';
 
@@ -19,48 +20,26 @@ import MenuItem from '@mui/material/MenuItem';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckIcon from '@mui/icons-material/Check';
 
-import {
-  IGroupFormActionTypes,
-  IGroupScheduleActionTypes,
-  ISchedule,
-  IService,
-  IServiceTier,
-  IForm,
-  IGroup,
-  IUtilActionTypes,
-  IQuote,
-  IQuoteActionTypes,
-  ITimeUnitNames,
-  IGroupSchedule,
-  IGroupUserScheduleActionTypes,
-  TimeUnit,
-  timeUnitOrder,
-  IGroupScheduleDateSlots,
-  quotedDT
-} from 'awayto/core';
-import { useApi, useRedux, useComponents, useStyles, useAct, useGrid, storeApi } from 'awayto/hooks';
-import { GridColDef } from '@mui/x-data-grid';
-
-const { GET_GROUP_FORM_BY_ID } = IGroupFormActionTypes;
-const { POST_QUOTE } = IQuoteActionTypes;
-const { SET_SNACK } = IUtilActionTypes;
-const { GET_GROUP_SCHEDULES, GET_GROUP_SCHEDULE_MASTER_BY_ID } = IGroupScheduleActionTypes;
-const { GET_GROUP_USER_SCHEDULES } = IGroupUserScheduleActionTypes;
+import { ISchedule, IService, IServiceTier, IForm, IGroup, IQuote, ITimeUnitNames, TimeUnit, timeUnitOrder, IGroupScheduleDateSlots, quotedDT } from 'awayto/core';
+import { useComponents, useStyles, useGrid, sh, useUtil } from 'awayto/hooks';
 
 export function RequestQuote(props: IProps): JSX.Element {
   const classes = useStyles();
 
-  const api = useApi();
-  const act = useAct();
+  const { setSnack } = useUtil();
+  const [getGroupFormById] = sh.useLazyGetGroupFormByIdQuery();
+  const [postQuote] = sh.usePostQuoteMutation();
+  const [getGroupSchedules, { data: groupSchedules }] = sh.useLazyGetGroupSchedulesQuery();
+  const [getGroupScheduleMasterById] = sh.useLazyGetGroupScheduleMasterByIdQuery();
+  const [getGroupUserSchedules, { data: groupUserSchedules }] = sh.useLazyGetGroupUserSchedulesQuery();
+
   const navigate = useNavigate();
   const { FileManager, FormDisplay, ScheduleDatePicker, ScheduleTimePicker } = useComponents();
-  const { groupSchedules, dateSlots } = useRedux(state => state.groupSchedule);
-  const { groupUserSchedules } = useRedux(state => state.groupUserSchedule);
 
-  const { data : profile } = storeApi.useGetUserProfileDetailsQuery();
-  if (!profile) return <></>;
+  const [_, { data: dateSlots }] = sh.useLazyGetGroupScheduleByDateQuery();
 
-  const { timeUnits } = useRedux(state => state.lookup);
+  const { data: lookups } = sh.useGetLookupsQuery();
+  const { data: profile } = sh.useGetUserProfileDetailsQuery();
 
   const [services, setServices] = useState({} as Record<string, IService>);
   const [schedule, setSchedule] = useState({ id: '' } as ISchedule);
@@ -79,15 +58,13 @@ export function RequestQuote(props: IProps): JSX.Element {
 
   const groupsValues = useMemo(() => Object.values(profile.groups || {}), [profile]);
   const servicesValues = useMemo(() => Object.values(services || {}), [services]);
-  const groupSchedulesValues = useMemo(() => Object.values(groupSchedules || {}), [groupSchedules]);
-  const groupUserSchedulesValues = useMemo(() => Object.values(groupUserSchedules || {}), [groupUserSchedules]);
 
   const loadSchedule = useCallback((sched: ISchedule) => {
-    sched.scheduleTimeUnitName = timeUnits.find(u => u.id === sched.scheduleTimeUnitId)?.name as ITimeUnitNames;
-    sched.bracketTimeUnitName = timeUnits.find(u => u.id === sched.bracketTimeUnitId)?.name as ITimeUnitNames;
-    sched.slotTimeUnitName = timeUnits.find(u => u.id === sched.slotTimeUnitId)?.name as ITimeUnitNames;    
+    sched.scheduleTimeUnitName = lookups.timeUnits?.find(u => u.id === sched.scheduleTimeUnitId)?.name as ITimeUnitNames;
+    sched.bracketTimeUnitName = lookups.timeUnits?.find(u => u.id === sched.bracketTimeUnitId)?.name as ITimeUnitNames;
+    sched.slotTimeUnitName = lookups.timeUnits?.find(u => u.id === sched.slotTimeUnitId)?.name as ITimeUnitNames;    
     setSchedule(sched);
-  }, [timeUnits]);
+  }, [lookups]);
 
   if (groupsValues.length && !group.id) {
     setGroup(groupsValues[0]);
@@ -105,8 +82,8 @@ export function RequestQuote(props: IProps): JSX.Element {
     setTier(serviceTiers[0]);
   }
 
-  if (groupSchedulesValues.length && !schedule.id) {
-    loadSchedule(groupSchedulesValues[0]);
+  if (groupSchedules.length && !schedule.id) {
+    loadSchedule(groupSchedules[0]);
   }
 
   const serviceTierAddons = useMemo(() => {
@@ -142,36 +119,29 @@ export function RequestQuote(props: IProps): JSX.Element {
   });
 
   useEffect(() => {
+    async function go() {
+      const [firstGroupSchedule] = await getGroupSchedules({ groupName: group.name }).unwrap();
+      if (firstGroupSchedule) {
+        const masterSchedule = await getGroupScheduleMasterById({ groupName: group.name, scheduleId: firstGroupSchedule.id }).unwrap();
+        loadSchedule(masterSchedule);
+      }
+    }
     if (group.name) {
-      const [abort, res] = api(GET_GROUP_SCHEDULES, { groupName: group.name })
-      res?.then(scheduleData => {
-        const [sched] = scheduleData as IGroupSchedule[];
-        if (sched) {
-          const [, rez] = api(GET_GROUP_SCHEDULE_MASTER_BY_ID, { groupName: group.name, scheduleId: sched.id })
-          rez?.then(masterSchedules => {
-            const [masterSched] = masterSchedules as IGroupSchedule[];
-            loadSchedule(masterSched);
-          }).catch(console.warn);
-        }
-      }).catch(console.warn);
-      return () => abort();
+      void go();
     }
   }, [group]);
 
   useEffect(() => {
     if (group.name && schedule.id) {
-      const [abort, res] = api(GET_GROUP_USER_SCHEDULES, { groupName: group.name, groupScheduleId: schedule.id });
-      res?.catch(console.warn);
-      return () => abort();
+      getGroupUserSchedules({ groupName: group.name, groupScheduleId: schedule.id });
     }
   }, [group, schedule]);
 
   useEffect(() => {
-    if (groupUserSchedulesValues.length && (!tier.id && !services.size && !service.id)) {
+    if (groupUserSchedules.length && (!tier.id && !Object.keys(services).length && !service.id)) {
       let newServices = {} as Record<string, IService>;
 
-      for (const schedId in groupUserSchedules) {
-        const sched = groupUserSchedules[schedId];
+      for (const sched of groupUserSchedules) {
         newServices = { ...newServices, ...sched.services };
       }
 
@@ -186,23 +156,17 @@ export function RequestQuote(props: IProps): JSX.Element {
 
   useEffect(() => {
     if (group.name && service.formId && service.formId != serviceForm.id) {
-      const [abort, res] = api(GET_GROUP_FORM_BY_ID, { groupName: group.name, formId: service.formId });
-      res?.then(forms => {
-        const [form] = forms as IForm[];
-        setServiceForm(form);
-      }).catch(console.warn);
-      return () => abort();
+      getGroupFormById({ groupName: group.name, formId: service.formId }).unwrap().then(groupServiceForm => {
+        setServiceForm(groupServiceForm);
+      });
     }
   }, [service, serviceForm, group]);
 
   useEffect(() => {
     if (group.name && tier.formId && tier.formId != tierForm.id) {
-      const [abort, res] = api(GET_GROUP_FORM_BY_ID, { groupName: group.name, formId: tier.formId });
-      res?.then(forms => {
-        const [form] = forms as IForm[];
-        setTierForm(form);
-      }).catch(console.warn);
-      return () => abort();
+      getGroupFormById({ groupName: group.name, formId: tier.formId }).unwrap().then(groupTierForm => {
+        setTierForm(groupTierForm);
+      });
     }
   }, [tier, tierForm, group]);
 
@@ -236,14 +200,14 @@ export function RequestQuote(props: IProps): JSX.Element {
                   value={schedule.id}
                   onChange={e => {
                     if (e.target.value !== schedule.id) {
-                      const sched = groupSchedules[e.target.value];
+                      const sched = groupSchedules.find(gs => gs.id === e.target.value);
                       if (sched) {
                         loadSchedule(sched);
                       }
                     }
                   }}
                 >
-                  {groupSchedulesValues.map((sched, i) => <MenuItem key={i} value={sched.id}>{sched.name}</MenuItem>)}
+                  {groupSchedules.map((sched, i) => <MenuItem key={i} value={sched.id}>{sched.name}</MenuItem>)}
                 </TextField>
               </Grid>
               <Grid item xs={4}>
@@ -396,7 +360,7 @@ export function RequestQuote(props: IProps): JSX.Element {
 
       <Grid item xs={12}>
         <Card>
-          <CardActionArea onClick={() => {
+          <CardActionArea onClick={async () => {
             quote.serviceTierId = tier.id;
 
             if (!quote.scheduleBracketSlotId) {
@@ -408,7 +372,7 @@ export function RequestQuote(props: IProps): JSX.Element {
             if (Object.keys(serviceForm).length) {
               const missingValues = Object.keys(serviceForm.version.form).some(rowId => serviceForm.version.form[rowId].some((field, i) => field.r && [undefined, ''].includes(serviceForm.version.submission[rowId][i])));
               if (missingValues) {
-                act(SET_SNACK, { snackType: 'error', snackOn: 'The Service Questionnaire is missing required fields!' });
+                setSnack({ snackType: 'error', snackOn: 'The Service Questionnaire is missing required fields!' });
                 return;
               }
               quote.serviceForm = {
@@ -420,7 +384,7 @@ export function RequestQuote(props: IProps): JSX.Element {
             if (Object.keys(tierForm).length) {
               const missingValues = Object.keys(tierForm.version.form).some(rowId => tierForm.version.form[rowId].some((field, i) => field.r && [undefined, ''].includes(tierForm.version.submission[rowId][i])));
               if (missingValues) {
-                act(SET_SNACK, { snackType: 'error', snackOn: 'The Tier Questionnaire is missing required fields!' });
+                setSnack({ snackType: 'error', snackOn: 'The Tier Questionnaire is missing required fields!' });
                 return;
               }
               quote.tierForm = {
@@ -429,11 +393,10 @@ export function RequestQuote(props: IProps): JSX.Element {
               }
             }
 
-            const [, res] = api(POST_QUOTE, quote);
-            res?.then(() => {
-              act(SET_SNACK, { snackOn: 'Your request has been made successfully!' });
-              navigate('/');
-            })
+            await postQuote(quote).unwrap();
+            setSnack({ snackOn: 'Your request has been made successfully!' });
+            navigate('/');
+            
           }}>
             <Box m={2} sx={{ display: 'flex' }}>
               <Typography color="secondary" variant="button">Submit Request</Typography>

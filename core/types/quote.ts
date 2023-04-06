@@ -72,7 +72,7 @@ const quoteApi = {
     url: 'quotes/disable/:ids',
     method: 'PUT',
     opts: {} as ApiOptions,
-    queryArg: { id: '' as string },
+    queryArg: { ids: '' as string },
     resultType: [] as { id: string }[]
   }
 } as const;

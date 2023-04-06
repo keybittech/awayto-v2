@@ -9,19 +9,17 @@ import Tooltip from '@mui/material/Tooltip';
 
 import CreateIcon from '@mui/icons-material/Create';
 
-import { IGroupUserScheduleActionTypes, IGroupUserScheduleStub, shortNSweet } from 'awayto/core';
-import { useRedux, useApi, useGrid } from 'awayto/hooks';
+import { IGroupUserScheduleStub, shortNSweet } from 'awayto/core';
+import { useGrid, sh } from 'awayto/hooks';
 
 import ManageScheduleStubModal from './ManageScheduleStubModal';
-
-const { GET_GROUP_USER_SCHEDULE_STUBS } = IGroupUserScheduleActionTypes;
 
 export function ManageSchedules(props: IProps): JSX.Element {
 
   const { groupName } = useParams();
+  if (!groupName) return <></>;
 
-  const api = useApi();
-  const { stubs } = useRedux(state => state.groupUserSchedule);
+  const { data: { stubs }, refetch: getGroupUserScheduleStubs } = sh.useGetGroupUserScheduleStubsQuery({ groupName })
 
   const [stub, setStub] = useState<IGroupUserScheduleStub>();
   const [selected, setSelected] = useState<string[]>([]);
@@ -32,9 +30,11 @@ export function ManageSchedules(props: IProps): JSX.Element {
     return length == 1 ? [
       <Tooltip key={'view_schedule_details'} title="View Details">
         <IconButton key={'manage_schedule'} onClick={() => {
-          setStub(stubs.find(s => s.userScheduleId === selected[0]));
-          setDialog('manage_schedule');
-          setSelected([]);
+          if (stubs?.length) {
+            setStub(stubs.find(s => s.userScheduleId === selected[0]));
+            setDialog('manage_schedule');
+            setSelected([]);
+          }
         }}>
           <CreateIcon />
         </IconButton>
@@ -42,16 +42,8 @@ export function ManageSchedules(props: IProps): JSX.Element {
     ] : []
   }, [selected, groupName]);
 
-  useEffect(() => {
-    if (groupName) {
-      const [abort, res] = api(GET_GROUP_USER_SCHEDULE_STUBS, { groupName });
-      res?.catch(console.warn);
-      return () => abort();
-    }
-  }, [groupName]);
-
   const ScheduleStubGrid = useGrid({
-    rows: Array.from(stubs),
+    rows: stubs || [],
     columns: [
       { flex: 1, headerName: 'Date', field: 'slotDate', renderCell: ({ row }) => shortNSweet(row.slotDate, row.startTime) },
       { flex: 1, headerName: 'Service', field: 'serviceName' },
@@ -72,7 +64,7 @@ export function ManageSchedules(props: IProps): JSX.Element {
       <Suspense>
         <ManageScheduleStubModal {...props} editGroupUserScheduleStub={stub} closeModal={() => {
           setDialog('');
-          api(GET_GROUP_USER_SCHEDULE_STUBS, { groupName });
+          getGroupUserScheduleStubs();
         }} />
       </Suspense>
     </Dialog>

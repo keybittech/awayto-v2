@@ -18,7 +18,7 @@ export function ManageRoleActions(): JSX.Element {
   if (!groupName) return <></>;
 
   const { setSnack, setUpdateAssignments } = useUtil();
-  const [putAssignments] = sh.usePutGroupsAssignmentsMutation();
+  const [putAssignments] = sh.usePutGroupAssignmentsMutation();
 
   const { data: availableGroupAssignments } = sh.useGetGroupAssignmentsQuery({ groupName })
   const { data: profile } = sh.useGetUserProfileDetailsQuery();

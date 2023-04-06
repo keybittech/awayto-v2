@@ -14,6 +14,8 @@ export type IGroupUserScheduleStubReplacement = {
   startTime: string;
   scheduleBracketSlotId: string;
   serviceTierId: string;
+  groupName: string;
+  quoteId: string;
 }
 
 /**
@@ -82,7 +84,7 @@ const groupUserSchedulesApi = {
     url: 'group/:groupName/user_schedules/stub_replacement',
     method: 'PUT',
     opts: {} as ApiOptions,
-    queryArg: { groupName: '' as string, quoteId: '' as string, slotDate: '' as string, scheduleBracketSlotId: '' as string, serviceTierId: '' as string },
+    queryArg: {} as IGroupUserSchedule & IGroupUserScheduleStubReplacement,
     resultType: true as boolean
   },
   deleteGroupUserScheduleByUserScheduleId: {
@@ -148,7 +150,7 @@ const groupUserSchedulesApiHandlers: ApiHandler<typeof groupUserSchedulesApi> = 
     return { stubs };
   },
   putGroupUserScheduleStubReplacement: async (props) => {
-    const { quoteId, slotDate, scheduleBracketSlotId, serviceTierId } = props.event.body;
+    const { quoteId, slotDate,  scheduleBracketSlotId, serviceTierId } = props.event.body;
 
     const updateProps = buildUpdate({
       id: quoteId,

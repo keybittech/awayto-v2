@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo, Suspense } from 'react';
 import dayjs from 'dayjs';
+import { useNavigate } from 'react-router';
 
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
@@ -20,7 +21,6 @@ import { useAppSelector, useSecure, useGrid, sh, useUtil } from 'awayto/hooks';
 
 import ManageGroupModal from './ManageGroupModal';
 import JoinGroupModal from './JoinGroupModal';
-import { useNavigate } from 'react-router';
 
 import keycloak from '../../keycloak';
 

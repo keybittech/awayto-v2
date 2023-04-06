@@ -5,24 +5,10 @@ import Grid from '@mui/material/Grid';
 import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
 
-import { IRoleActionTypes, IUserProfileActionTypes, IGroupServiceActionTypes, IGroupScheduleActionTypes, IGroupUserActionTypes, IServiceActionTypes, IGroupActionTypes, SiteRoles, IGroupFormActionTypes, IGroupRoleActionTypes } from 'awayto/core';
-import { storeApi, useComponents, useRedux } from 'awayto/hooks';
+import { SiteRoles} from 'awayto/core';
+import { sh, useComponents } from 'awayto/hooks';
 
 const { APP_GROUP_ADMIN, APP_GROUP_ROLES, APP_GROUP_SCHEDULES, APP_GROUP_SERVICES, APP_GROUP_USERS } = SiteRoles;
-
-const { GET_USER_PROFILE_DETAILS } = IUserProfileActionTypes;
-const { PUT_ROLES, POST_ROLES, DELETE_ROLES } = IRoleActionTypes;
-const { POST_SERVICE, PUT_SERVICE, DELETE_SERVICE, DISABLE_SERVICE } = IServiceActionTypes;
-const { GET_GROUP_SERVICES, POST_GROUP_SERVICE, DELETE_GROUP_SERVICE } = IGroupServiceActionTypes;
-const { GET_GROUP_SCHEDULES, GET_GROUP_SCHEDULE_MASTER_BY_ID, POST_GROUP_SCHEDULE, PUT_GROUP_SCHEDULE, DELETE_GROUP_SCHEDULE } = IGroupScheduleActionTypes;
-const { GET_GROUP_FORMS, GET_GROUP_FORM_BY_ID, POST_GROUP_FORM, POST_GROUP_FORM_VERSION, PUT_GROUP_FORM, DELETE_GROUP_FORM } = IGroupFormActionTypes;
-const { GET_GROUP_USERS, GET_GROUP_USER_BY_ID, POST_GROUP_USER, PUT_GROUP_USER, DELETE_GROUP_USER, LOCK_GROUP_USER, UNLOCK_GROUP_USER } = IGroupUserActionTypes;
-const { GET_GROUP_ROLES } = IGroupRoleActionTypes;
-declare global {
-  interface IProps {
-    view?: string;
-  }
-}
 
 export function ManageGroupHome(props: IProps): JSX.Element {
   const { groupName, component } = useParams();
@@ -31,15 +17,8 @@ export function ManageGroupHome(props: IProps): JSX.Element {
 
   const navigate = useNavigate();
 
-  const { data : profile } = storeApi.useGetUserProfileDetailsQuery();
+  const { data : profile } = sh.useGetUserProfileDetailsQuery();
   if (!profile) return <></>;
-
-  const { groupRoles } = useRedux(state => state.groupRole);
-  const { groupUsers } = useRedux(state => state.groupUser);
-
-  const { groupServices } = useRedux(state => state.groupService);
-  const { groupSchedules } = useRedux(state => state.groupSchedule);
-  const { groupForms } = useRedux(state => state.groupForm);
 
   const { ManageFeedback, ManageUsers, ManageRoles, ManageRoleActions, ManageForms, ManageServices, ManageSchedules, GroupSecure } = useComponents();
 
@@ -73,60 +52,23 @@ export function ManageGroupHome(props: IProps): JSX.Element {
   const viewPage = useMemo(() => {
     switch (component) {
       case 'users':
-        return <ManageUsers {...props}
-          users={groupUsers}
-          groupRoles={groupRoles}
-          getUsersAction={GET_GROUP_USERS}
-          getUserByIdAction={GET_GROUP_USER_BY_ID}
-          postUsersAction={POST_GROUP_USER}
-          putUsersAction={PUT_GROUP_USER}
-          deleteUsersAction={DELETE_GROUP_USER}
-          lockUsersAction={LOCK_GROUP_USER}
-          unlockUsersAction={UNLOCK_GROUP_USER}
-          getRolesAction={GET_GROUP_ROLES}
-        />
+        return <ManageUsers {...props} />
       case 'roles':
-        return <ManageRoles {...props}
-          roles={profile.roles}
-          getRolesAction={GET_USER_PROFILE_DETAILS}
-          putRolesAction={PUT_ROLES}
-          postRolesAction={POST_ROLES}
-          deleteRolesAction={DELETE_ROLES}
-        />
+        return <ManageRoles {...props} />
       case 'matrix':
         return <ManageRoleActions {...props} />
       case 'forms':
         return <ManageForms {...props} />
       case 'services':
-        return <ManageServices
-          services={groupServices}
-          getServicesAction={GET_GROUP_SERVICES}
-          postServicesAction={POST_SERVICE}
-          postGroupServicesAction={POST_GROUP_SERVICE}
-          putServicesAction={PUT_SERVICE}
-          disableServicesAction={DISABLE_SERVICE}
-          deleteServicesAction={DELETE_SERVICE}
-          deleteGroupServicesAction={DELETE_GROUP_SERVICE}
-          {...props}
-        />
+        return <ManageServices {...props} />
       case 'schedules':
-        return <ManageSchedules
-          groupSchedules={groupSchedules}
-          getGroupSchedulesAction={GET_GROUP_SCHEDULES}
-          getGroupScheduleMasterByIdAction={GET_GROUP_SCHEDULE_MASTER_BY_ID}
-          postGroupSchedulesAction={POST_GROUP_SCHEDULE}
-          putGroupSchedulesAction={PUT_GROUP_SCHEDULE}
-          deleteGroupSchedulesAction={DELETE_GROUP_SCHEDULE}
-          {...props}
-        />
+        return <ManageSchedules {...props} />
       case 'feedback':
-        return <ManageFeedback
-          {...props}
-        />
+        return <ManageFeedback {...props} />
       default:
         return;
     }
-  }, [groupUsers, groupRoles, groupServices, groupSchedules, groupForms, profile, component])
+  }, [component])
 
   return <>
 

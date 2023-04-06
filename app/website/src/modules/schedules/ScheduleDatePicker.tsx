@@ -1,13 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import dayjs from 'dayjs';
 
 import TextField from '@mui/material/TextField';
 import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker';
 
-import { IGroupScheduleDateSlots, IGroupScheduleActionTypes, TimeUnit, userTimezone } from 'awayto/core';
-import { useApi, useRedux } from 'awayto/hooks';
-
-const { GET_GROUP_SCHEDULE_BY_DATE } = IGroupScheduleActionTypes;
+import { IGroupScheduleDateSlots, TimeUnit, userTimezone } from 'awayto/core';
+import { sh } from 'awayto/hooks';
 
 type ScheduleDatePickerType = {  
   groupName?: string;
@@ -25,24 +23,14 @@ export function ScheduleDatePicker(props: IProps): JSX.Element {
 
   const { groupName, scheduleId, firstAvailable, bracketSlotDate, onDateChange } = props as Required<ScheduleDatePickerType>;
 
-  const api = useApi();
-
   const [monthSeekDate, setMonthSeekDate] = useState(dayjs().startOf(TimeUnit.MONTH));
 
-  const { dateSlots } = useRedux(state => state.groupSchedule);
-
-  useEffect(() => {
-    if (groupName && scheduleId) {
-      const [abort, res] = api(GET_GROUP_SCHEDULE_BY_DATE, {
-        groupName,
-        scheduleId,
-        date: monthSeekDate.format("YYYY-MM-DD"),
-        timezone: btoa(userTimezone)
-      });
-      res?.catch(console.warn);
-      return () => abort();
-    }
-  }, [groupName, scheduleId, monthSeekDate]);
+  const { data: dateSlots } = sh.useGetGroupScheduleByDateQuery({
+    groupName,
+    scheduleId,
+    date: monthSeekDate.format("YYYY-MM-DD"),
+    timezone: btoa(userTimezone)
+  });
 
   return <DesktopDatePicker
     value={bracketSlotDate}

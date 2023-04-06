@@ -24,7 +24,7 @@ const serviceApi = {
     url: 'services',
     method: 'POST',
     opts: {} as ApiOptions,
-    queryArg: { name: '' as string, cost: {} as number, formId: '' as string, tiers: {} as Record<string, IServiceTier> },
+    queryArg: { name: '' as string, cost: '' as string, formId: '' as string, tiers: {} as Record<string, IServiceTier> },
     resultType: {} as IService
   },
   putService: {

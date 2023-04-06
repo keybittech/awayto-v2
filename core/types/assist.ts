@@ -16,6 +16,7 @@ export enum IPrompts {
  * @category Assist
  */
 export type IAssist = {
+  id: string;
   prompt: string;
   prompt2: string;
   promptResult: string[];

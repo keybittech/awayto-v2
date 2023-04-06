@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, Suspense } from 'react';
+import React, { useState, useMemo, Suspense } from 'react';
 import dayjs from 'dayjs';
 import { useNavigate, useParams } from 'react-router';
 
@@ -12,49 +12,33 @@ import DomainAddIcon from '@mui/icons-material/DomainAdd';
 import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-import { IService, IActionTypes, IGroupService, IUtilActionTypes } from 'awayto/core';
-import { useApi, useAct, useGrid } from 'awayto/hooks';
+import { IService } from 'awayto/core';
+import { useGrid, sh, useUtil } from 'awayto/hooks';
 
 import ManageServiceModal from './ManageServiceModal';
 
-const { OPEN_CONFIRM } = IUtilActionTypes;
-
-export type ManageServicesActions = {
-  services?: Record<string, IGroupService>;
-  getServicesAction?: IActionTypes;
-  postServicesAction?: IActionTypes;
-  postGroupServicesAction?: IActionTypes;
-  putServicesAction?: IActionTypes;
-  disableServicesAction?: IActionTypes;
-  deleteServicesAction?: IActionTypes;
-  deleteGroupServicesAction?: IActionTypes;
-};
-
-declare global {
-  interface IProps extends ManageServicesActions { }
-}
-
 export function ManageServices(props: IProps): JSX.Element {
-  const { services, getServicesAction, deleteGroupServicesAction } = props as IProps & Required<ManageServicesActions>;
 
   const { groupName } = useParams();
+  if (!groupName) return <></>;
 
-  const servicesValues = useMemo(() => Object.values(services), [services]);
+  const { openConfirm } = useUtil();
 
-  const act = useAct();
-  const api = useApi();
+  const [deleteGroupService] = sh.useDeleteGroupServiceMutation();
+
+  const { data: groupServices, refetch: getGroupServices } = sh.useGetGroupServicesQuery({ groupName });
+  
   const navigate = useNavigate();
   const [service, setService] = useState<IService>();
   const [selected, setSelected] = useState<string[]>([]);
   const [dialog, setDialog] = useState('');
-
 
   const actions = useMemo(() => {
     const { length } = selected;
     const acts = length == 1 ? [
       <Tooltip key={'manage_service'} title="Edit">
         <Button onClick={() => {
-          setService(services[selected[0]]);
+          setService(groupServices.find(gs => gs.id === selected[0]));
           setDialog('manage_service');
           setSelected([]);
         }}>
@@ -68,19 +52,15 @@ export function ManageServices(props: IProps): JSX.Element {
       ...acts,
       <Tooltip key={'delete_service'} title="Delete">
         <Button onClick={() => {
-          if (groupName) {
-            void act(OPEN_CONFIRM, {
-              isConfirming: true,
-              confirmEffect: 'Are you sure you want to delete these services? This cannot be undone.',
-              confirmAction: () => {
-                const [, res] = api(deleteGroupServicesAction, { groupName, ids: selected.join(',') }, { load: true })
-                res?.then(() => {
-                  api(getServicesAction, { groupName });
-                  setSelected([]);
-                }).catch(console.warn);
-              }
-            });
-          }
+          openConfirm({
+            isConfirming: true,
+            confirmEffect: 'Are you sure you want to delete these services? This cannot be undone.',
+            confirmAction: () => {
+              deleteGroupService({ groupName, ids: selected.join(',') });
+              getGroupServices();
+              setSelected([]);
+            }
+          });
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Delete</Typography>
           <DeleteIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
@@ -89,16 +69,8 @@ export function ManageServices(props: IProps): JSX.Element {
     ]
   }, [selected]);
 
-  useEffect(() => {
-    if (groupName) {
-      const [abort, res] = api(getServicesAction, { groupName });
-      res?.catch(console.warn);
-      return () => abort();
-    }
-  }, [groupName]);
-
   const ServiceGrid = useGrid({
-    rows: servicesValues,
+    rows: groupServices,
     columns: [
       { flex: 1, headerName: 'Name', field: 'name' },
       { flex: 1, headerName: 'Created', field: 'createdOn', renderCell: ({ row }) => dayjs().to(dayjs.utc(row.createdOn)) }
@@ -122,7 +94,7 @@ export function ManageServices(props: IProps): JSX.Element {
       <Suspense>
         <ManageServiceModal {...props} editService={service} closeModal={() => {
           setDialog('')
-          api(getServicesAction, { groupName });
+          getGroupServices();
         }} />
       </Suspense>
     </Dialog>

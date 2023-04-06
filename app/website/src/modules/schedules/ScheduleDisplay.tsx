@@ -118,7 +118,7 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
   }, [parentRef]);
 
   useEffect(() => {
-    if (!selected.size && scheduleBracketsValues.some(b => b.slots.size)) {
+    if (!Object.keys(selected).length && scheduleBracketsValues.some(b => Object.keys(b.slots).length)) {
       const newSelected = {} as Record<string, IScheduleBracketSlot>;
       scheduleBracketsValues.forEach(b => {
         Object.values(b.slots).forEach(s => {

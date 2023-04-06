@@ -11,27 +11,17 @@ import CreateIcon from '@mui/icons-material/Create';
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-import { IRole, IActionTypes } from 'awayto/core';
-import { useApi, useGrid } from 'awayto/hooks';
+import { IRole } from 'awayto/core';
+import { sh, useGrid } from 'awayto/hooks';
 
 import ManageRoleModal from './ManageRoleModal';
 
-export type ManageRolesActions = {
-  roles?: Record<string, IRole>;
-  getRolesAction?: IActionTypes;
-  putRolesAction?: IActionTypes;
-  postRolesAction?: IActionTypes;
-  deleteRolesAction?: IActionTypes;
-};
-
-declare global {
-  interface IProps extends ManageRolesActions { }
-}
-
 export function ManageRoles(props: IProps): JSX.Element {
-  const { roles, getRolesAction, deleteRolesAction } = props as IProps & Required<ManageRolesActions>;
 
-  const api = useApi();
+  const { data: profile, refetch: getUserProfileDetails } = sh.useGetUserProfileDetailsQuery();
+
+  const [deleteRole] = sh.useDeleteRoleMutation();
+
   const [role, setRole] = useState<IRole>();
   const [selected, setSelected] = useState<string[]>([]);
   const [dialog, setDialog] = useState('');
@@ -41,9 +31,11 @@ export function ManageRoles(props: IProps): JSX.Element {
     const acts = length == 1 ? [
       <Tooltip key={'manage_role'} title="Edit">
         <Button onClick={() => {
-          setRole(roles[selected[0]]);
-          setDialog('manage_role');
-          setSelected([]);
+          if (profile.roles) {
+            setRole(profile.roles[selected[0]]);
+            setDialog('manage_role');
+            setSelected([]);
+          }
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Edit</Typography>
           <CreateIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
@@ -54,28 +46,20 @@ export function ManageRoles(props: IProps): JSX.Element {
     return [
       ...acts,
       <Tooltip key={'delete_role'} title="Delete">
-        <Button onClick={() => {
-        const [, res] = api(deleteRolesAction, { ids: selected.join(',') }, { load: true })
-        res?.then(() => {
-          api(getRolesAction);
+        <Button onClick={async () => {
+          await deleteRole({ ids: selected.join(',') }).unwrap();
+          getUserProfileDetails();
           setSelected([]);
-        }).catch(console.warn);
-      }}>
-        <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Delete</Typography>
-        <DeleteIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
-      </Button>
+        }}>
+          <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Delete</Typography>
+          <DeleteIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
+        </Button>
       </Tooltip>
     ]
   }, [selected]);
 
-  useEffect(() => {
-    const [abort, res] = api(getRolesAction);
-    res?.catch(console.warn);
-    return () => abort();
-  }, []);
-
   const RoleGrid = useGrid({
-    rows: Object.values(roles),
+    rows: Object.values(profile.roles || {}),
     columns: [
       { flex: 1, headerName: 'Name', field: 'name' },
       { flex: 1, headerName: 'Created', field: 'createdOn', renderCell: ({ row }) => dayjs().to(dayjs.utc(row.createdOn)) }
@@ -102,7 +86,7 @@ export function ManageRoles(props: IProps): JSX.Element {
       <Suspense>
         <ManageRoleModal {...props} editRole={role} closeModal={() => {
           setDialog('')
-          api(getRolesAction);
+          getUserProfileDetails();
         }} />
       </Suspense>
     </Dialog>

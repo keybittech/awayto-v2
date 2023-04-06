@@ -8,12 +8,9 @@ import CardActions from '@mui/material/CardActions';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 
-import { IRole, IUtilActionTypes } from "awayto/core";
-import { useApi, useAct } from 'awayto/hooks';
-import { useCallback } from "react";
-import { ManageRolesActions } from "./ManageRoles";
-
-const { SET_SNACK } = IUtilActionTypes;
+import { IRole } from 'awayto/core';
+import { useUtil, sh } from 'awayto/hooks';
+import { useCallback } from 'react';
 
 declare global {
   interface IProps {
@@ -21,30 +18,29 @@ declare global {
   }
 }
 
-export function ManageRoleModal ({ editRole, closeModal, ...props }: IProps): JSX.Element {
-  const { putRolesAction, postRolesAction } = props as IProps & Required<ManageRolesActions>;
+export function ManageRoleModal ({ editRole, closeModal }: IProps): JSX.Element {
 
-  const api = useApi();
-  const act = useAct();
+  const { setSnack } = useUtil();
+  const [putRole] = sh.usePutRoleMutation();
+  const [postRole] = sh.usePostRoleMutation();
+
   const [role, setRole] = useState<Partial<IRole>>({
     name: '',
     ...editRole
   });
   
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     const { id, name } = role;
 
     if (!name) {
-      act(SET_SNACK, {snackType: 'error', snackOn: 'Roles must have a name.' });
+      setSnack({snackType: 'error', snackOn: 'Roles must have a name.' });
       return;
     }
 
-    const [, res] = api(id ? putRolesAction : postRolesAction, role, { load: true });
+    await (id ? putRole : postRole)(role as IRole).unwrap();
     
-    res?.then(() => {
-      if (closeModal)
-        closeModal();
-    }).catch(console.warn);
+    if (closeModal)
+      closeModal();
 
   }, [role]);
 

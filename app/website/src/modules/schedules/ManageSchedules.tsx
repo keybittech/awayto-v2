@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, Suspense } from 'react';
+import React, { useState, useMemo, Suspense } from 'react';
 import dayjs from 'dayjs';
 
 import Typography from '@mui/material/Typography';
@@ -11,57 +11,35 @@ import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MoreTimeIcon from '@mui/icons-material/MoreTime';
 
-import { ISchedule, IActionTypes, IGroupSchedule, IUtilActionTypes } from 'awayto/core';
-import { useApi, useAct, useComponents, useGrid } from 'awayto/hooks';
+import { ISchedule } from 'awayto/core';
+import { useComponents, useGrid, sh, useUtil } from 'awayto/hooks';
 
 import ManageSchedulesModal from './ManageSchedulesModal';
 import { useParams } from 'react-router';
 
-const { OPEN_CONFIRM } = IUtilActionTypes;
-
-export type ManageSchedulesActions = {
-  groupSchedules?: Record<string, IGroupSchedule>;
-  getGroupSchedulesAction?: IActionTypes;
-  getGroupScheduleMasterByIdAction?: IActionTypes;
-  postGroupSchedulesAction?: IActionTypes;
-  putGroupSchedulesAction?: IActionTypes;
-  deleteGroupSchedulesAction?: IActionTypes;
-};
-
-declare global {
-  interface IProps extends ManageSchedulesActions { }
-}
-
 // This is how group owners interact with the schedule
-
 export function ManageSchedules(props: IProps): JSX.Element {
-  const { groupSchedules, getGroupSchedulesAction, deleteGroupSchedulesAction } = props as IProps & Required<ManageSchedulesActions>;
 
-  const { ManageScheduleStubs } = useComponents();
   const { groupName } = useParams();
+  if (!groupName) return <></>;
 
-  const groupsSchedulesValues = useMemo(() => Object.values(groupSchedules), [groupSchedules]);
+  const { openConfirm } = useUtil();
+  const { ManageScheduleStubs } = useComponents();
 
-  const act = useAct();
-  const api = useApi();
+  const [deleteGroupSchedule] = sh.useDeleteGroupScheduleMutation();
+  
+  const { data: groupSchedules, refetch: getGroupSchedules } = sh.useGetGroupSchedulesQuery({ groupName: groupName });
+
   const [schedule, setSchedule] = useState<ISchedule>();
   const [selected, setSelected] = useState<string[]>([]);
   const [dialog, setDialog] = useState('');
-
-  useEffect(() => {
-    if (groupName) {
-      const [abort, res] = api(getGroupSchedulesAction, { groupName });
-      res?.catch(console.warn);
-      return () => abort();
-    }
-  }, [groupName]);
 
   const actions = useMemo(() => {
     const { length } = selected;
     const acts = length == 1 ? [
       <Tooltip key={'manage_schedule'} title="Edit">
         <Button onClick={() => {
-          setSchedule(groupSchedules[selected[0]]);
+          setSchedule(groupSchedules.find(gs => gs.id === selected[0]));
           setDialog('manage_schedule');
           setSelected([]);
         }}>
@@ -75,19 +53,15 @@ export function ManageSchedules(props: IProps): JSX.Element {
       ...acts,
       <Tooltip key={'delete_schedule'} title="Delete">
         <Button onClick={() => {
-          if (groupName) {
-            void act(OPEN_CONFIRM, {
-              isConfirming: true,
-              confirmEffect: 'Are you sure you want to delete these schedules? This cannot be undone.',
-              confirmAction: () => {
-                const [, res] = api(deleteGroupSchedulesAction, { groupName, ids: selected.join(',') }, { load: true })
-                res?.then(() => {
-                  api(getGroupSchedulesAction, { groupName });
-                  setSelected([]);
-                }).catch(console.warn);
-              }
-            });
-          }
+          openConfirm({
+            isConfirming: true,
+            confirmEffect: 'Are you sure you want to delete these schedules? This cannot be undone.',
+            confirmAction: async () => {
+              await deleteGroupSchedule({ groupName, ids: selected.join(',') }).unwrap();
+              getGroupSchedules();
+              setSelected([]);
+            }
+          });
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Delete</Typography>
           <DeleteIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
@@ -97,7 +71,7 @@ export function ManageSchedules(props: IProps): JSX.Element {
   }, [selected, groupName]);
 
   const ScheduleGrid = useGrid({
-    rows: groupsSchedulesValues,
+    rows: groupSchedules,
     columns: [
       { flex: 1, headerName: 'Name', field: 'name' },
       { flex: 1, headerName: 'Created', field: 'createdOn', renderCell: ({ row }) => dayjs().to(dayjs.utc(row.createdOn)) }
@@ -124,7 +98,7 @@ export function ManageSchedules(props: IProps): JSX.Element {
       <Suspense>
         <ManageSchedulesModal {...props} editSchedule={schedule} closeModal={() => {
           setDialog('');
-          api(getGroupSchedulesAction, { groupName });
+          getGroupSchedules();
         }} />
       </Suspense>
     </Dialog>

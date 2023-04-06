@@ -19,7 +19,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import ArrowRightAlt from '@mui/icons-material/ArrowRightAlt';
 import NotInterestedIcon from '@mui/icons-material/NotInterested';
 
-import { IGroup, IPrompts } from 'awayto/core';
+import { IGroup, IPrompts, IRole } from 'awayto/core';
 import { useComponents, sh, useUtil } from 'awayto/hooks';
 
 import keycloak from '../../keycloak';
@@ -92,7 +92,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
       name: formatName(name),
       purpose,
       allowedDomains: allowedDomains.join(','),
-      roles: Object.fromEntries(roleIds.map(id => [id, profile.roles![id]])),
+      roles: Object.fromEntries(roleIds.map(id => [id, roleValues.find(r => r.id === id)] as [string, IRole])),
       defaultRoleId
     }).unwrap().then(() => {
       id && setSnack({ snackType: 'success', snackOn: 'Group updated! Please allow up to a minute for any related permissions changes to persist.' })

@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef, useCallback, Suspense, useEffect } from "react";
+import React, { useMemo, useState, useRef, useCallback, Suspense, useEffect } from 'react';
 
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
@@ -14,14 +14,10 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 
-import { getRelativeDuration, IGroup, ISchedule, IScheduleBracket, IScheduleBracketSlot, IService, ITimeUnitNames, IUtilActionTypes, IUserProfileActionTypes, timeUnitOrder } from "awayto/core";
-import { useApi, useAct, useComponents, useRedux } from 'awayto/hooks';
+import { getRelativeDuration, IGroup, ISchedule, IScheduleBracket, IScheduleBracketSlot, IService, ITimeUnitNames, timeUnitOrder } from 'awayto/core';
+import { useComponents, sh, useUtil } from 'awayto/hooks';
 
-import { scheduleSchema } from "./ScheduleHome";
-import { ManageScheduleBracketsActions } from "./ManageScheduleBrackets";
-
-const { SET_SNACK } = IUtilActionTypes;
-const { GET_USER_PROFILE_DETAILS } = IUserProfileActionTypes;
+import { scheduleSchema } from './ScheduleHome';
 
 const bracketSchema = {
   duration: 1,
@@ -38,36 +34,40 @@ declare global {
 
 export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, ...props }: IProps): JSX.Element {
 
-  const { schedules, getScheduleByIdAction, groupServices, groupSchedules, getGroupServicesAction, getGroupSchedulesAction, postScheduleAction, postScheduleBracketsAction, postGroupUserScheduleAction } = props as IProps & Required<ManageScheduleBracketsActions>;
+  if (!group?.name) return <></>;
 
-  const api = useApi();
-  const act = useAct();
+  const { setSnack } = useUtil();
+
+  const { data: lookups } = sh.useGetLookupsQuery();
+  const { data: schedules } = sh.useGetSchedulesQuery();
+  const { data: groupServices } = sh.useGetGroupServicesQuery({ groupName: group.name });
+  const { data: groupSchedules } = sh.useGetGroupSchedulesQuery({ groupName: group.name });
+
+  const [getUserProfileDetails] = sh.useLazyGetUserProfileDetailsQuery();
+  const [getScheduleById] = sh.useLazyGetScheduleByIdQuery();
+  const [postSchedule] = sh.usePostScheduleMutation();
+  const [postScheduleBrackets] = sh.usePostScheduleBracketsMutation();
+  const [postGroupUserSchedule] = sh.usePostGroupUserScheduleMutation()
+  
   const { ScheduleDisplay } = useComponents();
-
-  const schedulesValues = useMemo(() => Object.values(schedules), [schedules])
-  const groupServicesValues = useMemo(() => Object.values(groupServices), [groupServices])
-  const groupSchedulesValues = useMemo(() => Object.values(groupSchedules), [groupSchedules])
 
   const scheduleParent = useRef<HTMLDivElement>(null);
   const [viewStep, setViewStep] = useState(1);
   const [schedule, setSchedule] = useState({ ...scheduleSchema, brackets: {} } as ISchedule);
   const [bracket, setBracket] = useState({ ...bracketSchema, services: {}, slots: {} } as IScheduleBracket);
-  const { timeUnits } = useRedux(state => state.lookup);
 
   const attachScheduleUnits = useCallback((sched: ISchedule) => {
-    sched.scheduleTimeUnitName = timeUnits.find(u => u.id === sched.scheduleTimeUnitId)?.name as ITimeUnitNames;
-    sched.bracketTimeUnitName = timeUnits.find(u => u.id === sched.bracketTimeUnitId)?.name as ITimeUnitNames;
-    sched.slotTimeUnitName = timeUnits.find(u => u.id === sched.slotTimeUnitId)?.name as ITimeUnitNames;
-  }, [timeUnits]);
+    sched.scheduleTimeUnitName = lookups.timeUnits?.find(u => u.id === sched.scheduleTimeUnitId)?.name as ITimeUnitNames;
+    sched.bracketTimeUnitName = lookups.timeUnits?.find(u => u.id === sched.bracketTimeUnitId)?.name as ITimeUnitNames;
+    sched.slotTimeUnitName = lookups.timeUnits?.find(u => u.id === sched.slotTimeUnitId)?.name as ITimeUnitNames;
+  }, [lookups]);
 
   useEffect(() => {
-    if (groupSchedulesValues.length) {
+    if (groupSchedules.length) {
       if (editSchedule) {
-        const [abort, res] = api(getScheduleByIdAction, { id: editSchedule.id });
-        res?.catch(console.warn);
-        return () => abort();
+        getScheduleById({ id: editSchedule.id });
       } else {
-        const sched = groupSchedulesValues[0];
+        const sched = groupSchedules[0];
         attachScheduleUnits(sched);
         setSchedule({ ...sched, brackets: {} });
       }
@@ -76,26 +76,16 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
 
   useEffect(() => {
     if (editSchedule) {
-      const sched = schedules[editSchedule.id];
+      const sched = schedules.find(s => s.id === editSchedule.id);
       if (sched) {
         attachScheduleUnits(sched);
         setSchedule({ ...sched });
-        if (sched.brackets.size) {
+        if (Object.keys(sched.brackets).length) {
           setViewStep(2);
         }
       }
     }
-  }, [editSchedule, schedules])
-
-  useEffect(() => {
-    if (!group?.name) return;
-    const [abort1] = api(getGroupServicesAction, { groupName: group.name });
-    const [abort2] = api(getGroupSchedulesAction, { groupName: group.name });
-    return () => {
-      abort1();
-      abort2();
-    }
-  }, [group]);
+  }, [editSchedule, schedules]);
 
   const scheduleBracketsValues = useMemo(() => Object.values(schedule.brackets || {}), [schedule.brackets]);
   const bracketServicesValues = useMemo(() => Object.values(bracket.services || {}), [bracket.services]);
@@ -112,46 +102,41 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
     return 0;
   }, [schedule, scheduleBracketsValues]);
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     if (schedule) {
       const { name, scheduleTimeUnitName } = schedule;
       if (name && scheduleTimeUnitName && scheduleBracketsValues.length) {
-        const [, res] = !editSchedule ?
-          api(postScheduleAction, schedule) :
-          [undefined, new Promise<ISchedule[]>(res => res([schedule]))];
-
-        res?.then(scheds => {
-          const [sched] = scheds as ISchedule[];
-
-          const newBrackets = scheduleBracketsValues.map(
-            ({ id, duration, automatic, multiplier, slots, services }) => [
+        const userSchedule = { ...schedule };
+        if (!editSchedule) {
+          const newSchedule = await postSchedule(schedule).unwrap();
+          userSchedule.id = newSchedule.id;
+        }
+        
+        const newBrackets = scheduleBracketsValues.map(
+          ({ id, duration, automatic, multiplier, slots, services }) => [
+            id,
+            {
               id,
-              {
-                id,
-                duration,
-                automatic,
-                multiplier,
-                slots: Object.values(slots).map(({ startTime }, i) => [String(i), { startTime } as IScheduleBracketSlot]),
-                services: Object.values(services).map(({ id }, i) => [String(i), { id } as IService])
-              }
-            ]
-          );
+              duration,
+              automatic,
+              multiplier,
+              slots: Object.values(slots).map(({ startTime }, i) => [String(i), { startTime } as IScheduleBracketSlot]),
+              services: Object.values(services).map(({ id }, i) => [String(i), { id } as IService])
+            }
+          ]
+        );
 
-          const [, rex] = api(postScheduleBracketsAction, { scheduleId: sched.id, brackets: newBrackets });
-          const [, rez] = !editSchedule ?
-            api(postGroupUserScheduleAction, { groupName: group?.name, userScheduleId: sched.id, groupScheduleId: schedule.id }) :
-            [undefined, new Promise(res => res(true))];
-          void Promise.all([rex, rez]).then(() => {
-            const [, rey] = api(GET_USER_PROFILE_DETAILS);
-            rey?.then(() => {
-              act(SET_SNACK, { snackOn: 'Successfully added ' + name, snackType: 'info' });
-              if (closeModal) closeModal();
-            })
-          }).catch(console.warn);
-        });
+        await postScheduleBrackets({ scheduleId: userSchedule.id, brackets: Object.fromEntries(newBrackets) }).unwrap();
 
+        if (!editSchedule) {
+          await postGroupUserSchedule({ groupName: group?.name, userScheduleId: userSchedule.id, groupScheduleId: schedule.id }).unwrap();
+        }
+
+        await getUserProfileDetails().unwrap();
+        setSnack({ snackOn: 'Successfully added ' + name, snackType: 'info' });
+        if (closeModal) closeModal();
       } else {
-        act(SET_SNACK, { snackOn: 'A schedule should have a name, a duration, and at least 1 bracket.', snackType: 'info' });
+        setSnack({ snackOn: 'A schedule should have a name, a duration, and at least 1 bracket.', snackType: 'info' });
       }
     }
   }, [group, schedule, scheduleBracketsValues]);
@@ -173,7 +158,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
             value={schedule.id}
             onChange={e => {
               if (!editSchedule) {
-                const sched = groupSchedules[e.target.value];
+                const sched = groupSchedules.find(gs => gs.id === e.target.value);
                 if (sched) {
                   attachScheduleUnits(sched);
                   setSchedule({ ...sched, brackets: {} });
@@ -181,7 +166,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
               }
             }}
           >
-            {groupSchedulesValues.map(s => {
+            {groupSchedules.map(s => {
               return <MenuItem
                 key={`schedule-select${s.id}`}
                 value={s.id}
@@ -229,14 +214,14 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
             helperText="Select the services available to be scheduled."
             value={''}
             onChange={e => {
-              const serv = groupServices[e.target.value];
+              const serv = groupServices.find(gs => gs.id === e.target.value);
               if (serv) {
                 bracket.services[e.target.value] = serv;
                 setBracket({ ...bracket, services: { ...bracket.services } });
               }
             }}
           >
-            {groupServicesValues.filter(s => !Object.keys(bracket.services).includes(s.id)).map(service => <MenuItem key={`service-select${service.id}`} value={service.id}>{service.name}</MenuItem>)}
+            {groupServices.filter(s => !Object.keys(bracket.services).includes(s.id)).map(service => <MenuItem key={`service-select${service.id}`} value={service.id}>{service.name}</MenuItem>)}
           </TextField>
 
           <Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
@@ -269,7 +254,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
           <Button
             disabled={!bracket.duration || !bracketServicesValues.length}
             onClick={() => {
-              if (bracket.duration && bracket.services.size) {
+              if (bracket.duration && Object.keys(bracket.services).length) {
                 bracket.id = (new Date()).getTime().toString();
                 bracket.scheduleId = schedule.id;
                 schedule.brackets[bracket.id] = bracket;
@@ -277,7 +262,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
                 setBracket({ ...bracketSchema, services: {}, slots: {} } as IScheduleBracket);
                 setViewStep(2);
               } else {
-                void act(SET_SNACK, { snackOn: 'Provide a duration, and at least 1 service.', snackType: 'info' });
+                void setSnack({ snackOn: 'Provide a duration, and at least 1 service.', snackType: 'info' });
               }
             }}
           >

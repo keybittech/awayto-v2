@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from 'react';
+import { useParams } from 'react-router';
 import dayjs from 'dayjs';
 
 import Box from '@mui/material/Box';
@@ -11,14 +12,11 @@ import CardContent from '@mui/material/CardContent';
 import CardActions from '@mui/material/CardActions';
 import Button from '@mui/material/Button';
 
-import { IGroupScheduleDateSlots, IGroupUserScheduleStub, IGroupUserScheduleActionTypes, quotedDT, shortNSweet, IGroupUserScheduleState } from "awayto/core";
-import { useApi, useRedux } from 'awayto/hooks';
-import { useCallback } from "react";
-import ScheduleDatePicker from "./ScheduleDatePicker";
-import ScheduleTimePicker from "./ScheduleTimePicker";
-import { useParams } from "react-router";
+import { IGroupScheduleDateSlots, IGroupUserScheduleStub, quotedDT, shortNSweet, IGroupUserSchedule, IGroupUserScheduleStubReplacement } from 'awayto/core';
+import { sh } from 'awayto/hooks';
 
-const { GET_GROUP_USER_SCHEDULE_STUB_REPLACEMENT, PUT_GROUP_USER_SCHEDULE_STUB_REPLACEMENT } = IGroupUserScheduleActionTypes;
+import ScheduleDatePicker from './ScheduleDatePicker';
+import ScheduleTimePicker from './ScheduleTimePicker';
 
 declare global {
   interface IProps {
@@ -30,9 +28,12 @@ export function ManageScheduleStubModal({ editGroupUserScheduleStub, closeModal 
   if (!editGroupUserScheduleStub) return <></>;
 
   const { groupName } = useParams();
+  if (!groupName) return <></>;
 
-  const api = useApi();
-  const { dateSlots } = useRedux(state => state.groupSchedule);
+  const [putGroupUserScheduleStubReplacement] = sh.usePutGroupUserScheduleStubReplacementMutation();
+  const [getGroupUserScheduleStubReplacement] = sh.useLazyGetGroupUserScheduleStubReplacementQuery(); 
+
+  const [_, { data: dateSlots }] = sh.useLazyGetGroupScheduleByDateQuery();
 
   const [firstAvailable, setFirstAvailable] = useState({ time: dayjs() } as IGroupScheduleDateSlots);
   const [activeSchedule, setActiveSchedule] = useState('');
@@ -50,8 +51,8 @@ export function ManageScheduleStubModal({ editGroupUserScheduleStub, closeModal 
     setActiveSchedule(editGroupUserScheduleStub.userScheduleId);
   }
 
-  const handleSubmit = useCallback(() => {
-    const [, res] = api(PUT_GROUP_USER_SCHEDULE_STUB_REPLACEMENT, {
+  const handleSubmit = useCallback(async () => {
+    await putGroupUserScheduleStubReplacement({
       groupName,
       userScheduleId: editGroupUserScheduleStub.userScheduleId,
       quoteId: editGroupUserScheduleStub.quoteId,
@@ -59,11 +60,10 @@ export function ManageScheduleStubModal({ editGroupUserScheduleStub, closeModal 
       startTime: replacement.startTime,
       serviceTierId: replacement.serviceTierId,
       scheduleBracketSlotId: replacement.scheduleBracketSlotId
-    });
+    } as IGroupUserSchedule & IGroupUserScheduleStubReplacement).unwrap();
 
-    res?.then(() => {
-      if (closeModal) closeModal();
-    }).catch(console.warn);
+    if (closeModal)
+      closeModal();
   }, [editGroupUserScheduleStub]);
 
   return <>
@@ -117,16 +117,14 @@ export function ManageScheduleStubModal({ editGroupUserScheduleStub, closeModal 
                 onTimeAccept={({ slotDate, startTime }) => {
                   const { userScheduleId, tierName } = editGroupUserScheduleStub;
             
-                  const [, res] = api(GET_GROUP_USER_SCHEDULE_STUB_REPLACEMENT, {
+                  getGroupUserScheduleStubReplacement({
                     groupName,
                     userScheduleId,
                     slotDate,
                     startTime,
                     tierName
-                  }, { useParams: true });
-
-                  res?.then(stubRes => {
-                    const { stubs: [replacementStub] } = stubRes as IGroupUserScheduleState;
+                  }).unwrap().then(({ stubs }) => {
+                    const [replacementStub] = stubs as IGroupUserScheduleStub[];
                     if (replacementStub) {
                       setReplacement(replacementStub.replacement);
                     }

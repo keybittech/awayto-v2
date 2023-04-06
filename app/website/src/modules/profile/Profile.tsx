@@ -9,33 +9,29 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import PersonIcon from '@mui/icons-material/Person';
 
-import { IUserProfile, IUserProfileActionTypes, IUtilActionTypes, IPreviewFile, IGroupActionTypes, IRoleActionTypes } from 'awayto/core';
-import { storeApi, useApi, useAct, useComponents, useFileStore, useStyles } from 'awayto/hooks';
-
-const { SET_SNACK } = IUtilActionTypes;
-const { POST_ROLES, DELETE_ROLES } = IRoleActionTypes;
-const { CHECK_GROUPS_NAME, DELETE_GROUPS, POST_GROUPS, PUT_GROUPS } = IGroupActionTypes;
-const { GET_USER_PROFILE_DETAILS, PUT_USER_PROFILE } = IUserProfileActionTypes;
+import { IUserProfile, IPreviewFile } from 'awayto/core';
+import { sh, useComponents, useFileStore, useStyles, useUtil } from 'awayto/hooks';
 
 export function Profile(props: IProps): JSX.Element {
   const classes = useStyles();
 
-  const api = useApi();
-  const act = useAct();
-  const fileStore = useFileStore();
-  const { PickTheme, GroupsHome } = useComponents();
+  const { setSnack } = useUtil();
+  const [putUserProfile] = sh.usePutUserProfileMutation();
 
-  const { data : user } = storeApi.useGetUserProfileDetailsQuery();
+  const fileStore = useFileStore();
+  const { PickTheme, ManageGroups } = useComponents();
+
+  const { data : user } = sh.useGetUserProfileDetailsQuery();
   if (!user) return <></>;
 
   const [displayImage, setDisplayImage] = useState('');
   const [file, setFile] = useState<IPreviewFile>();
-  const [profile, setProfile] = useState<Partial<IUserProfile>>({
+  const [profile, setProfile] = useState({
     firstName: '',
     lastName: '',
     email: '',
     image: ''
-  });
+  } as IUserProfile);
 
   const { getRootProps, getInputProps } = useDropzone({
     maxSize: 1000000,
@@ -51,12 +47,6 @@ export function Profile(props: IProps): JSX.Element {
       }
     }
   });
-
-  useEffect(() => {
-    const [abort, res] = api(GET_USER_PROFILE_DETAILS);
-    res?.catch(console.warn);
-    return () => abort();
-  }, []);
 
   useEffect(() => {
     if (file?.preview) URL.revokeObjectURL(file.preview);
@@ -86,12 +76,11 @@ export function Profile(props: IProps): JSX.Element {
     if (file) {
       profile.image = await fileStore?.put(file);
     }
-    console.log('just put profile with image', profile);
-    const [, res] = api(PUT_USER_PROFILE, profile, { load: true });
-    res?.then(() => {
-      act(SET_SNACK, { snackType: 'success', snackOn: 'Profile updated!' });
+
+    putUserProfile(profile).unwrap().then(() => {
+      setSnack({ snackType: 'success', snackOn: 'Profile updated!' });
       setFile(undefined);
-    }).catch(console.warn);
+    });
   }
 
   return <>
@@ -158,18 +147,7 @@ export function Profile(props: IProps): JSX.Element {
             <Typography variant="h6">Group</Typography>
           </Grid>
           <Grid item>
-            <GroupsHome {...props}
-              groups={user.groups}
-              roles={user.roles}
-              getGroupsAction={GET_USER_PROFILE_DETAILS}
-              deleteGroupsAction={DELETE_GROUPS}
-              putGroupsAction={PUT_GROUPS}
-              postGroupsAction={POST_GROUPS}
-              getRolesAction={GET_USER_PROFILE_DETAILS}
-              postRolesAction={POST_ROLES}
-              deleteRolesAction={DELETE_ROLES}
-              checkNameAction={CHECK_GROUPS_NAME}
-            />
+            <ManageGroups {...props} />
           </Grid>
         </Grid>
       </Grid>

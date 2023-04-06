@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useParams } from 'react-router';
 import dayjs from 'dayjs';
 import { Duration, DurationUnitType } from 'dayjs/plugin/duration';
 
@@ -6,7 +7,7 @@ import TextField from '@mui/material/TextField';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 
 import { getRelativeDuration, IGroupScheduleDateSlots, IQuote, ITimeUnitNames, TimeUnit } from 'awayto/core';
-import { useRedux } from 'awayto/hooks';
+import { sh } from 'awayto/hooks';
 
 type ScheduleTimePickerType = {
   scheduleId?: string;
@@ -24,14 +25,23 @@ declare global {
 export function ScheduleTimePicker(props: IProps): JSX.Element {
 
   const { scheduleId, bracketSlotDate, firstAvailable, bracketSlotTime, onTimeChange, onTimeAccept } = props as Required<ScheduleTimePickerType>;
-  
-  const { dateSlots, groupSchedules } = useRedux(state => state.groupSchedule);
-  const { timeUnits } = useRedux(state => state.lookup);
-  const [didInit, setDidInit] = useState(false);
 
-  const { bracketTimeUnitId, slotTimeUnitId } = groupSchedules[scheduleId] || {};
-  const bracketTimeUnitName = timeUnits.find(u => u.id === bracketTimeUnitId)?.name as ITimeUnitNames;
-  const slotTimeUnitName = timeUnits.find(u => u.id === slotTimeUnitId)?.name as ITimeUnitNames;
+  const { groupName } = useParams();
+  if (!groupName) return <></>;
+
+  const [_, { data: dateSlots }] = sh.useLazyGetGroupScheduleByDateQuery();
+  
+  const { data: lookups } = sh.useGetLookupsQuery();
+  if (!lookups.timeUnits) return <></>;
+
+  const { data: groupSchedules } = sh.useGetGroupSchedulesQuery({ groupName });
+  if (!groupSchedules.length) return <></>;
+
+  const didInit = useRef(false);
+
+  const { bracketTimeUnitId, slotTimeUnitId } = groupSchedules.find(gs => gs.id === scheduleId) || {};
+  const bracketTimeUnitName = lookups.timeUnits.find(u => u.id === bracketTimeUnitId)?.name as ITimeUnitNames;
+  const slotTimeUnitName = lookups.timeUnits.find(u => u.id === slotTimeUnitId)?.name as ITimeUnitNames;
   const sessionDuration = Math.round(getRelativeDuration(1, bracketTimeUnitName, slotTimeUnitName));
   
   const slotFactors = [] as number[];
@@ -80,12 +90,12 @@ export function ScheduleTimePicker(props: IProps): JSX.Element {
   }
 
   useEffect(() => {
-    if (dateSlots.length && firstAvailable.time &&!didInit) {
-      setDidInit(true);
+    if (dateSlots.length && firstAvailable.time && !didInit.current) {
+      didInit.current = true;
       const quote = getQuote(firstAvailable.time);
       quote && onTimeAccept(quote);
     }
-  }, [dateSlots, firstAvailable, didInit]);
+  }, [dateSlots, firstAvailable, didInit.current]);
 
   return <TimePicker
     label="Time"

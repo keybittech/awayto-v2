@@ -1,4 +1,4 @@
-import React, { useMemo, useContext } from "react";
+import React, { useMemo, useContext } from 'react';
 
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -8,9 +8,9 @@ import Tooltip from '@mui/material/Tooltip';
 import ApprovalIcon from '@mui/icons-material/Approval';
 import DoNotDisturbIcon from '@mui/icons-material/DoNotDisturb';
 
-import { IQuote, utcDTLocal, shortNSweet } from "awayto/core";
-import { useGrid } from "awayto/hooks";
-import { PendingQuotesContext, PendingQuotesContextType } from "./PendingQuotesContext";
+import { IQuote, utcDTLocal, shortNSweet } from 'awayto/core';
+import { useGrid } from 'awayto/hooks';
+import { PendingQuotesContext, PendingQuotesContextType } from './PendingQuotesContext';
 
 function QuoteHome(): JSX.Element {
 
@@ -25,6 +25,7 @@ function QuoteHome(): JSX.Element {
   const actions = useMemo(() => {
     const { length } = selectedPendingQuotes;
     const acts = length == 1 ? [
+      // Extra actions
     ] : [];
 
     return [

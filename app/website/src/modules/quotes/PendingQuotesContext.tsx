@@ -1,5 +1,5 @@
-import { IQuote } from "awayto/core";
-import { createContext } from "react";
+import { IQuote } from 'awayto/core';
+import { createContext } from 'react';
 
 export type PendingQuotesContextType = {
   pendingQuotes: IQuote[];

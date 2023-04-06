@@ -1,13 +1,6 @@
 import React from 'react';
 
-import { IScheduleActionTypes, IGroupServiceActionTypes, IGroupScheduleActionTypes, IGroupUserScheduleActionTypes } from 'awayto/core';
-import { useRedux, useComponents } from 'awayto/hooks';
-
-const { GET_GROUP_SERVICES } = IGroupServiceActionTypes;
-const { GET_GROUP_SCHEDULES } = IGroupScheduleActionTypes;
-const { POST_GROUP_USER_SCHEDULE, DELETE_GROUP_USER_SCHEDULE_BY_USER_SCHEDULE_ID } = IGroupUserScheduleActionTypes;
-
-const { GET_SCHEDULES, GET_SCHEDULE_BY_ID, POST_SCEHDULE_BRACKETS, POST_SCHEDULE, DELETE_SCHEDULE } = IScheduleActionTypes;
+import { useComponents } from 'awayto/hooks';
 
 export const scheduleSchema = {
   id: '',
@@ -30,31 +23,9 @@ export const bracketSchema = {
   multiplier: '1.00'
 };
 
-export function ScheduleHome(): JSX.Element {
-
+export function ScheduleHome(props: IProps): JSX.Element {
   const { ManageScheduleBrackets } = useComponents();
-  const { schedules } = useRedux(state => state.schedule);
-  const { groupServices } = useRedux(state => state.groupService);
-  const { groupSchedules } = useRedux(state => state.groupSchedule);
-
-  return <>
-
-    <ManageScheduleBrackets
-      schedules={schedules}
-      groupServices={groupServices}
-      groupSchedules={groupSchedules}
-      getScheduleByIdAction={GET_SCHEDULE_BY_ID}
-      getGroupServicesAction={GET_GROUP_SERVICES}
-      getGroupSchedulesAction={GET_GROUP_SCHEDULES}
-      postScheduleAction={POST_SCHEDULE}
-      deleteScheduleAction={DELETE_SCHEDULE}
-      deleteGroupUserScheduleByUserScheduleIdAction={DELETE_GROUP_USER_SCHEDULE_BY_USER_SCHEDULE_ID}
-      postGroupUserScheduleAction={POST_GROUP_USER_SCHEDULE}
-      getScheduleBracketsAction={GET_SCHEDULES}
-      postScheduleBracketsAction={POST_SCEHDULE_BRACKETS}
-    />
-
-  </>
+  return <ManageScheduleBrackets {...props} />
 }
 
 export default ScheduleHome;

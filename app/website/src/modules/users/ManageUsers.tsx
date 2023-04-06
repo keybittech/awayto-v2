@@ -9,48 +9,27 @@ import Dialog from '@mui/material/Dialog';
 import CreateIcon from '@mui/icons-material/Create';
 
 import { IGroupUser, IActionTypes, IGroupRole } from 'awayto/core';
-import { useApi, useGrid } from 'awayto/hooks';
+import { sh, useGrid } from 'awayto/hooks';
 
 import ManageUserModal from './ManageUserModal';
 import { useParams } from 'react-router';
 
-export type ManageUsersProps = {
-  users?: Record<string, IGroupUser>;
-  groupRoles?: Record<string, IGroupRole>;
-  getUsersAction?: IActionTypes;
-  getUserByIdAction?: IActionTypes;
-  deleteUsersAction?: IActionTypes;
-  putUsersAction?: IActionTypes;
-  postUsersAction?: IActionTypes;
-  lockUsersAction?: IActionTypes;
-  unlockUsersAction?: IActionTypes;
-  getRolesAction?: IActionTypes;
-};
-
-declare global {
-  interface IProps extends ManageUsersProps { }
-}
-
 export function ManageUsers(props: IProps): JSX.Element {
-  const { users, getUsersAction } = props as IProps & Required<ManageUsersProps>;
-  const { groupName } = useParams();
   
-  const api = useApi();
+  const { groupName } = useParams();
+  if (!groupName) return <></>;
+
+  const { data: groupUsers } = sh.useGetGroupUsersQuery({ groupName });
+
   const [user, setUser] = useState<IGroupUser>();
   const [selected, setSelected] = useState<string[]>([]);
   const [dialog, setDialog] = useState('');
-
-  useEffect(() => {
-    const [abort, res] = api(getUsersAction, { groupName });
-    res?.catch(console.warn);
-    return () => abort();
-  }, []);
 
   const actions = useMemo(() => {
     const { length } = selected;
     const actions = length == 1 ? [
       <IconButton key={'manage_user'} onClick={() => {
-        setUser(users[selected[0]]);
+        setUser(groupUsers.find(gu => gu.id === selected[0]));
         setDialog('manage_user');
         setSelected([]);
       }}>
@@ -72,7 +51,7 @@ export function ManageUsers(props: IProps): JSX.Element {
   }, [selected]);
 
   const UserGrid = useGrid<IGroupUser>({
-    rows: Object.values(users),
+    rows: groupUsers,
     columns: [
       { flex: 1, headerName: 'Username', field: 'username' },
       { flex: 1, headerName: 'First Name', field: 'firstName' },
@@ -87,11 +66,6 @@ export function ManageUsers(props: IProps): JSX.Element {
       {!!selected.length && <Box sx={{ flexGrow: 1, textAlign: 'right' }}>{actions}</Box>}
     </>
   });
-
-  // When we update a user's profile, this will refresh their state in the table once the API has updated manageUsers redux state
-  useEffect(() => {
-    if (Object.values(users).length && user) setUser(users[user.id]);
-  }, [users, user]);
 
   return <>
     <Dialog open={dialog === 'manage_user'} fullWidth maxWidth="xs">

@@ -41,9 +41,10 @@ export const utilConfig = {
       localStorage.setItem('kbt_theme', theme);
       state.theme = theme;
     },
-    openConfirm: (state: IUtil, action: { payload: Pick<IUtil, 'isConfirming' | 'confirmEffect' | 'confirmAction'> }) => {
+    openConfirm: (state: IUtil, action: { payload: Pick<IUtil, 'isConfirming' | 'confirmEffect' | 'confirmSideEffect' | 'confirmAction'> }) => {
       state.isConfirming = true;
       state.confirmEffect = action.payload.confirmEffect;
+      state.confirmSideEffect = action.payload.confirmSideEffect;
       state.confirmAction = action.payload.confirmAction;
     },
     closeConfirm: (state: IUtil) => {
@@ -53,8 +54,8 @@ export const utilConfig = {
       state.isLoading = action.payload.isLoading;
       state.loadingMessage = action.payload.loadingMessage;
     },
-    setSnack: (state: IUtil, action: { payload: Pick<IUtil, 'snackOn' | 'snackType' | 'snackRequestId'> }) => {
-      state.snackOn = action.payload.snackOn;
+    setSnack: (state: IUtil, action: { payload: Partial<Pick<IUtil, 'snackOn' | 'snackType' | 'snackRequestId'>> }) => {
+      state.snackOn = action.payload.snackOn || '';
       state.snackType = action.payload.snackType || 'info';
       state.snackRequestId = action.payload.snackRequestId || '';
     },

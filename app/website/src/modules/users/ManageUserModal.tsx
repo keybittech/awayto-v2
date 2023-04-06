@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useState } from 'react';
+import { useParams } from 'react-router';
 
 import Grid from '@mui/material/Grid';
 import Card from '@mui/material/Card';
@@ -15,11 +16,8 @@ import InputLabel from '@mui/material/InputLabel';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 
-import { IGroupUser, IUserProfile, passwordGen } from "awayto/core";
-import { useApi } from 'awayto/hooks';
-import { ManageUsersProps } from "./ManageUsers";
-import { useParams } from "react-router";
-
+import { IGroupUser, IUserProfile, passwordGen } from 'awayto/core';
+import { sh } from 'awayto/hooks';
 
 declare global {
   interface IProps {
@@ -27,14 +25,17 @@ declare global {
   }
 }
 
-export function ManageUserModal({ editUser, closeModal, ...props }: IProps): JSX.Element {
-  const { groupRoles, getUsersAction, putUsersAction, getRolesAction, getUserByIdAction } = props as IProps & Required<ManageUsersProps>;
+export function ManageUserModal({ editUser, closeModal }: IProps): JSX.Element {
 
   const { groupName } = useParams();
+  if (!groupName) return <></>;
 
-  const groupRolesValues = useMemo(() => Object.values(groupRoles || {}), [groupRoles]);
+  const { data: groupRoles } = sh.useGetGroupRolesQuery({ groupName });
 
-  const api = useApi();
+  const [getGroupUsers] = sh.useLazyGetGroupUsersQuery();
+  const [getGroupUserById] = sh.useLazyGetGroupUserByIdQuery();
+  const [putGroupUser] = sh.usePutGroupUserMutation();
+
   const [password, setPassword] = useState('');
   const [profile, setProfile] = useState({
     firstName: '',
@@ -47,35 +48,28 @@ export function ManageUserModal({ editUser, closeModal, ...props }: IProps): JSX
   } as IGroupUser);
 
   useEffect(() => {
-    if (editUser?.id && !profile.roleId) {
-      const [abort, res] = api(getUserByIdAction, { groupName, userId: editUser.id });
-      res?.then(userData => {
-        const [user] = userData as IGroupUser[];
+    async function go() {
+      if (groupName && editUser?.id && !profile.roleId) {
+        const user = await getGroupUserById({ groupName, userId: editUser.id }).unwrap();
         setProfile({ ...profile, ...user });
-      }).catch(console.warn);
-      return () => abort();
+      }
     }
+    void go();
   }, [editUser, profile]);
-
-  useEffect(() => {
-    const [abort, res] = api(getRolesAction, { groupName });
-    res?.catch(console.warn);
-    return () => abort();
-  }, []);
 
   const handlePassword = useCallback(({ target: { value } }: React.ChangeEvent<HTMLTextAreaElement>) => setPassword(value), [])
   const handleProfile = useCallback(({ target: { name, value } }: React.ChangeEvent<HTMLTextAreaElement>) => setProfile({ ...profile, [name]: value }), [profile])
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     if (editUser?.id) {
       const { id, roleId } = profile;
-      const [, res] = api(putUsersAction, { groupName, userId: id, roleId, roleName: groupRoles[roleId].name })
-      res?.then(() => {
-        const [, rez] = api(getUsersAction, { groupName });
-        rez?.then(() => {
-          closeModal && closeModal();
-        }).catch(console.warn);
-      }).catch(console.warn);
+      const { name } = groupRoles.find(gr => gr.id === roleId) || {};
+      if (name) {
+        await putGroupUser({ groupName, userId: id, roleId, roleName: name }).unwrap();
+        await getGroupUsers({ groupName }).unwrap();
+        if (closeModal)
+          closeModal();
+      }
     }
     // async function submitUser() {
     //   let user = profile as IUserProfile;
@@ -136,7 +130,7 @@ export function ManageUserModal({ editUser, closeModal, ...props }: IProps): JSX
 
               <Grid item>
                 <TextField select fullWidth id="roleId" label="Role" value={profile.roleId} name="roleId" onChange={handleProfile}>
-                  {groupRolesValues.map(role => <MenuItem key={`${role.id}_user_profile_role_select`} value={role.id}>{role.name}</MenuItem>)}
+                  {groupRoles.map(role => <MenuItem key={`${role.id}_user_profile_role_select`} value={role.id}>{role.name}</MenuItem>)}
                 </TextField>
               </Grid>
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from 'react';
 
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
@@ -8,12 +8,8 @@ import CardActions from '@mui/material/CardActions';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 
-import { IService, IUtilActionTypes } from "awayto/core";
-import { useApi, useAct } from 'awayto/hooks';
-import { useCallback } from "react";
-import { ManageServicesActions } from "./ManageServices";
-
-const { SET_SNACK } = IUtilActionTypes;
+import { IService } from 'awayto/core';
+import { sh, useUtil } from 'awayto/hooks';
 
 declare global {
   interface IProps {
@@ -22,30 +18,29 @@ declare global {
 }
 
 export function ManageServiceModal ({ editService, closeModal, ...props }: IProps): JSX.Element {
-  const { putServicesAction, postServicesAction } = props as IProps & Required<ManageServicesActions>;
 
-  const api = useApi();
-  const act = useAct();
+  const { setSnack } = useUtil();
+
+  const [putService] = sh.usePutServiceMutation();
+  const [postService] = sh.usePostServiceMutation();
+
   const [service, setService] = useState({
     name: '',
     ...editService
   } as IService);
   
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     const { id, name } = service;
 
     if (!name) {
-      act(SET_SNACK, {snackType: 'error', snackOn: 'Services must have a name.' });
+      setSnack({ snackType: 'error', snackOn: 'Services must have a name.' });
       return;
     }
 
-    const [, res] = api(id ? putServicesAction : postServicesAction, service, { load: true });
-    
-    res?.then(() => {
-      if (closeModal)
-        closeModal();
-    }).catch(console.warn);
+    await (id ? putService : postService)(service).unwrap();
 
+    if (closeModal)
+      closeModal();
   }, [service]);
 
   return <>
