@@ -13,7 +13,7 @@ const groupFeedbackApi = {
     method: 'POST',
     opts: {} as ApiOptions,
     queryArg: { message: '' as string, groupName: '' as string },
-    resultType: {} as boolean
+    resultType: { success: true as boolean }
   },
   getGroupFeedback: {
     kind: EndpointType.QUERY,
@@ -42,7 +42,7 @@ const groupFeedbackApiHandlers: ApiHandler<typeof groupFeedbackApi> = {
       VALUES ($1, $2::uuid, $3::uuid, $4)
     `, [message, groupId, props.event.userSub, new Date()]);
 
-    return true;
+    return { success: true };
   },
   getGroupFeedback: async props => {
     const { groupName } = props.event.pathParameters;

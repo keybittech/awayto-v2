@@ -80,7 +80,7 @@ export function Profile(props: IProps): JSX.Element {
     putUserProfile(profile).unwrap().then(() => {
       setSnack({ snackType: 'success', snackOn: 'Profile updated!' });
       setFile(undefined);
-    });
+    }).catch(console.error);
   }
 
   return <>

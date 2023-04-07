@@ -65,7 +65,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
   useEffect(() => {
     if (groupSchedules.length) {
       if (editSchedule) {
-        getScheduleById({ id: editSchedule.id });
+        getScheduleById({ id: editSchedule.id }).catch(console.error);
       } else {
         const sched = groupSchedules[0];
         attachScheduleUnits(sched);
@@ -126,13 +126,20 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
           ]
         );
 
-        await postScheduleBrackets({ scheduleId: userSchedule.id, brackets: Object.fromEntries(newBrackets) }).unwrap();
+        await postScheduleBrackets({
+          scheduleId: userSchedule.id,
+          brackets: Object.fromEntries(newBrackets) as Record<string, IScheduleBracket>
+        }).catch(console.error);
 
         if (!editSchedule) {
-          await postGroupUserSchedule({ groupName: group?.name, userScheduleId: userSchedule.id, groupScheduleId: schedule.id }).unwrap();
+          await postGroupUserSchedule({
+            groupName: group?.name,
+            userScheduleId: userSchedule.id,
+            groupScheduleId: schedule.id
+          }).catch(console.error);
         }
 
-        await getUserProfileDetails().unwrap();
+        await getUserProfileDetails().catch(console.error);
         setSnack({ snackOn: 'Successfully added ' + name, snackType: 'info' });
         if (closeModal) closeModal();
       } else {

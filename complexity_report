@@ -1,0 +1,617 @@
+API Endpoint: postRole (EndpointType.MUTATION)
+Searching for hook usage: usePostRoleMutation
+  - usePostRoleMutation used in ./app/website/src/modules/roles/ManageRoleModal.tsx
+  - usePostRoleMutation used in ./app/website/src/modules/groups/ManageGroupModal.tsx
+API Endpoint: putRole (EndpointType.MUTATION)
+Searching for hook usage: usePutRoleMutation
+  - usePutRoleMutation used in ./app/website/src/modules/roles/ManageRoleModal.tsx
+API Endpoint: getRoles (EndpointType.QUERY)
+Searching for hook usage: useLazyGetRolesQuery
+API Endpoint: getRoleById (EndpointType.QUERY)
+Searching for hook usage: useLazyGetRoleByIdQuery
+API Endpoint: deleteRole (EndpointType.MUTATION)
+Searching for hook usage: useDeleteRoleMutation
+  - useDeleteRoleMutation used in ./app/website/src/modules/roles/ManageRoles.tsx
+  - useDeleteRoleMutation used in ./app/website/src/modules/groups/ManageGroupModal.tsx
+API Endpoint: postManageRoles (EndpointType.MUTATION)
+Searching for hook usage: usePostManageRolesMutation
+API Endpoint: putManageRoles (EndpointType.MUTATION)
+Searching for hook usage: usePutManageRolesMutation
+API Endpoint: getManageRoles (EndpointType.QUERY)
+Searching for hook usage: useLazyGetManageRolesQuery
+API Endpoint: deleteManageRoles (EndpointType.MUTATION)
+Searching for hook usage: useDeleteManageRolesMutation
+API Endpoint: postUuidNote (EndpointType.MUTATION)
+Searching for hook usage: usePostUuidNoteMutation
+API Endpoint: putUuidNote (EndpointType.MUTATION)
+Searching for hook usage: usePutUuidNoteMutation
+API Endpoint: getUuidNotes (EndpointType.QUERY)
+Searching for hook usage: useLazyGetUuidNotesQuery
+API Endpoint: getUuidNoteById (EndpointType.QUERY)
+Searching for hook usage: useLazyGetUuidNoteByIdQuery
+API Endpoint: deleteUuidNote (EndpointType.MUTATION)
+Searching for hook usage: useDeleteUuidNoteMutation
+API Endpoint: postSchedule (EndpointType.MUTATION)
+Searching for hook usage: usePostScheduleMutation
+  - usePostScheduleMutation used in ./app/website/src/modules/schedules/ManageScheduleBracketsModal.tsx
+API Endpoint: postScheduleBrackets (EndpointType.MUTATION)
+Searching for hook usage: usePostScheduleBracketsMutation
+  - usePostScheduleBracketsMutation used in ./app/website/src/modules/schedules/ManageScheduleBracketsModal.tsx
+API Endpoint: putSchedule (EndpointType.MUTATION)
+Searching for hook usage: usePutScheduleMutation
+API Endpoint: getSchedules (EndpointType.QUERY)
+Searching for hook usage: useLazyGetSchedulesQuery
+API Endpoint: getScheduleById (EndpointType.QUERY)
+Searching for hook usage: useLazyGetScheduleByIdQuery
+  - useLazyGetScheduleByIdQuery used in ./app/website/src/modules/schedules/ManageScheduleBracketsModal.tsx
+API Endpoint: deleteSchedule (EndpointType.MUTATION)
+Searching for hook usage: useDeleteScheduleMutation
+  - useDeleteScheduleMutation used in ./app/website/src/modules/schedules/ManageScheduleBrackets.tsx
+API Endpoint: disableSchedule (EndpointType.MUTATION)
+Searching for hook usage: useDisableScheduleMutation
+API Endpoint: postFile (EndpointType.MUTATION)
+Searching for hook usage: usePostFileMutation
+API Endpoint: putFile (EndpointType.MUTATION)
+Searching for hook usage: usePutFileMutation
+API Endpoint: getFiles (EndpointType.QUERY)
+Searching for hook usage: useLazyGetFilesQuery
+API Endpoint: getFileById (EndpointType.QUERY)
+Searching for hook usage: useLazyGetFileByIdQuery
+API Endpoint: deleteFile (EndpointType.MUTATION)
+Searching for hook usage: useDeleteFileMutation
+API Endpoint: disableFile (EndpointType.MUTATION)
+Searching for hook usage: useDisableFileMutation
+API Endpoint: postGroupServiceAddon (EndpointType.MUTATION)
+Searching for hook usage: usePostGroupServiceAddonMutation
+  - usePostGroupServiceAddonMutation used in ./app/website/src/modules/services/ServiceHome.tsx
+API Endpoint: getGroupServiceAddons (EndpointType.QUERY)
+Searching for hook usage: useLazyGetGroupServiceAddonsQuery
+API Endpoint: deleteGroupServiceAddon (EndpointType.MUTATION)
+Searching for hook usage: useDeleteGroupServiceAddonMutation
+  - useDeleteGroupServiceAddonMutation used in ./app/website/src/modules/services/ServiceHome.tsx
+API Endpoint: postManageGroups (EndpointType.MUTATION)
+Searching for hook usage: usePostManageGroupsMutation
+API Endpoint: putManageGroups (EndpointType.MUTATION)
+Searching for hook usage: usePutManageGroupsMutation
+API Endpoint: getManageGroups (EndpointType.QUERY)
+Searching for hook usage: useLazyGetManageGroupsQuery
+API Endpoint: deleteManageGroups (EndpointType.MUTATION)
+Searching for hook usage: useDeleteManageGroupsMutation
+API Endpoint: postUserProfile (EndpointType.MUTATION)
+Searching for hook usage: usePostUserProfileMutation
+API Endpoint: putUserProfile (EndpointType.MUTATION)
+Searching for hook usage: usePutUserProfileMutation
+  - usePutUserProfileMutation used in ./app/website/src/modules/profile/Profile.tsx
+API Endpoint: getUserProfileDetails (EndpointType.QUERY)
+Searching for hook usage: useLazyGetUserProfileDetailsQuery
+  - useLazyGetUserProfileDetailsQuery used in ./app/website/src/modules/schedules/ManageScheduleBracketsModal.tsx
+API Endpoint: getUserProfileDetailsBySub (EndpointType.QUERY)
+Searching for hook usage: useLazyGetUserProfileDetailsBySubQuery
+API Endpoint: getUserProfileDetailsById (EndpointType.QUERY)
+Searching for hook usage: useLazyGetUserProfileDetailsByIdQuery
+API Endpoint: disableUserProfile (EndpointType.MUTATION)
+Searching for hook usage: useDisableUserProfileMutation
+API Endpoint: postServiceTier (EndpointType.MUTATION)
+Searching for hook usage: usePostServiceTierMutation
+API Endpoint: putServiceTier (EndpointType.MUTATION)
+Searching for hook usage: usePutServiceTierMutation
+API Endpoint: getServiceTiers (EndpointType.QUERY)
+Searching for hook usage: useLazyGetServiceTiersQuery
+API Endpoint: getServiceTierById (EndpointType.QUERY)
+Searching for hook usage: useLazyGetServiceTierByIdQuery
+API Endpoint: deleteServiceTier (EndpointType.MUTATION)
+Searching for hook usage: useDeleteServiceTierMutation
+API Endpoint: disableServiceTier (EndpointType.MUTATION)
+Searching for hook usage: useDisableServiceTierMutation
+API Endpoint: postContact (EndpointType.MUTATION)
+Searching for hook usage: usePostContactMutation
+API Endpoint: putContact (EndpointType.MUTATION)
+Searching for hook usage: usePutContactMutation
+API Endpoint: getContacts (EndpointType.QUERY)
+Searching for hook usage: useLazyGetContactsQuery
+API Endpoint: getContactById (EndpointType.QUERY)
+Searching for hook usage: useLazyGetContactByIdQuery
+API Endpoint: deleteContact (EndpointType.MUTATION)
+Searching for hook usage: useDeleteContactMutation
+API Endpoint: disableContact (EndpointType.MUTATION)
+Searching for hook usage: useDisableContactMutation
+API Endpoint: putGroupUser (EndpointType.MUTATION)
+Searching for hook usage: usePutGroupUserMutation
+  - usePutGroupUserMutation used in ./app/website/src/modules/users/ManageUserModal.tsx
+API Endpoint: getGroupUsers (EndpointType.QUERY)
+Searching for hook usage: useLazyGetGroupUsersQuery
+  - useLazyGetGroupUsersQuery used in ./app/website/src/modules/users/ManageUserModal.tsx
+API Endpoint: getGroupUserById (EndpointType.QUERY)
+Searching for hook usage: useLazyGetGroupUserByIdQuery
+  - useLazyGetGroupUserByIdQuery used in ./app/website/src/modules/users/ManageUserModal.tsx
+API Endpoint: deleteGroupUser (EndpointType.MUTATION)
+Searching for hook usage: useDeleteGroupUserMutation
+API Endpoint: lockGroupUser (EndpointType.MUTATION)
+Searching for hook usage: useLockGroupUserMutation
+API Endpoint: unlockGroupUser (EndpointType.MUTATION)
+Searching for hook usage: useUnlockGroupUserMutation
+API Endpoint: postGroupSchedule (EndpointType.MUTATION)
+Searching for hook usage: usePostGroupScheduleMutation
+  - usePostGroupScheduleMutation used in ./app/website/src/modules/schedules/ManageSchedulesModal.tsx
+API Endpoint: putGroupSchedule (EndpointType.MUTATION)
+Searching for hook usage: usePutGroupScheduleMutation
+  - usePutGroupScheduleMutation used in ./app/website/src/modules/schedules/ManageSchedulesModal.tsx
+API Endpoint: getGroupSchedules (EndpointType.QUERY)
+Searching for hook usage: useLazyGetGroupSchedulesQuery
+  - useLazyGetGroupSchedulesQuery used in ./app/website/src/modules/schedules/ManageSchedulesModal.tsx
+  - useLazyGetGroupSchedulesQuery used in ./app/website/src/modules/quotes/RequestQuote.tsx
+API Endpoint: getGroupScheduleMasterById (EndpointType.QUERY)
+Searching for hook usage: useLazyGetGroupScheduleMasterByIdQuery
+  - useLazyGetGroupScheduleMasterByIdQuery used in ./app/website/src/modules/schedules/ManageSchedulesModal.tsx
+  - useLazyGetGroupScheduleMasterByIdQuery used in ./app/website/src/modules/quotes/RequestQuote.tsx
+API Endpoint: getGroupScheduleByDate (EndpointType.QUERY)
+Searching for hook usage: useLazyGetGroupScheduleByDateQuery
+  - useLazyGetGroupScheduleByDateQuery used in ./app/website/src/modules/schedules/ScheduleTimePicker.tsx
+  - useLazyGetGroupScheduleByDateQuery used in ./app/website/src/modules/schedules/ManageScheduleStubModal.tsx
+  - useLazyGetGroupScheduleByDateQuery used in ./app/website/src/modules/quotes/RequestQuote.tsx
+API Endpoint: deleteGroupSchedule (EndpointType.MUTATION)
+Searching for hook usage: useDeleteGroupScheduleMutation
+  - useDeleteGroupScheduleMutation used in ./app/website/src/modules/schedules/ManageSchedules.tsx
+API Endpoint: postBookingTranscript (EndpointType.MUTATION)
+Searching for hook usage: usePostBookingTranscriptMutation
+API Endpoint: putBookingTranscript (EndpointType.MUTATION)
+Searching for hook usage: usePutBookingTranscriptMutation
+API Endpoint: getBookingTranscripts (EndpointType.QUERY)
+Searching for hook usage: useLazyGetBookingTranscriptsQuery
+API Endpoint: getBookingTranscriptById (EndpointType.QUERY)
+Searching for hook usage: useLazyGetBookingTranscriptByIdQuery
+API Endpoint: deleteBookingTranscript (EndpointType.MUTATION)
+Searching for hook usage: useDeleteBookingTranscriptMutation
+API Endpoint: disableBookingTranscript (EndpointType.MUTATION)
+Searching for hook usage: useDisableBookingTranscriptMutation
+API Endpoint: postGroupRole (EndpointType.MUTATION)
+Searching for hook usage: usePostGroupRoleMutation
+API Endpoint: putGroupRole (EndpointType.MUTATION)
+Searching for hook usage: usePutGroupRoleMutation
+API Endpoint: getGroupRoles (EndpointType.QUERY)
+Searching for hook usage: useLazyGetGroupRolesQuery
+API Endpoint: deleteGroupRole (EndpointType.MUTATION)
+Searching for hook usage: useDeleteGroupRoleMutation
+API Endpoint: getLookups (EndpointType.QUERY)
+Searching for hook usage: useLazyGetLookupsQuery
+API Endpoint: postBooking (EndpointType.MUTATION)
+Searching for hook usage: usePostBookingMutation
+  - usePostBookingMutation used in ./app/website/src/modules/quotes/PendingQuotesProvider.tsx
+API Endpoint: putBooking (EndpointType.MUTATION)
+Searching for hook usage: usePutBookingMutation
+API Endpoint: getBookings (EndpointType.QUERY)
+Searching for hook usage: useLazyGetBookingsQuery
+API Endpoint: getBookingById (EndpointType.QUERY)
+Searching for hook usage: useLazyGetBookingByIdQuery
+API Endpoint: deleteBooking (EndpointType.MUTATION)
+Searching for hook usage: useDeleteBookingMutation
+API Endpoint: disableBooking (EndpointType.MUTATION)
+Searching for hook usage: useDisableBookingMutation
+API Endpoint: postForm (EndpointType.MUTATION)
+Searching for hook usage: usePostFormMutation
+API Endpoint: postFormVersion (EndpointType.MUTATION)
+Searching for hook usage: usePostFormVersionMutation
+API Endpoint: putForm (EndpointType.MUTATION)
+Searching for hook usage: usePutFormMutation
+API Endpoint: getForms (EndpointType.QUERY)
+Searching for hook usage: useLazyGetFormsQuery
+API Endpoint: getFormById (EndpointType.QUERY)
+Searching for hook usage: useLazyGetFormByIdQuery
+API Endpoint: deleteForm (EndpointType.MUTATION)
+Searching for hook usage: useDeleteFormMutation
+API Endpoint: disableForm (EndpointType.MUTATION)
+Searching for hook usage: useDisableFormMutation
+API Endpoint: postUuidFile (EndpointType.MUTATION)
+Searching for hook usage: usePostUuidFileMutation
+API Endpoint: putUuidFile (EndpointType.MUTATION)
+Searching for hook usage: usePutUuidFileMutation
+API Endpoint: getUuidFiles (EndpointType.QUERY)
+Searching for hook usage: useLazyGetUuidFilesQuery
+API Endpoint: getUuidFileById (EndpointType.QUERY)
+Searching for hook usage: useLazyGetUuidFileByIdQuery
+API Endpoint: deleteUuidFile (EndpointType.MUTATION)
+Searching for hook usage: useDeleteUuidFileMutation
+API Endpoint: disableUuidFile (EndpointType.MUTATION)
+Searching for hook usage: useDisableUuidFileMutation
+API Endpoint: postServiceAddon (EndpointType.MUTATION)
+Searching for hook usage: usePostServiceAddonMutation
+  - usePostServiceAddonMutation used in ./app/website/src/modules/services/ServiceHome.tsx
+API Endpoint: putServiceAddon (EndpointType.MUTATION)
+Searching for hook usage: usePutServiceAddonMutation
+API Endpoint: getServiceAddons (EndpointType.QUERY)
+Searching for hook usage: useLazyGetServiceAddonsQuery
+API Endpoint: getServiceAddonById (EndpointType.QUERY)
+Searching for hook usage: useLazyGetServiceAddonByIdQuery
+API Endpoint: deleteServiceAddon (EndpointType.MUTATION)
+Searching for hook usage: useDeleteServiceAddonMutation
+API Endpoint: disableServiceAddon (EndpointType.MUTATION)
+Searching for hook usage: useDisableServiceAddonMutation
+API Endpoint: postPayment (EndpointType.MUTATION)
+Searching for hook usage: usePostPaymentMutation
+API Endpoint: putPayment (EndpointType.MUTATION)
+Searching for hook usage: usePutPaymentMutation
+API Endpoint: getPayments (EndpointType.QUERY)
+Searching for hook usage: useLazyGetPaymentsQuery
+API Endpoint: getPaymentById (EndpointType.QUERY)
+Searching for hook usage: useLazyGetPaymentByIdQuery
+API Endpoint: deletePayment (EndpointType.MUTATION)
+Searching for hook usage: useDeletePaymentMutation
+API Endpoint: disablePayment (EndpointType.MUTATION)
+Searching for hook usage: useDisablePaymentMutation
+API Endpoint: postGroupUserSchedule (EndpointType.MUTATION)
+Searching for hook usage: usePostGroupUserScheduleMutation
+  - usePostGroupUserScheduleMutation used in ./app/website/src/modules/schedules/ManageScheduleBracketsModal.tsx
+API Endpoint: getGroupUserSchedules (EndpointType.QUERY)
+Searching for hook usage: useLazyGetGroupUserSchedulesQuery
+  - useLazyGetGroupUserSchedulesQuery used in ./app/website/src/modules/quotes/RequestQuote.tsx
+API Endpoint: getGroupUserScheduleStubs (EndpointType.QUERY)
+Searching for hook usage: useLazyGetGroupUserScheduleStubsQuery
+API Endpoint: getGroupUserScheduleStubReplacement (EndpointType.QUERY)
+Searching for hook usage: useLazyGetGroupUserScheduleStubReplacementQuery
+  - useLazyGetGroupUserScheduleStubReplacementQuery used in ./app/website/src/modules/schedules/ManageScheduleStubModal.tsx
+API Endpoint: putGroupUserScheduleStubReplacement (EndpointType.MUTATION)
+Searching for hook usage: usePutGroupUserScheduleStubReplacementMutation
+  - usePutGroupUserScheduleStubReplacementMutation used in ./app/website/src/modules/schedules/ManageScheduleStubModal.tsx
+API Endpoint: deleteGroupUserScheduleByUserScheduleId (EndpointType.MUTATION)
+Searching for hook usage: useDeleteGroupUserScheduleByUserScheduleIdMutation
+  - useDeleteGroupUserScheduleByUserScheduleIdMutation used in ./app/website/src/modules/schedules/ManageScheduleBrackets.tsx
+API Endpoint: postService (EndpointType.MUTATION)
+Searching for hook usage: usePostServiceMutation
+  - usePostServiceMutation used in ./app/website/src/modules/services/ManageServiceModal.tsx
+  - usePostServiceMutation used in ./app/website/src/modules/services/ServiceHome.tsx
+API Endpoint: putService (EndpointType.MUTATION)
+Searching for hook usage: usePutServiceMutation
+  - usePutServiceMutation used in ./app/website/src/modules/services/ManageServiceModal.tsx
+API Endpoint: getServices (EndpointType.QUERY)
+Searching for hook usage: useLazyGetServicesQuery
+API Endpoint: getServiceById (EndpointType.QUERY)
+Searching for hook usage: useLazyGetServiceByIdQuery
+API Endpoint: deleteService (EndpointType.MUTATION)
+Searching for hook usage: useDeleteServiceMutation
+API Endpoint: disableService (EndpointType.MUTATION)
+Searching for hook usage: useDisableServiceMutation
+API Endpoint: getPrompt (EndpointType.QUERY)
+Searching for hook usage: useLazyGetPromptQuery
+  - useLazyGetPromptQuery used in ./app/website/src/modules/services/ServiceHome.tsx
+  - useLazyGetPromptQuery used in ./app/website/src/modules/groups/ManageGroupModal.tsx
+API Endpoint: postGroup (EndpointType.MUTATION)
+Searching for hook usage: usePostGroupMutation
+  - usePostGroupMutation used in ./app/website/src/modules/groups/ManageGroupModal.tsx
+API Endpoint: putGroup (EndpointType.MUTATION)
+Searching for hook usage: usePutGroupMutation
+  - usePutGroupMutation used in ./app/website/src/modules/groups/ManageGroupModal.tsx
+API Endpoint: putGroupAssignments (EndpointType.MUTATION)
+Searching for hook usage: usePutGroupAssignmentsMutation
+  - usePutGroupAssignmentsMutation used in ./app/website/src/modules/roles/ManageRoleActions.tsx
+API Endpoint: getGroups (EndpointType.QUERY)
+Searching for hook usage: useLazyGetGroupsQuery
+API Endpoint: getGroupAssignments (EndpointType.QUERY)
+Searching for hook usage: useLazyGetGroupAssignmentsQuery
+API Endpoint: getGroupById (EndpointType.QUERY)
+Searching for hook usage: useLazyGetGroupByIdQuery
+API Endpoint: deleteGroup (EndpointType.MUTATION)
+Searching for hook usage: useDeleteGroupMutation
+  - useDeleteGroupMutation used in ./app/website/src/modules/groups/ManageGroups.tsx
+API Endpoint: checkGroupName (EndpointType.QUERY)
+Searching for hook usage: useLazyCheckGroupNameQuery
+  - useLazyCheckGroupNameQuery used in ./app/website/src/modules/groups/ManageGroupModal.tsx
+API Endpoint: inviteGroupUser (EndpointType.MUTATION)
+Searching for hook usage: useInviteGroupUserMutation
+  - useInviteGroupUserMutation used in ./app/website/src/modules/groups/InviteUsersModal.tsx
+API Endpoint: joinGroup (EndpointType.MUTATION)
+Searching for hook usage: useJoinGroupMutation
+  - useJoinGroupMutation used in ./app/website/src/modules/common/Onboard.tsx
+  - useJoinGroupMutation used in ./app/website/src/modules/groups/JoinGroupModal.tsx
+API Endpoint: leaveGroup (EndpointType.MUTATION)
+Searching for hook usage: useLeaveGroupMutation
+  - useLeaveGroupMutation used in ./app/website/src/modules/groups/ManageGroups.tsx
+API Endpoint: postGroupService (EndpointType.MUTATION)
+Searching for hook usage: usePostGroupServiceMutation
+  - usePostGroupServiceMutation used in ./app/website/src/modules/services/ServiceHome.tsx
+API Endpoint: getGroupServices (EndpointType.QUERY)
+Searching for hook usage: useLazyGetGroupServicesQuery
+  - useLazyGetGroupServicesQuery used in ./app/website/src/modules/services/ServiceHome.tsx
+API Endpoint: deleteGroupService (EndpointType.MUTATION)
+Searching for hook usage: useDeleteGroupServiceMutation
+  - useDeleteGroupServiceMutation used in ./app/website/src/modules/services/ManageServices.tsx
+API Endpoint: postGroupForm (EndpointType.MUTATION)
+Searching for hook usage: usePostGroupFormMutation
+  - usePostGroupFormMutation used in ./app/website/src/modules/forms/ManageFormModal.tsx
+API Endpoint: postGroupFormVersion (EndpointType.MUTATION)
+Searching for hook usage: usePostGroupFormVersionMutation
+  - usePostGroupFormVersionMutation used in ./app/website/src/modules/forms/ManageFormModal.tsx
+API Endpoint: putGroupForm (EndpointType.MUTATION)
+Searching for hook usage: usePutGroupFormMutation
+API Endpoint: getGroupForms (EndpointType.QUERY)
+Searching for hook usage: useLazyGetGroupFormsQuery
+API Endpoint: getGroupFormById (EndpointType.QUERY)
+Searching for hook usage: useLazyGetGroupFormByIdQuery
+  - useLazyGetGroupFormByIdQuery used in ./app/website/src/modules/services/ServiceHome.tsx
+  - useLazyGetGroupFormByIdQuery used in ./app/website/src/modules/forms/ManageFormModal.tsx
+  - useLazyGetGroupFormByIdQuery used in ./app/website/src/modules/quotes/RequestQuote.tsx
+API Endpoint: deleteGroupForm (EndpointType.MUTATION)
+Searching for hook usage: useDeleteGroupFormMutation
+  - useDeleteGroupFormMutation used in ./app/website/src/modules/forms/ManageForms.tsx
+API Endpoint: postGroupFeedback (EndpointType.MUTATION)
+Searching for hook usage: usePostGroupFeedbackMutation
+  - usePostGroupFeedbackMutation used in ./app/website/src/modules/feedback/FeedbackMenu.tsx
+API Endpoint: getGroupFeedback (EndpointType.QUERY)
+Searching for hook usage: useLazyGetGroupFeedbackQuery
+API Endpoint: postQuote (EndpointType.MUTATION)
+Searching for hook usage: usePostQuoteMutation
+  - usePostQuoteMutation used in ./app/website/src/modules/quotes/RequestQuote.tsx
+API Endpoint: putQuote (EndpointType.MUTATION)
+Searching for hook usage: usePutQuoteMutation
+API Endpoint: getQuotes (EndpointType.QUERY)
+Searching for hook usage: useLazyGetQuotesQuery
+API Endpoint: getQuoteById (EndpointType.QUERY)
+Searching for hook usage: useLazyGetQuoteByIdQuery
+API Endpoint: deleteQuote (EndpointType.MUTATION)
+Searching for hook usage: useDeleteQuoteMutation
+API Endpoint: disableQuote (EndpointType.MUTATION)
+Searching for hook usage: useDisableQuoteMutation
+  - useDisableQuoteMutation used in ./app/website/src/modules/quotes/PendingQuotesProvider.tsx
+.
+|-- app
+|   |-- server
+|   |   |-- ngrok
+|   |   +-- local
+|   +-- website
+|       |-- public
+|       |-- craco.config.js
+|       +-- src
+|           |-- react-app-env.d.ts
+|           |-- reportWebVitals.ts
+|           |-- index.tsx
+|           |-- keycloak.ts
+|           |-- hooks
+|           |   |-- useGrid.tsx
+|           |   |-- useFileStore.ts
+|           |   |-- useStyles.ts
+|           |   |-- useSecure.ts (useGetUserProfileDetailsQuery)
+|           |   |-- index.ts
+|           |   |-- useGroupSecure.ts (useGetUserProfileDetailsQuery)
+|           |   |-- useUtil.ts
+|           |   |-- store.ts
+|           |   |-- useComponents.ts (useGetUserProfileDetailsQuery)
+|           |   +-- useSchedule.ts
+|           |-- img
+|           |-- App.test.js
+|           |-- modules
+|           |   |-- exchange
+|           |   |   |-- Transcript.tsx
+|           |   |   |-- ExchangeProvider.tsx
+|           |   |   |-- ExchangeContext.tsx
+|           |   |   |-- Whiteboard.tsx
+|           |   |   +-- Exchange.tsx
+|           |   |-- services
+|           |   |   |-- ManageServiceModal.tsx (usePutServiceMutation, usePostServiceMutation)
+|           |   |   |-- ServiceHome.tsx (usePostServiceAddonMutation, usePostGroupServiceAddonMutation, useDeleteGroupServiceAddonMutation, usePostServiceMutation, usePostGroupServiceMutation, useLazyGetGroupFormByIdQuery, useLazyGetGroupServicesQuery, useLazyGetPromptQuery, useGetUserProfileDetailsQuery, useGetGroupServiceAddonsQuery, useGetGroupFormsQuery)
+|           |   |   +-- ManageServices.tsx (useDeleteGroupServiceMutation, useGetGroupServicesQuery)
+|           |   |-- common
+|           |   |   |-- AsyncAvatar.tsx
+|           |   |   |-- Sidebar.tsx
+|           |   |   |-- Home.tsx
+|           |   |   |-- ConfirmAction.tsx
+|           |   |   |-- Topbar.tsx (useGetUserProfileDetailsQuery)
+|           |   |   |-- Video.tsx
+|           |   |   |-- FileManager.tsx (useGetFilesQuery)
+|           |   |   |-- SelectLookup.tsx
+|           |   |   |-- Layout.tsx
+|           |   |   |-- PickTheme.tsx
+|           |   |   +-- Onboard.tsx (useJoinGroupMutation)
+|           |   |-- forms
+|           |   |   |-- SubmissionDisplay.tsx
+|           |   |   |-- Field.tsx
+|           |   |   |-- ManageForms.tsx (useDeleteGroupFormMutation, useGetGroupFormsQuery)
+|           |   |   |-- FormDisplay.tsx
+|           |   |   |-- ManageFormModal.tsx (usePostGroupFormVersionMutation, usePostGroupFormMutation, useLazyGetGroupFormByIdQuery)
+|           |   |   +-- FormBuilder.tsx
+|           |   |-- roles
+|           |   |   |-- ManageRoleModal.tsx (usePutRoleMutation, usePostRoleMutation)
+|           |   |   |-- ManageRoleActions.tsx (usePutGroupAssignmentsMutation, useGetGroupAssignmentsQuery, useGetUserProfileDetailsQuery)
+|           |   |   +-- ManageRoles.tsx (useGetUserProfileDetailsQuery, useDeleteRoleMutation)
+|           |   |-- schedules
+|           |   |   |-- ManageSchedulesModal.tsx (usePostGroupScheduleMutation, usePutGroupScheduleMutation, useLazyGetGroupSchedulesQuery, useLazyGetGroupScheduleMasterByIdQuery, useGetLookupsQuery)
+|           |   |   |-- ScheduleDisplay.tsx
+|           |   |   |-- ManageScheduleBrackets.tsx (useDeleteGroupUserScheduleByUserScheduleIdMutation, useDeleteScheduleMutation, useGetSchedulesQuery, useGetUserProfileDetailsQuery)
+|           |   |   |-- ScheduleTimePicker.tsx (useLazyGetGroupScheduleByDateQuery, useGetLookupsQuery, useGetGroupSchedulesQuery)
+|           |   |   |-- ManageSchedules.tsx (useDeleteGroupScheduleMutation, useGetGroupSchedulesQuery)
+|           |   |   |-- ScheduleDatePicker.tsx (useGetGroupScheduleByDateQuery)
+|           |   |   |-- ManageScheduleStubs.tsx (useGetGroupUserScheduleStubsQuery)
+|           |   |   |-- ManageScheduleStubModal.tsx (usePutGroupUserScheduleStubReplacementMutation, useLazyGetGroupUserScheduleStubReplacementQuery, useLazyGetGroupScheduleByDateQuery)
+|           |   |   |-- ManageScheduleBracketsModal.tsx (useGetLookupsQuery, useGetSchedulesQuery, useGetGroupServicesQuery, useGetGroupSchedulesQuery, useLazyGetUserProfileDetailsQuery, useLazyGetScheduleByIdQuery, usePostScheduleMutation, usePostScheduleBracketsMutation, usePostGroupUserScheduleMutation)
+|           |   |   +-- ScheduleHome.tsx
+|           |   |-- groups
+|           |   |   |-- ManageGroupHome.tsx (useGetUserProfileDetailsQuery)
+|           |   |   |-- GroupPaths.tsx
+|           |   |   |-- JoinGroupModal.tsx (useJoinGroupMutation)
+|           |   |   |-- ManageGroupModal.tsx (useGetUserProfileDetailsQuery, usePutGroupMutation, usePostGroupMutation, useLazyGetPromptQuery, usePostRoleMutation, useDeleteRoleMutation, useLazyCheckGroupNameQuery)
+|           |   |   |-- GroupHome.tsx
+|           |   |   |-- GroupSecure.tsx
+|           |   |   |-- ManageGroups.tsx (useDeleteGroupMutation, useLeaveGroupMutation, useGetUserProfileDetailsQuery)
+|           |   |   +-- InviteUsersModal.tsx (useInviteGroupUserMutation)
+|           |   |-- users
+|           |   |   |-- ManageUsers.tsx (useGetGroupUsersQuery)
+|           |   |   +-- ManageUserModal.tsx (useGetGroupRolesQuery, useLazyGetGroupUsersQuery, useLazyGetGroupUserByIdQuery, usePutGroupUserMutation)
+|           |   |-- feedback
+|           |   |   |-- FeedbackMenu.tsx (usePostGroupFeedbackMutation, useGetUserProfileDetailsQuery)
+|           |   |   +-- ManageFeedback.tsx (useGetGroupFeedbackQuery)
+|           |   |-- profile
+|           |   |   +-- Profile.tsx (usePutUserProfileMutation, useGetUserProfileDetailsQuery)
+|           |   |-- bookings
+|           |   |   |-- BookingHome.tsx (useGetBookingsQuery)
+|           |   |   |-- BookingContext.tsx
+|           |   |   |-- BookingProvider.tsx (useGetUserProfileDetailsQuery)
+|           |   |   +-- UpcomingBookingsMenu.tsx (useGetUserProfileDetailsQuery)
+|           |   +-- quotes
+|           |       |-- PendingQuotesContext.tsx
+|           |       |-- PendingQuotesMenu.tsx
+|           |       |-- QuoteHome.tsx
+|           |       |-- RequestQuote.tsx (useLazyGetGroupFormByIdQuery, usePostQuoteMutation, useLazyGetGroupSchedulesQuery, useLazyGetGroupScheduleMasterByIdQuery, useLazyGetGroupUserSchedulesQuery, useLazyGetGroupScheduleByDateQuery, useGetLookupsQuery, useGetUserProfileDetailsQuery)
+|           |       +-- PendingQuotesProvider.tsx (useDisableQuoteMutation, usePostBookingMutation, useGetUserProfileDetailsQuery)
+|           +-- App.tsx (useMediaQuery, useMediaQuery, useGetUserProfileDetailsQuery, useMediaQuery)
+|-- core
+|   |-- index.ts
+|   |-- types
+|   |   |-- role.ts
+|   |   |-- manage_role.ts
+|   |   |-- uuid_notes.ts
+|   |   |-- schedule.ts
+|   |   |-- file.ts
+|   |   |-- group_service_addon.ts
+|   |   |-- file_store.ts
+|   |   |-- auth.ts
+|   |   |-- manage_group.ts
+|   |   |-- feedback.ts
+|   |   |-- profile.ts
+|   |   |-- service_tier.ts
+|   |   |-- contact.ts
+|   |   |-- route-match.d.ts
+|   |   |-- group_user.ts
+|   |   |-- group_schedule.ts
+|   |   |-- index.ts
+|   |   |-- uuid.d.ts
+|   |   |-- booking_transcript.ts
+|   |   |-- group_role.ts
+|   |   |-- lookup.ts
+|   |   |-- api.ts
+|   |   |-- booking.ts
+|   |   |-- form.ts
+|   |   |-- uuid_files.ts
+|   |   |-- service_addon.ts
+|   |   |-- payment.ts
+|   |   |-- group_user_schedule.ts
+|   |   |-- time_unit.ts
+|   |   |-- util.ts
+|   |   |-- service.ts
+|   |   |-- assist.ts
+|   |   |-- exchange.ts
+|   |   |-- group.ts
+|   |   |-- group_service.ts
+|   |   |-- group_form.ts
+|   |   |-- group_feedback.ts
+|   |   +-- quote.ts
+|   +-- util.ts
+|-- auth
+|   +-- custom-event-listener
+|       +-- src
+|           +-- main
+|               |-- java
+|               |   +-- kbt
+|               +-- resources
+|                   +-- META-INF
+|                       +-- services
+|-- turn
+|-- db
+|   +-- scripts
+|-- kube
+|   |-- ingress
+|   |   +-- templates
+|   |-- data
+|   |   +-- templates
+|   |-- comm
+|   |   +-- templates
+|   |-- inter
+|   |-- logging
+|   |   +-- templates
+|   +-- platform
+|       +-- templates
+|-- sock
+|   +-- sock.js
++-- api
+    |-- api.webpack.js
+    +-- src
+        |-- api.ts
+        |-- modules
+        |   |-- auditor.ts
+        |   |-- logger.ts
+        |   |-- db.ts
+        |   |-- openai.ts
+        |   |-- keycloak.ts
+        |   |-- twitch.ts
+        |   +-- redis.ts
+        +-- webhooks
+            |-- auth.ts
+            |-- index.ts
+            +-- assist.ts
+
+Modules Complexity Ranking:
+schedules:
+  Complexity: 28
+  Files:
+    - ./app/website/src/modules/schedules/ManageSchedulesModal.tsx: usePostGroupScheduleMutation, usePutGroupScheduleMutation, useLazyGetGroupSchedulesQuery, useLazyGetGroupScheduleMasterByIdQuery, useGetLookupsQuery
+    - ./app/website/src/modules/schedules/ManageScheduleBrackets.tsx: useDeleteGroupUserScheduleByUserScheduleIdMutation, useDeleteScheduleMutation, useGetSchedulesQuery, useGetUserProfileDetailsQuery
+    - ./app/website/src/modules/schedules/ScheduleTimePicker.tsx: useLazyGetGroupScheduleByDateQuery, useGetLookupsQuery, useGetGroupSchedulesQuery
+    - ./app/website/src/modules/schedules/ManageSchedules.tsx: useDeleteGroupScheduleMutation, useGetGroupSchedulesQuery
+    - ./app/website/src/modules/schedules/ScheduleDatePicker.tsx: useGetGroupScheduleByDateQuery
+    - ./app/website/src/modules/schedules/ManageScheduleStubs.tsx: useGetGroupUserScheduleStubsQuery
+    - ./app/website/src/modules/schedules/ManageScheduleStubModal.tsx: usePutGroupUserScheduleStubReplacementMutation, useLazyGetGroupUserScheduleStubReplacementQuery, useLazyGetGroupScheduleByDateQuery
+    - ./app/website/src/modules/schedules/ManageScheduleBracketsModal.tsx: useGetLookupsQuery, useGetSchedulesQuery, useGetGroupServicesQuery, useGetGroupSchedulesQuery, useLazyGetUserProfileDetailsQuery, useLazyGetScheduleByIdQuery, usePostScheduleMutation, usePostScheduleBracketsMutation, usePostGroupUserScheduleMutation
+
+services:
+  Complexity: 15
+  Files:
+    - ./app/website/src/modules/services/ManageServiceModal.tsx: usePutServiceMutation, usePostServiceMutation
+    - ./app/website/src/modules/services/ServiceHome.tsx: usePostServiceAddonMutation, usePostGroupServiceAddonMutation, useDeleteGroupServiceAddonMutation, usePostServiceMutation, usePostGroupServiceMutation, useLazyGetGroupFormByIdQuery, useLazyGetGroupServicesQuery, useLazyGetPromptQuery, useGetUserProfileDetailsQuery, useGetGroupServiceAddonsQuery, useGetGroupFormsQuery
+    - ./app/website/src/modules/services/ManageServices.tsx: useDeleteGroupServiceMutation, useGetGroupServicesQuery
+
+groups:
+  Complexity: 13
+  Files:
+    - ./app/website/src/modules/groups/ManageGroupHome.tsx: useGetUserProfileDetailsQuery
+    - ./app/website/src/modules/groups/JoinGroupModal.tsx: useJoinGroupMutation
+    - ./app/website/src/modules/groups/ManageGroupModal.tsx: useGetUserProfileDetailsQuery, usePutGroupMutation, usePostGroupMutation, useLazyGetPromptQuery, usePostRoleMutation, useDeleteRoleMutation, useLazyCheckGroupNameQuery
+    - ./app/website/src/modules/groups/ManageGroups.tsx: useDeleteGroupMutation, useLeaveGroupMutation, useGetUserProfileDetailsQuery
+    - ./app/website/src/modules/groups/InviteUsersModal.tsx: useInviteGroupUserMutation
+
+quotes:
+  Complexity: 11
+  Files:
+    - ./app/website/src/modules/quotes/RequestQuote.tsx: useLazyGetGroupFormByIdQuery, usePostQuoteMutation, useLazyGetGroupSchedulesQuery, useLazyGetGroupScheduleMasterByIdQuery, useLazyGetGroupUserSchedulesQuery, useLazyGetGroupScheduleByDateQuery, useGetLookupsQuery, useGetUserProfileDetailsQuery
+    - ./app/website/src/modules/quotes/PendingQuotesProvider.tsx: useDisableQuoteMutation, usePostBookingMutation, useGetUserProfileDetailsQuery
+
+roles:
+  Complexity: 7
+  Files:
+    - ./app/website/src/modules/roles/ManageRoleModal.tsx: usePutRoleMutation, usePostRoleMutation
+    - ./app/website/src/modules/roles/ManageRoleActions.tsx: usePutGroupAssignmentsMutation, useGetGroupAssignmentsQuery, useGetUserProfileDetailsQuery
+    - ./app/website/src/modules/roles/ManageRoles.tsx: useGetUserProfileDetailsQuery, useDeleteRoleMutation
+
+forms:
+  Complexity: 5
+  Files:
+    - ./app/website/src/modules/forms/ManageForms.tsx: useDeleteGroupFormMutation, useGetGroupFormsQuery
+    - ./app/website/src/modules/forms/ManageFormModal.tsx: usePostGroupFormVersionMutation, usePostGroupFormMutation, useLazyGetGroupFormByIdQuery
+
+users:
+  Complexity: 5
+  Files:
+    - ./app/website/src/modules/users/ManageUsers.tsx: useGetGroupUsersQuery
+    - ./app/website/src/modules/users/ManageUserModal.tsx: useGetGroupRolesQuery, useLazyGetGroupUsersQuery, useLazyGetGroupUserByIdQuery, usePutGroupUserMutation
+
+common:
+  Complexity: 3
+  Files:
+    - ./app/website/src/modules/common/Topbar.tsx: useGetUserProfileDetailsQuery
+    - ./app/website/src/modules/common/FileManager.tsx: useGetFilesQuery
+    - ./app/website/src/modules/common/Onboard.tsx: useJoinGroupMutation
+
+feedback:
+  Complexity: 3
+  Files:
+    - ./app/website/src/modules/feedback/FeedbackMenu.tsx: usePostGroupFeedbackMutation, useGetUserProfileDetailsQuery
+    - ./app/website/src/modules/feedback/ManageFeedback.tsx: useGetGroupFeedbackQuery
+
+bookings:
+  Complexity: 3
+  Files:
+    - ./app/website/src/modules/bookings/BookingHome.tsx: useGetBookingsQuery
+    - ./app/website/src/modules/bookings/BookingProvider.tsx: useGetUserProfileDetailsQuery
+    - ./app/website/src/modules/bookings/UpcomingBookingsMenu.tsx: useGetUserProfileDetailsQuery
+
+profile:
+  Complexity: 2
+  Files:
+    - ./app/website/src/modules/profile/Profile.tsx: usePutUserProfileMutation, useGetUserProfileDetailsQuery
+

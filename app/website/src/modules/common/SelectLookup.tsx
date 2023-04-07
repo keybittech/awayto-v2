@@ -69,11 +69,11 @@ export function SelectLookup({ lookupChange, disabled = false, invalidValues = [
       createAction({ name: newLookup.name }).unwrap().then(res => {
         const { id: lookupId } = res;
         if (attachAction && lookupId && parentUuid && parentUuidName && attachName) {
-          attachAction({ [parentUuidName]: parentUuid, [attachName]: lookupId }).unwrap().then(() => refresh());
+          attachAction({ [parentUuidName]: parentUuid, [attachName]: lookupId }).unwrap().then(() => refresh()).catch(console.error);
         } else {
           refresh();
         }
-      });
+      }).catch(console.error);
     }
   }, [newLookup, createAction, attachAction, attachName, parentUuid, parentUuidName]);
 
@@ -176,11 +176,11 @@ export function SelectLookup({ lookupChange, disabled = false, invalidValues = [
             }
 
             if (parentUuidName && parentUuid && attachName) {
-              deleteAction({ [parentUuidName]: parentUuid, [attachName]: lookup.id }).unwrap().then(() => refresh());
+              deleteAction({ [parentUuidName]: parentUuid, [attachName]: lookup.id }).unwrap().then(() => refresh()).catch(console.error);
             }
 
             if (deleteActionIdentifier) {
-              deleteAction({ [deleteActionIdentifier]: lookup.id }).unwrap().then(() => refresh());
+              deleteAction({ [deleteActionIdentifier]: lookup.id }).unwrap().then(() => refresh()).catch(console.error);
             }
 
           }} />}

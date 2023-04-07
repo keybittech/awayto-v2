@@ -22,7 +22,6 @@ import { store } from 'awayto/hooks';
 import reportWebVitals from './reportWebVitals';
 import { initKeycloak } from './keycloak';
 
-import './index.css';
 import './App.css';
 
 import App from './App';

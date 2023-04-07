@@ -32,7 +32,7 @@ export function InviteUsersModal({ closeModal }: IProps): JSX.Element {
     inviteGroupUser({ users }).unwrap().then(() => {
       if (closeModal)
         closeModal();
-    });
+    }).catch(console.error);
   }, [users]);
 
   return <>

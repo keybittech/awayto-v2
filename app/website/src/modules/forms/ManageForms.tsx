@@ -52,7 +52,7 @@ export function ManageForms(props: IProps): JSX.Element {
             deleteGroupForm({ groupName, ids: selected.join(',') }).unwrap().then(() => {
               setSelected([]);
               getGroupForms();
-            });
+            }).catch(console.error);
           }
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Delete</Typography>

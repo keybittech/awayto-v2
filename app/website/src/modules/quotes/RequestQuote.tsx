@@ -133,7 +133,7 @@ export function RequestQuote(props: IProps): JSX.Element {
 
   useEffect(() => {
     if (group.name && schedule.id) {
-      getGroupUserSchedules({ groupName: group.name, groupScheduleId: schedule.id });
+      getGroupUserSchedules({ groupName: group.name, groupScheduleId: schedule.id }).catch(console.error);
     }
   }, [group, schedule]);
 
@@ -158,7 +158,7 @@ export function RequestQuote(props: IProps): JSX.Element {
     if (group.name && service.formId && service.formId != serviceForm.id) {
       getGroupFormById({ groupName: group.name, formId: service.formId }).unwrap().then(groupServiceForm => {
         setServiceForm(groupServiceForm);
-      });
+      }).catch(console.error);
     }
   }, [service, serviceForm, group]);
 
@@ -166,7 +166,7 @@ export function RequestQuote(props: IProps): JSX.Element {
     if (group.name && tier.formId && tier.formId != tierForm.id) {
       getGroupFormById({ groupName: group.name, formId: tier.formId }).unwrap().then(groupTierForm => {
         setTierForm(groupTierForm);
-      });
+      }).catch(console.error);
     }
   }, [tier, tierForm, group]);
 

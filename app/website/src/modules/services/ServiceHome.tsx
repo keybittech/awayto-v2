@@ -112,7 +112,7 @@ export function ServiceHome(props: IProps): JSX.Element {
                     // When this service name changes, let's get a new prompt for tier name suggestions
                     getPrompt({ id: IPrompts.SUGGEST_TIER, prompt: `${newService.name.toLowerCase()} at ${group.name.replaceAll('_', ' ')}`} as IAssist).unwrap().then(({ promptResult }) => {
                       if (promptResult.length) setTierSuggestions(promptResult.join(', '));
-                    });
+                    }).catch(console.error);
                   }}
                   helperText={`${serviceSuggestions ? `AI: ${serviceSuggestions}` : 'Ex: Website Hosting, Yard Maintenance, Automotive Repair'}`}
                 />
@@ -162,7 +162,7 @@ export function ServiceHome(props: IProps): JSX.Element {
                     // When this tier name changes, let's get a new prompt for feature name suggestions
                     getPrompt({ id: IPrompts.SUGGEST_FEATURE, prompt: `${newServiceTier.name} ${newService.name}`} as IAssist).unwrap().then(({ promptResult }) => {
                       if (promptResult.length) setFeatureSuggestions(promptResult.join(', '));
-                    });
+                    }).catch(console.error);
                   }}
                   onChange={e => setNewServiceTier({ ...newServiceTier, name: e.target.value })}
                   helperText={`${tierSuggestions.length ? `AI: ${tierSuggestions}` : 'Ex: Basic, Mid-Tier, Advanced'}`}

@@ -32,9 +32,7 @@ export type IUserProfile = {
   bookingsSize: number;
   seenBookings: boolean;
   groups: Record<string, IGroup>;
-  groupsSize: number;
   roles: Record<string, IRole>;
-  rolesSize: number;
   availableUserGroupRoles: UserGroupRoles;
 };
 /**

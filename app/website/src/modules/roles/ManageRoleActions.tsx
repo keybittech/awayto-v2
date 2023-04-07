@@ -40,7 +40,7 @@ export function ManageRoleActions(): JSX.Element {
       putAssignments({ groupName, assignments }).unwrap().then(() => {
         setSnack({ snackType: 'success', snackOn: 'Assignments can be updated again in 1 minute.' });
         setTimeout(() => setUpdateAssignments({ canSubmitAssignments: true }), 58 * 1000);
-      });
+      }).catch(console.error);
     } catch (error) {
       setUpdateAssignments({ canSubmitAssignments: true });
     }

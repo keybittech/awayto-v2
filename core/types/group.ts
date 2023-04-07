@@ -67,7 +67,7 @@ const groupApi = {
       allowedDomains: '' as string,
       defaultRoleId: '' as string,
     },
-    resultType: [] as { id: string; name: string; roles: Record<string, { name: string }> }[]
+    resultType: [] as IGroup[]
   },
   putGroup: {
     kind: EndpointType.MUTATION,
@@ -92,7 +92,7 @@ const groupApi = {
       groupName: '' as string,
       assignments: {} as Record<string, { actions: { name: string }[] }>,
     },
-    resultType: {} as Void
+    resultType: { success: true as boolean }
   },
   getGroups: {
     kind: EndpointType.QUERY,
@@ -148,7 +148,7 @@ const groupApi = {
     method: 'POST',
     opts: { cache: 'skip' } as ApiOptions,
     queryArg: { code: '' as string },
-    resultType: true
+    resultType: { success: true as boolean }
   },
   leaveGroup: {
     kind: EndpointType.MUTATION,
@@ -156,7 +156,7 @@ const groupApi = {
     method: 'POST',
     opts: { cache: 'skip' } as ApiOptions,
     queryArg: { code: '' as string },
-    resultType: true
+    resultType: { success: true as boolean }
   }
 } as const;
 
@@ -434,6 +434,8 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
     await Promise.all(updates);
 
     await props.keycloak.regroup(groupExternalId);
+
+    return { success: true };
   },
   getGroups: async props => {
     const groups = await props.db.manyOrNone<IGroup>(`
@@ -590,7 +592,7 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
       await props.redis.del(props.event.userSub + 'profile/details');
       await props.redis.del(createdSub + 'profile/details');
 
-      return true;
+      return { success: true };
     } catch (error) {
       const { constraint } = error as DbError;
 
@@ -634,7 +636,7 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
     
     await props.redis.del(props.event.userSub + 'profile/details');
 
-    return true;
+    return { success: true };
   }
 
 } as const;

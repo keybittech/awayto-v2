@@ -54,7 +54,7 @@ export function ManageGroups(props: IProps): JSX.Element {
             isConfirming: true,
             confirmEffect: 'Leave the group ' + gr.name + ' and refresh the session.',
             confirmAction: () => {
-              leaveGroup({ code: gr.code }).unwrap().then(() => keycloak.clearToken());
+              leaveGroup({ code: gr.code }).unwrap().then(() => keycloak.clearToken()).catch(console.error);
             }
           });
         }}>
@@ -90,7 +90,7 @@ export function ManageGroups(props: IProps): JSX.Element {
             isConfirming: true,
             confirmEffect: 'Delete the group ' + gr.name + ' and refresh the session.',
             confirmAction: () => {
-              deleteGroup({ ids: selected.join(',') }).unwrap().then(() => keycloak.clearToken());
+              deleteGroup({ ids: selected.join(',') }).unwrap().then(() => keycloak.clearToken()).catch(console.error);
             }
           });
         }}>

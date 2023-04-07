@@ -77,8 +77,8 @@ export function PendingQuotesProvider ({ children }: IProps): JSX.Element {
               setSelectedPendingQuotes([]);
               setPendingQuotesChanged(!pendingQuotesChanged);
               getUserProfileDetails();
-            });
-          });
+            }).catch(console.error);
+          }).catch(console.error);
         }
       });
     },
@@ -87,7 +87,7 @@ export function PendingQuotesProvider ({ children }: IProps): JSX.Element {
         setSelectedPendingQuotes([]);
         setPendingQuotesChanged(!pendingQuotesChanged);
         getUserProfileDetails();
-      });
+      }).catch(console.error);
     }
   } as PendingQuotesContextType | null;
 

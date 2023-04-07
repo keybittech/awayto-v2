@@ -56,9 +56,10 @@ export function ManageServices(props: IProps): JSX.Element {
             isConfirming: true,
             confirmEffect: 'Are you sure you want to delete these services? This cannot be undone.',
             confirmAction: () => {
-              deleteGroupService({ groupName, ids: selected.join(',') });
-              getGroupServices();
-              setSelected([]);
+              deleteGroupService({ groupName, ids: selected.join(',') }).unwrap().then(() => {
+                getGroupServices();
+                setSelected([]);
+              }).catch(console.error);
             }
           });
         }}>

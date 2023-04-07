@@ -33,7 +33,7 @@ export function FeedbackMenu ({ handleMenuClose, feedbackAnchorEl, feedbackMenuI
 
   const handleSubmit = useCallback(function() {
     if (message && handleMenuClose) {
-      postFeedback({ message, groupName: group.name });
+      postFeedback({ message, groupName: group.name }).catch(console.error);
       setMessage('');
       handleMenuClose();
     }

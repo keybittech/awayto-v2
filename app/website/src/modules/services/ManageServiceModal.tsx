@@ -29,7 +29,7 @@ export function ManageServiceModal ({ editService, closeModal, ...props }: IProp
     ...editService
   } as IService);
   
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = useCallback(() => {
     const { id, name } = service;
 
     if (!name) {
@@ -37,10 +37,10 @@ export function ManageServiceModal ({ editService, closeModal, ...props }: IProp
       return;
     }
 
-    await (id ? putService : postService)(service).unwrap();
-
-    if (closeModal)
-      closeModal();
+    (id ? putService : postService)(service).unwrap().then(() => {
+      if (closeModal)
+        closeModal();
+    }).catch(console.error);
   }, [service]);
 
   return <>

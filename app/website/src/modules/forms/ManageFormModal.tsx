@@ -42,7 +42,7 @@ export function ManageFormModal({ editForm, closeModal, ...props }: IProps): JSX
         if (res.version) {
           setVersion(res.version);
         }
-      });
+      }).catch(console.error);
     }
   }, [editForm]);
 
@@ -96,7 +96,7 @@ export function ManageFormModal({ editForm, closeModal, ...props }: IProps): JSX
       }
     } as IForm;
 
-    (id ? postGroupFormVersion : postGroupForm)((id ? { ...formVersion, formId: id, groupName } : { ...formVersion, groupName }) as IGroupForm).unwrap().then(() => closeModal && closeModal());
+    (id ? postGroupFormVersion : postGroupForm)((id ? { ...formVersion, formId: id, groupName } : { ...formVersion, groupName }) as IGroupForm).unwrap().then(() => closeModal && closeModal()).catch(console.error);
   }, [form, version.form]);
 
   return <Card sx={{ display: 'flex', flex: 1, flexDirection: 'column' }}>

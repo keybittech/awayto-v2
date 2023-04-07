@@ -17,11 +17,11 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 
 import { getBaseComponents, getDesignTokens, getThemedComponents } from './hooks/useStyles';
 import { SiteRoles } from 'awayto/core';
-import { useUtil, storeApi, useAppSelector } from 'awayto/hooks';
+import { useUtil, sh, useAppSelector, useComponents } from 'awayto/hooks';
 
 import './App.css';
 
-// import Layout from './modules/common/views/Layout';
+import Layout from './modules/common/Layout';
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
   props,
@@ -36,9 +36,11 @@ const {
 
 export default function App (props: IProps): JSX.Element {
 
-  // const { Onboard, ConfirmAction } = useComponents();
-  const { theme, snackOn, snackType, snackRequestId, isConfirming, isLoading, loadingMessage } = useAppSelector(state => state.util);
-  const { data: profile, refetch } = storeApi.useGetUserProfileDetailsQuery();
+  const { Onboard, ConfirmAction } = useComponents();
+  const { theme, snackOn, snackType, snackRequestId, isLoading, loadingMessage } = useAppSelector(state => state.util);
+  const { data: profile, refetch } = sh.useGetUserProfileDetailsQuery();
+
+  console.log({ profile });
 
   const [ready, setReady] = useState(false);
   const [onboarding, setOnboarding] = useState(false);
@@ -62,13 +64,10 @@ export default function App (props: IProps): JSX.Element {
   }, []);
 
   useEffect(() => {
-    if (profile) {
-      console.log({ www:  profile.groupsSize})
-      if (profile.groupsSize) {
-        // setReady(true);
-      } else {
-        setOnboarding(true)
-      }
+    if (Object.keys(profile.groups || {}).length) {
+      setReady(true);
+    } else {
+      setOnboarding(true)
     }
   }, [profile]);
 
@@ -80,9 +79,9 @@ export default function App (props: IProps): JSX.Element {
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <ThemeProvider theme={currentTheme}>
         {onboarding && <Suspense>
-          {/* <Onboard {...props} /> */}
+          <Onboard {...props} />
         </Suspense>}
-        {/* {ready && <Layout {...props} />} */}
+        {ready && <Layout {...props} />}
         {!!snackOn && <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center' }} open={!!snackOn} autoHideDuration={15000} onClose={hideSnack}>
           <Alert onClose={hideSnack} severity={snackType || "info"}>
             <Box>{snackOn}</Box>
@@ -91,7 +90,7 @@ export default function App (props: IProps): JSX.Element {
         </Snackbar>}
 
         <Suspense fallback="">
-          {/* <ConfirmAction {...props} /> */}
+          <ConfirmAction {...props} />
         </Suspense>
 
         {!!isLoading && <Backdrop sx={{ zIndex: 9999, color: '#fff' }} open={!!isLoading}>

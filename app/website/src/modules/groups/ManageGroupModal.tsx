@@ -97,7 +97,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
     }).unwrap().then(() => {
       id && setSnack({ snackType: 'success', snackOn: 'Group updated! Please allow up to a minute for any related permissions changes to persist.' })
       !id && keycloak.clearToken();
-    });
+    }).catch(console.error);
   }, [group, profile, roleIds, defaultRoleId]);
 
 
@@ -116,7 +116,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
     getPrompt({ id: IPrompts.SUGGEST_ROLE, prompt: group.name, prompt2: group.purpose }).unwrap().then(res => {
       setRoleSuggestions(res.promptResult);
       setViewStep(2);
-    })
+    }).catch(console.error);
   }, [group]);
 
   if (!roleIds.length && roleValues?.length && !defaultRoleId) {
@@ -130,7 +130,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
   useEffect(() => {
     if (needCheckName && checkedName?.length) {
       setChecker({ checkingName: true, needCheckName: false, isValid: false });
-      checkGroupName({ name: checkedName });
+      checkGroupName({ name: checkedName }).catch(console.error);
     }
   }, [needCheckName, checkedName]);
 
@@ -148,10 +148,10 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
             if (existingId) {
               setRoleIds([...roleIds, existingId])
             } else {
-              postRole({ name: s }).unwrap().then(async newRole => {
+              postRole({ name: s }).unwrap().then(newRole => {
                 getUserProfileDetails();
                 !roleIds.includes(newRole.id) && setRoleIds([...roleIds, newRole.id]);
-              })
+              }).catch(console.error);
             }
           }
         }}>{s}</Link>{i !== roleSuggestions.length - 1 ? ',' : ''}&nbsp;

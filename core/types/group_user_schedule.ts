@@ -85,7 +85,7 @@ const groupUserSchedulesApi = {
     method: 'PUT',
     opts: {} as ApiOptions,
     queryArg: {} as IGroupUserSchedule & IGroupUserScheduleStubReplacement,
-    resultType: true as boolean
+    resultType: { success: true as boolean }
   },
   deleteGroupUserScheduleByUserScheduleId: {
     kind: EndpointType.MUTATION,
@@ -167,7 +167,7 @@ const groupUserSchedulesApiHandlers: ApiHandler<typeof groupUserSchedulesApi> = 
       WHERE id = $1
     `, updateProps.array);
 
-    return true;
+    return { success: true };
   },
   deleteGroupUserScheduleByUserScheduleId: async (props) => {
     const { groupName, ids } = props.event.pathParameters;

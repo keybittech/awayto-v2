@@ -29,7 +29,7 @@ export function ManageRoleModal ({ editRole, closeModal }: IProps): JSX.Element 
     ...editRole
   });
   
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = useCallback(() => {
     const { id, name } = role;
 
     if (!name) {
@@ -37,11 +37,10 @@ export function ManageRoleModal ({ editRole, closeModal }: IProps): JSX.Element 
       return;
     }
 
-    await (id ? putRole : postRole)(role as IRole).unwrap();
-    
-    if (closeModal)
-      closeModal();
-
+    (id ? putRole : postRole)(role as IRole).unwrap().then(() => {
+      if (closeModal)
+        closeModal();
+    }).catch(console.error);
   }, [role]);
 
   return <>

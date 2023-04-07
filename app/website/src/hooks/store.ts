@@ -158,50 +158,36 @@ type EndpointInfo<T> = {
 
 type EndpointQuery<T> = (args: T) => string | { url: string; method: string; body: T };
 
-type SelectResultParams<R> = { data?: R | undefined; error?: unknown; isLoading: boolean; isSuccess: boolean };
-type SelectFromResult<T> = T extends { resultType: infer R; opts: { defaultValue: infer D } }
-? (result: SelectResultParams<R>) => {
-    data: R | D;
-    error?: unknown;
-    isLoading: boolean;
-    isSuccess: boolean;
-  }
-: never;
-
-
 // Store Hooks
 export const sh = createApi({
   baseQuery: getQueryAuth,
   endpoints: builder => Object.keys(siteApiRef).reduce((m, endpointName) => {
     const endpointKey = endpointName as keyof SiteApiRef;
     type BuiltEndpoint = typeof siteApiRef[typeof endpointKey];
-    const { method, queryArg, resultType, kind, url, transformResponse } = siteApiRef[endpointName as keyof SiteApiRef] as BuiltEndpoint & Partial<{ transformResponse: (response: unknown) => unknown }>;
-    const builderPayload: (
-      typeof transformResponse extends (response: unknown) => unknown ? 
-        { transformResponse: typeof transformResponse } : 
-        Record<string, unknown>
-    ) & {
-      query: EndpointQuery<typeof queryArg>;
+
+    const ep = siteApiRef[endpointName as keyof SiteApiRef] as BuiltEndpoint;
+    const { method, queryArg, resultType, kind, url } = ep;
+
+    type EPQueryArg = typeof queryArg;
+    type EPResultType = typeof resultType;
+
+    const builderPayload: {
+      query: EndpointQuery<EPQueryArg>;
     } = {
-      query: ((args: typeof queryArg) => {
-        const processedUrl = url.replace(/:(\w+)/g, (_, key) => args[key as keyof typeof queryArg]);
+      query: ((args: EPQueryArg) => {
+        const processedUrl = url.replace(/:(\w+)/g, (_, key) => args[key as keyof EPQueryArg]);
         if (kind === EndpointType.QUERY) {
           return processedUrl;
         }
         return { url: processedUrl, method, body: args };
-      }),
-      ...(transformResponse ? { transformResponse } : {}),
-      selectFromResult: (result: SelectResultParams<typeof resultType>) => ({
-        ...result,
-        data: result.data ?? resultType
-      }) as SelectFromResult<typeof siteApiRef[typeof endpointKey]>
+      })
     };
 
     return {
       ...m,
       [endpointName]: kind === EndpointType.QUERY ?
-        builder.query<typeof resultType, typeof queryArg>(builderPayload) :
-        builder.mutation<typeof resultType, typeof queryArg>(builderPayload),
+        builder.query<EPResultType, EPQueryArg>(builderPayload) :
+        builder.mutation<EPResultType, EPQueryArg>(builderPayload),
     };
   }, {})
 }) as RemoveNever<EndpointInfo<SiteApiRef>> & ReturnType<typeof createApi>;

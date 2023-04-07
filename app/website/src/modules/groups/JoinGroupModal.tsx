@@ -24,7 +24,7 @@ export function JoinGroupModal ({ closeModal }: IProps): JSX.Element {
     joinGroup({ code }).unwrap().then(() => {
       if (closeModal)
         closeModal();
-    });
+    }).catch(console.error);
   }, [code]);
 
   return <>

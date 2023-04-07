@@ -15,7 +15,7 @@ export type IBaseComponents = { [component: string]: LazyExoticComponent<IBaseCo
 
 import buildOutput from '../build.json';
 import rolesOutput from '../roles.json';
-import { storeApi } from './store';
+import { sh } from './store';
 
 const { views } = buildOutput as Record<string, Record<string, string>>;
 const { roles } = rolesOutput as {
@@ -42,7 +42,7 @@ const components = {} as IBaseComponents;
  * @category Hooks
  */
 export function useComponents(): IBaseComponents {
-  const { data: profile } = storeApi.useGetUserProfileDetailsQuery();
+  const { data: profile } = sh.useGetUserProfileDetailsQuery();
 
   const { groupName } = useParams();
 
@@ -60,7 +60,7 @@ export function useComponents(): IBaseComponents {
           components[prop] = ((): JSX.Element => createElement('div'));
         }
       
-        if (!components[prop]) components[prop] = lazy<IBaseComponent>(() => import(`../modules/${views[prop]}`) as Promise<{ default: IBaseComponent }>);
+        if (!components[prop]) components[prop] = lazy<IBaseComponent>(() => import(`../${views[prop]}`) as Promise<{ default: IBaseComponent }>);
 
         target[prop] = views[prop] ? components[prop] : ((): JSX.Element => createElement('div'));
 

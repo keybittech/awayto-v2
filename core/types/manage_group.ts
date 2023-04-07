@@ -43,7 +43,7 @@ const manageGroupsApi = {
     method: 'DELETE',
     opts: {} as ApiOptions,
     queryArg: { ids: [''] as string[] },
-    resultType: [] as Partial<IGroup>[]
+    resultType: [] as { id: string }[]
   }
 } as const;
 

@@ -26,7 +26,7 @@ export function Onboard(props: IProps): JSX.Element {
   const joinGroupCb = useCallback(() => {
     if (groupCode) {
       if (/^[a-zA-Z0-9]{8}$/.test(groupCode)) {
-        joinGroup({ code: groupCode }).unwrap().then(() => keycloak.clearToken());
+        joinGroup({ code: groupCode }).unwrap().then(() => keycloak.clearToken()).catch(console.error);
       } else {
         setSnack({ snackType: 'warning', snackOn: 'Invalid group code.' });
       }

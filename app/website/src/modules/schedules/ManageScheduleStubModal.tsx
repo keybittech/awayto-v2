@@ -124,11 +124,11 @@ export function ManageScheduleStubModal({ editGroupUserScheduleStub, closeModal 
                     startTime,
                     tierName
                   }).unwrap().then(({ stubs }) => {
-                    const [replacementStub] = stubs as IGroupUserScheduleStub[];
+                    const [replacementStub] = stubs;
                     if (replacementStub) {
                       setReplacement(replacementStub.replacement);
                     }
-                  });
+                  }).catch(console.error);
                 }}
               />
             </Grid>
