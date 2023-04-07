@@ -39,7 +39,6 @@ export function RequestQuote(props: IProps): JSX.Element {
   const [_, { data: dateSlots }] = sh.useLazyGetGroupScheduleByDateQuery();
 
   const { data: lookups } = sh.useGetLookupsQuery();
-  if (!lookups) return <></>;  
 
   const { data: profile } = sh.useGetUserProfileDetailsQuery();
 
@@ -62,9 +61,9 @@ export function RequestQuote(props: IProps): JSX.Element {
   const servicesValues = useMemo(() => Object.values(services || {}), [services]);
 
   const loadSchedule = useCallback((sched: ISchedule) => {
-    sched.scheduleTimeUnitName = lookups.timeUnits?.find(u => u.id === sched.scheduleTimeUnitId)?.name as ITimeUnitNames;
-    sched.bracketTimeUnitName = lookups.timeUnits?.find(u => u.id === sched.bracketTimeUnitId)?.name as ITimeUnitNames;
-    sched.slotTimeUnitName = lookups.timeUnits?.find(u => u.id === sched.slotTimeUnitId)?.name as ITimeUnitNames;    
+    sched.scheduleTimeUnitName = lookups?.timeUnits?.find(u => u.id === sched.scheduleTimeUnitId)?.name as ITimeUnitNames;
+    sched.bracketTimeUnitName = lookups?.timeUnits?.find(u => u.id === sched.bracketTimeUnitId)?.name as ITimeUnitNames;
+    sched.slotTimeUnitName = lookups?.timeUnits?.find(u => u.id === sched.slotTimeUnitId)?.name as ITimeUnitNames;    
     setSchedule(sched);
   }, [lookups]);
 

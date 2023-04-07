@@ -34,7 +34,7 @@ import redis, { rateLimitResource, redisProxy } from './modules/redis';
 import logger from './modules/logger';
 import completions from './modules/openai';
 
-import { DecodedJWTToken, UserGroupRoles, StrategyUser, ApiErrorResponse, IGroup, AuthBody, siteApiRef, AuthProps, siteApiHandlerRef, ApiProps, hasRequiredArgs, AnyRecord, EndpointType } from 'awayto/core'
+import { DecodedJWTToken, UserGroupRoles, StrategyUser, ApiErrorResponse, IGroup, AuthBody, siteApiRef, AuthProps, siteApiHandlerRef, ApiProps, EndpointType, validateRequestBody } from 'awayto/core'
 
 const {
   SOCK_HOST,
@@ -246,22 +246,11 @@ async function go() {
       }
     });
 
-    function validateRequestBody(queryArg: AnyRecord) {
-      return (req: Request, res: Response, next: NextFunction) => {
-        const issue = hasRequiredArgs(queryArg, req.body);
-        if (true === issue) {
-          next();
-        } else if ('string' === typeof issue) {
-          res.status(400).json({ message: 'Badly formed request. Issue - ' + issue  });
-        }
-      };
-    }
-
     for (const apiRefId in siteApiRef) {
       const { method, url, queryArg, resultType, kind, opts: { cache } } = siteApiRef[apiRefId as keyof typeof siteApiRef];
 
       // Here we make use of the extra /api from the reverse proxy
-      app[method.toLowerCase() as keyof Express](`/api/${url}`, checkAuthenticated, validateRequestBody(queryArg as AnyRecord), async (req: Request & { headers: { authorization: string } }, res: Response) => {
+      app[method.toLowerCase() as keyof Express](`/api/${url.split('?')[0]}`, checkAuthenticated, validateRequestBody(queryArg, url), async (req: Request & { headers: { authorization: string } }, res: Response) => {
 
         const requestId = uuid();
         const user = req.user as StrategyUser;

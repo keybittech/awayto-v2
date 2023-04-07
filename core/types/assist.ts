@@ -18,7 +18,6 @@ export enum IPrompts {
 export type IAssist = {
   id: string;
   prompt: string;
-  prompt2: string;
   promptResult: string[];
 };
 
@@ -28,13 +27,12 @@ export type IAssist = {
 const assistApi = {
   getPrompt: {
     kind: EndpointType.QUERY,
-    url: 'assist/prompt',
+    url: 'assist/prompt?id=:id&prompt=:prompt',
     method: 'GET',
     opts: { cache: null } as ApiOptions,
     queryArg: {
       id: '' as string,
-      prompt: '' as string,
-      prompt2: '' as string
+      prompt: '' as string
     },
     resultType: { promptResult: [] as string[] }
   },
@@ -45,8 +43,8 @@ const assistApi = {
  */
 const assistApiHandlers: ApiHandler<typeof assistApi> = {
   getPrompt: async props => {
-    const { id, prompt, prompt2 } = props.event.queryParameters;
-    const generatedPrompt = props.completions.generatePrompt(id as IPrompts, prompt, prompt2);
+    const { id, prompt } = props.event.queryParameters;
+    const generatedPrompt = props.completions.generatePrompt(id as IPrompts, ...prompt.split('|'));
     const promptResult = await props.completions.getChatCompletionPrompt(generatedPrompt);
     // return { promptResult: promptResult[0].text?.trim().replace(/\r?\n|\r/g, '').split('|').filter(a => !!a) };
     return { promptResult: promptResult.split('|').filter(a => !!a) };

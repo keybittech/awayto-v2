@@ -60,10 +60,12 @@ export default function App (props: IProps): JSX.Element {
   }, []);
 
   useEffect(() => {
-    if (Object.keys(profile?.groups || {}).length) {
-      setReady(true);
-    } else {
-      setOnboarding(true)
+    if (profile) {
+      if (Object.keys(profile.groups || {}).length) {
+        setReady(true);
+      } else {
+        setOnboarding(true)
+      }
     }
   }, [profile]);
 

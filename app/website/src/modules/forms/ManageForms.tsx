@@ -24,7 +24,6 @@ export function ManageForms(props: IProps): JSX.Element {
   
   const [deleteGroupForm] = sh.useDeleteGroupFormMutation();
   const { data: groupForms, refetch: getGroupForms } = sh.useGetGroupFormsQuery({ groupName });
-  if (!groupForms) return <></>;
 
   const [form, setForm] = useState<IGroupForm>();
   const [selected, setSelected] = useState<string[]>([]);
@@ -35,7 +34,7 @@ export function ManageForms(props: IProps): JSX.Element {
     const acts = length == 1 ? [
       <Tooltip key={'manage_form'} title="Edit">
         <Button onClick={() => {
-          setForm(groupForms.find(gf => gf.id === selected[0]));
+          setForm(groupForms?.find(gf => gf.id === selected[0]));
           setDialog('manage_form');
           setSelected([]);
         }}>
@@ -52,7 +51,7 @@ export function ManageForms(props: IProps): JSX.Element {
           if (selected.length) {
             deleteGroupForm({ groupName, ids: selected.join(',') }).unwrap().then(() => {
               setSelected([]);
-              getGroupForms();
+              void getGroupForms();
             }).catch(console.error);
           }
         }}>
@@ -64,7 +63,7 @@ export function ManageForms(props: IProps): JSX.Element {
   }, [selected]);
 
   const FormGrid = useGrid<IGroupForm>({
-    rows: groupForms,
+    rows: groupForms || [],
     columns: [
       { flex: 1, headerName: 'Name', field: 'name' },
       { flex: 1, headerName: 'Created', field: 'createdOn', renderCell: ({ row }) => dayjs().to(dayjs.utc(row.createdOn)) }
@@ -92,7 +91,7 @@ export function ManageForms(props: IProps): JSX.Element {
       <Suspense>
         <ManageFormModal {...props} editForm={form} closeModal={() => {
           setDialog('')
-          getGroupForms();
+          void getGroupForms();
         }} />
       </Suspense>
     </Dialog>

@@ -20,8 +20,6 @@ declare global {
 
 export function FeedbackMenu ({ handleMenuClose, feedbackAnchorEl, feedbackMenuId, isFeedbackOpen }: IProps): JSX.Element {
 
-  console.log({ sh })
-
   const [postFeedback] = sh.usePostGroupFeedbackMutation();
 
   const { data: profile } = sh.useGetUserProfileDetailsQuery();

@@ -20,9 +20,8 @@ export function ManageSchedules(props: IProps): JSX.Element {
   if (!groupName) return <></>;
 
   const { data: schedules, refetch: getGroupUserScheduleStubs } = sh.useGetGroupUserScheduleStubsQuery({ groupName })
-  if (!schedules) return <></>;
 
-  const { stubs } = schedules;
+  const { stubs } = schedules || {};
 
   const [stub, setStub] = useState<IGroupUserScheduleStub>();
   const [selected, setSelected] = useState<string[]>([]);

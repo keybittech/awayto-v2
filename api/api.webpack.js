@@ -1,9 +1,6 @@
 const path = require('path');
 const Dotenv = require('dotenv-webpack');
 
-const { NODE_ENV } = process.env;
-const BUILD_ENV = 'development' === NODE_ENV ? 'development' : 'docker';
-
 module.exports = {
   context: __dirname,
   entry: './src/api.ts',
@@ -14,7 +11,7 @@ module.exports = {
   },
   resolve: {
     alias: {
-      'awayto/core': 'development' === BUILD_ENV ? path.resolve(__dirname, '../core/index.ts') : '/api/src/core/index.ts'
+      'awayto/core': path.resolve(__dirname, '../core/index.ts')
     },
     extensions: ['.ts', '.js'],
   },
@@ -26,7 +23,7 @@ module.exports = {
         use: {
           loader: 'ts-loader',
           options: {
-            configFile: `tsconfig${'development' === BUILD_ENV ? '' : `.${BUILD_ENV}`}.json`
+            configFile: `tsconfig.json`
           }
         }
       }

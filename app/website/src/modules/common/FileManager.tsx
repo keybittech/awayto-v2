@@ -15,7 +15,6 @@ declare global {
 export function FileManager(): JSX.Element {
 
   const { data: files } = sh.useGetFilesQuery();
-  if (!files) return <></>;
   
   const fileSelectRef = useRef<HTMLInputElement>(null);
 
@@ -29,7 +28,7 @@ export function FileManager(): JSX.Element {
   }, [selected]);
 
   const FileGrid = useGrid({
-    rows: files,
+    rows: files || [],
     columns: [
       { flex: 1, headerName: 'Name', field: 'name' },
     ],

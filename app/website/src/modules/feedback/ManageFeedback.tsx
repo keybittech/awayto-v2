@@ -10,10 +10,9 @@ export function ManageFeedbacks(): JSX.Element {
   if (!groupName) return <></>;
   
   const { data: feedbacks } = sh.useGetGroupFeedbackQuery({ groupName });
-  if (!feedbacks) return <></>;
 
   const FeedbackGrid = useGrid({
-    rows: feedbacks,
+    rows: feedbacks || [],
     columns: [
       { flex: 1, headerName: 'User', field: 'username' },
       { flex: 1, headerName: 'Message', field: 'message' },

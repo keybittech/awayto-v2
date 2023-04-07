@@ -30,18 +30,14 @@ export function ScheduleTimePicker(props: IProps): JSX.Element {
   if (!groupName) return <></>;
 
   const [_, { data: dateSlots }] = sh.useLazyGetGroupScheduleByDateQuery();
-  
   const { data: lookups } = sh.useGetLookupsQuery();
-  if (!lookups) return <></>;
-
   const { data: groupSchedules } = sh.useGetGroupSchedulesQuery({ groupName });
-  if (!groupSchedules) return <></>;
 
   const didInit = useRef(false);
 
-  const { bracketTimeUnitId, slotTimeUnitId } = groupSchedules.find(gs => gs.id === scheduleId) || {};
-  const bracketTimeUnitName = lookups.timeUnits.find(u => u.id === bracketTimeUnitId)?.name as ITimeUnitNames;
-  const slotTimeUnitName = lookups.timeUnits.find(u => u.id === slotTimeUnitId)?.name as ITimeUnitNames;
+  const { bracketTimeUnitId, slotTimeUnitId } = groupSchedules?.find(gs => gs.id === scheduleId) || {};
+  const bracketTimeUnitName = lookups?.timeUnits.find(u => u.id === bracketTimeUnitId)?.name as ITimeUnitNames;
+  const slotTimeUnitName = lookups?.timeUnits.find(u => u.id === slotTimeUnitId)?.name as ITimeUnitNames;
   const sessionDuration = Math.round(getRelativeDuration(1, bracketTimeUnitName, slotTimeUnitName));
   
   const slotFactors = [] as number[];

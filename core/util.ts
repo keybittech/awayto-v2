@@ -1,3 +1,4 @@
+import { Request, Response, NextFunction } from 'express';
 /**
  * @category Util
  */
@@ -118,8 +119,49 @@ export type Void = { _void: never };
 export type ReplaceVoid<T> = T extends Void ? void : T;
 export type Extend<T> = { [K in keyof T]: T[K] };
 export type RemoveNever<T> = { [K in keyof T as T[K] extends never ? never : K]: T[K]; };
+type PartialUndefined<T> = { [P in keyof T]: T[P] | undefined; };
 
-export function hasRequiredArgs(targetType: AnyRecord, sourceType: AnyRecord): boolean | string {
+export const createEmptyType = <T>(...args: string[]): Partial<T> => {
+  let t = {} as Partial<T>;
+  for (const prop of args) {
+    t[prop as keyof T] = undefined;
+  }
+  return t;
+}
+
+
+
+export function extractParams(genericUrl: string, requestUrl: string) {
+  const genericUrlParts = genericUrl.split('/');
+  const requestUrlParts = requestUrl.split('/');
+
+  const result = {} as AnyRecord;
+
+  for (let i = 0; i < genericUrlParts.length; i++) {
+    if (genericUrlParts[i].startsWith(':')) {
+      const paramName = genericUrlParts[i].slice(1);
+      result[paramName] = requestUrlParts[i];
+    }
+  }
+
+  return result;
+}
+
+export function validateRequestBody<T extends Record<string, unknown>>(queryArg: T, url: string) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const issue = hasRequiredArgs<T>(queryArg, Object.assign(req.body, extractParams(url, req.url.slice(5)), req.query));
+    if (true === issue) {
+      next();
+    } else if ('string' === typeof issue) {
+      res.status(400).json({ message: 'Badly formed request. Issue - ' + issue  });
+    }
+  };
+}
+
+export function hasRequiredArgs<T extends Record<string, unknown>>(targetType: T, sourceType: AnyRecord): boolean | string {
+  
+  console.log({ targetType, sourceType })
+  
   const targetTypeKeys = Object.keys(targetType).filter(key => key !== '_void').sort();
   const sourceTypeKeys = Object.keys(sourceType).sort();
 

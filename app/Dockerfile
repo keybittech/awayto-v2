@@ -15,6 +15,12 @@ COPY ./app/landing/package.json /land/
 COPY ./app/landing/yarn.lock /land/
 RUN --mount=type=cache,target=/land/node_modules yarn install
 
+WORKDIR /core
+COPY ./core /core
+COPY ./core/package.json /core/
+COPY ./core/yarn.lock /core/
+RUN --mount=type=cache,target=/core/node_modules yarn install
+
 WORKDIR /app
 COPY ./app/website/package.json /app/
 COPY ./app/website/yarn.lock /app/
@@ -23,12 +29,12 @@ RUN --mount=type=cache,target=/app/node_modules yarn install
 WORKDIR /land
 COPY ./app/landing /land
 RUN --mount=type=cache,target=/land/node_modules envsubst < /land/config.yaml.template > /land/config.yaml &&\
-    npm run build
+    NODE_ENV=docker npm run build
 
 WORKDIR /app
 COPY ./app/website /app
 RUN --mount=type=cache,target=/app/node_modules envsubst < /app/settings.application.env.template > /app/settings.application.env &&\
-    npm run build
+    NODE_ENV=docker npm run build
 
 FROM nginx:alpine
 EXPOSE 443

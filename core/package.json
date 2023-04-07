@@ -5,6 +5,7 @@
   },
   "devDependencies": {
     "@keycloak/keycloak-admin-client": "^21.0.2",
+    "@types/express": "^4.17.17",
     "@types/graylog2": "^0.2.2",
     "@types/pg": "^8.6.6",
     "@types/pg-promise": "^5.4.3",

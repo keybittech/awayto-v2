@@ -22,7 +22,6 @@ export function Profile(props: IProps): JSX.Element {
   const { PickTheme, ManageGroups } = useComponents();
 
   const { data : user } = sh.useGetUserProfileDetailsQuery();
-  if (!user) return <></>;
 
   const [displayImage, setDisplayImage] = useState('');
   const [file, setFile] = useState<IPreviewFile>();
@@ -124,7 +123,7 @@ export function Profile(props: IProps): JSX.Element {
                     <Avatar src={displayImage} /> {/*<AsyncAvatar image={profile.image || ''} {...props} /> */}
                   </Grid>
                   <Grid item>
-                    <Typography variant="h6" style={{ wordBreak: 'break-all' }}>{user.image ? "Current profile image." : file ? `${file.name || ''} added.` : ''}</Typography>
+                    <Typography variant="h6" style={{ wordBreak: 'break-all' }}>{user?.image ? "Current profile image." : file ? `${file.name || ''} added.` : ''}</Typography>
                   </Grid>
                   <Grid item>
                     <Typography variant="subtitle1">To remove, click here then submit.</Typography>

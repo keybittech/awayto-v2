@@ -2,18 +2,23 @@
 
 FROM node:16.3.0-alpine as builder
 RUN apk add postgresql-dev python3 make build-base
-# added for dev
+
+# build core
+WORKDIR /core
+COPY ./core /core
+COPY ./core/package.json /core/
+COPY ./core/yarn.lock /core/
+RUN --mount=type=cache,target=/core/node_modules yarn install
+
+# build api
 RUN mkdir -p /api/build
 
 WORKDIR /api
-
 COPY ./api/package.json /api/
 COPY ./api/yarn.lock /api/
 RUN --mount=type=cache,target=/api/node_modules yarn install
 
 COPY ./api /api
-COPY ./app/website/src/core /api/src/core
-
 RUN --mount=type=cache,target=/api/node_modules npm run build
 
 FROM node:16.3.0-alpine

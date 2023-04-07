@@ -37,25 +37,24 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
   const [getGroupScheduleMasterById] = sh.useLazyGetGroupScheduleMasterByIdQuery();
 
   const { data: lookups } = sh.useGetLookupsQuery();
-  if (!lookups) return <></>;
   
   const { SelectLookup } = useComponents();
   
   const [schedule, setSchedule] = useState({ ...scheduleSchema, ...editSchedule } as ISchedule);
 
   const attachScheduleUnits = useCallback((sched: ISchedule): ISchedule => {
-    sched.scheduleTimeUnitName = lookups.timeUnits?.find(u => u.id === sched.scheduleTimeUnitId)?.name as ITimeUnitNames;
-    sched.bracketTimeUnitName = lookups.timeUnits?.find(u => u.id === sched.bracketTimeUnitId)?.name as ITimeUnitNames;
-    sched.slotTimeUnitName = lookups.timeUnits?.find(u => u.id === sched.slotTimeUnitId)?.name as ITimeUnitNames;
+    sched.scheduleTimeUnitName = lookups?.timeUnits?.find(u => u.id === sched.scheduleTimeUnitId)?.name as ITimeUnitNames;
+    sched.bracketTimeUnitName = lookups?.timeUnits?.find(u => u.id === sched.bracketTimeUnitId)?.name as ITimeUnitNames;
+    sched.slotTimeUnitName = lookups?.timeUnits?.find(u => u.id === sched.slotTimeUnitId)?.name as ITimeUnitNames;
     return sched;
   }, [lookups]);
 
   const setDefault = useCallback((type: string) => {
-    const weekId = lookups.timeUnits?.find(s => s.name === TimeUnit.WEEK)?.id;
-    const hourId = lookups.timeUnits?.find(s => s.name === TimeUnit.HOUR)?.id;
-    const dayId = lookups.timeUnits?.find(s => s.name === TimeUnit.DAY)?.id;
-    const minuteId = lookups.timeUnits?.find(s => s.name === TimeUnit.MINUTE)?.id;
-    const monthId = lookups.timeUnits?.find(s => s.name === TimeUnit.MONTH)?.id;
+    const weekId = lookups?.timeUnits?.find(s => s.name === TimeUnit.WEEK)?.id;
+    const hourId = lookups?.timeUnits?.find(s => s.name === TimeUnit.HOUR)?.id;
+    const dayId = lookups?.timeUnits?.find(s => s.name === TimeUnit.DAY)?.id;
+    const minuteId = lookups?.timeUnits?.find(s => s.name === TimeUnit.MINUTE)?.id;
+    const monthId = lookups?.timeUnits?.find(s => s.name === TimeUnit.MONTH)?.id;
     if ('40hoursweekly30minsessions' === type) {
       setSchedule(attachScheduleUnits({
         ...schedule,
@@ -202,11 +201,11 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
           lookupName="Schedule Duration"
           helperText="The length of time the schedule will run over. This determines the overall context of the schedule and how time will be divided and managed within. For example, a 40 hour per week schedule would require configuring a 1 week Schedule Duration."
           lookupValue={schedule.scheduleTimeUnitId}
-          lookups={lookups.timeUnits?.filter(sc => ![TimeUnit.MINUTE, TimeUnit.HOUR, TimeUnit.YEAR].includes(sc.name as TimeUnit))}
+          lookups={lookups?.timeUnits?.filter(sc => ![TimeUnit.MINUTE, TimeUnit.HOUR, TimeUnit.YEAR].includes(sc.name as TimeUnit))}
           lookupChange={(val: string) => {
-            const { id, name } = lookups.timeUnits?.find(c => c.id === val) || {};
+            const { id, name } = lookups?.timeUnits?.find(c => c.id === val) || {};
             if (!id || !name) return;
-            setSchedule({ ...schedule, scheduleTimeUnitName: name, scheduleTimeUnitId: id, bracketTimeUnitId: lookups.timeUnits?.find(s => s.name === timeUnitOrder[timeUnitOrder.indexOf(name) - 1])?.id as string })
+            setSchedule({ ...schedule, scheduleTimeUnitName: name, scheduleTimeUnitId: id, bracketTimeUnitId: lookups?.timeUnits?.find(s => s.name === timeUnitOrder[timeUnitOrder.indexOf(name) - 1])?.id as string })
           }}
           {...props}
         />
@@ -233,16 +232,14 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
           lookupName="Bracket Duration Type"
           helperText="How to measure blocks of time within the Schedule Duration. For example, in a 40 hour per week situation, blocks of time are divided in hours. Multiple brackets can be used on a single schedule, and all of them share the same Bracket Duration Type."
           lookupValue={schedule.bracketTimeUnitId}
-          lookups={lookups.timeUnits?.filter(sc => sc.name !== schedule.scheduleTimeUnitName && timeUnitOrder.indexOf(sc.name) <= timeUnitOrder.indexOf(schedule.scheduleTimeUnitName))}
+          lookups={lookups?.timeUnits?.filter(sc => sc.name !== schedule.scheduleTimeUnitName && timeUnitOrder.indexOf(sc.name) <= timeUnitOrder.indexOf(schedule.scheduleTimeUnitName))}
           lookupChange={(val: string) => {
-            const { name, id } = lookups.timeUnits?.find(c => c.id === val) as ITimeUnit;
+            const { name, id } = lookups?.timeUnits?.find(c => c.id === val) as ITimeUnit;
             setSchedule({ ...schedule, bracketTimeUnitName: name, bracketTimeUnitId: id, slotTimeUnitName: name, slotTimeUnitId: id, slotDuration: 1 });
           }}
           {...props}
         />
       </Box>
-
-
 
       <Box mb={4}>
         <SelectLookup
@@ -251,9 +248,9 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
           lookupName="Booking Slot Length"
           helperText={`The # of ${schedule.slotTimeUnitName}s to deduct from the bracket upon accepting a booking. Alternatively, if you meet with clients, this is the length of time per session.`}
           lookupValue={schedule.slotTimeUnitId}
-          lookups={lookups.timeUnits?.filter(sc => [timeUnitOrder.indexOf(schedule.bracketTimeUnitName), Math.max(timeUnitOrder.indexOf(schedule.bracketTimeUnitName) - 1, 0)].includes(timeUnitOrder.indexOf(sc.name)))}
+          lookups={lookups?.timeUnits?.filter(sc => [timeUnitOrder.indexOf(schedule.bracketTimeUnitName), Math.max(timeUnitOrder.indexOf(schedule.bracketTimeUnitName) - 1, 0)].includes(timeUnitOrder.indexOf(sc.name)))}
           lookupChange={(val: string) => {
-            const { name, id } = lookups.timeUnits?.find(c => c.id === val) || {};
+            const { name, id } = lookups?.timeUnits?.find(c => c.id === val) || {};
             if (!name || !id) return;
             setSchedule({ ...schedule, slotTimeUnitName: name, slotTimeUnitId: id, slotDuration: 1 })
           }}

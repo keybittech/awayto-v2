@@ -4,8 +4,7 @@ import { sh } from 'awayto/hooks';
 export function BookingHome(): JSX.Element {
 
   const { data: bookings } = sh.useGetBookingsQuery();
-  if (!bookings) return <></>;
-
+  
   console.log({ bookings })
 
   return <></>;

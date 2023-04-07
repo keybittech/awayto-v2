@@ -40,7 +40,7 @@ server {
   }
   
   location /app/ {
-    limit_req zone=app burst=60 delay=10;
+    limit_req zone=app burst=50 nodelay;
 
     proxy_read_timeout 300s;
     proxy_connect_timeout 75s;

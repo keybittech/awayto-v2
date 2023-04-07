@@ -39,8 +39,6 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
   const { setSnack } = useUtil();
 
   const { data: lookups } = sh.useGetLookupsQuery();
-  if (!lookups) return <></>;
-
   const { data: schedules } = sh.useGetSchedulesQuery();
   const { data: groupServices } = sh.useGetGroupServicesQuery({ groupName: group.name });
   const { data: groupSchedules } = sh.useGetGroupSchedulesQuery({ groupName: group.name });
@@ -59,9 +57,9 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
   const [bracket, setBracket] = useState({ ...bracketSchema, services: {}, slots: {} } as IScheduleBracket);
 
   const attachScheduleUnits = useCallback((sched: ISchedule) => {
-    sched.scheduleTimeUnitName = lookups.timeUnits?.find(u => u.id === sched.scheduleTimeUnitId)?.name as ITimeUnitNames;
-    sched.bracketTimeUnitName = lookups.timeUnits?.find(u => u.id === sched.bracketTimeUnitId)?.name as ITimeUnitNames;
-    sched.slotTimeUnitName = lookups.timeUnits?.find(u => u.id === sched.slotTimeUnitId)?.name as ITimeUnitNames;
+    sched.scheduleTimeUnitName = lookups?.timeUnits?.find(u => u.id === sched.scheduleTimeUnitId)?.name as ITimeUnitNames;
+    sched.bracketTimeUnitName = lookups?.timeUnits?.find(u => u.id === sched.bracketTimeUnitId)?.name as ITimeUnitNames;
+    sched.slotTimeUnitName = lookups?.timeUnits?.find(u => u.id === sched.slotTimeUnitId)?.name as ITimeUnitNames;
   }, [lookups]);
 
   useEffect(() => {

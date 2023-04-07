@@ -114,13 +114,13 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
   }, [group, editGroup]);
 
   const handleContinue = useCallback(() => {
-    getPrompt({ id: IPrompts.SUGGEST_ROLE, prompt: group.name, prompt2: group.purpose }).unwrap().then(res => {
+    getPrompt({ id: IPrompts.SUGGEST_ROLE, prompt: `${group.name}|||${group.purpose}` }).unwrap().then(res => {
       setRoleSuggestions(res.promptResult);
       setViewStep(2);
     }).catch(console.error);
   }, [group]);
 
-  if (!roleIds.length && roleValues?.length && !defaultRoleId) {
+  if (!roleIds.length && roleValues?.length && group.roles && !defaultRoleId) {
     setRoleIds(Object.keys(group.roles))
   }
 

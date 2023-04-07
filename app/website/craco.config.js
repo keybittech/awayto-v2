@@ -1,19 +1,22 @@
 const path = require('path');
 const dotenv = require('dotenv');
 
-dotenv.config({ path: path.join(__dirname, `settings.${process.argv.includes('--local') ? 'local' : process.env.NODE_ENV}.env`) });
+dotenv.config({ path: path.join(__dirname, `settings.${process.env.NODE_ENV}.env`) });
 dotenv.config({ path: path.join(__dirname, `settings.application.env`) });
 
+const dd = process.env.NODE_ENV === 'docker';
+
 const fs = require('fs');
+const crypto = require('crypto');
+const glob = require('glob');
+const express = require('express');
+
 const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 
 const { getLoaders, loaderByName, addBeforeLoader, ESLINT_MODES, } = require('@craco/craco');
 
-const crypto = require('crypto');
-const glob = require('glob');
-const express = require('express');
 
 
 const { AWAYTO_CORE, AWAYTO_WEBAPP_MODULES, AWAYTO_WEBAPP } = process.env;
@@ -134,7 +137,7 @@ module.exports = {
         new ForkTsCheckerWebpackPlugin({
           typescript: {
             enabled: true,
-            configFile: resolveApp('./tsconfig.json'),
+            configFile: resolveApp(`./tsconfig${dd ? '.docker' : ''}.json`),
           },
         }),
         new CircularDependencyPlugin({
