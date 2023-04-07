@@ -42,7 +42,6 @@ export function RequestQuote(props: IProps): JSX.Element {
   if (!lookups) return <></>;  
 
   const { data: profile } = sh.useGetUserProfileDetailsQuery();
-  if (!profile) return <></>;
 
   const [services, setServices] = useState({} as Record<string, IService>);
   const [schedule, setSchedule] = useState({ id: '' } as ISchedule);
@@ -59,7 +58,7 @@ export function RequestQuote(props: IProps): JSX.Element {
   const [activeSchedule, setActiveSchedule] = useState('');
   const [firstAvailable, setFirstAvailable] = useState({ time: dayjs().startOf('day') } as IGroupScheduleDateSlots);
 
-  const groupsValues = useMemo(() => Object.values(profile.groups || {}), [profile]);
+  const groupsValues = useMemo(() => Object.values(profile?.groups || {}), [profile]);
   const servicesValues = useMemo(() => Object.values(services || {}), [services]);
 
   const loadSchedule = useCallback((sched: ISchedule) => {

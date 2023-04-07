@@ -15,9 +15,8 @@ export function PendingQuotesProvider ({ children }: IProps): JSX.Element {
   const [selectedPendingQuotes, setSelectedPendingQuotes] = useState<string[]>([]);
 
   const { data : profile, refetch: getUserProfileDetails } = sh.useGetUserProfileDetailsQuery();
-  if (!profile) return <></>;
 
-  const pendingQuotes = useMemo(() => Object.values(profile.quotes || {}), [profile]);
+  const pendingQuotes = useMemo(() => Object.values(profile?.quotes || {}), [profile]);
 
   const pendingQuotesContext = {
     pendingQuotes,

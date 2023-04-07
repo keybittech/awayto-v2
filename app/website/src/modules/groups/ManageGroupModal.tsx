@@ -37,7 +37,6 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
   const { SelectLookup } = useComponents();
 
   const { data : profile, refetch: getUserProfileDetails } = sh.useGetUserProfileDetailsQuery();
-  if (!profile) return <></>;
 
   const [putGroup] = sh.usePutGroupMutation();
   const [postGroup] = sh.usePostGroupMutation();
@@ -53,7 +52,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
   const [viewStep, setViewStep] = useState(1);
   const [editedPurpose, setEditedPurpose] = useState(false);
   const [roleSuggestions, setRoleSuggestions] = useState([] as string[]);
-  const [allowedDomains, setAllowedDomains] = useState([profile.username?.split('@')[1]] as string[]);
+  const [allowedDomains, setAllowedDomains] = useState([profile?.username?.split('@')[1]] as string[]);
   const [allowedDomain, setAllowedDomain] = useState('');
 
   const [{ isValid, needCheckName, checkedName, checkingName }, setChecker] = useState<Partial<{
@@ -69,7 +68,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
   });
 
   const progressMemo = useMemo(() => <CircularProgress size="20px" />, []);
-  const roleValues = useMemo(() => Object.values(profile.roles || {}), [profile]);
+  const roleValues = useMemo(() => Object.values(profile?.roles || {}), [profile]);
 
   const formatName = useCallback((name: string) => name
     .replaceAll(/__+/g, '_')

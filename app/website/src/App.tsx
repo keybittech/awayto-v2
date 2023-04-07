@@ -35,16 +35,13 @@ const {
 } = process.env as { [prop: string]: string };
 
 export default function App (props: IProps): JSX.Element {
-
+  const { setSnack } = useUtil();
   const { Onboard, ConfirmAction } = useComponents();
   const { theme, snackOn, snackType, snackRequestId, isLoading, loadingMessage } = useAppSelector(state => state.util);
   const { data: profile, refetch } = sh.useGetUserProfileDetailsQuery();
-  if (!profile) return <></>;
-
+  
   const [ready, setReady] = useState(false);
   const [onboarding, setOnboarding] = useState(false);
-
-  const { setSnack } = useUtil();
 
   const defaultTheme = useMediaQuery('(prefers-color-scheme: dark)') ? 'dark' : 'light';
   const currentTheme = React.useMemo(() => createTheme(deepmerge(deepmerge(getDesignTokens(theme || defaultTheme), getThemedComponents(theme || defaultTheme)), getBaseComponents())), [theme]);
@@ -63,7 +60,7 @@ export default function App (props: IProps): JSX.Element {
   }, []);
 
   useEffect(() => {
-    if (Object.keys(profile.groups || {}).length) {
+    if (Object.keys(profile?.groups || {}).length) {
       setReady(true);
     } else {
       setOnboarding(true)

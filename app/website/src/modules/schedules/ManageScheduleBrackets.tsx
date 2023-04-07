@@ -34,9 +34,8 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
 
   const { data: schedules } = sh.useGetSchedulesQuery();
   const { data: profile, refetch: getUserProfileDetails } = sh.useGetUserProfileDetailsQuery();
-  if (!profile) return <></>;
 
-  const groupsValues = useMemo(() => Object.values(profile.groups || {}), [profile]);
+  const groupsValues = useMemo(() => Object.values(profile?.groups || {}), [profile]);
 
   if (groupsValues.length && !group.id) {
     setGroup(groupsValues[0]);
@@ -91,8 +90,8 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
         label="Group"
         variant="standard"
         onChange={e => {
-          if (profile.groups) {
-            const gr = profile.groups[e.target.value];
+          if (profile?.groups) {
+            const gr = profile?.groups[e.target.value];
             if (gr) setGroup(gr);
           }
         }}

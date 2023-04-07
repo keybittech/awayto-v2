@@ -192,6 +192,8 @@ export const sh = createApi({
   }, {})
 }) as RemoveNever<EndpointInfo<SiteApiRef>> & ReturnType<typeof createApi>;
 
+console.log({ loadedup: Object.keys(sh) })
+
 export const utilSlice = createSlice(utilConfig);
 
 export const store = configureStore({

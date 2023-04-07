@@ -18,7 +18,6 @@ export function ManageGroupHome(props: IProps): JSX.Element {
   const navigate = useNavigate();
 
   const { data : profile } = sh.useGetUserProfileDetailsQuery();
-  if (!profile) return <></>;
 
   const { ManageFeedback, ManageUsers, ManageRoles, ManageRoleActions, ManageForms, ManageServices, ManageSchedules, GroupSecure } = useComponents();
 

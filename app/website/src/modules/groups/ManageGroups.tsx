@@ -16,7 +16,7 @@ import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Logout from '@mui/icons-material/Logout';
 
-import { IGroup, SiteRoles } from 'awayto/core';
+import { IGroup, IUserProfile, SiteRoles } from 'awayto/core';
 import { useAppSelector, useSecure, useGrid, sh, useUtil } from 'awayto/hooks';
 
 import ManageGroupModal from './ManageGroupModal';
@@ -39,14 +39,14 @@ export function ManageGroups(props: IProps): JSX.Element {
   const [selected, setSelected] = useState<string[]>([]);
 
   const { data: profile, refetch: getUserProfileDetails } = sh.useGetUserProfileDetailsQuery();
-  if (!profile) return <></>;
 
-  const { groups } = profile;
+  const { groups } = profile || {};
 
   const actions = useMemo(() => {
+    if (!groups) return [];
     const { length } = selected;
     const gr = groups[selected[0]];
-    const isOwner = gr?.createdSub === profile.sub;
+    const isOwner = gr?.createdSub === profile?.sub;
     const acts = length == 1 ? [
       gr && !isOwner && <Tooltip key={'leave_group'} title="Leave">
         <Button onClick={() => {
@@ -99,10 +99,10 @@ export function ManageGroups(props: IProps): JSX.Element {
         </Button>
       </Tooltip>
     ];
-  }, [selected]);
+  }, [selected, groups]);
 
   const GroupsGrid = useGrid({
-    rows: Object.values(groups),
+    rows: Object.values(groups || {}),
     columns: [
       { flex: 1, headerName: 'Name', field: 'name' },
       { flex: 1, headerName: 'Code', field: 'code' },
@@ -136,10 +136,10 @@ export function ManageGroups(props: IProps): JSX.Element {
   });
 
   useEffect(() => {
-    if (Object.keys(groups).length === 1 && Object.keys(profile.availableUserGroupRoles || {}).length && util.isLoading) {
+    if (groups && Object.keys(groups).length === 1 && Object.keys(profile?.availableUserGroupRoles || {}).length && util.isLoading) {
       setLoading({ isLoading: false, loadingMessage: '' });
     }
-  }, [groups, profile.availableUserGroupRoles, util.isLoading]);
+  }, [groups, profile?.availableUserGroupRoles, util.isLoading]);
 
   return <>
     <Dialog open={dialog === 'create_group'} fullWidth maxWidth="sm">

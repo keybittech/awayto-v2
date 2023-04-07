@@ -19,7 +19,6 @@ import ManageRoleModal from './ManageRoleModal';
 export function ManageRoles(props: IProps): JSX.Element {
 
   const { data: profile, refetch: getUserProfileDetails } = sh.useGetUserProfileDetailsQuery();
-  if (!profile) return <></>;
 
   const [deleteRole] = sh.useDeleteRoleMutation();
 
@@ -32,8 +31,8 @@ export function ManageRoles(props: IProps): JSX.Element {
     const acts = length == 1 ? [
       <Tooltip key={'manage_role'} title="Edit">
         <Button onClick={() => {
-          if (profile.roles) {
-            setRole(profile.roles[selected[0]]);
+          if (profile?.roles) {
+            setRole(profile?.roles[selected[0]]);
             setDialog('manage_role');
             setSelected([]);
           }
@@ -60,7 +59,7 @@ export function ManageRoles(props: IProps): JSX.Element {
   }, [selected]);
 
   const RoleGrid = useGrid({
-    rows: Object.values(profile.roles || {}),
+    rows: Object.values(profile?.roles || {}),
     columns: [
       { flex: 1, headerName: 'Name', field: 'name' },
       { flex: 1, headerName: 'Created', field: 'createdOn', renderCell: ({ row }) => dayjs().to(dayjs.utc(row.createdOn)) }

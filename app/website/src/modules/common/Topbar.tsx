@@ -44,10 +44,9 @@ export function Topbar(props: IProps): JSX.Element {
   const { setTheme } = useUtil();
 
   const { data: profile } = sh.useGetUserProfileDetailsQuery();
-  if (!profile) return <></>;
 
-  const pendingQuotes = useMemo(() => Object.values(profile.quotes || {}), [profile]);
-  const upcomingBookings = useMemo(() => Object.values(profile.bookings || {}), [profile]);
+  const pendingQuotes = useMemo(() => Object.values(profile?.quotes || {}), [profile]);
+  const upcomingBookings = useMemo(() => Object.values(profile?.bookings || {}), [profile]);
 
   const mobileMenuId = 'mobile-app-bar-menu';
   const pendingQuotesMenuId = 'pending-requests-menu';

@@ -26,12 +26,11 @@ declare global {
 export function UpcomingBookingsMenu({ handleMenuClose, upcomingBookingsAnchorEl, upcomingBookingsMenuId, isUpcomingBookingsOpen }: IProps): JSX.Element {
 
   const { data: profile } = sh.useGetUserProfileDetailsQuery();
-  if (!profile) return <></>;
 
   const minsAgo15 = dayjs.duration(-15, 'minutes');
   const startOfDay = dayjs().startOf('day');
 
-  const upcomingBookings = useMemo(() => Object.values(profile.bookings || {}), [profile]);
+  const upcomingBookings = useMemo(() => Object.values(profile?.bookings || {}), [profile]);
 
   const goToBooking = useCallback(() => {
     console.log('navigate here');

@@ -23,13 +23,12 @@ export function ManageRoleActions(): JSX.Element {
   const { data: availableGroupAssignments } = sh.useGetGroupAssignmentsQuery({ groupName })
 
   const { data: profile } = sh.useGetUserProfileDetailsQuery();
-  if (!profile) return <></>;
 
   const { canSubmitAssignments } = useAppSelector(state => state.util);
   
   const [assignments, setAssignments] = useState(availableGroupAssignments || {});
 
-  const groupsValues = useMemo(() => Object.values(profile.groups || {}), [profile]);
+  const groupsValues = useMemo(() => Object.values(profile?.groups || {}), [profile]);
 
   const handleCheck = useCallback((subgroup: string, action: string, add: boolean) => {
     const newAssignments = { ...assignments };

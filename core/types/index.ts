@@ -72,17 +72,18 @@ export const IActions: Record<string, IActionTypes> = {
   test: 'what'
 }
 
-export * from './auth';
 export * from './api';
 export * from './assist';
+export * from './auth';
 export * from './booking_transcript';
 export * from './booking';
 export * from './contact';
 export * from './exchange';
 export * from './feedback';
-export * from './file';
 export * from './file_store';
+export * from './file';
 export * from './form';
+export * from './group_feedback';
 export * from './group_form';
 export * from './group_role';
 export * from './group_schedule';
@@ -92,6 +93,7 @@ export * from './group_user_schedule';
 export * from './group_user';
 export * from './group';
 export * from './lookup';
+export * from './manage_group';
 export * from './manage_role';
 export * from './payment';
 export * from './profile';

@@ -20,12 +20,13 @@ declare global {
 
 export function FeedbackMenu ({ handleMenuClose, feedbackAnchorEl, feedbackMenuId, isFeedbackOpen }: IProps): JSX.Element {
 
+  console.log({ sh })
+
   const [postFeedback] = sh.usePostGroupFeedbackMutation();
 
   const { data: profile } = sh.useGetUserProfileDetailsQuery();
-  if (!profile) return <></>;
   
-  const groupsValues = useMemo(() => Object.values(profile.groups || {}), [profile]);
+  const groupsValues = useMemo(() => Object.values(profile?.groups || {}), [profile]);
   
   const [group, setGroup] = useState(groupsValues[0]);
   const [feedbackTarget, setFeedbackTarget] = useState('site');
@@ -69,8 +70,8 @@ export function FeedbackMenu ({ handleMenuClose, feedbackAnchorEl, feedbackMenuI
             {groupsValues.map(group => <MenuItem key={`group-select${group.id}`} value={group.id}>{group.name}</MenuItem>)}
           </TextField>
         </Grid>
-        {'site' !== feedbackTarget && profile.groups && profile.groups.length && <>
-          <pre>{JSON.stringify(profile.groups[feedbackTarget], null, 2)}</pre>
+        {'site' !== feedbackTarget && profile?.groups && profile?.groups.length && <>
+          <pre>{JSON.stringify(profile?.groups[feedbackTarget], null, 2)}</pre>
         </>}
         <Grid item xs={12}>
           <TextField

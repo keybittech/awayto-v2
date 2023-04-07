@@ -51,9 +51,8 @@ export function ServiceHome(props: IProps): JSX.Element {
   const [getPrompt] = sh.useLazyGetPromptQuery();
 
   const { data : profile } = sh.useGetUserProfileDetailsQuery();
-  if (!profile) return <></>;
 
-  const [group, setGroup] = useState(Object.values(profile.groups || {})[0]);
+  const [group, setGroup] = useState(Object.values(profile?.groups || {})[0]);
 
   const { data: groupServiceAddons, refetch: getGroupServiceAddons } = sh.useGetGroupServiceAddonsQuery({ groupName: group.name });
   const { data: groupForms } = sh.useGetGroupFormsQuery({ groupName: group.name });
@@ -66,7 +65,7 @@ export function ServiceHome(props: IProps): JSX.Element {
   const [tierSuggestions, setTierSuggestions] = useState('');
   const [featureSuggestions, setFeatureSuggestions] = useState('');
 
-  const groupsValues = useMemo(() => Object.values(profile.groups || {}), [profile]);
+  const groupsValues = useMemo(() => Object.values(profile?.groups || {}), [profile]);
   
   useEffect(() => {
     async function go() {
