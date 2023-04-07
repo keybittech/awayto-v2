@@ -45,7 +45,7 @@ export function ManageScheduleStubModal({ editGroupUserScheduleStub, closeModal 
 
   const originalReplacement = editGroupUserScheduleStub?.replacement && { ...editGroupUserScheduleStub.replacement };
 
-  if (editGroupUserScheduleStub.userScheduleId && activeSchedule !== editGroupUserScheduleStub.userScheduleId && dateSlots.length && !firstAvailable.scheduleBracketSlotId) {
+  if (editGroupUserScheduleStub.userScheduleId && activeSchedule !== editGroupUserScheduleStub.userScheduleId && dateSlots?.length && !firstAvailable.scheduleBracketSlotId) {
     const [slot] = dateSlots;
     setFirstAvailable({ ...slot, time: quotedDT(slot.weekStart, slot.startTime) });
     setActiveSchedule(editGroupUserScheduleStub.userScheduleId);

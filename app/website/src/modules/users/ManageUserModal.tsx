@@ -63,7 +63,7 @@ export function ManageUserModal({ editUser, closeModal }: IProps): JSX.Element {
   const handleSubmit = useCallback(async () => {
     if (editUser?.id) {
       const { id, roleId } = profile;
-      const { name } = groupRoles.find(gr => gr.id === roleId) || {};
+      const { name } = groupRoles?.find(gr => gr.id === roleId) || {};
       if (name) {
         await putGroupUser({ groupName, userId: id, roleId, roleName: name }).unwrap();
         await getGroupUsers({ groupName }).unwrap();
@@ -130,7 +130,7 @@ export function ManageUserModal({ editUser, closeModal }: IProps): JSX.Element {
 
               <Grid item>
                 <TextField select fullWidth id="roleId" label="Role" value={profile.roleId} name="roleId" onChange={handleProfile}>
-                  {groupRoles.map(role => <MenuItem key={`${role.id}_user_profile_role_select`} value={role.id}>{role.name}</MenuItem>)}
+                  {groupRoles?.map(role => <MenuItem key={`${role.id}_user_profile_role_select`} value={role.id}>{role.name}</MenuItem>)}
                 </TextField>
               </Grid>
 

@@ -39,7 +39,10 @@ export function RequestQuote(props: IProps): JSX.Element {
   const [_, { data: dateSlots }] = sh.useLazyGetGroupScheduleByDateQuery();
 
   const { data: lookups } = sh.useGetLookupsQuery();
+  if (!lookups) return <></>;  
+
   const { data: profile } = sh.useGetUserProfileDetailsQuery();
+  if (!profile) return <></>;
 
   const [services, setServices] = useState({} as Record<string, IService>);
   const [schedule, setSchedule] = useState({ id: '' } as ISchedule);
@@ -70,7 +73,7 @@ export function RequestQuote(props: IProps): JSX.Element {
     setGroup(groupsValues[0]);
   }
 
-  if (schedule.id && activeSchedule !== schedule.id && dateSlots.length && !firstAvailable.scheduleBracketSlotId) {
+  if (schedule.id && activeSchedule !== schedule.id && dateSlots?.length && !firstAvailable.scheduleBracketSlotId) {
     const [slot] = dateSlots;
     setFirstAvailable({ ...slot, time: quotedDT(slot.weekStart, slot.startTime) });
     setActiveSchedule(schedule.id);
@@ -82,7 +85,7 @@ export function RequestQuote(props: IProps): JSX.Element {
     setTier(serviceTiers[0]);
   }
 
-  if (groupSchedules.length && !schedule.id) {
+  if (groupSchedules?.length && !schedule.id) {
     loadSchedule(groupSchedules[0]);
   }
 
@@ -138,7 +141,7 @@ export function RequestQuote(props: IProps): JSX.Element {
   }, [group, schedule]);
 
   useEffect(() => {
-    if (groupUserSchedules.length && (!tier.id && !Object.keys(services).length && !service.id)) {
+    if (groupUserSchedules?.length && (!tier.id && !Object.keys(services).length && !service.id)) {
       let newServices = {} as Record<string, IService>;
 
       for (const sched of groupUserSchedules) {
@@ -200,14 +203,14 @@ export function RequestQuote(props: IProps): JSX.Element {
                   value={schedule.id}
                   onChange={e => {
                     if (e.target.value !== schedule.id) {
-                      const sched = groupSchedules.find(gs => gs.id === e.target.value);
+                      const sched = groupSchedules?.find(gs => gs.id === e.target.value);
                       if (sched) {
                         loadSchedule(sched);
                       }
                     }
                   }}
                 >
-                  {groupSchedules.map((sched, i) => <MenuItem key={i} value={sched.id}>{sched.name}</MenuItem>)}
+                  {groupSchedules?.map((sched, i) => <MenuItem key={i} value={sched.id}>{sched.name}</MenuItem>)}
                 </TextField>
               </Grid>
               <Grid item xs={4}>

@@ -76,7 +76,7 @@ export function PendingQuotesProvider ({ children }: IProps): JSX.Element {
             disableQuote({ ids: disableQuoteIds }).unwrap().then(() => {
               setSelectedPendingQuotes([]);
               setPendingQuotesChanged(!pendingQuotesChanged);
-              getUserProfileDetails();
+              void getUserProfileDetails();
             }).catch(console.error);
           }).catch(console.error);
         }
@@ -86,7 +86,7 @@ export function PendingQuotesProvider ({ children }: IProps): JSX.Element {
       disableQuote({ ids: selectedPendingQuotes.join(',') }).unwrap().then(() => {
         setSelectedPendingQuotes([]);
         setPendingQuotesChanged(!pendingQuotesChanged);
-        getUserProfileDetails();
+        void getUserProfileDetails();
       }).catch(console.error);
     }
   } as PendingQuotesContextType | null;

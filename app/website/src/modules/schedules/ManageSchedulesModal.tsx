@@ -37,7 +37,7 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
   const [getGroupScheduleMasterById] = sh.useLazyGetGroupScheduleMasterByIdQuery();
 
   const { data: lookups } = sh.useGetLookupsQuery();
-  if (!lookups.timeUnits) return <></>;
+  if (!lookups) return <></>;
   
   const { SelectLookup } = useComponents();
   

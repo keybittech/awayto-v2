@@ -44,7 +44,7 @@ export function ScheduleDatePicker(props: IProps): JSX.Element {
     renderInput={(params) => <TextField fullWidth {...params} />}
     disableHighlightToday={true}
     shouldDisableDate={date => {
-      if (date && dateSlots.length) {
+      if (date && dateSlots?.length) {
         return !dateSlots.filter(s => s.startDate === date.format("YYYY-MM-DD")).length;
       }
       return true;

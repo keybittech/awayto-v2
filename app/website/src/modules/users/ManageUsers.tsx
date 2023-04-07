@@ -29,7 +29,7 @@ export function ManageUsers(props: IProps): JSX.Element {
     const { length } = selected;
     const actions = length == 1 ? [
       <IconButton key={'manage_user'} onClick={() => {
-        setUser(groupUsers.find(gu => gu.id === selected[0]));
+        setUser(groupUsers?.find(gu => gu.id === selected[0]));
         setDialog('manage_user');
         setSelected([]);
       }}>
@@ -51,7 +51,7 @@ export function ManageUsers(props: IProps): JSX.Element {
   }, [selected]);
 
   const UserGrid = useGrid<IGroupUser>({
-    rows: groupUsers,
+    rows: groupUsers || [],
     columns: [
       { flex: 1, headerName: 'Username', field: 'username' },
       { flex: 1, headerName: 'First Name', field: 'firstName' },

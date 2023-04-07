@@ -39,6 +39,8 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
   const { setSnack } = useUtil();
 
   const { data: lookups } = sh.useGetLookupsQuery();
+  if (!lookups) return <></>;
+
   const { data: schedules } = sh.useGetSchedulesQuery();
   const { data: groupServices } = sh.useGetGroupServicesQuery({ groupName: group.name });
   const { data: groupSchedules } = sh.useGetGroupSchedulesQuery({ groupName: group.name });
@@ -63,7 +65,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
   }, [lookups]);
 
   useEffect(() => {
-    if (groupSchedules.length) {
+    if (groupSchedules?.length) {
       if (editSchedule) {
         getScheduleById({ id: editSchedule.id }).catch(console.error);
       } else {
@@ -76,7 +78,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
 
   useEffect(() => {
     if (editSchedule) {
-      const sched = schedules.find(s => s.id === editSchedule.id);
+      const sched = schedules?.find(s => s.id === editSchedule.id);
       if (sched) {
         attachScheduleUnits(sched);
         setSchedule({ ...sched });
@@ -165,7 +167,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
             value={schedule.id}
             onChange={e => {
               if (!editSchedule) {
-                const sched = groupSchedules.find(gs => gs.id === e.target.value);
+                const sched = groupSchedules?.find(gs => gs.id === e.target.value);
                 if (sched) {
                   attachScheduleUnits(sched);
                   setSchedule({ ...sched, brackets: {} });
@@ -173,7 +175,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
               }
             }}
           >
-            {groupSchedules.map(s => {
+            {groupSchedules?.map(s => {
               return <MenuItem
                 key={`schedule-select${s.id}`}
                 value={s.id}
@@ -221,14 +223,14 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
             helperText="Select the services available to be scheduled."
             value={''}
             onChange={e => {
-              const serv = groupServices.find(gs => gs.id === e.target.value);
+              const serv = groupServices?.find(gs => gs.id === e.target.value);
               if (serv) {
                 bracket.services[e.target.value] = serv;
                 setBracket({ ...bracket, services: { ...bracket.services } });
               }
             }}
           >
-            {groupServices.filter(s => !Object.keys(bracket.services).includes(s.id)).map(service => <MenuItem key={`service-select${service.id}`} value={service.id}>{service.name}</MenuItem>)}
+            {groupServices?.filter(s => !Object.keys(bracket.services).includes(s.id)).map(service => <MenuItem key={`service-select${service.id}`} value={service.id}>{service.name}</MenuItem>)}
           </TextField>
 
           <Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>

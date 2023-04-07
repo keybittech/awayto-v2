@@ -32,10 +32,10 @@ export function ScheduleTimePicker(props: IProps): JSX.Element {
   const [_, { data: dateSlots }] = sh.useLazyGetGroupScheduleByDateQuery();
   
   const { data: lookups } = sh.useGetLookupsQuery();
-  if (!lookups.timeUnits) return <></>;
+  if (!lookups) return <></>;
 
   const { data: groupSchedules } = sh.useGetGroupSchedulesQuery({ groupName });
-  if (!groupSchedules.length) return <></>;
+  if (!groupSchedules) return <></>;
 
   const didInit = useRef(false);
 
@@ -66,8 +66,7 @@ export function ScheduleTimePicker(props: IProps): JSX.Element {
       .add(bracketSlotDateDayDiff, TimeUnit.DAY)
       .add(timeHour, TimeUnit.HOUR)
       .add(timeMins, TimeUnit.MINUTE);
-    const [slot] = dateSlots
-      .filter(s => s.startDate === date && duration.hours() === s.hour && duration.minutes() === s.minute);
+    const [slot] = dateSlots?.filter(s => s.startDate === date && duration.hours() === s.hour && duration.minutes() === s.minute) || [];
 
     return slot;
   }
@@ -90,7 +89,7 @@ export function ScheduleTimePicker(props: IProps): JSX.Element {
   }
 
   useEffect(() => {
-    if (dateSlots.length && firstAvailable.time && !didInit.current) {
+    if (dateSlots?.length && firstAvailable.time && !didInit.current) {
       didInit.current = true;
       const quote = getQuote(firstAvailable.time);
       quote && onTimeAccept(quote);
@@ -111,7 +110,7 @@ export function ScheduleTimePicker(props: IProps): JSX.Element {
       if (quote) onTimeAccept(quote);
     }}
     shouldDisableTime={(time, clockType) => {
-      if (dateSlots.length) {
+      if (dateSlots?.length) {
         const currentSlotTime = bracketSlotTime;
         const currentSlotDate = bracketSlotDate || firstAvailable.time;
         // Ignore seconds check because final time doesn't need seconds, so this will cause invalidity

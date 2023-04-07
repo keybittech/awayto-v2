@@ -51,9 +51,9 @@ export function ServiceHome(props: IProps): JSX.Element {
   const [getPrompt] = sh.useLazyGetPromptQuery();
 
   const { data : profile } = sh.useGetUserProfileDetailsQuery();
-  if (!profile.groups) return <></>;
+  if (!profile) return <></>;
 
-  const [group, setGroup] = useState(Object.values(profile.groups)[0]);
+  const [group, setGroup] = useState(Object.values(profile.groups || {})[0]);
 
   const { data: groupServiceAddons, refetch: getGroupServiceAddons } = sh.useGetGroupServiceAddonsQuery({ groupName: group.name });
   const { data: groupForms } = sh.useGetGroupFormsQuery({ groupName: group.name });
@@ -136,7 +136,7 @@ export function ServiceHome(props: IProps): JSX.Element {
                     }
                   }}
                 >
-                  {groupForms.map(form => <MenuItem key={`form-version-select${form.id}`} value={form.id}>{form.name}</MenuItem>)}
+                  {groupForms?.map(form => <MenuItem key={`form-version-select${form.id}`} value={form.id}>{form.name}</MenuItem>)}
                 </TextField>
               </Box>
             </Grid>
@@ -178,8 +178,8 @@ export function ServiceHome(props: IProps): JSX.Element {
                   parentUuid={group.name}
                   parentUuidName='groupName'
                   lookupChange={(val: string[]) => {
-                    const gsa = groupServiceAddons.filter(s => val.includes(s.id)).map(s => s.id);
-                    setServiceTierAddonIds(gsa);
+                    const gsa = groupServiceAddons?.filter(s => val.includes(s.id)).map(s => s.id);
+                    if (gsa) setServiceTierAddonIds(gsa);
                   }}
                   createAction={postServiceAddon}
                   deleteAction={deleteGroupServiceAddon}
@@ -208,7 +208,7 @@ export function ServiceHome(props: IProps): JSX.Element {
                     }
                   }}
                 >
-                  {groupForms.map(form => <MenuItem key={`form-version-select${form.id}`} value={form.id}>{form.name}</MenuItem>)}
+                  {groupForms?.map(form => <MenuItem key={`form-version-select${form.id}`} value={form.id}>{form.name}</MenuItem>)}
                 </TextField>
               </Box>
 
@@ -229,7 +229,7 @@ export function ServiceHome(props: IProps): JSX.Element {
             newServiceTier.createdOn = created;
             newServiceTier.order = Object.keys(newService.tiers).length + 1;
             newServiceTier.addons = serviceTierAddonIds.reduce((m, id, i) => {
-              const addon = groupServiceAddons.find(gs => gs.id === id) || { name: '' };
+              const addon = groupServiceAddons?.find(gs => gs.id === id) || { name: '' };
               return {
                 ...m,
                 [id]: addon && {

@@ -9,7 +9,8 @@ export function ManageFeedbacks(): JSX.Element {
   const { groupName } = useParams();
   if (!groupName) return <></>;
   
-  const { data: feedbacks } = sh.useGetGroupFeedbackQuery({ groupName })
+  const { data: feedbacks } = sh.useGetGroupFeedbackQuery({ groupName });
+  if (!feedbacks) return <></>;
 
   const FeedbackGrid = useGrid({
     rows: feedbacks,

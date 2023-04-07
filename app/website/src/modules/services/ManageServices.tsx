@@ -38,7 +38,7 @@ export function ManageServices(props: IProps): JSX.Element {
     const acts = length == 1 ? [
       <Tooltip key={'manage_service'} title="Edit">
         <Button onClick={() => {
-          setService(groupServices.find(gs => gs.id === selected[0]));
+          setService(groupServices?.find(gs => gs.id === selected[0]));
           setDialog('manage_service');
           setSelected([]);
         }}>
@@ -57,7 +57,7 @@ export function ManageServices(props: IProps): JSX.Element {
             confirmEffect: 'Are you sure you want to delete these services? This cannot be undone.',
             confirmAction: () => {
               deleteGroupService({ groupName, ids: selected.join(',') }).unwrap().then(() => {
-                getGroupServices();
+                void getGroupServices();
                 setSelected([]);
               }).catch(console.error);
             }
@@ -71,7 +71,7 @@ export function ManageServices(props: IProps): JSX.Element {
   }, [selected]);
 
   const ServiceGrid = useGrid({
-    rows: groupServices,
+    rows: groupServices || [],
     columns: [
       { flex: 1, headerName: 'Name', field: 'name' },
       { flex: 1, headerName: 'Created', field: 'createdOn', renderCell: ({ row }) => dayjs().to(dayjs.utc(row.createdOn)) }
@@ -95,7 +95,7 @@ export function ManageServices(props: IProps): JSX.Element {
       <Suspense>
         <ManageServiceModal {...props} editService={service} closeModal={() => {
           setDialog('')
-          getGroupServices();
+          void getGroupServices();
         }} />
       </Suspense>
     </Dialog>

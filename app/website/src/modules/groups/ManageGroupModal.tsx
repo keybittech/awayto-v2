@@ -37,13 +37,15 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
   const { SelectLookup } = useComponents();
 
   const { data : profile, refetch: getUserProfileDetails } = sh.useGetUserProfileDetailsQuery();
+  if (!profile) return <></>;
 
   const [putGroup] = sh.usePutGroupMutation();
   const [postGroup] = sh.usePostGroupMutation();
   const [getPrompt] = sh.useLazyGetPromptQuery();
   const [postRole] = sh.usePostRoleMutation();
   const [deleteRole] = sh.useDeleteRoleMutation();
-  const [checkGroupName, { data: { isValid: groupNameValid } }] = sh.useLazyCheckGroupNameQuery();
+  const [checkGroupName, { data: nameCheck }] = sh.useLazyCheckGroupNameQuery();
+  const { isValid: groupNameValid } = nameCheck || {};
 
   const [defaultRoleId, setDefaultRoleId] = useState(editGroup?.defaultRoleId || '');
   const [roleIds, setRoleIds] = useState<string[]>([]);
@@ -148,8 +150,8 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
             if (existingId) {
               setRoleIds([...roleIds, existingId])
             } else {
-              postRole({ name: s }).unwrap().then(newRole => {
-                getUserProfileDetails();
+              postRole({ name: s }).unwrap().then(async newRole => {
+                await getUserProfileDetails();
                 !roleIds.includes(newRole.id) && setRoleIds([...roleIds, newRole.id]);
               }).catch(console.error);
             }

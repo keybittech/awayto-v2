@@ -46,7 +46,7 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
     const { length } = selected;
     const acts = length == 1 ? [
       <IconButton key={'manage_schedule'} onClick={() => {
-        setSchedule(schedules.find(s => s.id === selected[0]));
+        setSchedule(schedules?.find(s => s.id === selected[0]));
         setDialog('manage_schedule');
         setSelected([]);
       }}>
@@ -65,7 +65,7 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
               const ids = selected.join(',');
               await deleteGroupUserScheduleByUserScheduleId({ groupName: group.name, ids }).unwrap();
               await deleteSchedule({ ids }).unwrap();
-              getUserProfileDetails();
+              void getUserProfileDetails();
               setSnack({ snackType: 'success', snackOn: 'Successfully removed schedule records.' });
             }
           });
@@ -77,7 +77,7 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
   }, [selected, group]);
 
   const ScheduleBracketGrid = useGrid({
-    rows: Object.values(schedules),
+    rows: schedules || [],
     columns: [
       { flex: 1, headerName: 'Name', field: 'name' },
       { flex: 1, headerName: 'Created', field: 'createdOn', renderCell: ({ row }) => dayjs().to(dayjs.utc(row.createdOn)) }
@@ -102,7 +102,7 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
       <Box pt={2} sx={{ width: '100%' }}>
         <Typography variant="button">Schedules:</Typography>
         <Button key={'create_schedule_button'} onClick={() => {
-          if (schedules.length) {
+          if (schedules?.length) {
             setSchedule(undefined);
             setDialog('manage_schedule');
           } else {

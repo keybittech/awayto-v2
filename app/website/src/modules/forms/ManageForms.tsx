@@ -24,6 +24,7 @@ export function ManageForms(props: IProps): JSX.Element {
   
   const [deleteGroupForm] = sh.useDeleteGroupFormMutation();
   const { data: groupForms, refetch: getGroupForms } = sh.useGetGroupFormsQuery({ groupName });
+  if (!groupForms) return <></>;
 
   const [form, setForm] = useState<IGroupForm>();
   const [selected, setSelected] = useState<string[]>([]);

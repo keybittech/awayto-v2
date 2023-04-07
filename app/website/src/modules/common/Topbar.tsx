@@ -43,7 +43,8 @@ export function Topbar(props: IProps): JSX.Element {
   const { theme } = useAppSelector(state => state.util);
   const { setTheme } = useUtil();
 
-  const { data : profile } = sh.useGetUserProfileDetailsQuery();
+  const { data: profile } = sh.useGetUserProfileDetailsQuery();
+  if (!profile) return <></>;
 
   const pendingQuotes = useMemo(() => Object.values(profile.quotes || {}), [profile]);
   const upcomingBookings = useMemo(() => Object.values(profile.bookings || {}), [profile]);

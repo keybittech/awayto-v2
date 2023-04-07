@@ -19,7 +19,10 @@ export function ManageSchedules(props: IProps): JSX.Element {
   const { groupName } = useParams();
   if (!groupName) return <></>;
 
-  const { data: { stubs }, refetch: getGroupUserScheduleStubs } = sh.useGetGroupUserScheduleStubsQuery({ groupName })
+  const { data: schedules, refetch: getGroupUserScheduleStubs } = sh.useGetGroupUserScheduleStubsQuery({ groupName })
+  if (!schedules) return <></>;
+
+  const { stubs } = schedules;
 
   const [stub, setStub] = useState<IGroupUserScheduleStub>();
   const [selected, setSelected] = useState<string[]>([]);
@@ -31,7 +34,7 @@ export function ManageSchedules(props: IProps): JSX.Element {
       <Tooltip key={'view_schedule_details'} title="View Details">
         <IconButton key={'manage_schedule'} onClick={() => {
           if (stubs?.length) {
-            setStub(stubs.find(s => s.userScheduleId === selected[0]));
+            setStub(stubs?.find(s => s.userScheduleId === selected[0]));
             setDialog('manage_schedule');
             setSelected([]);
           }
@@ -64,7 +67,7 @@ export function ManageSchedules(props: IProps): JSX.Element {
       <Suspense>
         <ManageScheduleStubModal {...props} editGroupUserScheduleStub={stub} closeModal={() => {
           setDialog('');
-          getGroupUserScheduleStubs();
+          void getGroupUserScheduleStubs();
         }} />
       </Suspense>
     </Dialog>

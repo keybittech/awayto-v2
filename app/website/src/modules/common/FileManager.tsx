@@ -15,6 +15,7 @@ declare global {
 export function FileManager(): JSX.Element {
 
   const { data: files } = sh.useGetFilesQuery();
+  if (!files) return <></>;
   
   const fileSelectRef = useRef<HTMLInputElement>(null);
 

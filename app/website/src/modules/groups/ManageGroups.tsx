@@ -39,8 +39,8 @@ export function ManageGroups(props: IProps): JSX.Element {
   const [selected, setSelected] = useState<string[]>([]);
 
   const { data: profile, refetch: getUserProfileDetails } = sh.useGetUserProfileDetailsQuery();
+  if (!profile) return <></>;
 
-  if (!profile.groups) return <></>;
   const { groups } = profile;
 
   const actions = useMemo(() => {
@@ -146,7 +146,7 @@ export function ManageGroups(props: IProps): JSX.Element {
       <Suspense>
         <ManageGroupModal {...props} editGroup={group} closeModal={() => {
           setDialog('');
-          getUserProfileDetails();
+          void getUserProfileDetails();
         }} />
       </Suspense>
     </Dialog>
@@ -155,7 +155,7 @@ export function ManageGroups(props: IProps): JSX.Element {
       <Suspense>
         <JoinGroupModal {...props} editGroup={group} closeModal={() => {
           setDialog('');
-          getUserProfileDetails();
+          void getUserProfileDetails();
         }} />
       </Suspense>
     </Dialog>
@@ -164,7 +164,7 @@ export function ManageGroups(props: IProps): JSX.Element {
       <Suspense>
         <ManageGroupModal {...props} editGroup={group} closeModal={() => {
           setDialog('');
-          getUserProfileDetails();
+          void getUserProfileDetails();
         }} />
       </Suspense>
     </Dialog>

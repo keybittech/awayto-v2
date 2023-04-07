@@ -19,6 +19,7 @@ import ManageRoleModal from './ManageRoleModal';
 export function ManageRoles(props: IProps): JSX.Element {
 
   const { data: profile, refetch: getUserProfileDetails } = sh.useGetUserProfileDetailsQuery();
+  if (!profile) return <></>;
 
   const [deleteRole] = sh.useDeleteRoleMutation();
 
@@ -48,7 +49,7 @@ export function ManageRoles(props: IProps): JSX.Element {
       <Tooltip key={'delete_role'} title="Delete">
         <Button onClick={async () => {
           await deleteRole({ ids: selected.join(',') }).unwrap();
-          getUserProfileDetails();
+          void getUserProfileDetails();
           setSelected([]);
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Delete</Typography>
@@ -86,7 +87,7 @@ export function ManageRoles(props: IProps): JSX.Element {
       <Suspense>
         <ManageRoleModal {...props} editRole={role} closeModal={() => {
           setDialog('')
-          getUserProfileDetails();
+          void getUserProfileDetails();
         }} />
       </Suspense>
     </Dialog>

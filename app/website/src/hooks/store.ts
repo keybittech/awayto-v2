@@ -8,7 +8,7 @@ import { configureStore, AnyAction, createSlice, Middleware, Reducer, Store, Thu
 import { createApi, setupListeners } from '@reduxjs/toolkit/query/react';
 
 import { QueryDefinition, MutationDefinition } from '@reduxjs/toolkit/dist/query/endpointDefinitions';
-import { MutationTrigger, LazyQueryTrigger, UseLazyQueryLastPromiseInfo } from '@reduxjs/toolkit/dist/query/react/buildHooks';
+import { MutationTrigger, LazyQueryTrigger, UseLazyQueryLastPromiseInfo, UseQuery, UseLazyQuery, UseMutation } from '@reduxjs/toolkit/dist/query/react/buildHooks';
 
 import { EndpointType, RemoveNever, ReplaceVoid, siteApiRef, SiteApiRef, utilConfig } from 'awayto/core';
 
@@ -129,7 +129,7 @@ type MutationKeys<T> = {
 
 type EndpointInfo<T> = {
   [K in QueryKeys<T>]: K extends `use${infer U}Query`
-  ? Uncapitalize<U> extends keyof T ? CustomUseQuery<
+  ? Uncapitalize<U> extends keyof T ? UseQuery<
     SiteQuery<
       ReplaceVoid<Extract<T[Uncapitalize<U>], { queryArg: unknown }>['queryArg']>,
       ReplaceVoid<Extract<T[Uncapitalize<U>], { resultType: unknown }>['resultType']>
@@ -138,7 +138,7 @@ type EndpointInfo<T> = {
   : never;
 } & {
     [K in LazyQueryKeys<T>]: K extends `useLazy${infer U}Query`
-    ? Uncapitalize<U> extends keyof T ? CustomUseLazyQuery<
+    ? Uncapitalize<U> extends keyof T ? UseLazyQuery<
       SiteQuery<
         ReplaceVoid<Extract<T[Uncapitalize<U>], { queryArg: unknown }>['queryArg']>,
         ReplaceVoid<Extract<T[Uncapitalize<U>], { resultType: unknown }>['resultType']>
@@ -147,7 +147,7 @@ type EndpointInfo<T> = {
     : never;
   } & {
     [K in MutationKeys<T>]: K extends `use${infer U}Mutation`
-    ? Uncapitalize<U> extends keyof T ? CustomUseMutation<
+    ? Uncapitalize<U> extends keyof T ? UseMutation<
       SiteMutation<
         ReplaceVoid<Extract<T[Uncapitalize<U>], { queryArg: unknown }>['queryArg']>,
         ReplaceVoid<Extract<T[Uncapitalize<U>], { resultType: unknown }>['resultType']>

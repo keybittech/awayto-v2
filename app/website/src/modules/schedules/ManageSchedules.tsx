@@ -39,7 +39,7 @@ export function ManageSchedules(props: IProps): JSX.Element {
     const acts = length == 1 ? [
       <Tooltip key={'manage_schedule'} title="Edit">
         <Button onClick={() => {
-          setSchedule(groupSchedules.find(gs => gs.id === selected[0]));
+          setSchedule(groupSchedules?.find(gs => gs.id === selected[0]));
           setDialog('manage_schedule');
           setSelected([]);
         }}>
@@ -58,7 +58,7 @@ export function ManageSchedules(props: IProps): JSX.Element {
             confirmEffect: 'Are you sure you want to delete these schedules? This cannot be undone.',
             confirmAction: async () => {
               await deleteGroupSchedule({ groupName, ids: selected.join(',') }).unwrap();
-              getGroupSchedules();
+              void getGroupSchedules();
               setSelected([]);
             }
           });
@@ -71,7 +71,7 @@ export function ManageSchedules(props: IProps): JSX.Element {
   }, [selected, groupName]);
 
   const ScheduleGrid = useGrid({
-    rows: groupSchedules,
+    rows: groupSchedules || [],
     columns: [
       { flex: 1, headerName: 'Name', field: 'name' },
       { flex: 1, headerName: 'Created', field: 'createdOn', renderCell: ({ row }) => dayjs().to(dayjs.utc(row.createdOn)) }
@@ -98,7 +98,7 @@ export function ManageSchedules(props: IProps): JSX.Element {
       <Suspense>
         <ManageSchedulesModal {...props} editSchedule={schedule} closeModal={() => {
           setDialog('');
-          getGroupSchedules();
+          void getGroupSchedules();
         }} />
       </Suspense>
     </Dialog>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, Suspense, startTransition, useRef } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import keycloak from './keycloak';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
@@ -39,8 +39,7 @@ export default function App (props: IProps): JSX.Element {
   const { Onboard, ConfirmAction } = useComponents();
   const { theme, snackOn, snackType, snackRequestId, isLoading, loadingMessage } = useAppSelector(state => state.util);
   const { data: profile, refetch } = sh.useGetUserProfileDetailsQuery();
-
-  console.log({ profile });
+  if (!profile) return <></>;
 
   const [ready, setReady] = useState(false);
   const [onboarding, setOnboarding] = useState(false);

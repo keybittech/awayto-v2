@@ -22,8 +22,8 @@ export function FeedbackMenu ({ handleMenuClose, feedbackAnchorEl, feedbackMenuI
 
   const [postFeedback] = sh.usePostGroupFeedbackMutation();
 
-  const { data : profile } = sh.useGetUserProfileDetailsQuery();
-  if (!profile.groups) return <></>;
+  const { data: profile } = sh.useGetUserProfileDetailsQuery();
+  if (!profile) return <></>;
   
   const groupsValues = useMemo(() => Object.values(profile.groups || {}), [profile]);
   
@@ -69,7 +69,7 @@ export function FeedbackMenu ({ handleMenuClose, feedbackAnchorEl, feedbackMenuI
             {groupsValues.map(group => <MenuItem key={`group-select${group.id}`} value={group.id}>{group.name}</MenuItem>)}
           </TextField>
         </Grid>
-        {'site' !== feedbackTarget && <>
+        {'site' !== feedbackTarget && profile.groups && profile.groups.length && <>
           <pre>{JSON.stringify(profile.groups[feedbackTarget], null, 2)}</pre>
         </>}
         <Grid item xs={12}>
