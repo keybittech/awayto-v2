@@ -13,11 +13,13 @@
   <button id="skip" style="position:fixed;left:0;top:0;right:0;height:10vh">SKIP</button>
   <div id="connection">Click to Connect: <button id="connect">Connect</button></div>
   <div>Status: <span id="status">Disconnected</span></div>
+  <ul id="users" style="position:fixed;top:10vh;right:0;width:150px;"></ul>
   <div id="messenger" style="display:none">
     <div id="messages"></div>
   </div>
 
   <script>
+    let users = [];
     let ready = false;
     let socket = null;
     let reconnecting = false;
@@ -35,6 +37,7 @@
 
       socket.addEventListener('close', (event) => {
         console.log('WebSocket connection closed:', event);
+        document.getElementById('users').innerHTML = '';
         document.getElementById('status').innerHTML = 'Disconnected';
         if (!reconnecting) {
           reconnecting = true;
@@ -54,6 +57,10 @@
           skip()
         }
 
+        if (['join','part'].includes(payload.action)) {
+          handleJoinLeave(payload);
+        }
+
         const message = payload.message;
         
         if (message) {
@@ -62,6 +69,16 @@
           messages.innerHTML = messages.innerHTML + `<p>${message}</p>`;
         }
       });
+    }
+
+    function handleJoinLeave(event) {
+      console.log({ event })
+      if (event.action === 'join') {
+        users.push(event.username)
+      } else {
+        users = users.filter(u => u !== event.username)
+      }
+      document.getElementById('users').innerHTML = users.map(u => `<li>${u}</li>`)
     }
 
     function attemptReconnect() {

@@ -3,7 +3,7 @@ const Dotenv = require('dotenv-webpack');
 
 module.exports = {
   context: __dirname,
-  entry: './src/api.ts',
+  entry: './src/apiserver.ts',
   mode: 'production',
   output: {
     path: path.resolve(__dirname, 'build'),

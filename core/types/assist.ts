@@ -5,6 +5,10 @@ import { ApiHandler, ApiOptions, EndpointType, siteApiHandlerRef, siteApiRef } f
  * @category Assist
  */
 export enum IPrompts {
+  CREATE_API = 'create_api',
+  CREATE_API_BACKEND = 'create_api_backend',
+  CREATE_TYPE = 'create_type',
+  EDIT_FILE = 'edit_file',
   SUGGEST_ROLE = 'suggest_role',
   SUGGEST_SERVICE = 'suggest_service',
   SUGGEST_TIER = 'suggest_tier',

@@ -1,13 +1,22 @@
 import * as WebSocket from 'ws';
 import * as https from 'https';
 import fetch from 'node-fetch';
+import fs from 'fs';
 import redis from './redis';
+import { generatePrompt, generatePromptHistory, getChatCompletionPrompt, getChatCompletionPromptFromHistory, getCompletionPrompt } from './openai';
+import { IPrompts } from 'awayto/core';
+import path from 'path';
+import { Project, SyntaxKind } from 'ts-morph';
 
 const {
   TWITCH_CLIENT_ID,
   TWITCH_CLIENT_SECRET,
   TWITCH_CLIENT_ACCESS_TOKEN
 } = process.env as { [prop: string]: string }
+
+const project = new Project({
+  tsConfigFilePath: './projectts.json'
+});
 
 export const TWITCH_REDIRECT_URI = 'https://wcapp.site.com/api/twitch/webhook'
 
@@ -25,7 +34,7 @@ export async function connectToTwitch(httpsServer: https.Server) {
     let server_access_token = await redis.get('twitch_token');
 
     while (!server_access_token) {
-      await new Promise (res => setTimeout(res, 5000))
+      await new Promise(res => setTimeout(res, 5000))
       console.log(`Twitch login required https://id.twitch.tv/oauth2/authorize?client_id=${TWITCH_CLIENT_ID}&redirect_uri=${encodeURIComponent(TWITCH_REDIRECT_URI)}&response_type=code&scope=channel:read:redemptions`);
       server_access_token = await redis.get('twitch_token');
     }
@@ -33,7 +42,7 @@ export async function connectToTwitch(httpsServer: https.Server) {
     const tokenData = [{
       name: 'client_id',
       value: TWITCH_CLIENT_ID
-    },{
+    }, {
       name: 'client_secret',
       value: TWITCH_CLIENT_SECRET
     }, {
@@ -76,23 +85,25 @@ export async function connectToTwitch(httpsServer: https.Server) {
 
       const rewardCall = await fetchWithTokenRefresh(`https://api.twitch.tv/helix/channel_points/custom_rewards?broadcaster_id=${user.id}`, headers);
 
-      
+
       if (rewardCall.ok) {
         const rewards: Record<string, Record<string, string>> = {};
         const { data: rewardArray } = await rewardCall.json() as { data: Record<string, string>[] };
-        
+
         rewardArray.forEach(reward => {
           rewards[reward.id] = reward;
         });
 
+        console.log({ rewards: rewardArray.map(r => r.title) })
+
         const ws = new WebSocket.WebSocket("wss://irc-ws.chat.twitch.tv:443");
-  
+
         setInterval(() => {
           ws.send("PING :tmi.twitch.tv");
         }, 1 * 60 * 1000);
 
         ws.on('error', console.error);
-    
+
         ws.on('open', async function () {
           console.log('connection open');
           console.log('Open events at http://wcapp.site.com/api/twitch/events');
@@ -106,11 +117,11 @@ export async function connectToTwitch(httpsServer: https.Server) {
           ws.send(`NICK chatjoept`);
           ws.send('JOIN #chatjoept');
         });
-    
+
         ws.on('message', async function (data: Buffer) {
           const body = data.toString();
           const contents: Record<string, string> = {};
-          
+
           if (body.startsWith(":tmi.twitch.tv PONG")) {
             console.log("Received PONG from Twitch IRC server");
             return;
@@ -130,22 +141,34 @@ export async function connectToTwitch(httpsServer: https.Server) {
 
           if (data.includes(' PRIVMSG #chatjoept :')) {
             const [payload, message] = body.split(" PRIVMSG #chatjoept :");
+            let messageBuilder = message;
             const payloadItems = payload.slice(1).split(';');
-    
+
             payloadItems.forEach(item => {
               const [key, value] = item.split('=');
               contents[key.replace(/-./g, x => x[1].toUpperCase())] = value;
             });
-    
+
+            console.log({ contents })
+
             if (contents.customRewardId) {
               if ('Skip TTS' === rewards[contents.customRewardId].title) {
                 contents.action = 'skip';
+                messageBuilder = 'skipped the poor bastard, ' + messageBuilder
               }
-              
-              contents.message = createWordMix(contents.displayName, message.trimEnd());
+
+              if ('Generate API' === rewards[contents.customRewardId].title) {
+                messageBuilder = await generateApi(messageBuilder.trimEnd());
+              }
+
+              if ('Edit File' === rewards[contents.customRewardId].title) {
+                messageBuilder = await editFile(messageBuilder.trimEnd());
+              }
+
+              contents.message = createWordMix(contents.displayName, messageBuilder.trimEnd());
             }
           }
-        
+
           if (Object.keys(contents).length) {
             localsocketserver.clients.forEach((localsocket) => {
               if (localsocket.readyState == 1) {
@@ -159,6 +182,104 @@ export async function connectToTwitch(httpsServer: https.Server) {
   } catch (error) {
     console.log({ error })
   }
+}
+
+const isValidName = (name: string): boolean => {
+  const regex = /^I[A-Z][a-zA-Z]*$/;
+  return regex.test(name);
+};
+
+const toSnakeCase = (name: string): string => {
+  if (!isValidName(name)) {
+    throw new Error("Invalid name format");
+  }
+  return name.substr(1).replace(/[A-Z]/g, (match) => `_${match.toLowerCase()}`).slice(1);
+};
+
+const toTitleCase = (name: string): string => {
+  if (!isValidName(name)) {
+    throw new Error("Invalid name format");
+  }
+  return name.substr(1).replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase());
+};
+
+async function editFile(fileParts: string) {
+  const [fileName, ...suggestedEdits] = fileParts.split(' ');
+
+  const sourceFile = project.getSourceFiles().filter(sf => sf.getFilePath().toLowerCase().includes(fileName.toLowerCase()))[0];
+
+  if (sourceFile) {
+    const editGenerationPrompt = generatePromptHistory(IPrompts.EDIT_FILE, suggestedEdits.join(' ') + ' \n\n###\n\n ' + sourceFile.getText());
+
+    let generatedEdits = await getChatCompletionPromptFromHistory(editGenerationPrompt);
+    if (generatedEdits.includes('```typescript')) {
+      generatedEdits = generatedEdits.split('```typescript')[1].split('```')[0];
+    }
+
+    sourceFile.replaceWithText(generatedEdits);
+    await project.save();
+    return 'successfully edited a file, thanks for all the hard work';
+  } else {
+    return 'could not find any file you\'re talking about homegirl';
+  }
+}
+
+async function generateApi(typeName: string) {
+  if (!isValidName(typeName)) {
+    return 'tried to create an api but failed because they did not use the right format';
+  }
+
+  const typeGenerationPrompt = generatePrompt(IPrompts.CREATE_TYPE, typeName);
+  let generatedType = (await getChatCompletionPrompt(typeGenerationPrompt));
+  if (generatedType.includes('```typescript')) {
+    generatedType = generatedType.split('```typescript')[1].split('```')[0];
+  }
+
+  const coreTypesPath = path.join(__dirname, `../../core/types/${toSnakeCase(typeName)}.ts`);
+
+  const comment = `/*\n* @category${toTitleCase(typeName)}\n*/\n`;
+
+  fs.appendFileSync(coreTypesPath, `${comment}${generatedType}\n\n`);
+
+  const apiGenerationPrompt = generatePromptHistory(IPrompts.CREATE_API, generatedType);
+  let generatedApi = await getChatCompletionPromptFromHistory(apiGenerationPrompt);
+  if (generatedApi.includes('```typescript')) {
+    generatedApi = generatedApi.split('```typescript')[1].split('```')[0];
+  }
+
+  fs.appendFileSync(coreTypesPath, `${comment}${generatedApi}\n\n`);
+
+  const sourceFile = project.addSourceFileAtPath(coreTypesPath);
+
+  const variables = sourceFile.getVariableDeclarations();
+  const apiEndpoints: string[] = [];
+
+  for (const v of variables) {
+    if (v.getName().endsWith('Api')) {
+      const initializer = v.getInitializer();
+      if (initializer && initializer.getKind() === SyntaxKind.ObjectLiteralExpression) {
+        initializer.getType().getProperties().forEach(p => { apiEndpoints.push(p.getName()) });
+      }
+    }
+  }
+
+  try {
+
+    const apiBackendGenerationPrompt = generatePromptHistory(IPrompts.CREATE_API_BACKEND, generatedType + ' ' + apiEndpoints);
+    let generatedApiBackend = await getChatCompletionPromptFromHistory(apiBackendGenerationPrompt);
+    if (generatedApiBackend.includes('```')) {
+      generatedApiBackend = generatedApiBackend.split('```')[1].split('```')[0];
+    }
+
+    sourceFile.insertText(sourceFile.getEnd(), `${comment}${generatedApiBackend}\n\n`)
+
+    sourceFile.fixMissingImports();
+    await project.save();
+  } catch (error) {
+    console.error(error);
+  }
+
+  return `successfully created an entire api ${typeName} all by themselves, awayto go, champ!`;
 }
 
 async function getToken() {
@@ -470,13 +591,13 @@ function createWordMix(user: string, johnsMessage: string): string {
   if (randomChoice === 0) {
     const randomPhysicalPreposition = getRandomElement(physicalPrepositions);
     const randomPhysicalLocation = getRandomElement(physicalLocations);
-    return `${user} says, ${randomPhysicalPreposition} ${randomPhysicalLocation}, ${johnsMessage}`;
+    return `${user}, ${randomPhysicalPreposition} ${randomPhysicalLocation}, ${johnsMessage}`;
   } else if (randomChoice === 1) {
     const randomAnimalPreposition = getRandomElement(animalPrepositions);
     const randomAnimalSituation = getRandomElement(animalSituations);
-    return `${user} says, ${randomAnimalPreposition} ${randomAnimalSituation}, ${johnsMessage}`;
+    return `${user}, ${randomAnimalPreposition} ${randomAnimalSituation}, ${johnsMessage}`;
   } else {
     const randomSituationalPhrase = getRandomElement(situationalPhrases);
-    return `${user} says, ${randomSituationalPhrase}, ${johnsMessage}`;
+    return `${user}, ${randomSituationalPhrase}, ${johnsMessage}`;
   }
 }

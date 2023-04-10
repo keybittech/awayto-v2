@@ -31,6 +31,7 @@
     "pg-native": "^3.0.1",
     "pg-promise": "^11.4.3",
     "redis": "^4.6.4",
+    "ts-morph": "^18.0.0",
     "twitch": "^4.6.7",
     "twitch-auth": "^4.6.7",
     "utf-8-validate": "^6.0.2",
