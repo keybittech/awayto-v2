@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config({ path: __dirname + '../.env' })
 
+import fetch from 'node-fetch';
 import dayjs from 'dayjs';
 
 import duration from 'dayjs/plugin/duration';
@@ -17,6 +18,7 @@ import 'dayjs/locale/en';
 import fs from 'fs';
 import https from 'https';
 import express, { Express, NextFunction, Request, Response } from 'express';
+import * as WebSocket from 'ws';
 import cookieSession from 'cookie-session';
 import cookieParser from 'cookie-parser';
 import httpProxy from 'http-proxy';
@@ -34,11 +36,16 @@ import redis, { rateLimitResource, redisProxy } from './modules/redis';
 import logger from './modules/logger';
 import completions from './modules/openai';
 
-import { DecodedJWTToken, UserGroupRoles, StrategyUser, ApiErrorResponse, IGroup, AuthBody, siteApiRef, AuthProps, siteApiHandlerRef, ApiProps, EndpointType, validateRequestBody } from 'awayto/core'
+import { DecodedJWTToken, UserGroupRoles, StrategyUser, ApiErrorResponse, IGroup, AuthBody, siteApiRef, AuthProps, siteApiHandlerRef, ApiProps, EndpointType, validateRequestBody } from 'awayto/core';
+
+import { connectToTwitch, TWITCH_REDIRECT_URI } from './modules/twitch';
+import path from 'path';
 
 const {
   SOCK_HOST,
   SOCK_PORT,
+  TWITCH_CLIENT_ID,
+  TWITCH_CLIENT_SECRET,
   KC_API_CLIENT_SECRET
 } = process.env as { [prop: string]: string } & { PG_PORT: number };
 
@@ -512,9 +519,44 @@ async function go() {
     });
 
     // default protected route /test
-    app.get('/api/twitch/webhook', (req, res, next) => {
-      console.log(req)
-      res.status(404).send();
+    app.get('/api/twitch/webhook', async (req, res, next) => {
+      const { code } = req.query;
+
+      const tokenData = [{
+        name: 'client_id',
+        value: TWITCH_CLIENT_ID
+      }, {
+        name: 'client_secret',
+        value: TWITCH_CLIENT_SECRET
+      }, {
+        name: 'code',
+        value: code
+      }, {
+        name: 'grant_type',
+        value: 'authorization_code'
+      }, {
+        name: 'redirect_uri',
+        value: TWITCH_REDIRECT_URI
+      }];
+    
+      const tokenRequest = await fetch('https://id.twitch.tv/oauth2/token', {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        method: 'POST',
+        body: tokenData.map(d => `${encodeURIComponent(d.name)}=${encodeURIComponent(d.value as string)}`).join('&')
+      });
+    
+      const { access_token, refresh_token } = await tokenRequest.json() as { access_token: string, refresh_token: string };
+    
+      await redis.set('twitch_token', access_token as string);
+      await redis.set('twitch_refresh', refresh_token as string);
+
+      res.status(200).send();
+    });
+
+    app.get('/api/twitch/events', (req, res) => {
+      res.sendFile(path.join(__dirname, '../src/modules/twitch_events.html'));
     });
 
     // Health Check
@@ -538,6 +580,8 @@ async function go() {
     httpsServer.listen(9443, () => {
       console.log('Server listening on port 9443');
     });
+
+    connectToTwitch(httpsServer);
 
   } catch (error) {
 

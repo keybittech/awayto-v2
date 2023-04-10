@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TTS Listener</title>
+  <style>
+    body {
+      background-color: #555;
+      padding-top: 10vh;
+    }
+  </style>
+</head>
+<body>
+  <button id="skip" style="position:fixed;left:0;top:0;right:0;height:10vh">SKIP</button>
+  <div id="connection">Click to Connect: <button id="connect">Connect</button></div>
+  <div>Status: <span id="status">Disconnected</span></div>
+  <div id="messenger" style="display:none">
+    <div id="messages"></div>
+  </div>
+
+  <script>
+    let ready = false;
+    let socket = null;
+    let reconnecting = false;
+
+    function getSocket() {
+      if (reconnecting) return;
+
+      socket = null;
+      socket = new WebSocket('wss://wcapp.site.com:9443');
+
+      socket.addEventListener('open', (event) => {
+        console.log('WebSocket connection opened:', event);
+        document.getElementById('status').innerHTML = 'Connected';
+      });
+
+      socket.addEventListener('close', (event) => {
+        console.log('WebSocket connection closed:', event);
+        document.getElementById('status').innerHTML = 'Disconnected';
+        if (!reconnecting) {
+          reconnecting = true;
+          setTimeout(attemptReconnect, 1000);
+        }
+      });
+
+      socket.addEventListener('error', (event) => {
+        console.log('WebSocket error:', event);
+      });
+
+      socket.addEventListener('message', (event) => {
+        const payload = JSON.parse(event.data);
+        console.log({ payload })
+
+        if (payload.action === 'skip') {
+          skip()
+        }
+
+        const message = payload.message;
+        
+        if (message) {
+          speak(message);
+          const messages = document.getElementById('messages');
+          messages.innerHTML = messages.innerHTML + `<p>${message}</p>`;
+        }
+      });
+    }
+
+    function attemptReconnect() {
+      console.log('Attempting reconnection');
+      reconnecting = false;
+      getSocket();
+    }
+
+    function connect() {
+      if (socket) return;
+      getSocket();
+      
+      document.getElementById('connection').style = 'display:none';
+      document.getElementById('messenger').style = 'display:block';
+    }
+
+    document.getElementById('connect').addEventListener('click', connect);
+
+    function speak(text) {
+      if ('speechSynthesis' in window) {
+        console.log('Attempting to speak:', text);
+        currentUtterance = new SpeechSynthesisUtterance(text);
+        currentUtterance.onstart = () => console.log('Utterance started:', text);
+        currentUtterance.onerror = (e) => console.error('Utterance error:', e);
+        currentUtterance.onend = () => console.log('Utterance ended:', text);
+        window.speechSynthesis.speak(currentUtterance);
+      } else {
+        console.error('Speech synthesis is not supported in this browser.');
+      }
+    }
+
+    function skip() {
+      window.speechSynthesis.cancel();
+    }
+    
+    document.getElementById('skip').addEventListener('click', skip);
+
+  </script>
+</body>
+</html>
