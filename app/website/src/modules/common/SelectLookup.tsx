@@ -78,7 +78,7 @@ export function SelectLookup({ lookupChange, disabled = false, invalidValues = [
   }, [newLookup, createAction, attachAction, attachName, parentUuid, parentUuidName]);
 
   useEffect(() => {
-    if (lookups?.length && isStringArray(lookupValue) && lookupUpdater) {
+    if (lookupValue && lookups?.length && isStringArray(lookupValue) && lookupUpdater) {
       const updater = lookups.find(l => l.name === lookupUpdater);
       if (updater?.id) {
         lookupChange([ ...lookupValue, updater.id ]);
@@ -88,7 +88,7 @@ export function SelectLookup({ lookupChange, disabled = false, invalidValues = [
   }, [lookups, lookupValue, lookupUpdater]);
 
   useEffect(() => {
-    if (lookups && lookups?.length && noEmptyValue && !lookupValue?.length) {
+    if (lookupValue && lookups && lookups?.length && noEmptyValue && !lookupValue?.length) {
       const firstLookup = lookups.at(0) as Required<ILookup>;
       lookupChange(isStringArray(lookupValue) ? [firstLookup.id] : firstLookup.id);
     }

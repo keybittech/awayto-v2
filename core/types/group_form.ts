@@ -6,6 +6,7 @@ import { IUserProfile } from './profile';
 
 /**
  * @category Group Form
+ * @purpose extends a Form to include information about the Group it is attached to
  */
 export type IGroupForm = IForm & {
   id: string;
@@ -13,11 +14,6 @@ export type IGroupForm = IForm & {
   formId: string;
   groupName: string;
 };
-
-/**
- * @category Group Form
- */
-export type IGroupForms = Record<string, IGroupForm>;
 
 /**
  * @category Group Form

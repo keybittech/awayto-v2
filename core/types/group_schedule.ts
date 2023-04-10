@@ -9,6 +9,7 @@ import { ISchedule } from './schedule';
 
 /**
  * @category Group Schedule
+ * @purpose contains the properties of a single instance of a reservable appointment slot on the Schedule
  */
 export type IGroupScheduleDateSlots = {
   weekStart: string;
@@ -22,6 +23,7 @@ export type IGroupScheduleDateSlots = {
 
 /**
  * @category Group Schedule
+ * @purpose extends a Schedule to include properties of the Group it is attached to
  */
 export type IGroupSchedule = ISchedule & {
   master: true;

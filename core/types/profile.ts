@@ -13,6 +13,7 @@ export type UserGroupRoles = Record<string, Record<string, string | string[]>>;
 
 /**
  * @category User Profile
+ * @purpose provides primary attributes for Users as referenced by Groups and Profile functionaly
  */
 export type IUserProfile = {
   id: string;
@@ -26,10 +27,8 @@ export type IUserProfile = {
   updatedOn: string;
   locked: boolean;
   quotes: Record<string, IQuote>;
-  quotesSize: number;
   seenQuotes: boolean;
   bookings: Record<string, IBooking>;
-  bookingsSize: number;
   seenBookings: boolean;
   groups: Record<string, IGroup>;
   roles: Record<string, IRole>;

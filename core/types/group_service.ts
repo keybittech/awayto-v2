@@ -7,6 +7,7 @@ import { IService } from './service';
 
 /**
  * @category Group Service
+ * @purpose extends a Service to include details about the Group it is attached to
  */
 export type IGroupService = IService & {
   groupId: string;

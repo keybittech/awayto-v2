@@ -7,6 +7,7 @@ import { utcNowString } from './time_unit';
 
 /**
  * @category Group User Schedule
+ * @purpose contains information about a potential replacement for a Booking which has been abandoned
  */
 export type IGroupUserScheduleStubReplacement = {
   username: string;
@@ -20,6 +21,7 @@ export type IGroupUserScheduleStubReplacement = {
 
 /**
  * @category Group User Schedule
+ * @purpose contains reference information for Schedule Bookings which have been abandoned
  */
 export type IGroupUserScheduleStub = {
   groupScheduleId: string;
@@ -34,6 +36,7 @@ export type IGroupUserScheduleStub = {
 
 /**
  * @category Group User Schedule
+ * @purpose extends a Schedule to include details about the Group it is attached to
  */
 export type IGroupUserSchedule = ISchedule & {
   id: string;

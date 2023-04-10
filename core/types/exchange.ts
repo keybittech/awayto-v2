@@ -2,6 +2,7 @@ import { IBooking } from './booking';
 
 /**
  * @category Exchange
+ * @purpose maps websocket responses which contain common WebRTC protocol objects
  */
 export type SocketResponseMessageAttributes = {
   sdp: RTCSessionDescriptionInit;
@@ -13,6 +14,7 @@ export type SocketResponseMessageAttributes = {
 
 /**
  * @category Exchange
+ * @purpose contains Exchange participant WebRTC stream and connection objects
  */
 export type Sender = {
   pc?: RTCPeerConnection;
@@ -22,6 +24,7 @@ export type Sender = {
 
 /**
  * @category Exchange
+ * @purpose tracks all existing participants in an ongoing Exchange
  */
 export type SenderStreams = {
   [prop: string]: Sender
@@ -29,6 +32,7 @@ export type SenderStreams = {
 
 /**
  * @category Exchange
+ * @purpose parent container for the Exchange UI where users chat, share documents, and participate in voice and video calls
  */
 export type IExchange = {
   booking: IBooking;  

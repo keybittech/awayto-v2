@@ -4,6 +4,7 @@ import { utcNowString } from './time_unit';
 
 /**
  * @category Booking Transcript
+ * @purpose tracks atomic part of Booking Transcript message details
  */
 export type ITranscriptMessage = {
   words: string;
@@ -14,6 +15,7 @@ export type ITranscriptMessage = {
 
 /**
  * @category Booking Transcript
+ * @purpose holds the log of the conversation between participants of an Exchange
  */
 export type IBookingTranscript = {
   username: string;

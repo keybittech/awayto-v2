@@ -14,6 +14,7 @@ export enum IPrompts {
 
 /**
  * @category Assist
+ * @purpose facilitates AI prompt and suggestion generation for form fields and other UI elements
  */
 export type IAssist = {
   id: string;

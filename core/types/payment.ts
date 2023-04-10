@@ -4,6 +4,7 @@ import { utcNowString } from './time_unit';
 
 /**
  * @category Payment
+ * @purpose records the metadata of monetary transactions that occur in the application
  */
 export type IPayment = {
   id: string;

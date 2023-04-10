@@ -8,6 +8,7 @@ import { IUserProfile } from './profile';
 
 /**
  * @category Group User
+ * @purpose extends a User Profile to include details about the user's group roles and external id references
  */
 export type IGroupUser = IUserProfile & {
   groupId: string;

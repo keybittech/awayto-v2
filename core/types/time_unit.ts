@@ -13,11 +13,13 @@ import 'dayjs/locale/en';
 
 /**
  * @category Time Unit
+ * @purpose lists the available time contexts for use in the site based on calendar unit
  */
 export type ITimeUnitNames = string | ('minute' | 'hour' | 'day' | 'week' | 'month' | 'year');
 
 /**
  * @category Time Unit
+ * @purpose provides enumerator based definition and selection for Time Unit related objects
  */
 export enum TimeUnit {
   MINUTE = 'minute',
@@ -30,6 +32,7 @@ export enum TimeUnit {
 
 /**
  * @category Time Unit
+ * @purpose references a single Time Unit record that has been retrieved from the DB
  */
 export type ITimeUnit = {
   id: string;

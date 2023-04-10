@@ -4,6 +4,7 @@ import { ITimeUnit } from './time_unit';
 
 /**
  * @category Lookup
+ * @purpose stores basic id/name style lookup objects for use with simple list-data input situations
  */
 export type ILookup = {
   id: string;

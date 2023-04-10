@@ -5,6 +5,7 @@ import { utcNowString } from "./time_unit";
 
 /**
  * @category Service Tier
+ * @purpose contains custom Service Addons and multipliers that can be used to adjust the cost of Services
  */
 export type IServiceTier = {
   id: string;

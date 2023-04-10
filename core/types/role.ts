@@ -5,6 +5,7 @@ import { utcNowString } from "./time_unit";
 
 /**
  * @category Roles
+ * @purpose names the various functionalities of users of a Group
  */
 export type IRole = {
   id: string;

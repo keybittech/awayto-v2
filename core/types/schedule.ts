@@ -22,6 +22,7 @@ export type ScheduledParts = {
 
 /**
  * @category Schedule
+ * @purpose records a potentially available slot on a Group User's Schedule when shown to users during Quote request
  */
 export type IScheduleBracketSlot = {
   id: string;
@@ -31,6 +32,7 @@ export type IScheduleBracketSlot = {
 
 /**
  * @category Schedule
+ * @purpose allows Group Users to schedule themselves in batches of time across the Schedule instead of one big block of time
  */
 export type IScheduleBracket = {
   id: string;
@@ -46,6 +48,7 @@ export type IScheduleBracket = {
 
 /**
  * @category Schedule
+ * @purpose contains the basic properties of a Schedule that may be attached directly to a User or a Group if it is a master schedule
  */
 export type ISchedule = {
   id: string;

@@ -6,6 +6,7 @@ import { utcNowString } from './time_unit';
 
 /**
  * @category Booking
+ * @purpose establishes a confirmed appointment derived from a Quote, holds transcript during Exchange
  */
 export type IBooking = IQuote & {
   quoteId: string;

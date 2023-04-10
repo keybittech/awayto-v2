@@ -28,6 +28,7 @@ export type IGroupRoleActionState = {
 
 /**
  * @category Group
+ * @purpose contains the major properties of a Group which has many Users with Schedules who perform Services that can be requested with a Quote and finalized with a Booking
  */
 export type IGroup = {
   id: string;

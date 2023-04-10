@@ -5,6 +5,7 @@ import { utcNowString } from './time_unit';
 
 /**
  * @category Service
+ * @purpose stores parent information about the functions a Group performs which can be requested by Users
  */
 export type IService = {
   id: string;

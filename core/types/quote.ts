@@ -5,6 +5,7 @@ import { utcNowString } from './time_unit';
 
 /**
  * @category Quote
+ * @purpose records all available data for a potential appointment as requested by a Group user that must be finalized with a Booking
  */
 export type IQuote = {
   id: string;

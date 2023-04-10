@@ -6,17 +6,13 @@ import { IGroupService } from './group_service';
 
 /**
  * @category Group Role
+ * @purpose extends a Role to include information about the Group it is attached to
  */
 export type IGroupRole = IRole & {
   groupId: string;
   roleId: string;
   externalId: string;
 }
-
-/**
- * @category Group Role
- */
-export type IGroupRoles = Record<string, IGroupRole>;
 
 /**
  * @category Group Role

@@ -5,6 +5,7 @@ import { IServiceAddon } from './service_addon';
 
 /**
  * @category Group Service Addon
+ * @purpose extends a Service Addon to include the properties of the Group it belongs to
  */
 export type IGroupServiceAddon = IServiceAddon & {
   groupId: string;

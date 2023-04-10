@@ -4,6 +4,7 @@ type ConfirmActionProps = [
 
 /**
  * @category Util
+ * @purpose stores UI and general application related properties for use in application user experience enhancing functionalities
  */
 export type IUtil = {
   confirmAction(...props: ConfirmActionProps): void | Promise<void>;

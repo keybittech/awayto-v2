@@ -1,7 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
 
-// ...
-
 type Whiteboard = {
   id: string;
   lines: Array<{
@@ -53,7 +51,7 @@ declare global {
   }
 }
 
-function Whiteboard(props: IProps): JSX.Element {
+export default function Whiteboard(props: IProps): JSX.Element {
   const { whiteboard, addLine } = props as Required<IProps>;
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
