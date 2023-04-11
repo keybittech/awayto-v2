@@ -6,17 +6,95 @@ import redis from './redis';
 import { generatePrompt, generatePromptHistory, getChatCompletionPrompt, getChatCompletionPromptFromHistory, getCompletionPrompt } from './openai';
 import { IPrompts } from 'awayto/core';
 import path from 'path';
-import { Project, SyntaxKind } from 'ts-morph';
+import { FunctionDeclaration, JsxElement, Project, ScriptKind, SourceFile, SyntaxKind } from 'ts-morph';
+import { processSuggestion } from './suggest';
+
+
+
+const quickProj = new Project({ tsConfigFilePath: './tsconfig.json'})
+
+// quickProj.getSourceFiles().map(f => f.getTypeAliases()).flat().filter(t => {
+//   fs.appendFileSync('testert.json', `${typeDefinitionToSentence(t.getText())}\n`)
+// });
+
+function typeDefinitionToSentence(typeDefinition: string) {
+  const typeNameMatch = typeDefinition.match(/export type (\w+)/);
+  
+  if (!typeNameMatch) {
+    return 'Invalid type definition provided.';
+  }
+
+  const typeName = typeNameMatch[1];
+  const properties = [];
+  const propertyRegex = /(\w+)\s*:\s*([^;]+);/g;
+
+  let match;
+  while ((match = propertyRegex.exec(typeDefinition)) !== null) {
+    properties.push({ key: match[1], type: match[2].trim().replace(/\s+/g, ' ') });
+  }
+
+  if (properties.length > 0) {
+    const propertiesDescription = properties
+      .map((property) => `${property.key} as a ${property.type}`)
+      .join(', ');
+
+    return `${typeName} defines ${propertiesDescription}.`;
+  } else {
+    const recordMatch = typeDefinition.match(/Record<(.+),\s*(.+)>/);
+    if (recordMatch) {
+      return `${typeName} is a Record ${recordMatch[1]} of ${recordMatch[2]}.`;
+    }
+  }
+
+  return 'Unable to parse the type definition.';
+}
+
+// const action = {
+//   type: 'removeHook',
+//   payload: { hookName: 'useGetGroupsQuery' },
+// };
+
+// const changeSet = [
+//   {
+//     type: 'modifyReactComponent',
+//     payload: {
+//       componentName: 'GroupHome',
+//       changes: [action],
+//     },
+//   },
+// ] as ChangeSet;
+
+// const project = new Project({
+//   tsConfigFilePath: './projectts.json'
+// });
+// const sourceFile = project.createSourceFile('GroupHome.tsx', `
+// import React from 'react';
+
+// import Box from '@mui/material/Box';
+
+// import ManageGroups from './ManageGroups';
+// import { sh } from "'awayto/hooks'";
+
+// export function GroupHome (props: IProps): JSX.Element {
+//     const { data: groups, isLoading } = sh.useGetGroupsQuery();
+//     const { data: groups, isLoading } = sh.useGetGroupsQuery();
+//     return <Box mb={4}>
+//     <ManageGroups {...props} />
+//     </Box>
+// }
+
+// export default GroupHome;
+// `);
+
+// applyChangeSet(changeSet, sourceFile);
+// console.log('CHANGE SET XXXXXXXXXXXXXXXXXXXXXXXXXXXX', sourceFile.getText());
+
 
 const {
   TWITCH_CLIENT_ID,
   TWITCH_CLIENT_SECRET,
   TWITCH_CLIENT_ACCESS_TOKEN
 } = process.env as { [prop: string]: string }
-
-const project = new Project({
-  tsConfigFilePath: './projectts.json'
-});
 
 export const TWITCH_REDIRECT_URI = 'https://wcapp.site.com/api/twitch/webhook'
 
@@ -158,7 +236,11 @@ export async function connectToTwitch(httpsServer: https.Server) {
               }
 
               if ('Generate API' === rewards[contents.customRewardId].title) {
-                messageBuilder = await generateApi(messageBuilder.trimEnd());
+                messageBuilder = await generateApi(messageBuilder.trimEnd(), contents.displayName);
+              }
+
+              if ('Generate Component' === rewards[contents.customRewardId].title) {
+                messageBuilder = await createComponent(messageBuilder.trimEnd(), contents.displayName);
               }
 
               if ('Edit File' === rewards[contents.customRewardId].title) {
@@ -203,20 +285,91 @@ const toTitleCase = (name: string): string => {
   return name.substr(1).replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase());
 };
 
+function extractCodeBlock(inputString: string, languages: string[] = ['typescript', 'json', 'jsx', 'tsx']) {
+  const langStartTag = (language: string) => language ? `\`\`\`${language}` : '```';
+  const langEndTag = '```';
+
+  for (const language of languages) {
+    const startTag = langStartTag(language);
+    if (inputString.includes(startTag)) {
+      return inputString.split(startTag)[1].split(langEndTag)[0];
+    }
+  }
+
+  if (inputString.includes('```')) {
+    return inputString.split('```')[1];
+  }
+
+  if (inputString.includes('tsx')) {
+    return inputString.split('tsx')[1];
+  }
+  
+  return inputString;
+};
+
+async function createComponent(description: string, user: string) {
+
+  const project = new Project({
+    tsConfigFilePath: './projectts.json'
+  });
+
+  const createComponentPrompt = generatePromptHistory(IPrompts.CREATE_COMPONENT, description);
+
+  console.log({ createComponentPrompt });
+
+  const generatedTsx = extractCodeBlock(await getChatCompletionPromptFromHistory(createComponentPrompt));
+
+  console.log({ generatedTsx })
+
+  const sourceFile = project.createSourceFile('new_component.tsx', generatedTsx, { scriptKind: ScriptKind.JSX });
+
+  const exAssignment = sourceFile.getExportAssignments().find(assignment => assignment.isExportEquals() === false);
+
+  if (exAssignment) {
+    const asExpression = exAssignment.getExpression();
+
+    if (asExpression) {
+      console.log({ asname: asExpression.getText() })
+
+      const creatorComment = `/* Created by Twitch chatter ${user}, ${description} */\n`;
+
+      fs.writeFileSync(path.join(__dirname, `../../app/website/src/modules/generated/${asExpression.getText()}.tsx`), `${creatorComment}${generatedTsx}`);
+      return 'created a new componenet like an actual omega mega bro';
+    }
+  }
+  
+  return 'uh oh, spaghetti-ohs, it is time to check the logs';
+}
+
 async function editFile(fileParts: string) {
   const [fileName, ...suggestedEdits] = fileParts.split(' ');
 
+  const project = new Project({
+    tsConfigFilePath: './projectts.json'
+  });
   const sourceFile = project.getSourceFiles().filter(sf => sf.getFilePath().toLowerCase().includes(fileName.toLowerCase()))[0];
 
   if (sourceFile) {
-    const editGenerationPrompt = generatePromptHistory(IPrompts.EDIT_FILE, suggestedEdits.join(' ') + ' \n\n###\n\n ' + sourceFile.getText());
 
-    let generatedEdits = await getChatCompletionPromptFromHistory(editGenerationPrompt);
-    if (generatedEdits.includes('```typescript')) {
-      generatedEdits = generatedEdits.split('```typescript')[1].split('```')[0];
-    }
+    const morphGenerationPrompt = generatePromptHistory(IPrompts.MORPH_3, suggestedEdits.join(' '), sourceFile.getText());
 
-    sourceFile.replaceWithText(generatedEdits);
+    console.log({ morphGenerationPrompt });
+
+    const generatedMorphs = extractCodeBlock(await getChatCompletionPromptFromHistory(morphGenerationPrompt));
+
+    console.log({ generatedMorphs })
+
+    processSuggestion(sourceFile as SourceFile, generatedMorphs);
+
+    // applyChangeSet(JSON.parse(generatedMorphs), sourceFile as SourceFile);
+
+    // const editGenerationPrompt = generatePromptHistory(IPrompts.EDIT_FILE, suggestedEdits.join(' '), sourceFile.getText());
+
+    // console.log({ editGenerationPrompt });
+
+    // const generatedEdits = extractCodeBlock(await getChatCompletionPromptFromHistory(editGenerationPrompt));
+
+    // sourceFile.replaceWithText(generatedEdits);
     await project.save();
     return 'successfully edited a file, thanks for all the hard work';
   } else {
@@ -224,55 +377,66 @@ async function editFile(fileParts: string) {
   }
 }
 
-async function generateApi(typeName: string) {
+async function createDocumentation() {
+  
+}
+
+async function createTest() {
+  
+}
+
+async function generateApi(typeName: string, user: string) {
   if (!isValidName(typeName)) {
     return 'tried to create an api but failed because they did not use the right format';
   }
 
   const typeGenerationPrompt = generatePrompt(IPrompts.CREATE_TYPE, typeName);
-  let generatedType = (await getChatCompletionPrompt(typeGenerationPrompt));
-  if (generatedType.includes('```typescript')) {
-    generatedType = generatedType.split('```typescript')[1].split('```')[0];
-  }
 
-  const coreTypesPath = path.join(__dirname, `../../core/types/${toSnakeCase(typeName)}.ts`);
+  console.log({ typeGenerationPrompt });
 
+  const generatedType = await getChatCompletionPrompt(typeGenerationPrompt);
+  const coreTypesPath = path.join(__dirname, `../../core/types/generated/${toSnakeCase(typeName)}.ts`);
+  const creatorComment = `/* Created by Twitch chatter ${user} */\n`;
   const comment = `/*\n* @category${toTitleCase(typeName)}\n*/\n`;
 
-  fs.appendFileSync(coreTypesPath, `${comment}${generatedType}\n\n`);
+  fs.appendFileSync(coreTypesPath, `${creatorComment}${comment}${generatedType}\n\n`);
 
   const apiGenerationPrompt = generatePromptHistory(IPrompts.CREATE_API, generatedType);
-  let generatedApi = await getChatCompletionPromptFromHistory(apiGenerationPrompt);
-  if (generatedApi.includes('```typescript')) {
-    generatedApi = generatedApi.split('```typescript')[1].split('```')[0];
-  }
+
+  console.log({ apiGenerationPrompt });
+
+  const generatedApi = extractCodeBlock(await getChatCompletionPromptFromHistory(apiGenerationPrompt));
 
   fs.appendFileSync(coreTypesPath, `${comment}${generatedApi}\n\n`);
 
+  const project = new Project({
+    tsConfigFilePath: './projectts.json'
+  });
   const sourceFile = project.addSourceFileAtPath(coreTypesPath);
-
   const variables = sourceFile.getVariableDeclarations();
   const apiEndpoints: string[] = [];
 
   for (const v of variables) {
     if (v.getName().endsWith('Api')) {
       const initializer = v.getInitializer();
-      if (initializer && initializer.getKind() === SyntaxKind.ObjectLiteralExpression) {
-        initializer.getType().getProperties().forEach(p => { apiEndpoints.push(p.getName()) });
+      if (initializer) {
+        initializer.getType().getProperties().forEach(p => {
+          apiEndpoints.push(p.getName())
+        });
       }
     }
   }
+  console.log({ apiEndpoints });
 
   try {
 
-    const apiBackendGenerationPrompt = generatePromptHistory(IPrompts.CREATE_API_BACKEND, generatedType + ' ' + apiEndpoints);
-    let generatedApiBackend = await getChatCompletionPromptFromHistory(apiBackendGenerationPrompt);
-    if (generatedApiBackend.includes('```')) {
-      generatedApiBackend = generatedApiBackend.split('```')[1].split('```')[0];
-    }
+    const apiBackendGenerationPrompt = generatePromptHistory(IPrompts.CREATE_API_BACKEND, generatedType + ' ' + apiEndpoints.join(' '));
 
-    sourceFile.insertText(sourceFile.getEnd(), `${comment}${generatedApiBackend}\n\n`)
+    console.log({ apiBackendGenerationPrompt });
 
+    const generatedApiBackend = extractCodeBlock(await getChatCompletionPromptFromHistory(apiBackendGenerationPrompt));
+
+    sourceFile.insertText(sourceFile.getEnd(), `${comment}${generatedApiBackend}\n\n`);
     sourceFile.fixMissingImports();
     await project.save();
   } catch (error) {
@@ -343,6 +507,193 @@ const fetchWithTokenRefresh: typeof fetch = async (url, options) => {
   }
 
   return response;
+}
+
+type ChangeType =
+  | "modifyReactComponent"
+  | "addImport"
+  | "removeImport"
+  | "addHook"
+  | "removeHook"
+  | "modifyHook"
+  | "addVariable"
+  | "modifyJsx"
+  | "modifyJsxAttribute"
+  | "addJsxElement"
+  | "wrapJsxElement";
+
+interface Change {
+  type: ChangeType;
+  payload: any;
+}
+
+type ChangeSet = Change[];
+
+function applyChangeSet(changeSet: ChangeSet, node: SourceFile | FunctionDeclaration) {
+  changeSet.forEach((change) => {
+    const { type, payload } = change;
+    console.log({ type, payload })
+    switch (type.toLowerCase()) {
+      case "modifyreactcomponent":
+        const componentDeclaration = findReactComponent(node as SourceFile, payload.componentName);
+        payload.changes.forEach((componentChange: Change) => applyChangeSet([componentChange], componentDeclaration as FunctionDeclaration));
+        break;
+      case "addimport":
+        addOrUpdateImport(node as SourceFile, payload.importName, payload.importSource);
+        break;
+      case "removeimport":
+        removeImport(node as SourceFile, payload.importName, payload.importSource);
+        break;
+      case "addhook":
+        addHookToComponent(payload.hookDeclaration, node as FunctionDeclaration);
+        break;
+      case "removehook":
+        removeHookFromComponent(payload.hookName, node as FunctionDeclaration);
+        break;
+      case "modifyhook":
+        modifyHookInitializer(node as FunctionDeclaration, payload.hookName, payload.newInitializer);
+        break;
+      case "addvariable":
+        addVariableToComponent(payload.variableDeclaration, node as FunctionDeclaration);
+        break;
+      case "modifyjsx":
+        payload.changes.forEach((jsxChange: Change) => applyChangeSet([jsxChange], node));
+        break;
+      case "modifyjsxattribute":
+        modifyJsxAttribute(node as SourceFile, payload.elementName, payload.attributeName, payload.newValue);
+        break;
+      case "addjsxelement":
+        addJsxElement(node as SourceFile, payload.parentElementName, payload.newElement, payload.position, payload.siblingElementName);
+        break;
+      case "wrapjsxelement":
+        wrapJsxElement(node as SourceFile, payload.elementName, payload.wrapper, payload.closingWrapper);
+        break;
+      default:
+        console.error(`Unknown change type: ${type}`);
+    }
+  });
+}
+
+// Utilities
+function findReactComponent(sourceFile: SourceFile, componentName: string) {
+  return sourceFile.getFunctionOrThrow(componentName);
+}
+
+// Import handling
+function addOrUpdateImport(sourceFile: SourceFile, importName: string, importSource: string) {
+  const existingImport = sourceFile.getImportDeclaration(importSource);
+  if (existingImport) {
+    const namedImports = existingImport.getNamedImports();
+    if (!namedImports.some((namedImport) => namedImport.getName() === importName)) {
+      existingImport.addNamedImport(importName);
+    }
+  } else {
+    sourceFile.addImportDeclaration({
+      namedImports: [importName],
+      moduleSpecifier: importSource,
+    });
+  }
+}
+
+function removeImport(sourceFile: SourceFile, importName: string, importSource: string) {
+  const existingImport = sourceFile.getImportDeclarations().find(declaration => declaration.getModuleSpecifierValue() === importSource);
+  if (existingImport) {
+    const namedImports = existingImport.getNamedImports();
+    const importToRemove = namedImports.find((namedImport) => namedImport.getName() === importName);
+
+    if (importToRemove) {
+      importToRemove.remove();
+
+      // If no named imports are left, remove the entire import declaration
+      if (existingImport.getNamedImports().length === 0) {
+        existingImport.remove();
+      }
+    }
+  }
+}
+
+// Hook handling
+function addHookToComponent(hookDeclaration: string, componentDeclaration: FunctionDeclaration) {
+  const functionBody = componentDeclaration.getBodyText();
+  const newFunctionBody = `${hookDeclaration}\n${functionBody}`;
+  componentDeclaration.setBodyText(newFunctionBody);
+}
+
+function removeHookFromComponent(hookName: string, componentDeclaration: FunctionDeclaration) {
+  const statements = componentDeclaration.getStatements();
+  const hookStatement = statements.find(statement => {
+    const text = statement.getText();
+    return text.trim().startsWith(hookName) || text.trim().includes(`.${hookName}`);
+  });
+
+  if (hookStatement) {
+    hookStatement.remove();
+  }
+}
+
+function modifyHookInitializer(componentDeclaration: FunctionDeclaration, hookName: string, newInitializer: string) {
+  const hookDeclaration = componentDeclaration.getVariableDeclarationOrThrow(hookName);
+  hookDeclaration.setInitializer(newInitializer);
+}
+
+// Variable handling
+function addVariableToComponent(variableDeclaration: string, componentDeclaration: FunctionDeclaration) {
+  const functionBody = componentDeclaration.getBodyText();
+  const newFunctionBody = `${variableDeclaration}\n${functionBody}`;
+  componentDeclaration.setBodyText(newFunctionBody);
+}
+
+function getJsxElementByTagName(sourceFile: SourceFile, tagName: string): JsxElement | undefined {
+  const jsxElements = sourceFile.getDescendantsOfKind(SyntaxKind.JsxElement);
+  return jsxElements.find(element => element.getOpeningElement().getTagNameNode().getText() === tagName);
+}
+
+function getJsxElementByTagNameOrThrow(sourceFile: SourceFile, tagName: string): JsxElement {
+  const element = getJsxElementByTagName(sourceFile, tagName);
+  if (!element) {
+    throw new Error(`JSX element with tag name '${tagName}' not found`);
+  }
+  return element;
+}
+
+// JSX handling
+function modifyJsxAttribute(sourceFile: SourceFile, elementName: string, attributeName: string, newValue: string) {
+  const element = getJsxElementByTagNameOrThrow(sourceFile, elementName);
+  const openingElement = element.getOpeningElement();
+  const attribute = openingElement.getAttribute(attributeName);
+
+  if (attribute) {
+    const attributeValue = attribute.getFirstChildByKind(SyntaxKind.JsxExpression) || attribute.getFirstChildByKind(SyntaxKind.StringLiteral);
+    if (attributeValue) {
+      attributeValue.replaceWithText(`"${newValue}"`);
+    }
+  } else {
+    openingElement.addAttribute({
+      name: attributeName,
+      initializer: `"${newValue}"`,
+    });
+  }
+}
+
+function addJsxElement(sourceFile: SourceFile, parentElementName: string, newElement: string, position: 'before' | 'after', siblingElementName: string) {
+  const parentElement = getJsxElementByTagNameOrThrow(sourceFile, parentElementName);
+  const siblingElement = parentElement.getChildSyntaxList()?.getChildrenOfKind(SyntaxKind.JsxElement).find(child => child.getOpeningElement().getTagNameNode().getText() === siblingElementName);
+
+  if (siblingElement) {
+    if (position === 'before') {
+      siblingElement.getParentSyntaxList()?.insertChildText(0, newElement);
+    } else {
+      siblingElement.getParentSyntaxList()?.insertChildText(siblingElement.getChildCount(), newElement);
+    }
+  } else {
+    throw new Error(`Sibling element "${siblingElementName}" not found.`);
+  }
+}
+
+function wrapJsxElement(sourceFile: SourceFile, elementName: string, wrapper: string, closingWrapper: string) {
+  const element = getJsxElementByTagNameOrThrow(sourceFile, elementName);
+  const wrappedJsx = `${wrapper}${element.getText()}${closingWrapper}`;
+  element.replaceWithText(wrappedJsx);
 }
 
 
