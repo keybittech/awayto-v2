@@ -8,6 +8,7 @@ import { UserGroupRoles } from './profile';
 import { IGroupRoleAuthActions } from './group';
 import { AnyRecord, Void } from '../util';
 import { KcSiteOpts } from './auth';
+import fetch from 'node-fetch';
 
 /**
  * @category API
@@ -82,6 +83,7 @@ type CompletionApis = {
 export type ApiProps<T extends AnyRecord> = {
   event: ApiEvent<T>;
   db: IDatabase<unknown>;
+  fetch: typeof fetch;
   logger: graylog;
   redis: RedisClientType;
   redisProxy: RedisProxy;
@@ -96,6 +98,7 @@ export type ApiProps<T extends AnyRecord> = {
 export type AuthProps = {
   event: Omit<ApiEvent<AnyRecord>, 'body'> & { body: AuthBody };
   db: IDatabase<unknown>;
+  fetch: typeof fetch;
   redis: RedisClientType;
   redisProxy: RedisProxy;
   keycloak: KeycloakAdminClient & KcSiteOpts;

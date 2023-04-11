@@ -72,7 +72,7 @@ const formApi = {
     url: 'forms',
     method: 'POST',
     opts: {} as ApiOptions,
-    queryArg: {} as IForm,
+    queryArg: { name: '' as string, version: {} as IFormVersion },
     resultType: {} as IForm
   },
   postFormVersion: {
@@ -137,9 +137,7 @@ const formApiHandlers: ApiHandler<typeof formApi> = {
       RETURNING id
     `, [form.name, utcNowString(), props.event.userSub]);
 
-    form.id = formId;
-
-    return form;
+    return { ...form, id: formId };
   },
 
   postFormVersion: async (props) => {

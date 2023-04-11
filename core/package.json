@@ -10,6 +10,7 @@
     "@types/pg": "^8.6.6",
     "@types/pg-promise": "^5.4.3",
     "@types/redis": "^4.0.11",
-    "@types/uuid": "^9.0.1"
+    "@types/uuid": "^9.0.1",
+    "node-fetch": "^3.3.1"
   }
 }

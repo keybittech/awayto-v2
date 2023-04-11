@@ -4,6 +4,10 @@
     "./src",
     "../../core"
   ],
+  "exclude": [
+    "src/modules/generated",
+    "../../core/types/generated"
+  ],
   "compilerOptions": {
     "target": "es6",
     "lib": [

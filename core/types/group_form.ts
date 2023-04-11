@@ -24,7 +24,7 @@ const groupFormApi = {
     url: 'group/:groupName/forms',
     method: 'POST',
     opts: {} as ApiOptions,
-    queryArg: {} as IGroupForm,
+    queryArg: { groupName: '' as string, name: '' as string, version: {} as IFormVersion },
     resultType: [] as IGroupForm[]
   },
   postGroupFormVersion: {
@@ -75,6 +75,8 @@ const groupFormApi = {
 const groupFormApiHandlers: ApiHandler<typeof groupFormApi> = {
   postGroupForm: async props => {
     const { groupName } = props.event.pathParameters;
+
+    console.log('in gorup post form', groupName);
 
     const { id: groupId } = await props.tx.one<IGroup>(`
       SELECT id

@@ -4,6 +4,9 @@
     "./src",
     "../core"
   ],
+  "exclude": [
+    "../core/types/generated"
+  ],
   "compilerOptions": {
     "target": "es6",
     "lib": [

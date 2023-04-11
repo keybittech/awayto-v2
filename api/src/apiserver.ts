@@ -298,6 +298,7 @@ async function go() {
               redis,
               keycloak: keycloak as unknown,
               redisProxy,
+              fetch,
               completions,
               logger,
               event: {
