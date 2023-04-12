@@ -129,6 +129,7 @@ module.exports = {
       'awayto/hooks': resolveApp('.' + AWAYTO_WEBAPP + '/hooks/index.ts'),
     },
     configure: (webpackConfig, { env, paths }) => {
+
       webpackConfig.resolve.plugins = webpackConfig.resolve.plugins.filter(
         (plugin) => !(plugin instanceof ModuleScopePlugin)
       );
@@ -148,6 +149,19 @@ module.exports = {
           cwd: process.cwd()
         })
       );
+
+
+      const babelLoader = webpackConfig.module.rules.find(
+        (rule) =>
+          rule.oneOf &&
+          rule.oneOf.find((item) => String(item.loader).includes("babel-loader"))
+      ).oneOf.find((item) => String(item.loader).includes("babel-loader"));
+
+      // Exclude the generated folder from being processed by babel-loader
+      babelLoader.exclude = [
+        ...(babelLoader.exclude || []),
+        path.resolve(__dirname, "src/modules/generated"),
+      ];
 
       const { matches } = getLoaders(webpackConfig, loaderByName('babel-loader'))
       addBeforeLoader(webpackConfig, loaderByName('babel-loader'), {

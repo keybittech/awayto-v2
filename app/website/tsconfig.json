@@ -5,7 +5,7 @@
     "../../core"
   ],
   "exclude": [
-    "src/modules/generated",
+    "./src/modules/generated",
     "../../core/types/generated"
   ],
   "compilerOptions": {

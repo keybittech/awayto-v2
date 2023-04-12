@@ -18,7 +18,6 @@ import 'dayjs/locale/en';
 import fs from 'fs';
 import https from 'https';
 import express, { Express, NextFunction, Request, Response } from 'express';
-import * as WebSocket from 'ws';
 import cookieSession from 'cookie-session';
 import cookieParser from 'cookie-parser';
 import httpProxy from 'http-proxy';
