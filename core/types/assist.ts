@@ -13,6 +13,7 @@ export enum IPrompts {
   MORPH_FILE = 'morph_file',
   MORPH_2 = 'morph_2',
   MORPH_3 = 'morph_3',
+  MIRROR_EDIT = 'mirror_edit',
   SUGGEST_ROLE = 'suggest_role',
   SUGGEST_SERVICE = 'suggest_service',
   SUGGEST_TIER = 'suggest_tier',

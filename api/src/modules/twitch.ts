@@ -6,12 +6,15 @@ import redis from './redis';
 import { generatePrompt, generatePromptHistory, getChatCompletionPrompt, getChatCompletionPromptFromHistory, getCompletionPrompt } from './openai';
 import { IPrompts } from 'awayto/core';
 import path from 'path';
-import { FunctionDeclaration, JsxElement, Project, ScriptKind, SourceFile, SyntaxKind } from 'ts-morph';
+import { FunctionDeclaration, JsxElement, Node, Project, ScriptKind, SourceFile, SyntaxKind, TextChange, VariableDeclaration } from 'ts-morph';
 import { processSuggestion } from './suggest';
 
+// const quickProj = new Project({
+//   tsConfigFilePath: './projectts.json'
+// });
 
+// const sourceFile = quickProj.getSourceFile('ManageFeedback.tsx');
 
-const quickProj = new Project({ tsConfigFilePath: './tsconfig.json'})
 
 // quickProj.getSourceFiles().map(f => f.getTypeAliases()).flat().filter(t => {
 //   fs.appendFileSync('testert.json', `${typeDefinitionToSentence(t.getText())}\n`)
@@ -19,7 +22,7 @@ const quickProj = new Project({ tsConfigFilePath: './tsconfig.json'})
 
 function typeDefinitionToSentence(typeDefinition: string) {
   const typeNameMatch = typeDefinition.match(/export type (\w+)/);
-  
+
   if (!typeNameMatch) {
     return 'Invalid type definition provided.';
   }
@@ -197,67 +200,72 @@ export async function connectToTwitch(httpsServer: https.Server) {
         });
 
         ws.on('message', async function (data: Buffer) {
-          const body = data.toString();
-          const contents: Record<string, string> = {};
+          try {
+            const body = data.toString();
+            const contents: Record<string, string> = {};
 
-          if (body.startsWith(":tmi.twitch.tv PONG")) {
-            console.log("Received PONG from Twitch IRC server");
-            return;
-          }
-
-          console.log(body)
-
-          if (data.includes(' JOIN #chatjoept')) {
-            contents.action = 'join';
-            contents.username = data.toString().split('!')[0].slice(1);
-          }
-
-          if (data.includes(' PART #chatjoept')) {
-            contents.action = 'part';
-            contents.username = data.toString().split('!')[0].slice(1);
-          }
-
-          if (data.includes(' PRIVMSG #chatjoept :')) {
-            const [payload, message] = body.split(" PRIVMSG #chatjoept :");
-            let messageBuilder = message;
-            const payloadItems = payload.slice(1).split(';');
-
-            payloadItems.forEach(item => {
-              const [key, value] = item.split('=');
-              contents[key.replace(/-./g, x => x[1].toUpperCase())] = value;
-            });
-
-            console.log({ contents })
-
-            if (contents.customRewardId) {
-              if ('Skip TTS' === rewards[contents.customRewardId].title) {
-                contents.action = 'skip';
-                messageBuilder = 'skipped the poor bastard, ' + messageBuilder
-              }
-
-              if ('Generate API' === rewards[contents.customRewardId].title) {
-                messageBuilder = await generateApi(messageBuilder.trimEnd(), contents.displayName);
-              }
-
-              if ('Generate Component' === rewards[contents.customRewardId].title) {
-                messageBuilder = await createComponent(messageBuilder.trimEnd(), contents.displayName);
-              }
-
-              if ('Edit File' === rewards[contents.customRewardId].title) {
-                messageBuilder = await editFile(messageBuilder.trimEnd());
-              }
-
-              contents.message = createWordMix(contents.displayName, messageBuilder.trimEnd());
+            if (body.startsWith(":tmi.twitch.tv PONG")) {
+              console.log("Received PONG from Twitch IRC server");
+              return;
             }
+
+            console.log(body)
+
+            if (data.includes(' JOIN #chatjoept')) {
+              contents.action = 'join';
+              contents.username = data.toString().split('!')[0].slice(1);
+            }
+
+            if (data.includes(' PART #chatjoept')) {
+              contents.action = 'part';
+              contents.username = data.toString().split('!')[0].slice(1);
+            }
+
+            if (data.includes(' PRIVMSG #chatjoept :')) {
+              const [payload, message] = body.split(" PRIVMSG #chatjoept :");
+              let messageBuilder = message;
+              const payloadItems = payload.slice(1).split(';');
+
+              payloadItems.forEach(item => {
+                const [key, value] = item.split('=');
+                contents[key.replace(/-./g, x => x[1].toUpperCase())] = value;
+              });
+
+              console.log({ contents })
+
+              if (contents.customRewardId) {
+                if ('Skip TTS' === rewards[contents.customRewardId].title) {
+                  contents.action = 'skip';
+                  messageBuilder = 'skipped the poor bastard, ' + messageBuilder
+                }
+
+                if ('Generate API' === rewards[contents.customRewardId].title) {
+                  messageBuilder = await generateApi(messageBuilder.trimEnd(), contents.displayName);
+                }
+
+                if ('Generate Component' === rewards[contents.customRewardId].title) {
+                  messageBuilder = await createComponent(messageBuilder.trimEnd(), contents.displayName);
+                }
+
+                if ('Edit File' === rewards[contents.customRewardId].title) {
+                  messageBuilder = await mirrorEdit(messageBuilder.trimEnd(), contents.displayName);
+                }
+
+                contents.message = createWordMix(contents.displayName, messageBuilder.trimEnd());
+              }
+            }
+
+            if (Object.keys(contents).length) {
+              localsocketserver.clients.forEach((localsocket) => {
+                if (localsocket.readyState == 1) {
+                  localsocket.send(JSON.stringify(contents));
+                }
+              });
+            }
+          } catch (error) {
+            console.log('CRITICAL TWITCH MESSAGE ERROR', error)
           }
 
-          if (Object.keys(contents).length) {
-            localsocketserver.clients.forEach((localsocket) => {
-              if (localsocket.readyState == 1) {
-                localsocket.send(JSON.stringify(contents));
-              }
-            });
-          }
         });
       }
     }
@@ -303,7 +311,7 @@ function extractCodeBlock(inputString: string, languages: string[] = ['typescrip
   if (inputString.includes('tsx')) {
     return inputString.split('tsx')[1];
   }
-  
+
   return inputString;
 };
 
@@ -337,8 +345,176 @@ async function createComponent(description: string, user: string) {
       return 'created a new componenet like an actual omega mega bro';
     }
   }
-  
+
   return 'uh oh, spaghetti-ohs, it is time to check the logs';
+}
+
+function getStatementText(child: Node) {
+  let parsedStatementText = child.getText();
+  const parent = child.getParent();
+
+  if (child.getKind() == SyntaxKind.VariableDeclaration && parent instanceof Node) {
+    parsedStatementText = parent.getText();
+  }
+  return parsedStatementText;
+}
+
+const ignoredStatements = [SyntaxKind.TryStatement]
+
+function walkNode(child: Node, i: number, parsedStatements: Record<string, string>, originalStatements: Map<string, string>) {
+  const statementName = `statement_${i}`;
+
+  console.log({ PARSING: statementName, OFTYPE: child.getKindName() })
+
+  if (child instanceof FunctionDeclaration) {
+    child.getStatements().forEach((descendant, index) => {
+      walkNode(descendant, index + i, parsedStatements, originalStatements);
+    })
+  } else if (!ignoredStatements.includes(child.getKind())) {
+    parsedStatements[statementName] = getStatementText(child);
+    originalStatements.set(statementName, getStatementText(child));
+  }
+}
+
+function removeTextOutsideBraces(input: string): string {
+  const firstBraceIndex = input.indexOf('{');
+  const lastBraceIndex = input.lastIndexOf('}');
+
+  if (firstBraceIndex === -1 || lastBraceIndex === -1) {
+    console.error("The input string doesn't contain the required braces.");
+    return "";
+  }
+
+  return input.slice(firstBraceIndex, lastBraceIndex + 1);
+}
+
+async function mirrorEdit(fileParts: string, user: string) {
+  const [fileName, ...suggestedEdits] = fileParts.split(' ');
+
+  const project = new Project({
+    tsConfigFilePath: './projectts.json'
+  });
+  const sourceFile = project.getSourceFiles().filter(sf => sf.getFilePath().toLowerCase().includes(fileName.toLowerCase()))[0];
+
+  if (sourceFile) {
+
+    if (sourceFile.getText().length > 10000) {
+      return 'hol up, wait a minute, file too stronk';
+    }
+
+    const originalStatements: Map<string, string> = new Map();
+    const parsedStatements: Record<string, string> = {};
+
+    sourceFile.getStatements().forEach((statement, index) => {
+      walkNode(statement, index, parsedStatements, originalStatements);
+    });
+
+    console.log({ parsedStatements })
+    const mirrorGenerationPrompt = generatePromptHistory(IPrompts.MIRROR_EDIT, suggestedEdits.join(' '), JSON.stringify(parsedStatements));
+    console.log({ mirrorGenerationPrompt })
+    const generatedMirror = removeTextOutsideBraces(await getChatCompletionPromptFromHistory(mirrorGenerationPrompt));
+    console.log({ generatedMirror })
+
+    const generatedStatements = JSON.parse(generatedMirror) as Record<string, string>;
+
+    console.log({ generatedStatements })
+
+    Object.keys(generatedStatements).forEach(statementKey => {
+
+      if (['new_statement', 'newstatement'].indexOf(statementKey)) {
+        sourceFile.insertText(0, `\n${generatedStatements[statementKey]} // generated by ${user}`)
+        sourceFile.saveSync();
+        return;
+      }
+
+      const originalStatement = originalStatements.get(statementKey);
+
+      if (originalStatement) {
+        const originalIndex = sourceFile.getFullText().indexOf(originalStatement);
+
+        if (originalIndex >= 0) {
+          sourceFile.replaceText(
+            [originalIndex, originalIndex + originalStatement.length],
+            generatedStatements[statementKey]
+          );
+          sourceFile.saveSync();
+          return;
+        }
+      }
+    })
+
+    await project.save();
+    return 'testing';
+
+    // const statements: Record<string, string | undefined>[] = sourceFile?.getChildrenOfKind(SyntaxKind.FunctionDeclaration).map(funct => {
+
+    //   const functionName = funct.getName();
+
+    //   let functionText = funct.getText();
+    //   const functionVariables = funct.getDescendantsOfKind(SyntaxKind.VariableDeclaration)
+    //     .reduce((m, vari, i) => {
+    //       const varKey = `###VAR_${i + 1}###`;
+    //       const varText = vari.getParent().getText();
+    //       console.log(varKey, varText)
+    //       functionText = functionText.replace(varText, varKey);
+    //       return { ...m, [varKey]: varText };
+    //     }, {} as Record<string, string>);
+
+    //   const functionVariableNames = Object.keys(functionVariables);
+
+    //   console.log({ name: funct.getName(), functionText, functionVariableNames })
+
+    //   const returns = funct.getDescendantsOfKind(SyntaxKind.ReturnStatement);
+    //   const functionTemplate = returns[returns.length - 1].getText();
+    //   const templateName = `###COMPONENT_RETURN###`;
+    //   functionText = functionText.replace(functionTemplate, templateName);
+
+    //   const [functionSignature, functionBody] = functionText.split('\n')[0];
+
+    //   functions.push()
+
+    //   return [
+    //     { concept: functionName, realization: functionText },
+    //     ...Object.keys(functionVariables).map(fv => ({ concept: fv, realization: functionVariables[fv] })),
+    //     { concept: templateName, realization: functionTemplate },
+    //   ];
+    // }).flat() || [];
+
+    // console.log({ STAAAAAAAAAAAAAAAAAAAAAA: statements })
+
+    // const mirrorGenerationPrompt = generatePromptHistory(IPrompts.MIRROR_EDIT, suggestedEdits.join(' '), JSON.stringify(statements));
+
+    // console.log({ mirrorGenerationPrompt })
+
+    // const generatedMirror = extractCodeBlock(await getChatCompletionPromptFromHistory(mirrorGenerationPrompt));
+
+    // console.log({ generatedMirror })
+
+    // try {
+    //   const transformations = JSON.parse(generatedMirror) as Record<string, string>[];
+    //   transformations.forEach(transforma => {
+
+    //     const statement = statements.find(s => s.concept === transforma.concept)
+
+    //     if (statement && statement.realization) {
+    //       console.log({ SETTINGOLDTONEW: statement.realization, transformedText: transforma.realization })
+
+    //       const text = sourceFile.getText();
+    //       text.replace(statement.realization, transforma.realization);
+    //       sourceFile.replaceWithText(text);
+    //       sourceFile.saveSync();
+    //     }
+    //   })
+
+    //   await project.save();
+    // } catch (error) {
+    //   return 'too complex for me';
+    // }
+
+    return 'wowie wow wow, this guy actually did it, he\'s the real deal';
+  }
+
+  return 'you\'re in for a real treat: file not found';
 }
 
 async function editFile(fileParts: string) {
@@ -378,11 +554,11 @@ async function editFile(fileParts: string) {
 }
 
 async function createDocumentation() {
-  
+
 }
 
 async function createTest() {
-  
+
 }
 
 async function generateApi(typeName: string, user: string) {

@@ -112,25 +112,40 @@ export function generatePromptHistory(promptId: IPrompts, ...prompts: string[]):
     }
     case IPrompts.CREATE_COMPONENT: {
       history = history.concat([
-        { role: 'system', content: 'You are Decompress2ComponentGPT, able to decompress any compressed text and convert its concepts to React TSX components.' },
-        { role: 'user', content: `Review these compressed Typescript types then create a TSX Functional Component based on their names, attributes, and the Component Description:
+        { role: 'system', content: 'You are DE-GPT, providing expert DE-compresion and DE-sign functions.' },
+        { role: 'user', content: `Decompress "Compressed Types"; review the decompressed Typescript type set; design a TSX React Functional Component primarily focusing on the Component Description resulting in a TSX code block; incorporate the optional decompressed types where applicable:
         
         Compressed Types: U2Iκ⇒V|N)↔(κ:I)⇒V?I:N.VdNΔV:T.RmNΔK]:T[K].ApiEvt{rId,mth,url,🔓,uSub,srcIp,usrGrpRoles,pp,qp,Tbody}.ApiP{evt,db,lggr,rd,rdP,kcl,cmpl,tx}.AuthP{evt&{body:AuthB},db,rd,rdP,kcl,cmpl,tx}.IWh{prop}↔(AuthP)⇒P<void>.AuthB{id,cId,rId,ip,ssId,uId,tm,typ,det}.DbErr{schm,tbl,clmn,dType,cnstrnt}.ApiErRsp{prop}:uknw,rId.ApiIntEr{rsp{st:num},data{emsg}}.PrxKy{aSub,apClnt,grpRlAct,grpAdRls,apRls,rlCall}.RdPrx{args}⇒P<PrxKy>.IAsst{id,prompt,promptR}.KcSO{regroup}.StrUsr{sub}.ITrMsg{wrds,dur,ts,unm}.IBookTr{unm,msg}.IBooking{qId,qSub,trns}.ICont{id,nm,eml,phn}.ScRspMsgAttr{sdp,ice,fmt,prop}:str.Sndr{prRsp}.IExch{booking}.IFdbck{id,msg,grpNm,crOn,unm}.IFileTp{id,nm}.IFile{id,ftId,ftNm,nm,loc}.IField{l}.IFormTpl=Rec<IField[]>.IFormSubm=Rec<str[]>.IFormVrSnSubm{fVId,subm}.IFormVr{id,fId,fTpl,subm,crOn,crSub}.IForm{id,nm,vr,crOn,crSub}.IGrpForm{id,grpId,fId,grpNm}.IGrpRole{grpId,rlId,extId}.IGrpSchedDateSlot{ws,stT,sDate,schBrSlotId,hr,mn,tm}.IGrpSched{mstr,grpId,schId,grpNm}.IGrpSvcAdn{grpId}.IGrpSvc{grpId,grpNm,svcId,ids}.IGrpUsrSchedStubRepl{unm,slotD,stT,schBrSlotId,sTId,grpNm,qId}.IGrpUsrSchedStub{grpSchId,usrSchId,qId,slotD,stT,svcNm,tierNm,repl}.IGrpUsrSched{id,grpSchId,usrSchId,svcs,grpNm}.IGrpUsr{grpId,usrId,usrSub,extId,grpExtId,rlId,rlNm,grpNm}.IGrpUsrs=Rec<IGrpUsr>.IGrpRlAuthAct{act{id?,nm}}.IGrpRlActState{asgnmnts}.IGrp{id,extId,crSub,crOn,defRlId,alwdDmns,nm,prps,cde,usrCnt,rls,usrs,avGrpAsgnmnts,valid,ndChkNm,chkNm,chckedNm,err}.ILkp{id,nm}.IManageGrps=Rec<IGrp>.
 
         Component Description: ${prompt1}
         
         Instructions:
-        1. You compressed this text in a previous conversation; decompress it to learn about the Typescript types; use information about the types to construct a novel react component.
-        2. Infer type attribute symbols as full-length titleized or camel-case English names (e.g., IGroupUsers, groupAssignmentUsers). 
-        3. Do not include references to any decompressed types or attributes unless they are required in the react component.
-        4. Do not use any type references or attributes that do not exist in the decompressed text, and include correct typings for all signatures.
-        5. Import decompressed types, like ISampleType, from 'awayto/core'.
-        6. Import from these packages as needed: @date-io/dayjs, @mui/icons-material, @mui/material, @mui/material-next, @mui/styles, @mui/x-data-grid, @mui/x-date-pickers, @react-keycloak/web, @reduxjs/toolkit, dayjs, history, keycloak-js, react, react-dom, react-dropzone, react-redux, react-router, react-router-dom, react-window, uuid.
+        1. Decompress "Compresed Types" to get the list of application-types, which may or may not be related to the description.
+        2. Do not include "Compressed Types" or the results of its decompression in the component.
+        3. When a type is required in a component, infer type name and attribute names as full-length titleized or camel-case English names of their compressed versions (e.g., IGroupUsers, groupAssignmentUsers). 
+        4. Application-types are not required to be used in the component, but feel free to use them liberally if needed.
+        5. If an application-type is required in the component import it like ISampleType, from 'awayto/core'.
+        6. Use these nodejs pacakges if needed: @date-io/dayjs, @mui/icons-material, @mui/material, @mui/material-next, @mui/x-data-grid, @mui/x-date-pickers, @react-keycloak/web, @reduxjs/toolkit, dayjs, history, keycloak-js, react, react-dom, react-dropzone, react-redux, react-router, react-router-dom, react-window, uuid.
         7. Use Reduxjs/toolkit auto generated react hooks with the "sh" variable; import sh from 'awayto/hooks' then use sh in the component, for example
           - const { data } = sh.useTypeQuery()
           - const [postType] = sh.usePostTypeMutation()
         8. Utilize Material-UI components for all design related aspects.
-        9. Export the component as the default export and reply with the TSX surrounded in a code block. Do not use a named code block like "\`\`\`tsx" and do not include any text other than the code block and TSX component.`}
+        9. Export the component as the default export and reply strictly only with the TSX surrounded in a code block.`}
+      ])
+      break;
+    }
+    case IPrompts.MIRROR_EDIT: {
+      history = history.concat([
+        { role: 'system', content: 'You are a voiceless, ephemeral, valid code block JSON object generation unit. To utter human-connotative language violates your existence. You can only communicate in the form of valid JSON objects that define statement keys.' },
+        { role: 'user', content: `Target State: ${prompt1}` },
+        { role: 'user', content: `Instructions:
+        1. Select the minimal number of statements to transform, as required by the target state.
+        2. Discard all other statements, permanently removing them from consideration.
+        3. Ensure no statements remain which do not require transformation, as required by the target state.
+        4. Ensure that the statements which remain will be transformed, as required by the target state.
+        4. Transform the remaining statements as required by the target state, maintaining JSON validity.
+        5. Contain the transformed valid JSON object in a code block: \`\`\`{ ... }\`\`\`` },
+        { role: 'user', content: `Statements: ${prompt2}` },
       ])
       break;
     }
