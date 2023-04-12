@@ -9,7 +9,7 @@ type Whiteboard = {
 };
 
 function useWebSocketWhiteboard(id: string, socket: WebSocket) {
-  const [whiteboard, setWhiteboard] = useState<Whiteboard>({ id, lines: [] });
+  const [whiteboard, setWhiteboard] = useState<Whiteboard>({ id: '', lines: [] });
 
   useEffect(() => {
     function handleMessage(message: { [prop: string]: string } & { type: string }): void {
@@ -85,7 +85,7 @@ export default function Whiteboard(props: IProps): JSX.Element {
         if (!ctx) return;
         const endPoint = { x: event.clientX, y: event.clientY };
         drawLine(startPoint, endPoint);
-        addLine(startPoint, endPoint);
+        addLine!(startPoint, endPoint);
         startPoint.x = endPoint.x;
         startPoint.y = endPoint.y;
       }
