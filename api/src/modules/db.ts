@@ -11,21 +11,20 @@ const {
   PG_DATABASE
 } = process.env as { [prop: string]: string } & { PG_PORT: number };
 
-export let connected: boolean = false;
+export let connected: boolean = false; console.log('😊');
 
-const pgp = pgPromise();
+const pgp = pgPromise(); console.log('😊');
 
-const pgTypes = pgp.pg.types;
-pgTypes.setTypeParser(1114, stringValue => stringValue);
-pgTypes.setTypeParser(1082, stringValue => stringValue);
+const pgTypes = pgp.pg.types; console.log('😊');
+pgTypes.setTypeParser(1114, stringValue => stringValue); console.log('😊');
+pgTypes.setTypeParser(1082, stringValue => stringValue); console.log('😊');
 
 export const db = pgp({
   host: PG_HOST,
   port: PG_PORT,
   user: PG_USER,
   password: PG_PASSWORD,
-  database: PG_DATABASE
-})
+  database: PG_DATABASE }); console.log('😊');
 // export let db: Client = new postgres.Client();
 
 async function go() {
@@ -67,4 +66,4 @@ async function go() {
   }
 }
 
-void go();
+void go(); console.log('😊');
