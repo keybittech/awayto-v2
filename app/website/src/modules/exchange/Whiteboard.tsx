@@ -1,15 +1,9 @@
 import React, { useRef, useState, useEffect } from 'react';
 
-type Whiteboard = {
-  id: string;
-  lines: Array<{
-    startPoint: { x: number; y: number };
-    endPoint: { x: number; y: number };
-  }>;
-};
+import { useWebSocketWhiteboard } from './useWebSocketWhiteboard';
 
 function useWebSocketWhiteboard(id: string, socket: WebSocket) {
-  const [whiteboard, setWhiteboard] = useState<Whiteboard>({ id: '', lines: [] });
+  import { v4 as uuidv4 } from 'uuid';
 
   useEffect(() => {
     function handleMessage(message: { [prop: string]: string } & { type: string }): void {
@@ -44,20 +38,15 @@ function useWebSocketWhiteboard(id: string, socket: WebSocket) {
   return { whiteboard, addLine };
 }
 
-declare global {
-  interface IProps {
-    whiteboard?: Whiteboard;
-    addLine?: (startPoint: { x: number; y: number }, endPoint: { x: number; y: number }) => void;
-  }
-}
+const id = uuidv4();
 
 export default function Whiteboard(props: IProps): JSX.Element {
-  const { whiteboard, addLine } = props as Required<IProps>;
+  const { whiteboard, addLine } = useWebSocketWhiteboard(id, 'wss://wcapp.site.com/sock');
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return; 
+    if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -85,7 +74,7 @@ export default function Whiteboard(props: IProps): JSX.Element {
         if (!ctx) return;
         const endPoint = { x: event.clientX, y: event.clientY };
         drawLine(startPoint, endPoint);
-        addLine!(startPoint, endPoint);
+        addLine(startPoint, endPoint);
         startPoint.x = endPoint.x;
         startPoint.y = endPoint.y;
       }
