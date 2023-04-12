@@ -99,11 +99,11 @@ const groupSchedulesApiHandlers: ApiHandler<typeof groupSchedulesApi> = {
       WHERE name = $1
     `, [groupName]);
 
-    const { sub: groupSub } = await props.tx.one<IUserProfile>(`
+    const { sub: groupSub } = await props.tx.one<IGroup>(`
       SELECT sub
-      FROM dbview_schema.enabled_users
-      WHERE username = $1
-    `, ['system_group_' + groupName]);
+      FROM dbtable_schema.groups
+      WHERE name = $1
+    `, [groupName]);
 
     const groupSchedule = siteApiHandlerRef.postSchedule({
       ... props,
@@ -146,10 +146,10 @@ const groupSchedulesApiHandlers: ApiHandler<typeof groupSchedulesApi> = {
     `, [groupName])
 
     const groups = await props.db.manyOrNone<IGroupSchedule>(`
-      SELECT es.*, eus."groupId"
-      FROM dbview_schema.enabled_group_schedules eus
-      LEFT JOIN dbview_schema.enabled_schedules es ON es.id = eus."scheduleId"
-      WHERE eus."groupId" = $1
+      SELECT es.*, eg."groupId"
+      FROM dbview_schema.enabled_group_schedules eg
+      LEFT JOIN dbview_schema.enabled_schedules es ON es.id = eg."scheduleId"
+      WHERE eg."groupId" = $1
     `, [groupId]);
 
     return groups;
