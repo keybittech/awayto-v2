@@ -70,8 +70,12 @@ export default function Whiteboard(props: IProps): JSX.Element {
       ctx.stroke();
     }
 
-    for (const line of whiteboard.lines) {
-      drawLine(line.startPoint, line.endPoint);
+    if (whiteboard) {
+      for (const line of whiteboard.lines) {
+        if (line && line.startPoint && line.endPoint) {
+          drawLine(line.startPoint, line.endPoint);
+        }
+      }
     }
 
     function handleMouseDown(event: MouseEvent): void {
@@ -102,7 +106,7 @@ export default function Whiteboard(props: IProps): JSX.Element {
     return () => {
       canvas.removeEventListener('mousedown', handleMouseDown);
     };
-  }, [whiteboard, addLine]);
+  }, [whiteboard, addLine, canvasRef])
 
   return <canvas ref={canvasRef} width={800} height={600} />;
 }
