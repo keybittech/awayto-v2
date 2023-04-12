@@ -4,7 +4,7 @@ import { PerformanceObserver, performance } from 'perf_hooks';
 const {
   GRAYLOG_HOST,
   GRAYLOG_PORT
-} = process.env as { [prop: string]: string } & { PG_PORT: number };
+} = process.env;
 
 export const logger = new graylog({
   servers: [{
