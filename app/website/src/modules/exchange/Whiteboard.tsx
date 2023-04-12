@@ -70,7 +70,7 @@ export default function Whiteboard(props: IProps): JSX.Element {
       ctx.stroke();
     }
 
-    if (whiteboard) {
+    if (whiteboard && whiteboard.lines) {
       for (const line of whiteboard.lines) {
         if (line && line.startPoint && line.endPoint) {
           drawLine(line.startPoint, line.endPoint);
