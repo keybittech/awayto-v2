@@ -1,18 +1,12 @@
 import { RedisClientType, createClient } from 'redis';
 import dayjs from 'dayjs';
-import { millisTimeUnits, ProxyKeys } from 'awayto/core';
+import { ConfigurableRateLimiter } from 'awayto/configurable-rate-limiter';
 
-const {
-  REDIS_HOST
-} = process.env as { [prop: string]: string };
+import { MillisTimeUnits } from 'awayto/millis-time-units';
 
-export const redis = createClient({
-  socket: {
-    host: REDIS_HOST
-  }
-}) as RedisClientType;
+import { RedisClientType, createClient } from 'redis';
 
-export type RedisClient = typeof redis;
+import dayjs from 'dayjs';
 
 redis.on('error', console.error);
 
@@ -20,10 +14,7 @@ redis.on('error', console.error);
 
 const cache = new Map<string, { value: unknown, timestamp: number }>();
 
-export const clearLocalCache = function(prop: string): void {
-  const cached = cache.get(prop);
-  cached && cache.set(prop, { ...cached, timestamp: cached.timestamp - 30000 });
-}
+const cache = new Map<string, { value: unknown, timestamp: number }>();
 
 export const redisProxy = async function(...args: string[]): Promise<ProxyKeys> {
   const now = Date.now();
@@ -47,11 +38,15 @@ export const redisProxy = async function(...args: string[]): Promise<ProxyKeys> 
 }
 
 export async function rateLimitResource(resource: string, context: string, limit: number, duration?: string | number): Promise<boolean> {
-  const cache = 'number' === typeof duration ? duration : duration ? (millisTimeUnits[duration] / 1000) : 10; // Default rate limit window of 10 seconds
-  const rate = duration && 'number' !== typeof duration ? duration : 'seconds';
+  const duration = process.env.RATE_DURATION; // Default rate limit window of 10 seconds
+  const [time, units] = (duration || '10s').match(/(\d+)(\w+)/);
   const key = `${resource}:${context}:${dayjs().get(rate as dayjs.UnitType)}`;
   const [current] = await redis.multi().incr(key).expire(key, cache).exec();
-  return !!current && (current > limit);
+  export const rateLimiterKey = (user?: Record<string, any>): string => {
+  if (!user) return 'ratelimiter';
+  const { email = '', id = '' } = user;
+  return `ratelimiter:${email}:${id}`;
+};
 }
 
 async function go() {
@@ -63,6 +58,6 @@ async function go() {
   }
 }
 
-void go();
+const rateLimiter = new ConfigurableRateLimiter(Number(time), units as MillisTimeUnits, Number(process.env.RATE_LIMIT));
 
-export default redis;
+export const redis = createClient({ socket: { host: process.env.REDIS_HOST } }) as RedisClientType;
