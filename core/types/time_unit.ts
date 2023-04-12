@@ -27,7 +27,8 @@ export enum TimeUnit {
   DAY = 'day',
   WEEK = 'week',
   MONTH = 'month',
-  YEAR = 'year'
+  YEAR = 'year',
+  DECADE = 'decade'
 }
 
 /**
@@ -48,13 +49,15 @@ export const timeUnitOrder = [
   'day',
   'week',
   'month',
-  'year'
+  'year',
+  'decade'
 ] as ITimeUnitNames[];
 
 /**
  * @category Time Unit
  */
 export const millisTimeUnits: Record<ITimeUnitNames, number> = {
+  [TimeUnit.DECADE]: 315360000000,
   [TimeUnit.YEAR]: 31536000000,
   [TimeUnit.MONTH]: 2629800000,
   [TimeUnit.WEEK]: 604800000,
