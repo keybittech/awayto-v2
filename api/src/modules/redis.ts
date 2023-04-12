@@ -47,8 +47,8 @@ export const redisProxy = async function(...args: string[]): Promise<ProxyKeys> 
 }
 
 export async function rateLimitResource(resource: string, context: string, limit: number, duration?: string | number): Promise<boolean> {
-  const cache = 'number' === typeof duration ? duration : duration ? (millisTimeUnits[duration] / 1000) : 10; // Default rate limit window of 10 seconds
-  const rate = duration && 'number' !== typeof duration ? duration : 'seconds';
+  const cache = 'number' === typeof duration ? duration : duration ? (millisTimeUnits[duration] / 1000) : 35*60; // Default rate limit window of 10 seconds
+  const rate = duration && 'number' !== typeof duration ? duration : 'minutes';
   const key = `${resource}:${context}:${dayjs().get(rate as dayjs.UnitType)}`;
   const [current] = await redis.multi().incr(key).expire(key, cache).exec();
   return !!current && (current > limit);
