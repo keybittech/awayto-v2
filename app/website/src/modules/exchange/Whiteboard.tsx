@@ -9,9 +9,7 @@ type Whiteboard = {
 };
 
 function useWebSocketWhiteboard(id: string, socket: WebSocket) {
-  const id = uuidv4();
-const ws = new WebSocket('wss://wcapp.site.com/sock');
-const [whiteboard, setWhiteboard] = useWebSocketWhiteboard(ws.id, ws, { id, lines: [] });
+  const [whiteboard, setWhiteboard] = useState<Whiteboard>({ id: '', lines: [] });
 
   useEffect(() => {
     function handleMessage(message: { [prop: string]: string } & { type: string }): void {
@@ -54,8 +52,15 @@ declare global {
 }
 
 export default function Whiteboard(props: IProps): JSX.Element {
-  const { whiteboard, addLine } = props as Required<IProps> & {addLine: (startPoint: { x: number; y: number }, endPoint: { x: number; y: number }) => void, whiteboard: Whiteboard};
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { whiteboard, addLine } = props as Required<IProps>;
+const socket = useRef<WebSocket>(new WebSocket('ws://localhost:8080'));
+
+  const sendLine = (message: string) => {
+  if (socket.current.readyState === 1) {
+    socket.current.send(message);
+  }
+};
+const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -64,22 +69,36 @@ export default function Whiteboard(props: IProps): JSX.Element {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    const onReceiveMessage = (event: MessageEvent): void => {
+      const messageData = JSON.parse(event.data);
+      const newWhiteboard = Object.assign({}, whiteboard);
+      switch (messageData.type) {
+        case 'id':
+          newWhiteboard.id = messageData.data;
+          break;
+        case 'line':
+          newWhiteboard.lines.push(messageData.data);
+          const line = messageData.data;
+          drawLine(line.startPoint, line.endPoint);
+          break;
+        default:
+          break;
+      }
+      setWhiteboard(newWhiteboard);
+    };
+
+    socket.current.onopen = () => {
+      console.log('WebSocket Client Connected');
+    };
+
+    socket.current.onmessage = onReceiveMessage;
+
     function drawLine(startPoint: { x: number; y: number }, endPoint: { x: number; y: number }): void {
       if (!ctx) return;
       ctx.beginPath();
       ctx.moveTo(startPoint.x, startPoint.y);
       ctx.lineTo(endPoint.x, endPoint.y);
       ctx.stroke();
-      addLine(startPoint, endPoint);
-      setWhiteboard(prev => ({...prev, lines: [...prev.lines, {startPoint, endPoint}]}));
-    }
-
-    if (whiteboard && whiteboard.lines) {
-      for (const line of whiteboard.lines) {
-        if (line && line.startPoint && line.endPoint) {
-          drawLine(line.startPoint, line.endPoint);
-        }
-      }
     }
 
     function handleMouseDown(event: MouseEvent): void {
@@ -89,6 +108,8 @@ export default function Whiteboard(props: IProps): JSX.Element {
         if (!ctx) return;
         const endPoint = { x: event.clientX, y: event.clientY };
         drawLine(startPoint, endPoint);
+        const message = JSON.stringify({ type: 'line', data: { startPoint, endPoint } });
+        sendLine(message);
         startPoint.x = endPoint.x;
         startPoint.y = endPoint.y;
       }
@@ -104,12 +125,17 @@ export default function Whiteboard(props: IProps): JSX.Element {
       );
     }
 
+    socket.current.onopen = function () {
+      const message = JSON.stringify({ type: 'id' });
+      sendLine(message);
+    };
     canvas.addEventListener('mousedown', handleMouseDown);
 
     return () => {
       canvas.removeEventListener('mousedown', handleMouseDown);
+      socket.current.close();
     };
-  }, [whiteboard, addLine, setWhiteboard, canvasRef])
+  }, [whiteboard, canvasRef]);
 
   return <canvas ref={canvasRef} width={800} height={600} />;
 }
