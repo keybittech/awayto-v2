@@ -3,6 +3,7 @@
   This file defines the Transcript component, which displays a table of chat messages.
   ☮
 */
+// :) Welcome to the transcript component!
 import React, { useMemo } from "react";
 
 //ascii smiley -> :)
@@ -67,6 +68,7 @@ function Transcript({ messages }: IProps): JSX.Element {
 
   //ascii peace sign -> ✌️
   return <Table dataSource={dataSource} columns={columns} pagination={false} />;
+  // ✌️ Peace out!
 
   if (!messages || messages.length === 0) return null;
 
