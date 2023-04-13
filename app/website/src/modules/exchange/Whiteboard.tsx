@@ -36,7 +36,7 @@ function useWebSocketWhiteboard(id: string, socket: WebSocket) {
     };
 
     setWhiteboard(updatedWhiteboard);
-    setInterval(() => {
+    {
       const coords = { x: Math.random() * 800, y: Math.random() * 600 };
       const newLine = {
         start: { x: coords.x - 5, y: coords.y - 5 },
@@ -51,7 +51,13 @@ function useWebSocketWhiteboard(id: string, socket: WebSocket) {
           data: JSON.stringify(updatedWhiteboard),
         })
       );
-    }, 1000);
+      setTimeout(() => {
+        // Remove the line
+        whiteboard.lines.pop();
+        // Remove the line from the canvas
+        whiteboard.redraw();
+      }, 5000);
+    }
     socket.send(
       JSON.stringify({
         type: "whiteboardUpdate",
@@ -60,7 +66,7 @@ function useWebSocketWhiteboard(id: string, socket: WebSocket) {
     );
   }
 
-  return { whiteboard, addLine, setInterval };
+  return { whiteboard, addLine };
 }
 
 interface IProps {
@@ -72,5 +78,27 @@ export default function Whiteboard(props: IProps): JSX.Element {
     return <>Whiteboard Module could go here...</>;
   };
 
-  return <canvas ref={canvasRef} width={800} height={600} />;
+  import socket from "socket.IO-client";
+
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [whiteboard, setWhiteboard] = useState<Whiteboard | null>(null);
+
+  useEffect(() => {
+    if (canvasRef.current) {
+      const newWhiteboard = new Whiteboard(canvasRef.current);
+      setWhiteboard(newWhiteboard);
+    }
+  }, []);
+
+  const addLine = (line: Line) => {
+    if (whiteboard) {
+      whiteboard.addLine(line);
+    }
+  };
+
+  socket.on("whiteboardUpdate", function (msg) {
+    const updatedWhiteboard = msg.data;
+    //update the local whiteboard state here
+    /* whiteboard.updateWhiteboard(updatedWhiteboard) */
+  });
 }
