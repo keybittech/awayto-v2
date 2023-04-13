@@ -96,7 +96,7 @@ export default function Whiteboard(props: IProps): JSX.Element {
     }
   };
 
-  const interval = setInterval(() => {
+  const testDrawing = () => {
     const newLine = {
       startX: Math.random() * 100, // x-coordinate
       startY: Math.random() * 100, // y-coordinate
@@ -104,6 +104,10 @@ export default function Whiteboard(props: IProps): JSX.Element {
       endY: Math.random() * 100, // y-coordinate
     };
     addLine(newLine);
+  };
+
+  setInterval(() => {
+    testDrawing();
   }, 1000);
   socket.on("whiteboardUpdate", function (msg) {
     const updatedWhiteboard = msg.data;
@@ -111,14 +115,8 @@ export default function Whiteboard(props: IProps): JSX.Element {
     /* whiteboard.updateWhiteboard(updatedWhiteboard) */
 
     // Code added here to simulate incoming socket messages
-    const interval = setInterval(() => {
-      const newLine = {
-        startX: Math.random() * 100, // x-coordinate
-        startY: Math.random() * 100, // y-coordinate
-        endX: Math.random() * 100, // x-coordinate
-        endY: Math.random() * 100, // y-coordinate
-      };
-      addLine(newLine);
+    setInterval(() => {
+      testDrawing();
     }, 1000);
   });
 }
