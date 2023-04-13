@@ -96,6 +96,15 @@ export default function Whiteboard(props: IProps): JSX.Element {
     }
   };
 
+  const interval = setInterval(() => {
+    const newLine = {
+      startX: Math.random() * 100, // x-coordinate
+      startY: Math.random() * 100, // y-coordinate
+      endX: Math.random() * 100, // x-coordinate
+      endY: Math.random() * 100, // y-coordinate
+    };
+    addLine(newLine);
+  }, 1000);
   socket.on("whiteboardUpdate", function (msg) {
     const updatedWhiteboard = msg.data;
     //update the local whiteboard state here
