@@ -139,18 +139,72 @@ export function generatePromptHistory(promptId: IPrompts, ...prompts: string[]):
     }
     case IPrompts.MIRROR_EDIT: {
       history = history.concat([
-        { role: 'system', content: 'You will receive code statements and must return modified versions of these statements, excluding any statments that were not modified.' },
-        { role: 'user', content: `Target State: ${prompt1}` },
-        {
-          role: 'user', content: `Instructions:
+        { role: 'system', content: 'You will receive code statements and must return modified versions of these statements excluding ones that were not modified.' },
+        { role: 'user', content: `Instructions:
         1. Analyze the provided code statements and identify those that require modification to achieve the target state.
         2. Ensure that the modified statements maintain JSON validity.
         3. Return the modified statements in a valid JSON object, structured as {"statement_0": "modified_statement", ...}.
-        4. Exclude unmodified statements from the returned JSON object.
-        5. Encapsulate the JSON object in a code block, with a repository pull request description directly above the code block: "The following statements contain only modifications that..."\n\`\`\`{ modified statements here }\`\`\`` },
+        4. When needed, insert brand new functionality by adding "below_#" or "above_#" keys to the JSON object, using the number of an existing statement. 
+        5. Exclude unmodified statements from the returned JSON object.
+        6. Prefer the use of single quotes inside string values, so as to not disrupt any JSON parsing later on.
+        7. Put any commentary or narration before the JSON object, at the top of your response.
+        7. Encapsulate the JSON object in a code block, ex. \`\`\`{ modified statements here }\`\`\`` },
+        { role: 'user', content: `Sample response given an sample target state and sample statements object:
+        
+        "These modifications address the desired changes by X, Y, Z."
+        
+        \`\`\`
+        {
+          "statement_4": "const someModifiedVar = 'test_value'",
+          "above_8": "if (profile.data) {\nconsole.log(profile.data)\n }",
+          "statement_17": "useEffect(() => {\n if (profile.data) {\n delete profile.data[4] } }, [profile])"
+        }
+        \`\`\`` },
+        { role: 'user', content: `Target State: ${prompt1}` },
         { role: 'user', content: `Statements: ${prompt2}` },
       ])
       break;
+    }
+    case IPrompts.GUIDED_EDIT: {
+      history = history.concat([
+        { role: 'system', content: 'As CodeWhittler I transform STATEMENTS_JSON, deriving RESPONSE_ARRAY from TARGET_STATE modifications.' },
+        { role: 'assistant', content: `Whittling Supplies Required:
+         - STATEMENTS_JSON: a JSON object with string keys and string Typescript code statement values
+         - TARGET_STATE: the desired state of the Typescript code statements
+        
+        Carving Process:
+        I'll examine STATEMENTS_JSON object, consider TARGET_STATE, and return a carefully whittled RESPONSE_ARRAY array. This whittling process ensures that your application runs swiftly and efficiently.
+        
+        Whittling Technique:
+        1. Should TARGET_STATE be overly complex or detailed, I'll iteratively pare down the concept until an appropriately sized TARGET_STATE is understood (any simplification to TARGET_STATE will be noted in the comments).
+        2. Any STATEMENTS_JSON value may be directly modified.
+        3. Any STATEMENTS_JSON value may be added as a new statement using "above_#" or "below_#" as the key using an adjacent statement #.
+        4. Any STATEMENTS_JSON value may be set to an empty string.
+        5. TEMP_KEYS array equals the keys of modified STATEMENTS_JSON properties.
+        6. RESPONSE_ARRAY is an array of objects, with one element per TEMP_KEYS, in the format of { [TEMP_KEY]: STATEMENTS_JSON[TEMP_KEY] }.
+
+        Response Template:
+        All responses given by me will follow this exact format, which is enclosed in 3 ampersands.
+
+        &&&
+        <2 very short comments describing the overall changes>
+
+        The modified subset of keys: ...TEMP_KEYS
+
+        @@@
+        [ ...RESPONSE_ARRAY ]
+        @@@
+        &&&
+
+        Following Steps:
+        Provide the necessary context in the statements for me to carry out the modifications. Use the keywords STATEMENTS_JSON and TARGET_STATE to convey the required inputs:
+        
+        TARGET_STATE --- <an english phrase with some coding terms>
+        STATEMENTS_JSON --- <a plain old javascript object (POJO)>
+        
+        On receiving TARGET_STATE and STATEMENTS_JSON, I'll start whittling away on the STATEMENTS_JSON as needed, to achieve TARGET_STATE, in order to derive RESPONSE_ARRAY.`},
+        { role: 'user', content: ` TARGET_STATE --- ${prompt1}\nSTATEMENTS_JSON --- ${prompt2}` }
+      ])
     }
     // case IPrompts.MIRROR_EDIT: {
     //   history = history.concat([
@@ -232,18 +286,36 @@ export function generatePrompt(promptId: IPrompts, ...prompts: string[]): string
   return generatedPrompt.replace(/\r?\n|\r-/g, ' ').trim();
 }
 
-export async function getChatCompletionPromptFromHistory(history: ChatCompletionRequestMessage[]): Promise<string> {
+export async function getChatCompletionPromptFromHistory(history: ChatCompletionRequestMessage[], continuations: number = 0): Promise<string[]> {
   try {
+  
+    const result: string[] = [];
 
-    const completion = await openai.createChatCompletion({
-      model: 'gpt-3.5-turbo',
-      messages: history
-    }, opts);
+    async function makeRequest() {
+      const completion = await openai.createChatCompletion({
+        model: 'gpt-3.5-turbo',
+        messages: history
+      }, opts);
+  
+      for (const { message } of completion.data.choices) {
+        if (message) {
+          const trm = message.content.trim();
+          result.push(trm);
+          history.push({ role: 'assistant', content: trm });
+        }
+      }
+    }
 
-    const result = completion.data.choices.at(0)?.message?.content.trim() || '';
+    await makeRequest();
 
-    logger.log('openai chat completion prompt with history', { result });
-    console.log('openai chat completion prompt with history', { result });
+    for (let i = 0; i < continuations; i++) {
+      history.push({ role: 'user', content: 'Continue.' });
+      await makeRequest();
+    }
+
+
+    logger.log('openai chat completion prompt with history', result.join());
+    console.log('openai chat completion prompt with history', result.join());
 
     return result;
   } catch (error) {

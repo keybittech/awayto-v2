@@ -2,6 +2,7 @@ import * as WebSocket from 'ws';
 import * as https from 'https';
 import fetch from 'node-fetch';
 import fs from 'fs';
+import prettier from 'prettier';
 import redis from './redis';
 import { generatePrompt, generatePromptHistory, getChatCompletionPrompt, getChatCompletionPromptFromHistory, getCompletionPrompt } from './openai';
 import { IPrompts } from 'awayto/core';
@@ -106,12 +107,21 @@ export const TWITCH_REDIRECT_URI = 'https://wcapp.site.com/api/twitch/webhook'
 
 export async function connectToTwitch(httpsServer: https.Server) {
 
-  const localsocketserver = new WebSocket.WebSocketServer({ server: httpsServer });
+  const localSocketServer = new WebSocket.WebSocketServer({ server: httpsServer });
 
-  localsocketserver.on('connection', (localsocket) => {
+  localSocketServer.on('connection', (localSocket) => {
     console.log('Client connected');
-    localsocket.send(JSON.stringify({ message: 'TWITCH CONNECTED' }))
+    localSocket.send(JSON.stringify({ message: 'TWITCH CONNECTED' }))
+  
+    localSocket.on('message', message => {
+      const msg = JSON.parse(message.toString()) as { action: string, command: string, message: string };
+      console.log(msg)
+
+    });
+
   });
+
+
 
   try {
 
@@ -189,24 +199,32 @@ export async function connectToTwitch(httpsServer: https.Server) {
         ws.on('error', console.error);
 
         ws.on('open', async function () {
-          console.log('connection open');
-          console.log('Open events at http://wcapp.site.com/api/twitch/events');
-          localsocketserver.clients.forEach((localsocket) => {
-            if (localsocket.readyState == 1) {
-              localsocket.send(JSON.stringify({ message: 'CHAT CONNECTED' }));
-            }
-          });
           ws.send('CAP REQ :twitch.tv/membership twitch.tv/tags twitch.tv/commands')
           ws.send(`PASS oauth:${TWITCH_CLIENT_ACCESS_TOKEN}`);
           ws.send(`NICK chatjoept`);
           ws.send('JOIN #chatjoept');
         });
 
+        let open = false;
+
         ws.on('message', async function (data: Buffer) {
+          if (!open) {
+            open = true;
+            console.log('connection open');
+            console.log('Open events at http://wcapp.site.com/api/twitch/events');
+            localSocketServer.clients.forEach((localSocket) => {
+              if (localSocket.readyState == 1) {
+                localSocket.send(JSON.stringify({ message: 'CHAT CONNECTED' }));
+              }
+            });
+          }
+          
           try {
             const body = data.toString();
             const contents: Record<string, string> = {};
 
+            console.log({ body })
+          
             if (body.startsWith(":tmi.twitch.tv PONG")) {
               console.log("Received PONG from Twitch IRC server");
               return;
@@ -259,9 +277,9 @@ export async function connectToTwitch(httpsServer: https.Server) {
             }
 
             if (Object.keys(contents).length) {
-              localsocketserver.clients.forEach((localsocket) => {
-                if (localsocket.readyState == 1) {
-                  localsocket.send(JSON.stringify(contents));
+              localSocketServer.clients.forEach((localSocket) => {
+                if (localSocket.readyState == 1) {
+                  localSocket.send(JSON.stringify(contents));
                 }
               });
             }
@@ -296,23 +314,18 @@ const toTitleCase = (name: string): string => {
   return name.substr(1).replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase());
 };
 
-function extractCodeBlock(inputString: string, languages: string[] = ['typescript', 'json', 'jsx', 'tsx']) {
-  const langStartTag = (language: string) => language ? `\`\`\`${language}` : '```';
-  const langEndTag = '```';
+function extractCodeBlock(inputString: string, delimeter : string = '\`\`\`', languages: string[] = ['typescript', 'json', 'jsx', 'tsx']) {
+  const langStartTag = (language: string) => language ? `${delimeter}${language}` : delimeter;
 
   for (const language of languages) {
     const startTag = langStartTag(language);
     if (inputString.includes(startTag)) {
-      return inputString.split(startTag)[1].split(langEndTag)[0];
+      return inputString.split(startTag)[1].split(delimeter)[0];
     }
   }
 
-  if (inputString.includes('```')) {
-    return inputString.split('```')[1];
-  }
-
-  if (inputString.includes('tsx')) {
-    return inputString.split('tsx')[1];
+  if (inputString.includes(delimeter)) {
+    return inputString.split(delimeter)[1];
   }
 
   return inputString;
@@ -328,7 +341,7 @@ async function createComponent(description: string, user: string) {
 
   console.log({ createComponentPrompt });
 
-  const generatedTsx = extractCodeBlock(await getChatCompletionPromptFromHistory(createComponentPrompt));
+  const generatedTsx = extractCodeBlock((await getChatCompletionPromptFromHistory(createComponentPrompt))[0]);
 
   console.log({ generatedTsx })
 
@@ -379,16 +392,24 @@ function walkNode(child: Node, i: number, parsedStatements: Record<string, strin
   }
 }
 
-function removeTextOutsideBraces(input: string): string {
-  const firstBraceIndex = input.indexOf('{');
-  const lastBraceIndex = input.lastIndexOf('}');
+function sanitizeBranchName(input: string): string {
+  // Trim whitespaces and replace consecutive spaces with a single dash
+  const trimmed = input.trim();
 
-  if (firstBraceIndex === -1 || lastBraceIndex === -1) {
-    console.error("The input string doesn't contain the required braces.");
-    return "";
-  }
+  // Remove invalid characters: ~ ^ : ? * [ ] @ { } \ /
+  const sanitized = trimmed.replace(/[~^:?"*\[\]@{}\\/]+/g, '');
 
-  return input.slice(firstBraceIndex, lastBraceIndex + 1);
+  // Limit branch name length to 100 characters
+  const maxLength = 100;
+  const shortened = sanitized.slice(0, maxLength);
+
+  // Remove leading and trailing period (.)
+  const noLeadingTrailingPeriods = shortened.replace(/(^\.+|\.+$)/g, '');
+
+  // Remove leading and trailing forward slash (-)
+  const result = noLeadingTrailingPeriods.replace(/(^-+|-+$)/g, '');
+
+  return result;
 }
 
 async function mirrorEdit(fileParts: string, user: string) {
@@ -417,24 +438,26 @@ async function mirrorEdit(fileParts: string, user: string) {
       walkNode(statement, index, parsedStatements, originalStatements);
     });
 
-    console.log({ parsedStatements })
-    const mirrorGenerationPrompt = generatePromptHistory(IPrompts.MIRROR_EDIT, suggestions, JSON.stringify(parsedStatements));
+    console.log({ suggestions, parsedStatements })
+    const mirrorGenerationPrompt = generatePromptHistory(IPrompts.GUIDED_EDIT, suggestions, JSON.stringify(parsedStatements));
     console.log({ mirrorGenerationPrompt })
-    const generatedMirror = await getChatCompletionPromptFromHistory(mirrorGenerationPrompt);
+    const [generatedMirror] = await getChatCompletionPromptFromHistory(mirrorGenerationPrompt);
 
-    const indexOfBlock = generatedMirror.indexOf('```');
+    const bracketIndex = generatedMirror.indexOf('@@@');
+    const generatedSummary = generatedMirror.slice(0, bracketIndex - 1);
 
-    if (!indexOfBlock) {
-      return 'i can\'t believe it\'s not a block';
+    let extractedMirror = extractCodeBlock(generatedMirror, '@@@');
+    if (extractedMirror[0] !== '[') {
+      const braceIndex = extractedMirror.indexOf('[');
+      if (braceIndex < 0) {
+        return 'it\'s a brack attack, a brack attack, everbody run';
+      }
     }
 
-    const generatedPretext = generatedMirror.slice(0, indexOfBlock - 1);
-    const extractedMirror = extractCodeBlock(generatedMirror);
+    console.log({ generatedMirror, extractedMirror, generatedSummary })
 
-
-    console.log({ generatedMirror, extractedMirror })
-
-    const generatedStatements = JSON.parse(extractedMirror) as Record<string, string>;
+    const generatedStatements = (JSON.parse(extractedMirror) as Record<string, string>[])
+      .reduce((m, d) => ({ ...m, ...d }), {});
 
     console.log({ generatedStatements })
 
@@ -445,6 +468,25 @@ async function mirrorEdit(fileParts: string, user: string) {
       if (['new_statement', 'newstatement', `statement_${originalStatements.size + 1}`].includes(statementKey)) {
         fileContent += `\n${generatedStatements[statementKey]} // generated by ${user}`;
         fileModified = true;
+      } else if ([/above_\d{1,2}/, /below_\d{1,2}/].some(regex => regex.test(statementKey))) {
+        const [direction, index] = statementKey.split('_');
+        const adjacentStatement = originalStatements.get(`statement_${index}`);
+
+        if (adjacentStatement) {
+          const adjacentStart = fileContent.indexOf(adjacentStatement);
+          const adjacentEnd = adjacentStart + adjacentStatement.length;
+
+          if ('above' == direction) {
+            console.log({ AS: statementKey, ABOVE: generatedStatements[statementKey] });
+            fileContent = fileContent.substring(0, adjacentStart) + generatedStatements[statementKey] + '\n' + fileContent.substring(adjacentStart);
+          } else {
+            console.log({ SO: statementKey, BELOW: generatedStatements[statementKey] });
+            fileContent = fileContent.substring(0, adjacentEnd) + '\n' + generatedStatements[statementKey] + fileContent.substring(adjacentEnd);
+          }
+
+          fileModified = true;
+        }
+
       } else {
         const originalStatement = originalStatements.get(statementKey);
 
@@ -461,29 +503,63 @@ async function mirrorEdit(fileParts: string, user: string) {
     });
 
     if (fileModified) {
-      sourceFile.removeText();
-      sourceFile.insertText(0, fileContent);
-      sourceFile.saveSync();
+      // const projectDiffPath = path.resolve('~/code/project_diff');
+      // const apiPath = path.join(projectDiffPath, 'api');
+      // const tsConfigFilePath = path.join(apiPath, 'projectts.json');
+      // const tsConfigFile = ts.readConfigFile(tsConfigFilePath, ts.sys.readFile);
+      // const configParseResult = ts.parseJsonConfigFileContent(tsConfigFile.config, ts.sys, apiPath)
+      // const testFile = ts.createSourceFile('temp.ts', fileContent, ts.ScriptTarget.ES2016, true);
+      // const testProgram = ts.createProgram([testFile.fileName], configParseResult.options)
+      // const diagnostics = ts.getPreEmitDiagnostics(testProgram);
 
-      await project.save();
+      // if (diagnostics.length > 0) {
+      //   console.log('Diagnostic errors:');
+      //   diagnostics.forEach(diagnostic => {
+      //     const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
+      //     console.log(`${diagnostic.file?.fileName} (${diagnostic.start}): ${message}`);
+      //   })
+      //   return 'you really did it now, no code, no show, no turkey';
+      // } else {
 
-      const generationBranch = `generations/${user}/${fileName}`;
-      await git.fetch();
-      try {
-        await git.checkoutBranch(generationBranch, 'origin/main');
-      } catch (error) {
-        const err = error as Error;
-        if (err.message.includes('A branch named') && err.message.includes('already exists')) {
-          await git.checkout(generationBranch);
+        fileContent = prettier.format(fileContent, {
+          parser: 'typescript',
+          tabWidth: 2,
+          useTabs: false
+        });
+
+        const generationBranch = sanitizeBranchName(`gen/${user}/${(new Date()).getTime()}`);
+        await git.fetch();
+        try {
+          await git.checkoutBranch(generationBranch, 'origin/main');
+        } catch (error) {
+          const err = error as Error;
+          if (err.message.includes('A branch named') && err.message.includes('already exists')) {
+            await git.checkout(generationBranch);
+          }
         }
-      }
-      await git.add(sourceFilePath);
-      await git.commit(`${user.slice(0,15)} - ${suggestions.slice(0, 30)}`)
-      await git.push('origin', generationBranch);
-      execSync(`gh pr create --title "${user} edited ${fileName}" --body "${user} suggested: ${suggestions} \n\n GPT responded: ${generatedPretext}" --head "${generationBranch}" --base "main"`, { cwd: '../../project_diff' });
-      await git.checkout('main');
+        await git.pull();
   
-      return 'wowie wow wow, this guy actually did it, he\'s the real deal';
+        sourceFile.removeText();
+        sourceFile.insertText(0, fileContent);
+        sourceFile.saveSync();
+        await project.save();
+        await git.add(sourceFilePath);
+        await git.commit(sanitizeBranchName(`${user} - ${suggestions}`).slice(0, 50))
+        await git.push('origin', generationBranch);
+  
+        const prListOutput = JSON.parse(Buffer.from(execSync('gh pr list --state open --base main --json number,headRefName', { cwd: "../../project_diff" })).toString()) as { number: number, headRefName: string }[];
+        const prTitle = `${user} edited ${fileName}: ${suggestions.replace(/[~^:?"*\[\]@{}\\/]+/g, '')}`.slice(0, 255);
+        const prBody = `GPT: ${generatedSummary}`.replaceAll('"', '');
+        if (!prListOutput.some(pr => pr.headRefName === generationBranch)) {
+          execSync(`gh pr create --title "${prTitle}" --body "${prBody}" --head "${generationBranch}" --base "main"`, { cwd: '../../project_diff' });
+        }
+  
+        await git.checkout('main');
+    
+        return 'wowie wow wow, this guy actually did it, he\'s the real deal';
+      // }
+
+
     } else {
       return 'yo that shit bunk homie, no mods';
     }
@@ -572,7 +648,7 @@ async function editFile(fileParts: string) {
 
     console.log({ morphGenerationPrompt });
 
-    const generatedMorphs = extractCodeBlock(await getChatCompletionPromptFromHistory(morphGenerationPrompt));
+    const generatedMorphs = extractCodeBlock((await getChatCompletionPromptFromHistory(morphGenerationPrompt))[0]);
 
     console.log({ generatedMorphs })
 
@@ -622,7 +698,7 @@ async function generateApi(typeName: string, user: string) {
 
   console.log({ apiGenerationPrompt });
 
-  const generatedApi = extractCodeBlock(await getChatCompletionPromptFromHistory(apiGenerationPrompt));
+  const generatedApi = extractCodeBlock((await getChatCompletionPromptFromHistory(apiGenerationPrompt))[0]);
 
   fs.appendFileSync(coreTypesPath, `${comment}${generatedApi}\n\n`);
 
@@ -651,7 +727,7 @@ async function generateApi(typeName: string, user: string) {
 
     console.log({ apiBackendGenerationPrompt });
 
-    const generatedApiBackend = extractCodeBlock(await getChatCompletionPromptFromHistory(apiBackendGenerationPrompt));
+    const generatedApiBackend = extractCodeBlock((await getChatCompletionPromptFromHistory(apiBackendGenerationPrompt))[0]);
 
     sourceFile.insertText(sourceFile.getEnd(), `${comment}${generatedApiBackend}\n\n`);
     sourceFile.fixMissingImports();

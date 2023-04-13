@@ -23,6 +23,10 @@
     let ready = false;
     let socket = null;
     let reconnecting = false;
+    if ('speechSynthesis' in window) {
+      // Prompt voice loading
+      speechSynthesis.getVoices();
+    }
 
     function getSocket() {
       if (reconnecting) return;
@@ -100,11 +104,21 @@
     function speak(text) {
       if ('speechSynthesis' in window) {
         console.log('Attempting to speak:', text);
-        currentUtterance = new SpeechSynthesisUtterance(text);
-        currentUtterance.onstart = () => console.log('Utterance started:', text);
-        currentUtterance.onerror = (e) => console.error('Utterance error:', e);
-        currentUtterance.onend = () => console.log('Utterance ended:', text);
-        window.speechSynthesis.speak(currentUtterance);
+        try {
+          const voices = speechSynthesis.getVoices();
+          const randomVoice = Math.floor(Math.random() * voices.length)
+          currentUtterance = new SpeechSynthesisUtterance(text);
+          currentUtterance.voice = voices[randomVoice];
+          currentUtterance.pitch = 1;
+          currentUtterance.rate = 1;
+          currentUtterance.volume = 2;
+          currentUtterance.onstart = () => console.log('Utterance started:', text);
+          currentUtterance.onerror = (e) => console.error('Utterance error:', e);
+          currentUtterance.onend = () => console.log('Utterance ended:', text);
+          window.speechSynthesis.speak(currentUtterance);
+        } catch (error) {
+          console.log(error);
+        }
       } else {
         console.error('Speech synthesis is not supported in this browser.');
       }
