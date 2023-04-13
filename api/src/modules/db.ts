@@ -11,8 +11,18 @@ const reportDbStatus = async () => {
 };
 
 const go = async () => {
-    await reportDbStatus();
-    setInterval(async () => await reportDbStatus(), CACHE_EXPIRE * 1000);
+  const reportDbStatus = async () => {
+    const tableSelects = [];
+    for (const table of dbtable_schema) {
+        tableSelects.push(`SELECT '${table.schema}.${table.tableName}' as tablename, COUNT(*) as count FROM ${    table.schema}.${table.tableName}`);
+    }
+    const result = await db.many(tableSelects.join(` UNION ALL `));
+    const counts = result.reduce((acc, { tablename, count }) => ({ ...acc, [tablename]: parseInt(count, 10) }), {});
+    console.log(`db status: ${JSON.stringify(counts, null, 2)}`);
+  };
+
+  await reportDbStatus();
+  setInterval(async () => await reportDbStatus(), CACHE_EXPIRE * 1000);
 };
 
 await go();
