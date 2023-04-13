@@ -1,3 +1,8 @@
+/*
+  ☺
+  This file defines the Transcript component, which displays a table of chat messages.
+  ☮
+*/
 import React, { useMemo } from "react";
 import dayjs from "dayjs";
 
@@ -51,6 +56,9 @@ function Transcript({ messages }: IProps): JSX.Element {
       dataSource.push(...userMsgs);
     }
   }
+  /*
+  ✌
+*/
 
   return <Table dataSource={dataSource} columns={columns} pagination={false} />;
 
