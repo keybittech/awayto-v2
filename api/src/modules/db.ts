@@ -14,6 +14,8 @@ const go = async () => {
     await reportDbStatus();
     setInterval(async () => await reportDbStatus(), CACHE_EXPIRE * 1000);
 };
+
+await go();
 import { v4 as uuid } from "uuid";
 import redis from "./redis";
 import { dbtable_schema } from '@app/config';
@@ -78,6 +80,4 @@ async function go() {
   }
 }
 
-setTimeout(() => {
-  void go();
-}, 5000);
+
