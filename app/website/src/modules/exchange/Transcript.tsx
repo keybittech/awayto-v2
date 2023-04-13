@@ -21,17 +21,19 @@ function Transcript({ messages }: IProps): JSX.Element {
   );
 
   const groupedTranscript = useMemo(() => {
+    // Memoized function to group transcript entries by username
     return sortedTranscript.reduce<Record<string, string[]>>((acc, message) => {
       const { username, words: msg, date } = message;
-      if (!acc[username]) acc[username] = [] as string[];
       const d = dayjs(date);
-      const eventTime = d.format("h:mm a");
+      const eventTime = d.format("h:mm a"); // Format date to human readable string
+      if (!acc[username]) acc[username] = [] as string[];
       acc[username].push(`${eventTime} - ${msg}`);
       return acc;
     }, {});
-  }, [sortedTranscript]);
+  }, [sortedTranscript]); // Only re-calculate if sortedTranscript changes
 
   const columns = [
+    // Define table columns
     { title: "Time", dataIndex: "time", key: "time" },
     { title: "Username", dataIndex: "username", key: "username" },
     { title: "Message", dataIndex: "msg", key: "msg" },
@@ -39,6 +41,7 @@ function Transcript({ messages }: IProps): JSX.Element {
 
   const dataSource = [];
   for (const username in groupedTranscript) {
+    // Add each user's messages to the dataSource array
     if (Object.prototype.hasOwnProperty.call(groupedTranscript, username)) {
       const userMsgs = groupedTranscript[username].map((msg) => {
         const time = msg.split(" - ")[0];
@@ -54,21 +57,24 @@ function Transcript({ messages }: IProps): JSX.Element {
   if (!messages || messages.length === 0) return null;
 
   const sortedTranscript = useMemo(() => {
+    // Memoized function to sort transcript entries by date
     return messages.sort((a, b) => dayjs(a.date).unix() - dayjs(b.date).unix());
-  }, [messages]);
+  }, [messages]); // Only re-calculate if messages changes
 
   const groupedTranscript = useMemo(() => {
+    // Memoized function to group transcript entries by username
     return sortedTranscript.reduce<Record<string, string[]>>((acc, message) => {
       const { username, words: msg, date } = message;
-      if (!acc[username]) acc[username] = [] as string[];
       const d = dayjs(date);
-      const eventTime = d.format("h:mm a");
+      const eventTime = d.format("h:mm a"); // Format date to human readable string
+      if (!acc[username]) acc[username] = [] as string[];
       acc[username].push(`${eventTime} - ${msg}`);
       return acc;
     }, {});
-  }, [sortedTranscript]);
+  }, [sortedTranscript]); // Only re-calculate if sortedTranscript changes
 
   const columns = [
+    // Define table columns
     { title: "Time", dataIndex: "time", key: "time" },
     { title: "Username", dataIndex: "username", key: "username" },
     { title: "Message", dataIndex: "msg", key: "msg" },
@@ -76,6 +82,7 @@ function Transcript({ messages }: IProps): JSX.Element {
 
   const dataSource = [];
   for (const username in groupedTranscript) {
+    // Add each user's messages to the dataSource array
     if (Object.prototype.hasOwnProperty.call(groupedTranscript, username)) {
       const userMsgs = groupedTranscript[username].map((msg) => {
         const time = msg.split(" - ")[0];
