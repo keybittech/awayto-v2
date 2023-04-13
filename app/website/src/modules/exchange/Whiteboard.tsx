@@ -1,7 +1,7 @@
-import React from "react";
+import React from "react"; //importing React library
 
 function useWebSocketWhiteboard(id: string, socket: WebSocket) {
-  const ws = new WebSocket("wss://wcapp.site.com/sock");
+  const ws = new WebSocket("wss://wcapp.site.com/sock"); //create a new websocket connection //create a new websocket connection
   const [whiteboard, setWhiteboard] = useWebSocketWhiteboard(ws.id, ws, {
     id,
     lines: [],
@@ -71,30 +71,39 @@ function useWebSocketWhiteboard(id: string, socket: WebSocket) {
 
 interface IProps {
   whiteboard?: Whiteboard | null;
+  //declaring an interface for the module's props containing a definition for whiteboard, which may or may not exist
 }
+//interface for props passed to the Whiteboard component
 
 export default function Whiteboard(props: IProps): JSX.Element {
   const Whiteboard: React.FC<IProps> = ({ whiteboard }) => {
-    return <>Whiteboard Module could go here...</>;
+    return <>//returning some JSX Whiteboard Module could go here...</>;
   };
 
-  import socket from "socket.IO-client";
+  // defining a functional component named Whiteboard that receives props with a whiteboard object, which may or may not be undefined //creating a functional component for the Whiteboard module
 
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [whiteboard, setWhiteboard] = useState<Whiteboard | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null); //creating a ref to the HTML canvas element
+  const [whiteboard, setWhiteboard] = useState<Whiteboard | null>(null); //creating a state variable for the whiteboard object
 
   useEffect(() => {
     if (canvasRef.current) {
       const newWhiteboard = new Whiteboard(canvasRef.current);
+      //if the canvasRef element exists, initialise a new Whiteboard object with the canvasRef
       setWhiteboard(newWhiteboard);
+      //update the state with the newly created whiteboard object
     }
   }, []);
+
+  //useEffect run whenever the component mounts, creates a new Whiteboard object with the canvasRef element and sets the state //run this effect only once on initial render
 
   const addLine = (line: Line) => {
     if (whiteboard) {
       whiteboard.addLine(line);
+      //if whiteboard object exists, add a line to it
     }
   };
+
+  //defining a function named addLine that accepts a line object and adds it to the whiteboard object if it exists //adding a function to add a line to the whiteboard
 
   const testDrawing = () => {
     const newLine = {
@@ -105,18 +114,31 @@ export default function Whiteboard(props: IProps): JSX.Element {
     };
     addLine(newLine);
   };
+  //setting up a function named testDrawing that creates a new line object with random coordinates and passes it to the addLine function //test function for simulating drawing
 
   setInterval(() => {
     testDrawing();
   }, 1000);
+  //running the testDrawing function every second //set an interval to run the testDrawing function every second
+  const ws = new WebSocket("wss://wcapp.site.com/sock");
+
+  ws.onmessage = function (event) {
+    console.log(event);
+    //logging the incoming event message to the console
+  };
+
+  //setting up a function to log the message received on the websocket connection
   socket.on("whiteboardUpdate", function (msg) {
     const updatedWhiteboard = msg.data;
-    //update the local whiteboard state here
+    //store incoming whiteboard data into updatedWhiteboard variable
     /* whiteboard.updateWhiteboard(updatedWhiteboard) */
-
-    // Code added here to simulate incoming socket messages
+    //update the local whiteboard state here
+    //adding a test drawing to simulate incoming messages
     setInterval(() => {
       testDrawing();
     }, 1000);
+    // 😊
   });
+
+  //subscribing to the "whiteboardUpdate" event and updating the whiteboard state with new data when it is received //adding an event listener for the 'whiteboardUpdate' socket message
 }
