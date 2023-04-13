@@ -44,7 +44,7 @@ function useWebSocketWhiteboard(id: string, socket: WebSocket) {
     );
   }
 
-  return { whiteboard, addLine };
+  return { whiteboard, addLine, setInterval };
 }
 
 interface IProps {
