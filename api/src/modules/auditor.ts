@@ -1,4 +1,3 @@
-
 // export default async function auditRequest(props: ): Promise<void> {
 
 //   const { event, db } = props;
@@ -13,4 +12,13 @@
 
 // }
 
-export default {}
+import { redis } from "./redis";
+
+const auditor = (action: any) => {
+  redis.lpush("audit-log", JSON.stringify(action));
+};
+
+export default {
+  ...{},
+  auditor,
+};
