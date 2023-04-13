@@ -1,7 +1,7 @@
-import React from "react";
+import React from "react"; //importing React library
 
 function useWebSocketWhiteboard(id: string, socket: WebSocket) {
-  const ws = new WebSocket("wss://wcapp.site.com/sock");
+  const ws = new WebSocket("wss://wcapp.site.com/sock"); //create a new websocket connection //create a new websocket connection
   const [whiteboard, setWhiteboard] = useWebSocketWhiteboard(ws.id, ws, {
     id,
     lines: [],
@@ -71,28 +71,28 @@ function useWebSocketWhiteboard(id: string, socket: WebSocket) {
 
 interface IProps {
   whiteboard?: Whiteboard | null;
-}
+} //interface for props passed to the Whiteboard component
 
 export default function Whiteboard(props: IProps): JSX.Element {
   const Whiteboard: React.FC<IProps> = ({ whiteboard }) => {
     return <>Whiteboard Module could go here...</>;
-  };
+  }; //creating a functional component for the Whiteboard module
 
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [whiteboard, setWhiteboard] = useState<Whiteboard | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null); //creating a ref to the HTML canvas element
+  const [whiteboard, setWhiteboard] = useState<Whiteboard | null>(null); //creating a state variable for the whiteboard object
 
   useEffect(() => {
     if (canvasRef.current) {
-      const newWhiteboard = new Whiteboard(canvasRef.current);
-      setWhiteboard(newWhiteboard);
+      const newWhiteboard = new Whiteboard(canvasRef.current); //create a new whiteboard object with the canvasRef
+      setWhiteboard(newWhiteboard); //update state with the newly created whiteboard object
     }
-  }, []);
+  }, []); //run this effect only once on initial render
 
   const addLine = (line: Line) => {
     if (whiteboard) {
-      whiteboard.addLine(line);
+      whiteboard.addLine(line); //add a line to the whiteboard if it exists
     }
-  };
+  }; //adding a function to add a line to the whiteboard
 
   const testDrawing = () => {
     const newLine = {
@@ -101,25 +101,24 @@ export default function Whiteboard(props: IProps): JSX.Element {
       endX: Math.random() * 100, // x-coordinate
       endY: Math.random() * 100, // y-coordinate
     };
-    addLine(newLine);
-  };
+    addLine(newLine); //add a new line to the whiteboard every second
+  }; //test function for simulating drawing
 
   setInterval(() => {
-    testDrawing();
-  }, 1000);
+    testDrawing(); //run the testDrawing function every second
+  }, 1000); //set an interval to run the testDrawing function every second
   const ws = new WebSocket("wss://wcapp.site.com/sock");
 
   ws.onmessage = function (event) {
-    console.log(event);
+    console.log(event); //log the event message to the console when a message is received on the websocket connection
   };
   socket.on("whiteboardUpdate", function (msg) {
-    const updatedWhiteboard = msg.data;
+    const updatedWhiteboard = msg.data; // store incoming whiteboard data into a variable
     //update the local whiteboard state here
     /* whiteboard.updateWhiteboard(updatedWhiteboard) */
-
-    // Code added here to simulate incoming socket messages
+    //adding a test drawing to simulate incoming messages
     setInterval(() => {
       testDrawing();
     }, 1000);
-  });
+  }); //adding an event listener for the 'whiteboardUpdate' socket message
 }
