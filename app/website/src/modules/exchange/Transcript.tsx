@@ -1,7 +1,3 @@
-const duration =
-  sortedTranscript[sortedTranscript.length - 1].timestamp -
-  sortedTranscript[0].timestamp +
-  1;
 import React, { useMemo } from "react";
 import dayjs from "dayjs";
 
@@ -24,52 +20,65 @@ function Transcript({ messages }: IProps): JSX.Element {
     [messages]
   );
 
-  const sortedTranscript = messages
-    ?.slice()
-    .sort((a, b) => dayjs(a.timestamp).diff(dayjs(b.timestamp)));
+  const groupedTranscript = useMemo(() => {
+    return messages?.reduce<Record<string, ITranscriptMessage[]>>(
+      (acc, message) => {
+        const { username } = message;
+        if (!acc[username]) acc[username] = [];
+        acc[username].push(message);
+        return acc;
+      },
+      {}
+    );
+  }, [messages]);
 
-  const columns = [
-    { title: "Username", field: "username" },
-    { title: "Messages", field: "text" },
-  ];
+  const messagesLines = useMemo(() => {
+    const lines = [] as Record<string, string>[];
+    if (messages) {
+      messages.forEach(({ username, words: wrds, duration }) => {
+        const words = wrds.split(" ");
+        const wordsPerSec = words.length / duration;
+        const numLines = Math.ceil(words.length / (20 / wordsPerSec));
+        const wordsPerLine = Math.ceil(words.length / numLines);
 
-  const data = sortedTranscript.reduce((acc, { username, words }) => {
-    const rows: any[] = acc[username] || [];
-    const wordsArr = words.split(" ");
-    const wordsPerSec = wordsArr.length / duration;
-    const numLines = Math.ceil(wordsArr.length / (20 / wordsPerSec));
-    const wordsPerLine = Math.ceil(wordsArr.length / numLines);
-
-    for (let i = 0; i < numLines; i++) {
-      const lineWords = wordsArr.slice(
-        i * wordsPerLine,
-        (i + 1) * wordsPerLine
-      );
-      const lineText = lineWords.join(" ");
-      rows.push({ text: lineText });
+        for (let i = 0; i < numLines; i++) {
+          const lineWords = words.slice(
+            i * wordsPerLine,
+            (i + 1) * wordsPerLine
+          );
+          const lineText = lineWords.join(" ");
+          lines.push({ username, text: lineText });
+        }
+      });
     }
-
-    acc[username] = rows;
-    return acc;
-  }, {});
-
-  return <MaterialTable title="Transcript" columns={columns} data={data} />;
+    return lines;
+  }, [messages]);
 
   return (
-    <ul>
-      {Object.keys(groupedTranscript).map((username) => (
-        <li key={username}>
-          <h3>{username}</h3>
-          <ul>
-            {messagesLines
-              .filter((line) => line.username === username)
-              .map(({ text }, index) => (
-                <li key={index}>{text}</li>
-              ))}
-          </ul>
-        </li>
-      ))}
-    </ul>
+    <table>
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Message</th>
+        </tr>
+      </thead>
+      <tbody>
+        {Object.keys(groupedTranscript).map((username) => (
+          <tr key={username}>
+            <td>{username}</td>
+            <td>
+              <ul>
+                {messagesLines
+                  .filter((line) => line.username === username)
+                  .map(({ text }, index) => (
+                    <li key={index}>{text}</li>
+                  ))}
+              </ul>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }
 
