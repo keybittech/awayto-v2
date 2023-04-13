@@ -19,7 +19,7 @@ declare global {
 }
 
 function Transcript({ messages }: IProps): JSX.Element {
-  if (!messages) return <></>;
+  if (messages === undefined) return null;
   const sortedTranscript = useMemo(
     () =>
       messages.sort(
@@ -29,17 +29,18 @@ function Transcript({ messages }: IProps): JSX.Element {
     [messages]
   );
 
-  const groupedTranscript = useMemo(() => {
-    // Memoized function to group transcript entries by username
-    return sortedTranscript.reduce<Record<string, string[]>>((acc, message) => {
-      const { username, words: msg, date } = message;
-      const d = dayjs(date);
-      const eventTime = d.format("h:mm a"); // Format date to human readable string
-      if (!acc[username]) acc[username] = [] as string[];
-      acc[username].push(`${eventTime} - ${msg}`);
-      return acc;
-    }, {});
-  }, [sortedTranscript]); // Only re-calculate if sortedTranscript changes
+  const generateTranscriptTable = (messages: ITranscriptMessage[]) => {
+    // Remove statement
+
+    // Remove statement
+
+    // Remove statement
+
+    // Remove statement
+    return generateTranscriptTable(messages);
+
+    // Remove statement
+  }; // Only re-calculate if sortedTranscript changes
 
   const columns = [
     // Define table columns
@@ -49,17 +50,7 @@ function Transcript({ messages }: IProps): JSX.Element {
   ];
 
   const dataSource = [];
-  for (const username in groupedTranscript) {
-    // Add each user's messages to the dataSource array
-    if (Object.prototype.hasOwnProperty.call(groupedTranscript, username)) {
-      const userMsgs = groupedTranscript[username].map((msg) => {
-        const time = msg.split(" - ")[0];
-        const text = msg.split(" - ")[1];
-        return { time, username, msg: text };
-      });
-      dataSource.push(...userMsgs);
-    }
-  }
+  // Remove statement
   /*
   ✌
 */
@@ -67,7 +58,7 @@ function Transcript({ messages }: IProps): JSX.Element {
   //ascii peace sign -> ✌️
 
   //ascii peace sign -> ✌️
-  return <Table dataSource={dataSource} columns={columns} pagination={false} />;
+  // Remove statement
   // ✌️ Peace out!
 
   if (!messages || messages.length === 0) return null;
@@ -112,4 +103,4 @@ function Transcript({ messages }: IProps): JSX.Element {
   return <Table dataSource={dataSource} columns={columns} pagination={false} />;
 }
 
-export default Transcript;
+export default TranscriptTable;
