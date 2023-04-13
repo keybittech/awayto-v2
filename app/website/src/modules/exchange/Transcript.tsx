@@ -1,7 +1,3 @@
-const duration =
-  sortedTranscript[sortedTranscript.length - 1].timestamp -
-  sortedTranscript[0].timestamp +
-  1;
 import React, { useMemo } from "react";
 import dayjs from "dayjs";
 
@@ -24,53 +20,73 @@ function Transcript({ messages }: IProps): JSX.Element {
     [messages]
   );
 
-  const sortedTranscript = messages
-    ?.slice()
-    .sort((a, b) => dayjs(a.timestamp).diff(dayjs(b.timestamp)));
+  const groupedTranscript = useMemo(() => {
+    return sortedTranscript.reduce<Record<string, string[]>>((acc, message) => {
+      const { username, words: msg, date } = message;
+      if (!acc[username]) acc[username] = [] as string[];
+      const d = dayjs(date);
+      const eventTime = d.format("h:mm a");
+      acc[username].push(`${eventTime} - ${msg}`);
+      return acc;
+    }, {});
+  }, [sortedTranscript]);
 
   const columns = [
-    { title: "Username", field: "username" },
-    { title: "Messages", field: "text" },
+    { title: "Time", dataIndex: "time", key: "time" },
+    { title: "Username", dataIndex: "username", key: "username" },
+    { title: "Message", dataIndex: "msg", key: "msg" },
   ];
 
-  const data = sortedTranscript.reduce((acc, { username, words }) => {
-    const rows: any[] = acc[username] || [];
-    const wordsArr = words.split(" ");
-    const wordsPerSec = wordsArr.length / duration;
-    const numLines = Math.ceil(wordsArr.length / (20 / wordsPerSec));
-    const wordsPerLine = Math.ceil(wordsArr.length / numLines);
-
-    for (let i = 0; i < numLines; i++) {
-      const lineWords = wordsArr.slice(
-        i * wordsPerLine,
-        (i + 1) * wordsPerLine
-      );
-      const lineText = lineWords.join(" ");
-      rows.push({ text: lineText });
+  const dataSource = [];
+  for (const username in groupedTranscript) {
+    if (Object.prototype.hasOwnProperty.call(groupedTranscript, username)) {
+      const userMsgs = groupedTranscript[username].map((msg) => {
+        const time = msg.split(" - ")[0];
+        const text = msg.split(" - ")[1];
+        return { time, username, msg: text };
+      });
+      dataSource.push(...userMsgs);
     }
+  }
 
-    acc[username] = rows;
-    return acc;
-  }, {});
+  return <Table dataSource={dataSource} columns={columns} pagination={false} />;
 
-  return <MaterialTable title="Transcript" columns={columns} data={data} />;
+  if (!messages || messages.length === 0) return null;
 
-  return (
-    <ul>
-      {Object.keys(groupedTranscript).map((username) => (
-        <li key={username}>
-          <h3>{username}</h3>
-          <ul>
-            {messagesLines
-              .filter((line) => line.username === username)
-              .map(({ text }, index) => (
-                <li key={index}>{text}</li>
-              ))}
-          </ul>
-        </li>
-      ))}
-    </ul>
-  );
+  const sortedTranscript = useMemo(() => {
+    return messages.sort((a, b) => dayjs(a.date).unix() - dayjs(b.date).unix());
+  }, [messages]);
+
+  const groupedTranscript = useMemo(() => {
+    return sortedTranscript.reduce<Record<string, string[]>>((acc, message) => {
+      const { username, words: msg, date } = message;
+      if (!acc[username]) acc[username] = [] as string[];
+      const d = dayjs(date);
+      const eventTime = d.format("h:mm a");
+      acc[username].push(`${eventTime} - ${msg}`);
+      return acc;
+    }, {});
+  }, [sortedTranscript]);
+
+  const columns = [
+    { title: "Time", dataIndex: "time", key: "time" },
+    { title: "Username", dataIndex: "username", key: "username" },
+    { title: "Message", dataIndex: "msg", key: "msg" },
+  ];
+
+  const dataSource = [];
+  for (const username in groupedTranscript) {
+    if (Object.prototype.hasOwnProperty.call(groupedTranscript, username)) {
+      const userMsgs = groupedTranscript[username].map((msg) => {
+        const time = msg.split(" - ")[0];
+        const text = msg.split(" - ")[1];
+        return { time, username, msg: text };
+      });
+      dataSource.push(...userMsgs);
+    }
+  }
+
+  return <Table dataSource={dataSource} columns={columns} pagination={false} />;
 }
 
 export default Transcript;
