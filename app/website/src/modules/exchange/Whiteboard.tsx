@@ -71,28 +71,35 @@ function useWebSocketWhiteboard(id: string, socket: WebSocket) {
 
 interface IProps {
   whiteboard?: Whiteboard | null;
+  //declaring an interface for the module's props containing a definition for whiteboard, which may or may not exist
 } //interface for props passed to the Whiteboard component
 
 export default function Whiteboard(props: IProps): JSX.Element {
   const Whiteboard: React.FC<IProps> = ({ whiteboard }) => {
-    return <>Whiteboard Module could go here...</>;
-  }; //creating a functional component for the Whiteboard module
+    return <>//returning some JSX Whiteboard Module could go here...</>;
+  };
+  // defining a functional component named Whiteboard that receives props with a whiteboard object, which may or may not be undefined //creating a functional component for the Whiteboard module
 
   const canvasRef = useRef<HTMLCanvasElement>(null); //creating a ref to the HTML canvas element
   const [whiteboard, setWhiteboard] = useState<Whiteboard | null>(null); //creating a state variable for the whiteboard object
 
   useEffect(() => {
     if (canvasRef.current) {
-      const newWhiteboard = new Whiteboard(canvasRef.current); //create a new whiteboard object with the canvasRef
-      setWhiteboard(newWhiteboard); //update state with the newly created whiteboard object
+      const newWhiteboard = new Whiteboard(canvasRef.current);
+      //if the canvasRef element exists, initialise a new Whiteboard object with the canvasRef
+      setWhiteboard(newWhiteboard);
+      //update the state with the newly created whiteboard object
     }
-  }, []); //run this effect only once on initial render
+  }, []);
+  //useEffect run whenever the component mounts, creates a new Whiteboard object with the canvasRef element and sets the state //run this effect only once on initial render
 
   const addLine = (line: Line) => {
     if (whiteboard) {
-      whiteboard.addLine(line); //add a line to the whiteboard if it exists
+      whiteboard.addLine(line);
+      //if whiteboard object exists, add a line to it
     }
-  }; //adding a function to add a line to the whiteboard
+  };
+  //defining a function named addLine that accepts a line object and adds it to the whiteboard object if it exists //adding a function to add a line to the whiteboard
 
   const testDrawing = () => {
     const newLine = {
@@ -101,24 +108,30 @@ export default function Whiteboard(props: IProps): JSX.Element {
       endX: Math.random() * 100, // x-coordinate
       endY: Math.random() * 100, // y-coordinate
     };
-    addLine(newLine); //add a new line to the whiteboard every second
-  }; //test function for simulating drawing
+    addLine(newLine);
+  };
+  //setting up a function named testDrawing that creates a new line object with random coordinates and passes it to the addLine function //test function for simulating drawing
 
   setInterval(() => {
-    testDrawing(); //run the testDrawing function every second
-  }, 1000); //set an interval to run the testDrawing function every second
+    testDrawing();
+  }, 1000);
+  //running the testDrawing function every second //set an interval to run the testDrawing function every second
   const ws = new WebSocket("wss://wcapp.site.com/sock");
 
   ws.onmessage = function (event) {
-    console.log(event); //log the event message to the console when a message is received on the websocket connection
+    console.log(event);
+    //logging the incoming event message to the console
   };
+  //setting up a function to log the message received on the websocket connection
   socket.on("whiteboardUpdate", function (msg) {
-    const updatedWhiteboard = msg.data; // store incoming whiteboard data into a variable
-    //update the local whiteboard state here
+    const updatedWhiteboard = msg.data;
+    //store incoming whiteboard data into updatedWhiteboard variable
     /* whiteboard.updateWhiteboard(updatedWhiteboard) */
+    //update the local whiteboard state here
     //adding a test drawing to simulate incoming messages
     setInterval(() => {
       testDrawing();
     }, 1000);
-  }); //adding an event listener for the 'whiteboardUpdate' socket message
+  });
+  //subscribing to the "whiteboardUpdate" event and updating the whiteboard state with new data when it is received //adding an event listener for the 'whiteboardUpdate' socket message
 }
