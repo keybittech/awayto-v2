@@ -1,5 +1,22 @@
 import { v4 as uuid } from "uuid";
+
+const reportDbStatus = async () => {
+    const tableSelects = [];
+    for (const table of dbtable_schema) {
+        tableSelects.push(`SELECT '${table.schema}.${table.tableName}' as tablename, COUNT(*) as count FROM ${table.schema}.${table.tableName}`);
+    }
+    const result = await db.many(tableSelects.join(` UNION ALL `));
+    const counts = result.reduce((acc, { tablename, count }) => ({ ...acc, [tablename]: parseInt(count, 10) }), {});
+    console.log(`db status: ${JSON.stringify(counts, null, 2)}`);
+};
+
+const go = async () => {
+    await reportDbStatus();
+    setInterval(async () => await reportDbStatus(), CACHE_EXPIRE * 1000);
+};
+import { v4 as uuid } from "uuid";
 import redis from "./redis";
+import { dbtable_schema } from '@app/config';
 import { IUserProfile } from "awayto/core";
 import pgPromise from "pg-promise";
 
