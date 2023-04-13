@@ -36,6 +36,22 @@ function useWebSocketWhiteboard(id: string, socket: WebSocket) {
     };
 
     setWhiteboard(updatedWhiteboard);
+    setInterval(() => {
+      const coords = { x: Math.random() * 800, y: Math.random() * 600 };
+      const newLine = {
+        start: { x: coords.x - 5, y: coords.y - 5 },
+        end: { x: coords.x + 5, y: coords.y + 5 },
+        color: "black",
+        width: 2,
+      };
+      whiteboard.addLine(newLine);
+      socket.send(
+        JSON.stringify({
+          type: "whiteboardUpdate",
+          data: JSON.stringify(updatedWhiteboard),
+        })
+      );
+    }, 1000);
     socket.send(
       JSON.stringify({
         type: "whiteboardUpdate",
