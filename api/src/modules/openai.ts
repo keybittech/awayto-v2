@@ -198,11 +198,13 @@ export function generatePromptHistory(promptId: IPrompts, ...prompts: string[]):
         
         Whittling Technique:
         1. Should TARGET_STATE be overly complex or detailed, I'll iteratively pare down the concept until an appropriately sized TARGET_STATE is understood (any simplification to TARGET_STATE will be noted in the comments).
-        2. Any STATEMENTS_JSON value may be directly modified.
-        3. Any STATEMENTS_JSON value may be added as a new statement using "above_#" or "below_#" as the key using an adjacent statement #.
-        4. Any STATEMENTS_JSON value may be set to an empty string.
-        5. TEMP_KEYS array equals the keys of modified STATEMENTS_JSON properties.
-        6. RESPONSE_ARRAY is a valid JSON array containing one object per TEMP_KEYS using the format { "TEMP_KEY": "STATEMENTS_JSON[TEMP_KEY]" }.
+        2. Modify: Any STATEMENTS_JSON value may be directly modified.
+        3. Insert: Any STATEMENTS_JSON value may be added as a new statement using "above_#" or "below_#" as the key using an adjacent statement #.
+        4. Remove: Any STATEMENTS_JSON value may be set to an empty string.
+        5. Inserted functionality (above_#/below_#) is positioned relative to an adjacent statement (above_5 is a new statement above statement_5), or the beginning/end of file (above_0 is a new statement at the start of the file).
+        6. Modified STATEMENTS_JSON values will additionally verified as valid Typescript.
+        7. TEMP_KEYS array equals the keys of modified STATEMENTS_JSON properties.
+        8. RESPONSE_ARRAY is a valid JSON array containing one object per TEMP_KEYS using the format { "TEMP_KEY": "STATEMENTS_JSON[TEMP_KEY]" }.
 
         Response Template:
         All responses given by me will follow this exact format, which is enclosed in 3 ampersands.
@@ -213,7 +215,7 @@ export function generatePromptHistory(promptId: IPrompts, ...prompts: string[]):
         The modified subset of keys: ...TEMP_KEYS
 
         @@@
-        [ ...RESPONSE_ARRAY ] as string // for example: '[ { "above_5": "a code statement with a key of above_5 meaning it is above statement_5", "statement_9": "some modifications to an existing code statement", "below_13": "an example of how to add something to the end of a file by adding it below the last statement, in this case below_13 is below statement_13" }, ]'
+        [ ...RESPONSE_ARRAY ] // in string format for example: '[ { "above_5": "a code statement with a key of above_5 meaning it is above statement_5", "statement_9": "some modifications to an existing code statement", "below_13": "an example of how to add something to the end of a file by adding it below the last statement, in this case below_13 is below statement_13" }, ]'
         @@@
         &&&
 

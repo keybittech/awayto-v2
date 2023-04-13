@@ -112,7 +112,7 @@ export async function connectToTwitch(httpsServer: https.Server) {
   localSocketServer.on('connection', (localSocket) => {
     console.log('Client connected');
     localSocket.send(JSON.stringify({ message: 'TWITCH CONNECTED' }))
-  
+
     localSocket.on('message', message => {
       const msg = JSON.parse(message.toString()) as { action: string, command: string, message: string };
       console.log(msg)
@@ -218,13 +218,13 @@ export async function connectToTwitch(httpsServer: https.Server) {
               }
             });
           }
-          
+
           try {
             const body = data.toString();
             const contents: Record<string, string> = {};
 
             console.log({ body })
-          
+
             if (body.startsWith(":tmi.twitch.tv PONG")) {
               console.log("Received PONG from Twitch IRC server");
               return;
@@ -314,7 +314,7 @@ const toTitleCase = (name: string): string => {
   return name.substr(1).replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase());
 };
 
-function extractCodeBlock(inputString: string, delimeter : string = '\`\`\`', languages: string[] = ['typescript', 'json', 'jsx', 'tsx']) {
+function extractCodeBlock(inputString: string, delimeter: string = '\`\`\`', languages: string[] = ['typescript', 'json', 'jsx', 'tsx']) {
   const langStartTag = (language: string) => language ? `${delimeter}${language}` : delimeter;
 
   for (const language of languages) {
@@ -430,20 +430,27 @@ async function mirrorEdit(fileParts: string, user: string) {
   });
   const git = simpleGit('../../project_diff');
 
+  console.log('First main checkout.');
   await git.checkout('main');
-  await git.pull();
+  console.log('Pulling main.');
+  await git.pull('origin', 'main');
 
-  const generationBranch = sanitizeBranchName(`gen/${user}`);
-  await git.fetch();
+  const generatedBranch = sanitizeBranchName(`gen/${user}`);
+  console.log('Fetching.');
+  await git.fetch('all');
   try {
-    await git.checkoutBranch(generationBranch, 'origin/main');
+    console.log('Creating a new branch for ', generatedBranch);
+    await git.checkoutBranch(generatedBranch, 'origin/main');
   } catch (error) {
     const err = error as Error;
     if (err.message.includes('A branch named') && err.message.includes('already exists')) {
-      await git.checkout(generationBranch);
+      console.log('Checking out existing generated branch ', generatedBranch);
+      await git.checkout(generatedBranch);
+
+      console.log('Pulling generated branch.');
+      await git.pull('origin', generatedBranch);
     }
   }
-  await git.pull();
 
   const sourceFile = project.getSourceFiles().filter(sf => sf.getFilePath().toLowerCase().includes(fileName.toLowerCase()))[0];
 
@@ -471,7 +478,7 @@ async function mirrorEdit(fileParts: string, user: string) {
     const extractedMirrorBlock = extractCodeBlock(generatedMirror, '@@@');
 
     console.log({ generatedMirror, extractedMirrorBlock, generatedSummary })
-  
+
     if (extractedMirrorBlock[0] !== '[') {
       const braceIndex = extractedMirrorBlock.indexOf('[');
       if (braceIndex < 0) {
@@ -515,7 +522,7 @@ async function mirrorEdit(fileParts: string, user: string) {
 
         if (originalStatement) {
           const originalIndex = fileContent.indexOf(originalStatement);
-  
+
           if (originalIndex >= 0 && originalStatement !== generatedStatements[statementKey]) {
             console.log({ REPLACING: originalStatement, WITH: generatedStatements[statementKey] })
             fileContent = fileContent.substring(0, originalIndex) + generatedStatements[statementKey] + fileContent.substring(originalIndex + originalStatement.length);
@@ -544,31 +551,39 @@ async function mirrorEdit(fileParts: string, user: string) {
       //   return 'you really did it now, no code, no show, no turkey';
       // } else {
 
+      console.log('Makin it pretty')
+      try {
         fileContent = prettier.format(fileContent, {
           parser: 'typescript',
           tabWidth: 2,
           useTabs: false
         });
-  
-        sourceFile.removeText();
-        sourceFile.insertText(0, fileContent);
-        sourceFile.saveSync();
-        await project.save();
-        await git.add(sourceFilePath);
-        await git.commit(sanitizeBranchName(`${user} - ${suggestions}`).slice(0, 50))
-        await git.push('origin', generationBranch);
-  
-        const prListOutput = JSON.parse(Buffer.from(execSync('gh pr list --state open --base main --json number,headRefName', { cwd: "../../project_diff" })).toString()) as { number: number, headRefName: string }[];
-        const prTitle = `${user} edited ${fileName}: ${suggestions.replace(/[~^:?"*\[\]@{}\\/]+/g, '')}`.slice(0, 255);
-        const prBody = `GPT: ${generatedSummary}`.replaceAll('"', '');
-        const existingPr = prListOutput.find(pr => pr.headRefName === generationBranch);
-        if (!existingPr) {
-          execSync(`gh pr create --title "${prTitle}" --body "${prBody}" --head "${generationBranch}" --base "main"`, { cwd: '../../project_diff' });
-        } else {
-          execSync(`gh pr review ${existingPr.number} --comment "${prTitle}${prBody.replace('\n', ' ')}"`, { cwd: '../../project_diff' });
-        }
-    
-        return 'wowie wow wow, this guy actually did it, he\'s the real deal';
+      } catch (error) { }
+
+      sourceFile.removeText();
+      sourceFile.insertText(0, fileContent);
+      sourceFile.saveSync();
+      await project.save();
+      const branch = await git.branch();
+      console.log(branch.current, 'Adding ', sourceFilePath, ' to ', generatedBranch);
+      await git.add(sourceFilePath);
+      const commitMsg = sanitizeBranchName(`${user} - ${suggestions}`).slice(0, 50);
+      console.log('Creating commit:', commitMsg);
+      await git.commit(commitMsg);
+      console.log('Pushing changes to ', generatedBranch);
+      await git.push('origin', generatedBranch);
+
+      const prListOutput = JSON.parse(Buffer.from(execSync('gh pr list --state open --base main --json number,headRefName,url', { cwd: "../../project_diff" })).toString()) as { number: number, headRefName: string }[];
+      const prTitle = `${user} edited ${fileName}: ${suggestions.replace(/[~^:?"*\[\]@{}\\/]+/g, '')}`.slice(0, 255);
+      const prBody = `GPT: ${generatedSummary}`.replaceAll('"', '');
+      const existingPr = prListOutput.find(pr => pr.headRefName === generatedBranch);
+      if (!existingPr) {
+        execSync(`gh pr create --title "${prTitle}" --body "${prBody}" --head "${generatedBranch}" --base "main"`, { cwd: '../../project_diff' });
+      } else {
+        execSync(`gh pr review ${existingPr.number} --comment -b "${prTitle}\n\n${prBody}"`, { cwd: '../../project_diff' }); 
+      }
+
+      return 'wowie wow wow, this guy actually did it, he\'s the real deal';
       // }
 
 
