@@ -337,7 +337,7 @@ async function createComponent(description: string, user: string) {
     tsConfigFilePath: './projectts.json'
   });
 
-  const createComponentPrompt = generatePromptHistory(IPrompts.CREATE_COMPONENT, description);
+  const createComponentPrompt = generatePromptHistory(IPrompts.CREATE_GEN_COMPONENT, description);
 
   console.log({ createComponentPrompt });
 
@@ -412,6 +412,14 @@ function sanitizeBranchName(input: string): string {
   return result;
 }
 
+function ensureKeysAreQuoted(jsonString: string) {
+  const unquotedKeysRegex = /([{,]\s*)(\w+)\s*:/g;
+  function quoteKeys(match: unknown, prefix: string, key: string) {
+    return `${prefix}"${key}":`;
+  }
+  return jsonString.replace(unquotedKeysRegex, quoteKeys);
+}
+
 async function mirrorEdit(fileParts: string, user: string) {
   const [fileName, ...suggestedEdits] = fileParts.split(' ');
   const suggestions = suggestedEdits.join(' ');
@@ -421,6 +429,21 @@ async function mirrorEdit(fileParts: string, user: string) {
     tsConfigFilePath: '../../project_diff/api/projectts.json'
   });
   const git = simpleGit('../../project_diff');
+
+  await git.checkout('main');
+  await git.pull();
+
+  const generationBranch = sanitizeBranchName(`gen/${user}`);
+  await git.fetch();
+  try {
+    await git.checkoutBranch(generationBranch, 'origin/main');
+  } catch (error) {
+    const err = error as Error;
+    if (err.message.includes('A branch named') && err.message.includes('already exists')) {
+      await git.checkout(generationBranch);
+    }
+  }
+  await git.pull();
 
   const sourceFile = project.getSourceFiles().filter(sf => sf.getFilePath().toLowerCase().includes(fileName.toLowerCase()))[0];
 
@@ -444,19 +467,19 @@ async function mirrorEdit(fileParts: string, user: string) {
     const [generatedMirror] = await getChatCompletionPromptFromHistory(mirrorGenerationPrompt);
 
     const bracketIndex = generatedMirror.indexOf('@@@');
-    const generatedSummary = generatedMirror.slice(0, bracketIndex - 1);
+    const generatedSummary = extractCodeBlock(generatedMirror.slice(0, bracketIndex - 1), '&&&');
+    const extractedMirrorBlock = extractCodeBlock(generatedMirror, '@@@');
 
-    let extractedMirror = extractCodeBlock(generatedMirror, '@@@');
-    if (extractedMirror[0] !== '[') {
-      const braceIndex = extractedMirror.indexOf('[');
+    console.log({ generatedMirror, extractedMirrorBlock, generatedSummary })
+  
+    if (extractedMirrorBlock[0] !== '[') {
+      const braceIndex = extractedMirrorBlock.indexOf('[');
       if (braceIndex < 0) {
         return 'it\'s a brack attack, a brack attack, everbody run';
       }
     }
 
-    console.log({ generatedMirror, extractedMirror, generatedSummary })
-
-    const generatedStatements = (JSON.parse(extractedMirror) as Record<string, string>[])
+    const generatedStatements = (JSON.parse(extractedMirrorBlock) as Record<string, string>[])
       .reduce((m, d) => ({ ...m, ...d }), {});
 
     console.log({ generatedStatements })
@@ -526,18 +549,6 @@ async function mirrorEdit(fileParts: string, user: string) {
           tabWidth: 2,
           useTabs: false
         });
-
-        const generationBranch = sanitizeBranchName(`gen/${user}/${(new Date()).getTime()}`);
-        await git.fetch();
-        try {
-          await git.checkoutBranch(generationBranch, 'origin/main');
-        } catch (error) {
-          const err = error as Error;
-          if (err.message.includes('A branch named') && err.message.includes('already exists')) {
-            await git.checkout(generationBranch);
-          }
-        }
-        await git.pull();
   
         sourceFile.removeText();
         sourceFile.insertText(0, fileContent);
@@ -550,11 +561,12 @@ async function mirrorEdit(fileParts: string, user: string) {
         const prListOutput = JSON.parse(Buffer.from(execSync('gh pr list --state open --base main --json number,headRefName', { cwd: "../../project_diff" })).toString()) as { number: number, headRefName: string }[];
         const prTitle = `${user} edited ${fileName}: ${suggestions.replace(/[~^:?"*\[\]@{}\\/]+/g, '')}`.slice(0, 255);
         const prBody = `GPT: ${generatedSummary}`.replaceAll('"', '');
-        if (!prListOutput.some(pr => pr.headRefName === generationBranch)) {
+        const existingPr = prListOutput.find(pr => pr.headRefName === generationBranch);
+        if (!existingPr) {
           execSync(`gh pr create --title "${prTitle}" --body "${prBody}" --head "${generationBranch}" --base "main"`, { cwd: '../../project_diff' });
+        } else {
+          execSync(`gh pr review ${existingPr.number} --comment "${prTitle}${prBody.replace('\n', ' ')}"`, { cwd: '../../project_diff' });
         }
-  
-        await git.checkout('main');
     
         return 'wowie wow wow, this guy actually did it, he\'s the real deal';
       // }

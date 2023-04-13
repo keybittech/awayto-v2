@@ -112,9 +112,9 @@ export function generatePromptHistory(promptId: IPrompts, ...prompts: string[]):
       ])
       break;
     }
-    case IPrompts.CREATE_COMPONENT: {
+    case IPrompts.CREATE_APP_COMPONENT: {
       history = history.concat([
-        { role: 'system', content: 'You are DE-GPT, providing expert DE-compresion and DE-sign functions.' },
+        { role: 'system', content: 'As .' },
         {
           role: 'user', content: `Decompress "Compressed Types"; review the decompressed Typescript type set; design a TSX React Functional Component primarily focusing on the Component Description resulting in a TSX code block; incorporate the optional decompressed types where applicable:
         
@@ -134,6 +134,27 @@ export function generatePromptHistory(promptId: IPrompts, ...prompts: string[]):
           - const [postType] = sh.usePostTypeMutation()
         8. Utilize Material-UI components for all design related aspects.
         9. Export the component as the default export and reply strictly only with the TSX surrounded in a code block.`}
+      ])
+      break;
+    }
+    case IPrompts.CREATE_GEN_COMPONENT: {
+      history = history.concat([
+        { role: 'system', content: 'I, ReactiveAssembleGPT, assemble React components.' },
+        { role: 'assistant', content: `Provide the description of a react component, and I will assemble it.
+        
+        In the process of assembly, I may:
+          - Use these nodejs pacakges if needed: @date-io/dayjs, @mui/icons-material, @mui/material, @mui/material-next, @mui/x-data-grid, @mui/x-date-pickers, @react-keycloak/web, @reduxjs/toolkit, dayjs, history, keycloak-js, react, react-dom, react-dropzone, react-redux, react-router, react-router-dom, react-window, uuid.
+          - Use Reduxjs/toolkit auto generated react hooks with the "sh" variable such as import sh from 'awayto/hooks' then use sh in the component, for example
+            - const { data } = sh.useTypeQuery()
+            - const [postType] = sh.usePostTypeMutation()
+          - Utilize Material-UI components for all design related aspects.
+        
+        Simply respond with the description of a react component, and I will try my best. If your idea is too complex, I may simplify it. Any issues I may encounter in formulating a concept, I will attempt to resolve personally. If you ask me to seek out sample data to use in the component, I will have no issue sourcing your data needs with custom public API resources that are already known to me. After this message, I will only respond in this format:
+
+        \`\`\`
+        your component will appear here
+        \`\`\``},
+        { role: 'user', content: prompt1 }
       ])
       break;
     }
@@ -181,7 +202,7 @@ export function generatePromptHistory(promptId: IPrompts, ...prompts: string[]):
         3. Any STATEMENTS_JSON value may be added as a new statement using "above_#" or "below_#" as the key using an adjacent statement #.
         4. Any STATEMENTS_JSON value may be set to an empty string.
         5. TEMP_KEYS array equals the keys of modified STATEMENTS_JSON properties.
-        6. RESPONSE_ARRAY is an array of objects, with one element per TEMP_KEYS, in the format of { [TEMP_KEY]: STATEMENTS_JSON[TEMP_KEY] }.
+        6. RESPONSE_ARRAY is a valid JSON array containing one object per TEMP_KEYS using the format { "TEMP_KEY": "STATEMENTS_JSON[TEMP_KEY]" }.
 
         Response Template:
         All responses given by me will follow this exact format, which is enclosed in 3 ampersands.
@@ -192,7 +213,7 @@ export function generatePromptHistory(promptId: IPrompts, ...prompts: string[]):
         The modified subset of keys: ...TEMP_KEYS
 
         @@@
-        [ ...RESPONSE_ARRAY ]
+        [ ...RESPONSE_ARRAY ] as string // for example: '[ { "above_5": "a code statement with a key of above_5 meaning it is above statement_5", "statement_9": "some modifications to an existing code statement", "below_13": "an example of how to add something to the end of a file by adding it below the last statement, in this case below_13 is below statement_13" }, ]'
         @@@
         &&&
 
