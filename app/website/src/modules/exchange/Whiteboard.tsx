@@ -78,8 +78,6 @@ export default function Whiteboard(props: IProps): JSX.Element {
     return <>Whiteboard Module could go here...</>;
   };
 
-  import socket from "socket.IO-client";
-
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [whiteboard, setWhiteboard] = useState<Whiteboard | null>(null);
 
@@ -109,6 +107,11 @@ export default function Whiteboard(props: IProps): JSX.Element {
   setInterval(() => {
     testDrawing();
   }, 1000);
+  const ws = new WebSocket("wss://wcapp.site.com/sock");
+
+  ws.onmessage = function (event) {
+    console.log(event);
+  };
   socket.on("whiteboardUpdate", function (msg) {
     const updatedWhiteboard = msg.data;
     //update the local whiteboard state here
