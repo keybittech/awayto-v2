@@ -72,12 +72,14 @@ function useWebSocketWhiteboard(id: string, socket: WebSocket) {
 interface IProps {
   whiteboard?: Whiteboard | null;
   //declaring an interface for the module's props containing a definition for whiteboard, which may or may not exist
-} //interface for props passed to the Whiteboard component
+}
+//interface for props passed to the Whiteboard component
 
 export default function Whiteboard(props: IProps): JSX.Element {
   const Whiteboard: React.FC<IProps> = ({ whiteboard }) => {
     return <>//returning some JSX Whiteboard Module could go here...</>;
   };
+
   // defining a functional component named Whiteboard that receives props with a whiteboard object, which may or may not be undefined //creating a functional component for the Whiteboard module
 
   const canvasRef = useRef<HTMLCanvasElement>(null); //creating a ref to the HTML canvas element
@@ -91,6 +93,7 @@ export default function Whiteboard(props: IProps): JSX.Element {
       //update the state with the newly created whiteboard object
     }
   }, []);
+
   //useEffect run whenever the component mounts, creates a new Whiteboard object with the canvasRef element and sets the state //run this effect only once on initial render
 
   const addLine = (line: Line) => {
@@ -99,6 +102,7 @@ export default function Whiteboard(props: IProps): JSX.Element {
       //if whiteboard object exists, add a line to it
     }
   };
+
   //defining a function named addLine that accepts a line object and adds it to the whiteboard object if it exists //adding a function to add a line to the whiteboard
 
   const testDrawing = () => {
@@ -122,6 +126,7 @@ export default function Whiteboard(props: IProps): JSX.Element {
     console.log(event);
     //logging the incoming event message to the console
   };
+
   //setting up a function to log the message received on the websocket connection
   socket.on("whiteboardUpdate", function (msg) {
     const updatedWhiteboard = msg.data;
@@ -132,6 +137,8 @@ export default function Whiteboard(props: IProps): JSX.Element {
     setInterval(() => {
       testDrawing();
     }, 1000);
+    // 😊
   });
+
   //subscribing to the "whiteboardUpdate" event and updating the whiteboard state with new data when it is received //adding an event listener for the 'whiteboardUpdate' socket message
 }
