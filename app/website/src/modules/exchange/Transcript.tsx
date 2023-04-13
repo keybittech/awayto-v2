@@ -4,6 +4,9 @@
   ☮
 */
 import React, { useMemo } from "react";
+
+//ascii smiley -> :)
+
 import dayjs from "dayjs";
 
 import { ITranscriptMessage } from "awayto/core";
@@ -60,6 +63,9 @@ function Transcript({ messages }: IProps): JSX.Element {
   ✌
 */
 
+  //ascii peace sign -> ✌️
+
+  //ascii peace sign -> ✌️
   return <Table dataSource={dataSource} columns={columns} pagination={false} />;
 
   if (!messages || messages.length === 0) return null;
