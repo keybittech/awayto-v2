@@ -3,28 +3,6 @@ import { ApiHandler, ApiOptions, EndpointType, siteApiHandlerRef, siteApiRef } f
 
 /**
  * @category Assist
- */
-export enum IPrompts {
-  CREATE_API = 'create_api',
-  CREATE_API_BACKEND = 'create_api_backend',
-  CREATE_TYPE = 'create_type',
-  CREATE_GEN_COMPONENT = 'create_gen_component',
-  CREATE_APP_COMPONENT = 'create_app_component',
-  EDIT_FILE = 'edit_file',
-  MORPH_FILE = 'morph_file',
-  MORPH_2 = 'morph_2',
-  MORPH_3 = 'morph_3',
-  GUIDED_EDIT = 'guided_edit',
-  MIRROR_EDIT = 'mirror_edit',
-  SUGGEST_ROLE = 'suggest_role',
-  SUGGEST_SERVICE = 'suggest_service',
-  SUGGEST_TIER = 'suggest_tier',
-  SUGGEST_FEATURE = 'suggest_feature',
-  CONVERT_PURPOSE = 'convert_purpose'
-}
-
-/**
- * @category Assist
  * @purpose facilitates AI prompt and suggestion generation for form fields and other UI elements
  */
 export type IAssist = {

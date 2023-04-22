@@ -63,3 +63,489 @@ type Tested = Tester<BEEP['endpoints']> /* {
   };
 }
 */
+
+
+
+
+// guided-edit info
+
+This goes into GPT ->
+
+// Profile.tsx
+
+{
+  "statement_0": "import bla from..",
+  "statement_1": "something",
+  "statement_2": "const myVar = 'hey'",
+  "statement_3": "something",
+  "statement_4": "something",
+  "statement_5": "something",
+  "statement_6": "useEffect(() => { // some use effect thing }, [])",
+  "statement_7": "something",
+  "statement_8": "something",
+  "statement_9": "something",
+  "statement_10": "something",
+  "statement_11": "export default whatever;",
+}
+
+Profile.tsx hey we need to chagne myvar from myVar to yourVar and it should also say 'yo', not hey. also after that we need to check that yourVar is set to 'yo' just to make sure you didn't mess up
+
+
+THis comes out of gpt <-
+
+[
+  {
+    "statement_2": "const yourVar = 'yo';",
+    "below_2": "if (yourVar !== 'yo') ..." 
+  }
+]
+
+
+
+
+
+
+
+
+
+Model: GPT-4
+
+
+
+The conversation that follows describes how you learn the information necessary to define a novel compression algorithm.
+
+Background: In a previous query you described ééé.
+
+Action: Instead of taking action on the text in ééé, this exercise is to expand on the concepts used in the Problem @@@ and Solution &&& that follow.
+
+ééé
+Compress the following text in a way that fits in a tweet (ideally) and such that you (GPT-4) can reconstruct the intention of the human who wrote text as close as possible to the original intention. This is for yourself. It does not need to be human readable or understandable. Abuse of language mixing, abbreviations, symbols (unicode and emoji), or any other encodings or internal representations is all permissible, as long as it, if pasted in a new inference cycle, will yield near-identical results as the original text. Numerical values and names are important, don't remove them.
+ééé
+
+Review the following Problem @@@ and Solution &&&, finally, observe ||| to determine the purpose of your response.
+
+Problem @@@
+We have a program where an AI-powered assistant performs the following actions on files:
+-create
+-update
+-delete
+
+file system is large (1000+ files)
+
+can't give entire context at once to ai; each file is 3000 - 10000 characters; ai prohibits a context greater than 10000
+@@@
+
+Solution &&&
+We must compress the nodes of each file in the application by designing a compression algorithm that, while allowing the introduction of new members, all members may decode themselves given their position relative to other nodes that are similar to themselves. Implementation details described in %%%.
+
+%%%
+given
+  - file A
+  - file B
+  - file C
+  - file D
+  - file E
+  - ...
+  - file 1001
+
+all of these files have similar traits, such as imports, const declartaions, functions, anything that could be analyzed within an abstract syntax tree, etc.
+
+using a monorepo as an example, the tree might span different languages and filetypes, exluding heavy-set objects: package manager's installation dir (node_modules), images, or some other file the developer ignores
+
+given that the file set can be reduced to abstract syntax trees, you describe the process of distilling all nodes of an application, from the input to the application's entirety. distill the entirety of the application's node structure into an algorithm that will allow us to access any child in the application's AST, given the node's unique identifier. the algorithm just requires a single node in order to produce a result (which is effectively of the parent node, or prototypical structure).
+
+Any node's identifier is a function that returns the node's current value in the greater tree. In this way we should be able to utilize the compression techniques described in ééé in the AST paradigm.
+
+Desired algorithmic effect: 
+COMPRESSION_SUM = [1...1000 + n]
+
+// some file
+import compressionSum from 'path/to/COMPRESSION_SUM';
+
+compressionSum['getCustomProperty']() // ever-generating structure; upon execution infers its value
+%%%
+&&&
+
+|||
+Now that you have reviewed @@@ and &&&, insist on a method and language for implementing the requirements therein.
+|||
+
+Based on the problem and solution provided, it is evident that the main goal is to design a compression algorithm for a large file system consisting of 1000+ files, each with 3000-10000 characters. The algorithm should be capable of compressing nodes of each file while allowing the introduction of new members. The compressed files should be easily decoded using their relative positions among similar nodes. It is also important to consider the abstract syntax tree (AST) representation of the files.
+
+To implement the requirements, I would suggest using a combination of Huffman coding and an adaptation of the Burrows-Wheeler Transform (BWT) for the compression process. Huffman coding is a widely-used lossless data compression technique that assigns shorter codes to more frequent characters, while BWT is a data transformation technique that rearranges a string into runs of similar characters.
+
+Here's a high-level overview of the suggested method:
+
+Parse the files into abstract syntax trees (ASTs) using a suitable parser depending on the programming language(s) of the files.
+Apply a modified version of the Burrows-Wheeler Transform (BWT) to reorder the nodes of the ASTs based on their similarity.
+Compress the reordered ASTs using Huffman coding.
+For the implementation, I recommend using Python as the programming language. Python has a rich ecosystem of libraries, including parsers for various languages and data compression algorithms. Additionally, Python is known for its simplicity and readability, which will facilitate the development and maintenance of the compression algorithm.
+
+To get started with the implementation, you can utilize the following Python libraries:
+
+ast or astor: For parsing and manipulating Python abstract syntax trees.
+pycparser: For parsing and manipulating C/C++ abstract syntax trees.
+huffman: For implementing Huffman coding.
+Remember to adapt the Burrows-Wheeler Transform (BWT) for the specific requirements of the problem and to integrate it with the Huffman coding process.
+
+
+
+
+Implement #2 and onward in the context of a typescript project utilizing ts-morph. While you do that, I'm gonna watch a video on Burrows-Wheeler Transform.
+Sure, here's a TypeScript implementation utilizing the ts-morph library for parsing and manipulating TypeScript abstract syntax trees. In this example, I'll focus on implementing a modified version of the Burrows-Wheeler Transform (BWT) and applying it to the ASTs.
+
+First, ensure that you have ts-morph and typescript installed in your project:
+bash
+
+
+npm install ts-morph typescript
+Create a new TypeScript file named compress.ts and import the necessary dependencies:
+typescript
+
+
+import { Project } from "ts-morph";
+Write a function to apply the modified BWT to the ASTs:
+typescript
+
+
+function applyModifiedBWT(project: Project) {
+  // Traverse the ASTs and apply the modified BWT
+  project.getSourceFiles().forEach((sourceFile) => {
+    const imports = sourceFile.getImportDeclarations();
+    const functions = sourceFile.getFunctions();
+    const variables = sourceFile.getVariableDeclarations();
+    const classes = sourceFile.getClasses();
+
+    // Apply the modified BWT to each group of similar nodes
+    const reorderedImports = bwtReorder(imports);
+    const reorderedFunctions = bwtReorder(functions);
+    const reorderedVariables = bwtReorder(variables);
+    const reorderedClasses = bwtReorder(classes);
+
+    // Replace the original nodes with the reordered nodes
+    replaceNodes(imports, reorderedImports);
+    replaceNodes(functions, reorderedFunctions);
+    replaceNodes(variables, reorderedVariables);
+    replaceNodes(classes, reorderedClasses);
+  });
+}
+
+function bwtReorder(nodes: any[]) {
+  // Implement the modified BWT to reorder nodes based on their similarity
+  // This is a placeholder implementation; you should modify it according to your specific requirements
+  return nodes.sort((a, b) => a.getText().localeCompare(b.getText()));
+}
+
+function replaceNodes(originalNodes: any[], reorderedNodes: any[]) {
+  originalNodes.forEach((node, index) => {
+    node.replaceWith(reorderedNodes[index]);
+  });
+}
+Now, create an instance of the Project class and call the applyModifiedBWT function:
+typescript
+
+
+const project = new Project({
+  compilerOptions: {
+    target: "ES2020",
+    module: "CommonJS",
+  },
+});
+
+// Add the source files to the project (you should adjust the file paths accordingly)
+project.addSourceFilesAtPaths("path/to/your/source/files/**/*.ts");
+
+// Apply the modified BWT to the ASTs
+applyModifiedBWT(project);
+Finally, you can apply a compression algorithm such as Huffman coding to the reordered ASTs. Note that the Huffman coding implementation is not included in this example, as the focus here is on the modified BWT.
+Remember that this is just a basic example and may require further adaptations to fit your specific use case. You should also investigate an appropriate method to reverse the modified BWT during the decompression process.
+
+Feel free to ask any questions or request further assistance on implementing the Huffman coding or other parts of the compression algorithm.
+
+
+
+
+
+2 / 2
+
+Show an example Node before and after it has been modified using BWT. Let's say the file is a simple typescript file defining a let and a const string and a function that adds the const to the let.
+
+Then, continue with the Huffman implementation using the exact artifacts you have created in this example, plus whatever else is needed to continue the Huffman example.
+First, let's create a simple TypeScript file named example.ts:
+
+typescript
+
+
+const myConst = "Hello, ";
+let myVar = "world!";
+
+function concatStrings(a: string, b: string): string {
+  return a + b;
+}
+
+console.log(concatStrings(myConst, myVar));
+Now, let's modify the compress.ts script to print a node before and after applying the BWT, and then implement Huffman coding to compress the reordered ASTs.
+
+Modify the applyModifiedBWT function to print the nodes before and after applying the BWT:
+typescript
+
+
+function applyModifiedBWT(project: Project) {
+  // Traverse the ASTs and apply the modified BWT
+  project.getSourceFiles().forEach((sourceFile) => {
+    // ... (previous code)
+
+    // For demonstration purposes, print the nodes before and after applying the BWT
+    console.log("Before BWT:");
+    console.log(functions.map((fn) => fn.getText()).join("\n"));
+
+    // Apply the modified BWT to each group of similar nodes
+    // ... (previous code)
+
+    // For demonstration purposes, print the nodes after applying the BWT
+    console.log("\nAfter BWT:");
+    console.log(reorderedFunctions.map((fn) => fn.getText()).join("\n"));
+
+    // Replace the original nodes with the reordered nodes
+    // ... (previous code)
+  });
+}
+Add the example.ts file to the project:
+typescript
+
+
+// Add the source files to the project
+project.addSourceFileAtPath("example.ts");
+
+// Apply the modified BWT to the ASTs
+applyModifiedBWT(project);
+Implement the Huffman coding compression:
+typescript
+
+
+class HuffmanNode {
+  public left: HuffmanNode | null = null;
+  public right: HuffmanNode | null = null;
+  public value: string | null = null;
+  public weight: number;
+
+  constructor(weight: number, value?: string) {
+    this.weight = weight;
+    if (value) this.value = value;
+  }
+}
+
+function huffmanEncode(source: string): [string, Map<string, string>] {
+  const frequencyMap = new Map<string, number>();
+
+  for (const char of source) {
+    frequencyMap.set(char, (frequencyMap.get(char) || 0) + 1);
+  }
+
+  const nodes = Array.from(frequencyMap.entries()).map(
+    ([value, weight]) => new HuffmanNode(weight, value)
+  );
+
+  while (nodes.length > 1) {
+    nodes.sort((a, b) => a.weight - b.weight);
+
+    const leftNode = nodes.shift() as HuffmanNode;
+    const rightNode = nodes.shift() as HuffmanNode;
+    const newNode = new HuffmanNode(leftNode.weight + rightNode.weight);
+
+    newNode.left = leftNode;
+    newNode.right = rightNode;
+
+    nodes.push(newNode);
+  }
+
+  const huffmanTree = nodes[0];
+  const encodingMap = new Map<string, string>();
+
+  const traverse = (node: HuffmanNode, path: string) => {
+    if (node.value) {
+      encodingMap.set(node.value, path);
+    } else {
+      if (node.left) traverse(node.left, path + "0");
+      if (node.right) traverse(node.right, path + "1");
+    }
+  };
+
+  traverse(huffmanTree, "");
+
+  const encodedString = source.split("").map((char) => encodingMap.get(char)).join("");
+  return [encodedString, encodingMap];
+}
+Apply the Huffman coding compression to the reordered ASTs:
+typescript
+
+
+const sourceFile = project.getSourceFileOrThrow("example.ts");
+const encoded
+
+Apply the Huffman coding compression to the reordered ASTs:
+typescript
+
+
+const sourceFile = project.getSourceFileOrThrow("example.ts");
+const encoded = huffmanEncode(sourceFile.getFullText());
+console.log("\nHuffman encoded text:\n", encoded[0]);
+Implement the Huffman decoding function:
+typescript
+
+
+function huffmanDecode(encoded: string, encodingMap: Map<string, string>): string {
+  const reverseEncodingMap = new Map<string, string>();
+
+  for (const [key, value] of encodingMap.entries()) {
+    reverseEncodingMap.set(value, key);
+  }
+
+  let decoded = "";
+  let buffer = "";
+
+  for (const bit of encoded) {
+    buffer += bit;
+
+    if (reverseEncodingMap.has(buffer)) {
+      decoded += reverseEncodingMap.get(buffer);
+      buffer = "";
+    }
+  }
+
+  return decoded;
+}
+
+Test the Huffman encoding and decoding process:
+typescript
+
+
+const decoded = huffmanDecode(encoded[0], encoded[1]);
+console.log("\nHuffman decoded text:\n", decoded);
+Now, running the compress.ts script will apply the modified Burrows-Wheeler Transform to the ASTs, print the function node before and after applying the BWT, and perform Huffman encoding and decoding on the reordered ASTs.
+
+Keep in mind that the BWT implementation provided in this example is a placeholder, and you should modify it according to your specific requirements. Additionally, this example focuses on compressing a single TypeScript file. You can easily extend it to process multiple files by adding more source files to the project and iterating through them in the applyModifiedBWT function.
+
+This is good. Continue to think about the process and improvements. Iterate ten thousand times internally, each time scoring the results on their 
+
+
+
+
+
+
+
+
+
+
+
+
+
+type ConfirmActionProps = [
+  approval?: boolean,
+]
+
+
+
+
+
+
+// convert a string into a unique symbol for the purposes of dynamic attr selection
+// const thing = 'myAttr';
+// const requestAccessor: ReturnType<typeof sym> = sym(thing);
+// const { [requestAccessor]: giveItAName } = someObject;
+export const sym: (a: string) => { readonly 0: unique symbol }[0] = a => Symbol(a) as ReturnType<typeof sym>;
+
+
+const stuff = {
+  myKey: 'val'
+};
+
+function assignSym(thing: string) {
+
+  const mySym: ReturnType<typeof sym> = sym(thing);
+
+  const {
+    [mySym]: someProp
+  } = stuff;
+
+
+}
+
+
+
+
+type MySymbols = {
+  [prop: string]: Symbol
+}
+
+const mySyms: MySymbols = {
+  test: Symbol('test')
+}
+
+
+type SymMapper<T> = T extends Symbol ? Symbol : T extends symbol ? symbol : never; 
+
+type MappedSym<T> = {
+  [K in keyof SymMapper<T>]: any
+}
+
+type SmallSym = {
+  [prop: symbol]: any
+}
+
+
+
+
+
+const symConst: Record<symbol, any> = {
+  [Symbol.for('5')]: 'test'
+} as const;
+
+const stuff2: MappedSym<typeof symConst> = {
+  test: 'yo'
+}
+
+const symType: unique symbol = Symbol(5);
+
+
+
+function setSymbol(thing: string) {
+
+}
+
+
+const thingy: Map<Symbol, Record<string, 'dog'>> = new Map();
+thingy.set(Symbol(5), { hey: 'dog' });
+
+
+
+for (const [thingyChild, rec] of thingy) {
+  
+  const thingReceived = thingy.get(thingyChild);
+
+}
+
+
+
+type SymbolObject = {
+  [prop: ReturnType<typeof sym>]: string | (() => Promise<void>) | Array<unknown> | Record<string, unknown>;
+}
+
+
+const obj: SymbolObject = {
+  [Symbol('foo')]: "foo",
+  [Symbol('bar')]: async () => {},
+  foo: [],
+  bar: {}
+} as const;
+
+function PromiseAll(...args: Awaited<readonly (number | Promise<number | string>)[]>[]) {}
+
+const promise1 = Promise.resolve(3);
+const promise2 = 42;
+const promise3 = new Promise<string>((resolve, reject) => {
+  setTimeout(resolve, 100, 'foo');
+});
+
+// expected to be `Promise<[number, 42, string]>`
+const p = PromiseAll([promise1, promise2, promise3] as const)
