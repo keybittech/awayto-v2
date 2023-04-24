@@ -1,3 +1,4 @@
+import { IPrompts } from '@keybittech/wizapp';
 import { Extend } from '../util';
 import { ApiHandler, ApiOptions, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
 
@@ -34,9 +35,7 @@ const assistApi = {
 const assistApiHandlers: ApiHandler<typeof assistApi> = {
   getPrompt: async props => {
     const { id, prompt } = props.event.queryParameters;
-    const generatedPrompt = props.completions.generatePrompt(id as IPrompts, ...prompt.split('|'));
-    const promptResult = await props.completions.getChatCompletionPrompt(generatedPrompt);
-    // return { promptResult: promptResult[0].text?.trim().replace(/\r?\n|\r/g, '').split('|').filter(a => !!a) };
+    const promptResult = (await props.ai.useAi<string>(id as IPrompts, ...prompt.split('|'))).message;
     return { promptResult: promptResult.split('|').filter(a => !!a) };
   },
 } as const;

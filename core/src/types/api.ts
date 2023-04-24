@@ -1,3 +1,4 @@
+import { useAi } from '@keybittech/wizapp';
 import { KeycloakAdminClient } from '@keycloak/keycloak-admin-client/lib/client';
 import RoleRepresentation, { RoleMappingPayload } from '@keycloak/keycloak-admin-client/lib/defs/roleRepresentation';
 import ClientRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientRepresentation';
@@ -70,11 +71,8 @@ export type ApiHandler<T> = {
   [K in keyof T]: T[K] extends { queryArg: infer QA extends AnyRecord, resultType: infer RT } ?  (props: ApiProps<QA>) => Promise<RT extends Void ? void : Partial<RT>> : never
 }
 
-type CompletionApis = {
-  generatePrompt: (promptId: string, ...prompts: string[]) => string;
-  getChatCompletionPrompt: (input: string) => Promise<string>;
-  getCompletionPrompt: (input: string) => Promise<string>;
-  getModerationCompletion: (input: string) => Promise<boolean | undefined>;
+export type AiFunc = {
+  useAi: typeof useAi
 }
 
 /**
@@ -88,7 +86,7 @@ export type ApiProps<T extends AnyRecord> = {
   redis: RedisClientType;
   redisProxy: RedisProxy;
   keycloak: KeycloakAdminClient & KcSiteOpts;
-  completions: CompletionApis;
+  ai: AiFunc;
   tx: ITask<unknown>;
 }
 
@@ -102,7 +100,7 @@ export type AuthProps = {
   redis: RedisClientType;
   redisProxy: RedisProxy;
   keycloak: KeycloakAdminClient & KcSiteOpts;
-  completions: CompletionApis;
+  ai: AiFunc;
   tx: ITask<unknown>;
 }
 

@@ -39,7 +39,6 @@ export const utilConfig = {
   reducers: {
     setTheme: (state: IUtil, action: { payload: Pick<IUtil, 'theme'> }) => {
       const { theme } = action.payload;
-      localStorage.setItem('kbt_theme', theme);
       state.theme = theme;
     },
     openConfirm: (state: IUtil, action: { payload: Pick<IUtil, 'isConfirming' | 'confirmEffect' | 'confirmSideEffect' | 'confirmAction'> }) => {

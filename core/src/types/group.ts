@@ -1,7 +1,7 @@
+import { IPrompts } from '@keybittech/wizapp';
 import { v4 as uuid } from 'uuid';
 import { asyncForEach, Extend, Void } from '../util';
 import { ApiHandler, ApiInternalError, ApiOptions, buildUpdate, DbError, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
-import { IPrompts } from './assist';
 import { IGroupRole } from './group_role';
 import { IUserProfile } from './profile';
 import { IRole } from './role';
@@ -191,14 +191,14 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
         }
       }
 
-      if (true === await props.completions.getModerationCompletion(purpose)) {
+      
+
+      if (true === (await props.ai.useAi<boolean>(undefined, purpose)).flagged) {
         props.logger.log('moderation failure event', props.event.requestId);
         throw { reason: 'Moderation event flagged. Please revise the group purpose.' };
       }
 
-      const convertPurpose = props.completions.generatePrompt(IPrompts.CONVERT_PURPOSE, name, purpose);
-      const convertedPurpose = await props.completions.getChatCompletionPrompt(convertPurpose);
-      const purposeMission = convertedPurpose.toLowerCase().replaceAll('"', '').replaceAll('.', '');
+      const purposeMission = (await props.ai.useAi<string>(IPrompts.CONVERT_PURPOSE, name, purpose)).message;
 
       const { groupAdminRoles, appClient, roleCall } = await props.redisProxy('groupAdminRoles', 'appClient', 'roleCall');
 
@@ -502,7 +502,7 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
   checkGroupName: async props => {
     const { name } = props.event.pathParameters;
 
-    if (true === await props.completions.getModerationCompletion(name.replaceAll('_', ' '))) {
+    if (true === (await props.ai.useAi<boolean>(undefined, name.replaceAll('_', ' '))).flagged) {
       props.logger.log('moderation failure event', props.event.requestId);
       throw { reason: 'Moderation event flagged. Please revise the group name.' };
     }
