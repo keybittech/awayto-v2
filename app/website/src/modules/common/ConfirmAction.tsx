@@ -23,9 +23,12 @@ export function ConfirmAction(): JSX.Element {
           <CardHeader title="Confirm Action" subheader={`Action: ${util.confirmEffect}`} />
           <Grid container sx={{ minHeight: '25vh' }}>
             <Grid item xs={util.confirmSideEffect ? 6 : 12}>
-              <CardActionArea sx={{ height: '100%', padding: '50px' }} onClick={async () => {
-                await util.confirmAction(true);
-                closeConfirm();
+              <CardActionArea sx={{ height: '100%', padding: '50px' }} onClick={() => {
+                async function go() {
+                  await util.confirmAction(true);
+                  closeConfirm();
+                }
+                void go();
               }}>
                 <Grid container textAlign="center" justifyContent="center">
                   <Grid item>
@@ -39,9 +42,12 @@ export function ConfirmAction(): JSX.Element {
             </Grid>
             {util.confirmSideEffect && <Grid item xs={6}>
 
-              <CardActionArea sx={{ height: '100%', padding: '50px' }} onClick={async () => {
-                await util.confirmAction(false);
-                closeConfirm();
+              <CardActionArea sx={{ height: '100%', padding: '50px' }} onClick={() => {
+                async function go() {
+                  await util.confirmAction(false);
+                  closeConfirm();
+                }
+                void go();
               }}>
                 <Grid container textAlign="center" justifyContent="center">
                   <Typography variant="button" fontSize={16}>{util.confirmSideEffect.rejectionAction}</Typography>

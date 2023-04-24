@@ -1,12 +1,7 @@
 {
   "extends": "./tsconfig.paths.json",
   "include": [
-    "./src",
-    "../../core"
-  ],
-  "exclude": [
-    "./src/modules/generated",
-    "../../core/types/generated"
+    "./src"
   ],
   "compilerOptions": {
     "target": "es6",

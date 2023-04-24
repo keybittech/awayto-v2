@@ -1,4 +1,4 @@
-import { useAi } from '@keybittech/wizapp';
+import { useAi } from '@keybittech/wizapp/dist/server';
 import { KeycloakAdminClient } from '@keycloak/keycloak-admin-client/lib/client';
 import RoleRepresentation, { RoleMappingPayload } from '@keycloak/keycloak-admin-client/lib/defs/roleRepresentation';
 import ClientRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientRepresentation';

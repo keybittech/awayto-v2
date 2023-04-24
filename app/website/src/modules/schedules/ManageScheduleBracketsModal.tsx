@@ -102,50 +102,53 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
     return 0;
   }, [schedule, scheduleBracketsValues]);
 
-  const handleSubmit = useCallback(async () => {
-    if (schedule) {
-      const { name, scheduleTimeUnitName } = schedule;
-      if (name && scheduleTimeUnitName && scheduleBracketsValues.length) {
-        const userSchedule = { ...schedule };
-        if (!editSchedule) {
-          const newSchedule = await postSchedule(schedule).unwrap();
-          userSchedule.id = newSchedule.id;
-        }
-        
-        const newBrackets = scheduleBracketsValues.map(
-          ({ id, duration, automatic, multiplier, slots, services }) => [
-            id,
-            {
+  const handleSubmit = useCallback(() => {
+    async function go() {
+      if (schedule && group?.name) {
+        const { name, scheduleTimeUnitName } = schedule;
+        if (name && scheduleTimeUnitName && scheduleBracketsValues.length) {
+          const userSchedule = { ...schedule };
+          if (!editSchedule) {
+            const newSchedule = await postSchedule(schedule).unwrap();
+            userSchedule.id = newSchedule.id;
+          }
+          
+          const newBrackets = scheduleBracketsValues.map(
+            ({ id, duration, automatic, multiplier, slots, services }) => [
               id,
-              duration,
-              automatic,
-              multiplier,
-              slots: Object.values(slots).map(({ startTime }, i) => [String(i), { startTime } as IScheduleBracketSlot]),
-              services: Object.values(services).map(({ id }, i) => [String(i), { id } as IService])
-            }
-          ]
-        );
-
-        await postScheduleBrackets({
-          scheduleId: userSchedule.id,
-          brackets: Object.fromEntries(newBrackets) as Record<string, IScheduleBracket>
-        }).catch(console.error);
-
-        if (!editSchedule) {
-          await postGroupUserSchedule({
-            groupName: group?.name,
-            userScheduleId: userSchedule.id,
-            groupScheduleId: schedule.id
+              {
+                id,
+                duration,
+                automatic,
+                multiplier,
+                slots: Object.values(slots).map(({ startTime }, i) => [String(i), { startTime } as IScheduleBracketSlot]),
+                services: Object.values(services).map(({ id }, i) => [String(i), { id } as IService])
+              }
+            ]
+          );
+  
+          await postScheduleBrackets({
+            scheduleId: userSchedule.id,
+            brackets: Object.fromEntries(newBrackets) as Record<string, IScheduleBracket>
           }).catch(console.error);
+  
+          if (!editSchedule) {
+            await postGroupUserSchedule({
+              groupName: group.name,
+              userScheduleId: userSchedule.id,
+              groupScheduleId: schedule.id
+            }).catch(console.error);
+          }
+  
+          await getUserProfileDetails().catch(console.error);
+          setSnack({ snackOn: 'Successfully added ' + name, snackType: 'info' });
+          if (closeModal) closeModal();
+        } else {
+          setSnack({ snackOn: 'A schedule should have a name, a duration, and at least 1 bracket.', snackType: 'info' });
         }
-
-        await getUserProfileDetails().catch(console.error);
-        setSnack({ snackOn: 'Successfully added ' + name, snackType: 'info' });
-        if (closeModal) closeModal();
-      } else {
-        setSnack({ snackOn: 'A schedule should have a name, a duration, and at least 1 bracket.', snackType: 'info' });
       }
     }
+    void go();
   }, [group, schedule, scheduleBracketsValues]);
 
   return <>

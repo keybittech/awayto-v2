@@ -13,7 +13,8 @@ import CardHeader from '@mui/material/CardHeader';
 import Grid from '@mui/material/Grid';
 import Chip from '@mui/material/Chip';
 
-import { IService, IServiceTier, IPrompts, IAssist } from 'awayto/core';
+import { IPrompts } from '@keybittech/wizapp/dist/lib';
+import { IService, IServiceTier, IAssist } from 'awayto/core';
 import { useComponents, useStyles, sh, useUtil } from 'awayto/hooks';
 
 const serviceSchema = {
@@ -128,11 +129,14 @@ export function ServiceHome(props: IProps): JSX.Element {
                   value={newService.formId}
                   label="Form"
                   helperText="Optional."
-                  onChange={async e => {
-                    const form = await getGroupFormById({ groupName: group.name, formId: e.target.value }).unwrap();
-                    if (form) {
-                      setNewService({ ...newService, formId: form.id })
+                  onChange={e => {
+                    async function go() {
+                      const form = await getGroupFormById({ groupName: group.name, formId: e.target.value }).unwrap();
+                      if (form) {
+                        setNewService({ ...newService, formId: form.id })
+                      }
                     }
+                    void go();
                   }}
                 >
                   {groupForms?.map(form => <MenuItem key={`form-version-select${form.id}`} value={form.id}>{form.name}</MenuItem>)}
@@ -200,11 +204,14 @@ export function ServiceHome(props: IProps): JSX.Element {
                   value={newServiceTier.formId}
                   label="Form"
                   helperText="Optional."
-                  onChange={async e => {
-                    const form = await getGroupFormById({ groupName: group.name, formId: e.target.value }).unwrap();
-                    if (form) {
-                      setNewServiceTier({ ...newServiceTier, formId: form.id })
+                  onChange={e => {
+                    async function go() {
+                      const form = await getGroupFormById({ groupName: group.name, formId: e.target.value }).unwrap();
+                      if (form) {
+                        setNewServiceTier({ ...newServiceTier, formId: form.id })
+                      }
                     }
+                    void go();
                   }}
                 >
                   {groupForms?.map(form => <MenuItem key={`form-version-select${form.id}`} value={form.id}>{form.name}</MenuItem>)}
@@ -274,17 +281,20 @@ export function ServiceHome(props: IProps): JSX.Element {
 
     <Grid item xs={12}>
       <Card>
-        <CardActionArea onClick={async () => {
-          if (newService.name && group.name && Object.keys(newService.tiers)?.length) {
-            const postedService = await postService({ ...newService }).unwrap();
-            await postGroupService({ serviceId: postedService.id, groupName: group.name }).unwrap();
-            await getGroupServices({ groupName: group.name }).unwrap();
-            setSnack({ snackOn: `Successfully added ${newService.name} to ${group.name.replaceAll('_', ' ')}`, snackType: 'info' });
-            setNewService({ ...serviceSchema, tiers: {} } as IService);
-            setServiceTierAddonIds([]);
-          } else {
-            void setSnack({ snackOn: 'Provide the service name, cost and at least 1 tier.', snackType: 'info' });
+        <CardActionArea onClick={() => {
+          async function go() {
+            if (newService.name && group.name && Object.keys(newService.tiers)?.length) {
+              const postedService = await postService({ ...newService }).unwrap();
+              await postGroupService({ serviceId: postedService.id, groupName: group.name }).unwrap();
+              await getGroupServices({ groupName: group.name }).unwrap();
+              setSnack({ snackOn: `Successfully added ${newService.name} to ${group.name.replaceAll('_', ' ')}`, snackType: 'info' });
+              setNewService({ ...serviceSchema, tiers: {} } as IService);
+              setServiceTierAddonIds([]);
+            } else {
+              void setSnack({ snackOn: 'Provide the service name, cost and at least 1 tier.', snackType: 'info' });
+            }
           }
+          void go();
         }}>
           <Box m={2} sx={{ display: 'flex' }}>
             <Typography color="secondary" variant="button">Create Service</Typography>

@@ -17,3 +17,5 @@ models
 core/types/generated
 app/website/src/modules/generated
 *test*.json
+wa/gen_components
+wa/gen_types

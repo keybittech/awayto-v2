@@ -64,8 +64,11 @@ export function Sidebar(): JSX.Element {
           <ListItemIcon><AccountBoxIcon color={location.pathname === '/profile' ? "secondary" : "primary"} /></ListItemIcon>
           <ListItemText classes={{ primary: classes.menuText }}>Profile</ListItemText>
         </ListItem>
-        <ListItem className={classes.menuIcon} onClick={async () => {
-          await keycloak.logout({ redirectUri: `https://${process.env.REACT_APP_LAND_HOSTNAME as string}/` });
+        <ListItem className={classes.menuIcon} onClick={() => {
+          async function go() {
+            await keycloak.logout({ redirectUri: `https://${process.env.REACT_APP_LAND_HOSTNAME as string}/` });
+          }
+          void go();
         }} button key={'logout'}>
           <ListItemIcon><ExitToAppIcon color="primary" /></ListItemIcon>
           <ListItemText classes={{ primary: classes.menuText }}>Logout</ListItemText>

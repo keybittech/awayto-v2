@@ -361,43 +361,45 @@ export function RequestQuote(props: IProps): JSX.Element {
 
       <Grid item xs={12}>
         <Card>
-          <CardActionArea onClick={async () => {
-            quote.serviceTierId = tier.id;
-
-            if (!quote.scheduleBracketSlotId) {
-              const { scheduleBracketSlotId, startDate } = firstAvailable;
-              quote.scheduleBracketSlotId = scheduleBracketSlotId;
-              quote.slotDate = startDate;
+          <CardActionArea onClick={() => {
+            async function go() {
+              quote.serviceTierId = tier.id;
+  
+              if (!quote.scheduleBracketSlotId) {
+                const { scheduleBracketSlotId, startDate } = firstAvailable;
+                quote.scheduleBracketSlotId = scheduleBracketSlotId;
+                quote.slotDate = startDate;
+              }
+  
+              if (Object.keys(serviceForm).length) {
+                const missingValues = Object.keys(serviceForm.version.form).some(rowId => serviceForm.version.form[rowId].some((field, i) => field.r && [undefined, ''].includes(serviceForm.version.submission[rowId][i])));
+                if (missingValues) {
+                  setSnack({ snackType: 'error', snackOn: 'The Service Questionnaire is missing required fields!' });
+                  return;
+                }
+                quote.serviceForm = {
+                  formVersionId: serviceForm.version.id,
+                  submission: serviceForm.version.submission
+                }
+              }
+  
+              if (Object.keys(tierForm).length) {
+                const missingValues = Object.keys(tierForm.version.form).some(rowId => tierForm.version.form[rowId].some((field, i) => field.r && [undefined, ''].includes(tierForm.version.submission[rowId][i])));
+                if (missingValues) {
+                  setSnack({ snackType: 'error', snackOn: 'The Tier Questionnaire is missing required fields!' });
+                  return;
+                }
+                quote.tierForm = {
+                  formVersionId: tierForm.version.id,
+                  submission: tierForm.version.submission
+                }
+              }
+  
+              await postQuote(quote).unwrap();
+              setSnack({ snackOn: 'Your request has been made successfully!' });
+              navigate('/');
             }
-
-            if (Object.keys(serviceForm).length) {
-              const missingValues = Object.keys(serviceForm.version.form).some(rowId => serviceForm.version.form[rowId].some((field, i) => field.r && [undefined, ''].includes(serviceForm.version.submission[rowId][i])));
-              if (missingValues) {
-                setSnack({ snackType: 'error', snackOn: 'The Service Questionnaire is missing required fields!' });
-                return;
-              }
-              quote.serviceForm = {
-                formVersionId: serviceForm.version.id,
-                submission: serviceForm.version.submission
-              }
-            }
-
-            if (Object.keys(tierForm).length) {
-              const missingValues = Object.keys(tierForm.version.form).some(rowId => tierForm.version.form[rowId].some((field, i) => field.r && [undefined, ''].includes(tierForm.version.submission[rowId][i])));
-              if (missingValues) {
-                setSnack({ snackType: 'error', snackOn: 'The Tier Questionnaire is missing required fields!' });
-                return;
-              }
-              quote.tierForm = {
-                formVersionId: tierForm.version.id,
-                submission: tierForm.version.submission
-              }
-            }
-
-            await postQuote(quote).unwrap();
-            setSnack({ snackOn: 'Your request has been made successfully!' });
-            navigate('/');
-            
+            void go();
           }}>
             <Box m={2} sx={{ display: 'flex' }}>
               <Typography color="secondary" variant="button">Submit Request</Typography>

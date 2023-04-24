@@ -9,17 +9,16 @@ const dd = process.env.NODE_ENV === 'docker';
 const fs = require('fs');
 const crypto = require('crypto');
 const glob = require('glob');
-const express = require('express');
 
 const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 
 const { getLoaders, loaderByName, addBeforeLoader, ESLINT_MODES, } = require('@craco/craco');
+const CracoEsbuildPlugin = require('craco-esbuild');
 
 
-
-const { AWAYTO_CORE, AWAYTO_WEBAPP_MODULES, AWAYTO_WEBAPP } = process.env;
+const { AWAYTO_WEBAPP_MODULES, AWAYTO_WEBAPP } = process.env;
 
 /**
  * 
@@ -123,9 +122,9 @@ module.exports = {
   //   enable: false,
   //   mode: ESLINT_MODES.NONE
   // },
+  plugins: [{ plugin: CracoEsbuildPlugin }],
   webpack: {
     alias: {
-      'awayto/core': resolveApp(AWAYTO_CORE + '/index.ts'),
       'awayto/hooks': resolveApp('.' + AWAYTO_WEBAPP + '/hooks/index.ts'),
     },
     configure: (webpackConfig, { env, paths }) => {
@@ -150,32 +149,10 @@ module.exports = {
         })
       );
 
-
-      const babelLoader = webpackConfig.module.rules.find(
-        (rule) =>
-          rule.oneOf &&
-          rule.oneOf.find((item) => String(item.loader).includes("babel-loader"))
-      ).oneOf.find((item) => String(item.loader).includes("babel-loader"));
-
-      // Exclude the generated folder from being processed by babel-loader
-      babelLoader.exclude = [
-        ...(babelLoader.exclude || []),
-        path.resolve(__dirname, "src/modules/generated"),
-      ];
-
-      const { matches } = getLoaders(webpackConfig, loaderByName('babel-loader'))
-      addBeforeLoader(webpackConfig, loaderByName('babel-loader'), {
-        ...matches[0].loader,
-        include: [resolveApp(AWAYTO_CORE)]
-      })
-
       return webpackConfig;
     },
     devServer: (devServerConfig, { env, paths, proxy, allowedHost }) => {
       devServerConfig.before = (app, server, compiler) => {
-        app.use(express.static(__dirname + AWAYTO_CORE, {
-          etag: false
-        }));
         app.use((req, res, next) => {
           checkWriteBuildFile(next);
         });

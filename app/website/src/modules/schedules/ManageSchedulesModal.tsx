@@ -90,26 +90,31 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
     return factors;
   }, [schedule]);
 
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = useCallback(() => {
 
-    const { id, name, startTime, endTime } = schedule;
-    if (!id) {
-      if (name && startTime) {
-        schedule.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        await postGroupSchedule({ ...schedule, groupName } as IGroupSchedule).unwrap();
-        await getGroupSchedules({ groupName }).unwrap();
-        setSnack({ snackOn: 'Successfully added ' + name + ' as a master schedule!', snackType: 'info' });
-      } else {
-        setSnack({ snackOn: 'A schedule should have a name, a start time.', snackType: 'info' });
+    async function go() {
+      const { id, name, startTime, endTime } = schedule;
+      if (groupName) {
+        if (!id) {
+          if (name && startTime) {
+            schedule.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            await postGroupSchedule({ ...schedule, groupName } as IGroupSchedule).unwrap();
+            await getGroupSchedules({ groupName }).unwrap();
+            setSnack({ snackOn: 'Successfully added ' + name + ' as a master schedule!', snackType: 'info' });
+          } else {
+            setSnack({ snackOn: 'A schedule should have a name, a start time.', snackType: 'info' });
+          }
+        } else {
+          await putGroupSchedule({ id, startTime, endTime, groupName } as IGroupSchedule).unwrap();
+          setSnack({ snackOn: 'Schedule updated!', snackType: 'info' });
+        }
+    
+        if (closeModal)
+          closeModal();
       }
-    } else {
-      await putGroupSchedule({ id, startTime, endTime, groupName } as IGroupSchedule).unwrap();
-      setSnack({ snackOn: 'Schedule updated!', snackType: 'info' });
     }
-
-    if (closeModal)
-      closeModal();
-  }, [schedule]);
+    void go();
+  }, [schedule, groupName]);
 
   useEffect(() => {
     async function go() {

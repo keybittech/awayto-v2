@@ -1,4 +1,4 @@
-import { IPrompts } from '@keybittech/wizapp';
+import { IPrompts } from '@keybittech/wizapp/dist/lib';
 import { Extend } from '../util';
 import { ApiHandler, ApiOptions, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
 

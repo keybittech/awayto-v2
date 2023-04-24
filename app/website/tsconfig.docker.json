@@ -1,8 +1,7 @@
 {
   "extends": "./tsconfig.docker.paths.json",
   "include": [
-    "./src",
-    "../core"
+    "./src"
   ],
   "compilerOptions": {
     "target": "es6",

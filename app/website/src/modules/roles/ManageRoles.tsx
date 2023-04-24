@@ -46,10 +46,13 @@ export function ManageRoles(props: IProps): JSX.Element {
     return [
       ...acts,
       <Tooltip key={'delete_role'} title="Delete">
-        <Button onClick={async () => {
-          await deleteRole({ ids: selected.join(',') }).unwrap();
-          void getUserProfileDetails();
-          setSelected([]);
+        <Button onClick={() => {
+          async function go() {
+            await deleteRole({ ids: selected.join(',') }).unwrap();
+            void getUserProfileDetails();
+            setSelected([]);
+          }
+          void go();
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Delete</Typography>
           <DeleteIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />

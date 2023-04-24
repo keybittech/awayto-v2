@@ -55,22 +55,25 @@ export function ManageUserModal({ editUser, closeModal }: IProps): JSX.Element {
       }
     }
     void go();
-  }, [editUser, profile]);
+  }, [editUser, profile, groupName]);
 
   const handlePassword = useCallback(({ target: { value } }: React.ChangeEvent<HTMLTextAreaElement>) => setPassword(value), [])
   const handleProfile = useCallback(({ target: { name, value } }: React.ChangeEvent<HTMLTextAreaElement>) => setProfile({ ...profile, [name]: value }), [profile])
 
-  const handleSubmit = useCallback(async () => {
-    if (editUser?.id) {
-      const { id, roleId } = profile;
-      const { name } = groupRoles?.find(gr => gr.id === roleId) || {};
-      if (name) {
-        await putGroupUser({ groupName, userId: id, roleId, roleName: name }).unwrap();
-        await getGroupUsers({ groupName }).unwrap();
-        if (closeModal)
-          closeModal();
+  const handleSubmit = useCallback(() => {
+    async function go() {
+      if (editUser?.id && groupName) {
+        const { id, roleId } = profile;
+        const { name } = groupRoles?.find(gr => gr.id === roleId) || {};
+        if (name) {
+          await putGroupUser({ groupName, userId: id, roleId, roleName: name }).unwrap();
+          await getGroupUsers({ groupName }).unwrap();
+          if (closeModal)
+            closeModal();
+        }
       }
     }
+    void go();
     // async function submitUser() {
     //   let user = profile as IUserProfile;
     //   const { id, sub } = user;
@@ -111,7 +114,7 @@ export function ManageUserModal({ editUser, closeModal }: IProps): JSX.Element {
     // }
 
     // void submitUser();
-  }, [profile, password]);
+  }, [profile, password, groupName]);
 
   const passwordGenerator = useCallback(() => {
     setPassword(passwordGen());

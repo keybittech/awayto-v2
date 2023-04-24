@@ -51,20 +51,24 @@ export function ManageScheduleStubModal({ editGroupUserScheduleStub, closeModal 
     setActiveSchedule(editGroupUserScheduleStub.userScheduleId);
   }
 
-  const handleSubmit = useCallback(async () => {
-    await putGroupUserScheduleStubReplacement({
-      groupName,
-      userScheduleId: editGroupUserScheduleStub.userScheduleId,
-      quoteId: editGroupUserScheduleStub.quoteId,
-      slotDate: (bracketSlotDate || firstAvailable.time).format("YYYY-MM-DD"),
-      startTime: replacement.startTime,
-      serviceTierId: replacement.serviceTierId,
-      scheduleBracketSlotId: replacement.scheduleBracketSlotId
-    } as IGroupUserSchedule & IGroupUserScheduleStubReplacement).unwrap();
-
-    if (closeModal)
-      closeModal();
-  }, [editGroupUserScheduleStub]);
+  const handleSubmit = useCallback(() => {
+    async function go() {
+      if (editGroupUserScheduleStub && groupName) {
+        await putGroupUserScheduleStubReplacement({
+          groupName,
+          userScheduleId: editGroupUserScheduleStub.userScheduleId,
+          quoteId: editGroupUserScheduleStub.quoteId,
+          slotDate: (bracketSlotDate || firstAvailable.time).format("YYYY-MM-DD"),
+          startTime: replacement.startTime,
+          serviceTierId: replacement.serviceTierId,
+          scheduleBracketSlotId: replacement.scheduleBracketSlotId
+        } as IGroupUserSchedule & IGroupUserScheduleStubReplacement).unwrap();
+    
+        if (closeModal)
+          closeModal();
+      }
+    }
+  }, [editGroupUserScheduleStub, groupName]);
 
   return <>
     <Card>
@@ -75,7 +79,7 @@ export function ManageScheduleStubModal({ editGroupUserScheduleStub, closeModal 
             <Typography>Use an existing slot at the same date and time:</Typography>
           </Box>
           <Box mb={4}>
-            <Button fullWidth variant="contained" color="primary" onClick={() => handleSubmit()}>Reassign to {originalReplacement.username}</Button>
+            <Button fullWidth variant="contained" color="primary" onClick={handleSubmit}>Reassign to {originalReplacement.username}</Button>
           </Box>
 
           <Grid container direction="row" alignItems="center" spacing={2} mb={4}>
@@ -136,7 +140,7 @@ export function ManageScheduleStubModal({ editGroupUserScheduleStub, closeModal 
         </Box>
 
         {replacement?.username && <Box my={2}>
-          <Button onClick={() => handleSubmit()} fullWidth variant="contained" color="primary">Reassign to {replacement.username}</Button>
+          <Button onClick={handleSubmit} fullWidth variant="contained" color="primary">Reassign to {replacement.username}</Button>
         </Box>}
       </CardContent>
       <CardActions>

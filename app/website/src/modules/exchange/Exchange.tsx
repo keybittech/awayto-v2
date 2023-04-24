@@ -14,7 +14,7 @@ import Videocam from '@mui/icons-material/Videocam';
 import Call from '@mui/icons-material/Call';
 
 import { ExchangeContext, ExchangeContextType } from './ExchangeContext';
-import Whiteboard from './Whiteboard';
+// import Whiteboard from './Whiteboard';
 
 export function Exchange(): JSX.Element {
   const {
@@ -61,7 +61,7 @@ export function Exchange(): JSX.Element {
 
         <Grid container direction="row" justifyContent="space-evenly">
           <Grid item xs={12} md={5} style={{ height: '70vh', padding: '20px', backgroundColor: theme.palette.primary.dark }}>
-            <Whiteboard />
+            {/* <Whiteboard /> */}
           </Grid>
           <Grid item xs={12} md={5}>
             <Grid container direction="column" style={{ height: '70vh', display: 'flex', flexWrap: 'nowrap' }}>

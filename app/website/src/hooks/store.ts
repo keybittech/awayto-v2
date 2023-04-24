@@ -166,7 +166,9 @@ export const sh = createApi({
     type BuiltEndpoint = typeof siteApiRef[typeof endpointKey];
 
     const ep = siteApiRef[endpointName as keyof SiteApiRef] as BuiltEndpoint;
-    const { method, queryArg, resultType, kind, url } = ep;
+    const { method, queryArg, resultType, url } = ep;
+
+    const kind = ep.kind as EndpointType;
 
     type EPQueryArg = typeof queryArg;
     type EPResultType = typeof resultType;

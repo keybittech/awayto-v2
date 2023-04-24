@@ -204,10 +204,13 @@ export function Topbar(props: IProps): JSX.Element {
 
           <Divider />
 
-          <MenuItem aria-label="logout of the application" onClick={async () => {
-            await keycloak.logout({
-              redirectUri: `https://${process.env.REACT_APP_LAND_HOSTNAME as string}/`
-            });
+          <MenuItem aria-label="logout of the application" onClick={() => {
+            async function go() {
+              await keycloak.logout({
+                redirectUri: `https://${process.env.REACT_APP_LAND_HOSTNAME as string}/`
+              });
+            }
+            void go();
           }}>
             <ListItemIcon><LogoutIcon color="error" /></ListItemIcon>
             <ListItemText>Logout</ListItemText>

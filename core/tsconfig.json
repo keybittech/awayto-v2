@@ -10,6 +10,7 @@
     "strict": true,
     "esModuleInterop": true,
     "outDir": "dist",
+    "declaration": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   }

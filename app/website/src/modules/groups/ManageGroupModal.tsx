@@ -19,7 +19,8 @@ import InputAdornment from '@mui/material/InputAdornment';
 import ArrowRightAlt from '@mui/icons-material/ArrowRightAlt';
 import NotInterestedIcon from '@mui/icons-material/NotInterested';
 
-import { IGroup, IPrompts, IRole } from 'awayto/core';
+import { IPrompts } from '@keybittech/wizapp/dist/lib';
+import { IGroup, IRole } from 'awayto/core';
 import { useComponents, sh, useUtil } from 'awayto/hooks';
 
 import keycloak from '../../keycloak';

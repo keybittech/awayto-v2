@@ -1,4 +1,4 @@
-import { IPrompts } from '@keybittech/wizapp';
+import { IPrompts } from '@keybittech/wizapp/dist/lib';
 import { v4 as uuid } from 'uuid';
 import { asyncForEach, Extend, Void } from '../util';
 import { ApiHandler, ApiInternalError, ApiOptions, buildUpdate, DbError, EndpointType, siteApiHandlerRef, siteApiRef } from './api';

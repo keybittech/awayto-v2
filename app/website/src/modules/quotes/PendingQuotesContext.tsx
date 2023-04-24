@@ -8,8 +8,8 @@ export type PendingQuotesContextType = {
   setSelectedPendingQuotes: (quotes: string[]) => void;
   handleSelectPendingQuote: (prop: string) => void;
   handleSelectPendingQuoteAll: () => void;
-  approvePendingQuotes: () => void | Promise<void>;
-  denyPendingQuotes: () => void | Promise<void>;
+  approvePendingQuotes: () => void;
+  denyPendingQuotes: () => void;
 }
 
 export const PendingQuotesContext = createContext<PendingQuotesContextType | null>(null);

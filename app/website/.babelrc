@@ -1,25 +1,25 @@
-{
-  "plugins": [
-    "@babel/plugin-transform-typescript",
-    "import-glob"
-  ],
-  "presets": [
-    "@babel/preset-env",
-    "@babel/preset-react",
-    "@babel/preset-typescript"
-  ],
-  "env": {
-    "production": {
-      "presets": [
-        [
-          "minify",
-          {
-            "builtIns": false,
-            "evaluate": false,
-            "mangle": false
-          }
-        ]
-      ]
-    }
-  }
-}
+// {
+//   "plugins": [
+//     "@babel/plugin-transform-typescript",
+//     "import-glob"
+//   ],
+//   "presets": [
+//     "@babel/preset-env",
+//     "@babel/preset-react",
+//     "@babel/preset-typescript"
+//   ],
+//   "env": {
+//     "production": {
+//       "presets": [
+//         [
+//           "minify",
+//           {
+//             "builtIns": false,
+//             "evaluate": false,
+//             "mangle": false
+//           }
+//         ]
+//       ]
+//     }
+//   }
+// }

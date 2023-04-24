@@ -71,15 +71,18 @@ export function Profile(props: IProps): JSX.Element {
     setDisplayImage('');
   }
 
-  const handleSubmit = async () => {
-    if (file) {
-      profile.image = await fileStore?.put(file);
+  const handleSubmit = () => {
+    async function go() {
+      if (file) {
+        profile.image = await fileStore?.put(file);
+      }
+  
+      putUserProfile(profile).unwrap().then(() => {
+        setSnack({ snackType: 'success', snackOn: 'Profile updated!' });
+        setFile(undefined);
+      }).catch(console.error);
     }
-
-    putUserProfile(profile).unwrap().then(() => {
-      setSnack({ snackType: 'success', snackOn: 'Profile updated!' });
-      setFile(undefined);
-    }).catch(console.error);
+    void go();
   }
 
   return <>

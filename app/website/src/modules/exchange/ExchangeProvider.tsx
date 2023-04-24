@@ -103,39 +103,42 @@ export function ExchangeProvider({ children }: IProps): JSX.Element {
     speechRecognizer.current.start();
   }
 
-  const setLocalStreamAndBroadcast = useCallback(async (video: boolean): Promise<void> => {
-    try {
-      if (socket.current && !localStream && localId && 'start' === canStartStop) {
-        setCanStartStop('');
-
-        const callOptions: MediaStreamConstraints = {
-          audio: {
-            autoGainControl: true
-          }
-        };
-
-        if (video) {
-          callOptions.video = {
-            width: 520,
-            height: 390,
-            frameRate: { max: 30 }
+  const setLocalStreamAndBroadcast = useCallback((video: boolean): void => {
+    async function go() {
+      try {
+        if (socket.current && !localStream && localId && 'start' === canStartStop) {
+          setCanStartStop('');
+  
+          const callOptions: MediaStreamConstraints = {
+            audio: {
+              autoGainControl: true
+            }
           };
+  
+          if (video) {
+            callOptions.video = {
+              width: 520,
+              height: 390,
+              frameRate: { max: 30 }
+            };
+          }
+  
+          const mediaStream = await navigator.mediaDevices.getUserMedia(callOptions);
+          trackStream(mediaStream);
+          setLocalStream(mediaStream);
+          socket.current.send(JSON.stringify({
+            sender: localId,
+            type: 'join-call',
+            formats: Object.keys(callOptions),
+            rtc: true
+          }));
+          setCanStartStop('stop');
         }
-
-        const mediaStream = await navigator.mediaDevices.getUserMedia(callOptions);
-        trackStream(mediaStream);
-        setLocalStream(mediaStream);
-        socket.current.send(JSON.stringify({
-          sender: localId,
-          type: 'join-call',
-          formats: Object.keys(callOptions),
-          rtc: true
-        }));
-        setCanStartStop('stop');
+      } catch (error) {
+        setSnack({ snackOn: (error as DOMException).message, snackType: 'error' });
       }
-    } catch (error) {
-      setSnack({ snackOn: (error as DOMException).message, snackType: 'error' });
     }
+    void go();
   }, [socket.current, localStream, canStartStop, localId]);
 
   const submitMessage = useCallback((e?: KeyboardEvent | FormEvent): void => {
@@ -158,38 +161,41 @@ export function ExchangeProvider({ children }: IProps): JSX.Element {
     // setMessages([...messages, textMessage]);
   }
 
-  const messageHandler = useCallback(async (sockMsg: MessageEvent<{ text(): Promise<string> }>): Promise<void> => {
-    // console.log('setting handler')
-    if (!socket.current) return;
-    const { sender, type, formats, target, sdp, ice, message, rtc } = JSON.parse(await sockMsg.data.text()) as SocketResponseMessageAttributes;
-
-    if (sender === localId || (target !== localId && !(rtc || sdp || ice || message))) {
-      return;
-    }
-
-    if ('text' === type) {
-      setPendingMessages([message]);
-    } else if (['join-call', 'peer-response'].includes(type)) {
-      // Parties to an incoming caller's 'join-call' will see this, and then notify the caller that they exist in return
-      // The caller gets a party member's 'peer-response', and sets them up in return
-      if (!localStream && formats) {
-        setPendingMessages([`${sender} wants to start a ${formats.indexOf('video') > -1 ? 'video' : 'voice'} call.`])
+  const messageHandler = useCallback((sockMsg: MessageEvent<{ text(): Promise<string> }>): void => {
+    async function go() {
+      // console.log('setting handler')
+      if (!socket.current) return;
+      const { sender, type, formats, target, sdp, ice, message, rtc } = JSON.parse(await sockMsg.data.text()) as SocketResponseMessageAttributes;
+  
+      if (sender === localId || (target !== localId && !(rtc || sdp || ice || message))) {
+        return;
       }
-
-      setSenderStreams(Object.assign({}, senderStreams, {
-        [sender]: {
-          peerResponse: 'peer-response' === type ? true : false
+  
+      if ('text' === type) {
+        setPendingMessages([message]);
+      } else if (['join-call', 'peer-response'].includes(type)) {
+        // Parties to an incoming caller's 'join-call' will see this, and then notify the caller that they exist in return
+        // The caller gets a party member's 'peer-response', and sets them up in return
+        if (!localStream && formats) {
+          setPendingMessages([`${sender} wants to start a ${formats.indexOf('video') > -1 ? 'video' : 'voice'} call.`])
         }
-      }));
-    } else if (sdp) {
-      setPendingSDPs(Object.assign({}, pendingSDPs, {
-        [sender]: sdp
-      }));
-    } else if (ice) {
-      setPendingICEs(Object.assign({}, pendingICEs, {
-        [sender]: ice
-      }));
+  
+        setSenderStreams(Object.assign({}, senderStreams, {
+          [sender]: {
+            peerResponse: 'peer-response' === type ? true : false
+          }
+        }));
+      } else if (sdp) {
+        setPendingSDPs(Object.assign({}, pendingSDPs, {
+          [sender]: sdp
+        }));
+      } else if (ice) {
+        setPendingICEs(Object.assign({}, pendingICEs, {
+          [sender]: ice
+        }));
+      }
     }
+    void go();
   }, [socket.current, messages, senderStreams]);
 
 
@@ -256,7 +262,7 @@ export function ExchangeProvider({ children }: IProps): JSX.Element {
       sock.addEventListener('open', heartbeat);
       sock.addEventListener('ping', heartbeat);
       sock.addEventListener('close', clearbeat);
-      sock.addEventListener('message', e => void messageHandler(e));
+      sock.addEventListener('message', messageHandler);
 
       return () => {
         sock.close();
@@ -264,7 +270,7 @@ export function ExchangeProvider({ children }: IProps): JSX.Element {
         sock.removeEventListener('open', heartbeat);
         sock.removeEventListener('ping', heartbeat);
         sock.removeEventListener('close', clearbeat);
-        sock.removeEventListener('message', e => void messageHandler(e));
+        sock.removeEventListener('message', messageHandler);
       }
     }
   }, [socket.current]);
