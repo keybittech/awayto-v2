@@ -7,7 +7,7 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "@keybittech/wizapp": "^0.1.26-beta",
+    "@keybittech/wizapp": "file:../../wiz",
     "@keycloak/keycloak-admin-client": "21.0.2",
     "@types/express": "^4.17.17",
     "@types/graylog2": "^0.2.2",

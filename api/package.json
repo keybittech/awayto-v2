@@ -11,7 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@keybittech/wizapp": "^0.1.26-beta",
+    "@keybittech/wizapp": "file:../../wiz",
     "@keycloak/keycloak-admin-client": "^20.0.3",
     "awayto-core": "file:../core",
     "bufferutil": "^4.0.7",

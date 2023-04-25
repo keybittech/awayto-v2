@@ -35,8 +35,9 @@ const assistApi = {
 const assistApiHandlers: ApiHandler<typeof assistApi> = {
   getPrompt: async props => {
     const { id, prompt } = props.event.queryParameters;
+    console.log({ AssistHandlerInfo: id, prompt })
     const promptResult = (await props.ai.useAi<string>(id as IPrompts, ...prompt.split('|'))).message;
-    return { promptResult: promptResult.split('|').filter(a => !!a) };
+    return { promptResult: promptResult.split('|').filter(a => !!a).map(a => a.trim()) };
   },
 } as const;
 

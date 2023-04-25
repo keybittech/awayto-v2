@@ -7,10 +7,8 @@
   resolved "https://registry.yarnpkg.com/@babel/parser/-/parser-7.21.4.tgz#94003fdfc520bbe2875d4ae557b43ddb6d880f17"
   integrity sha512-alVJj7k7zIxqBZ7BTRhz0IqJFxW1VJbm6N8JbcYhQ186df9ZBPbZBmWSqAMXwHGsCJdYks7z/voa3ibiS5bCIw==
 
-"@keybittech/wizapp@^0.1.26-beta":
+"@keybittech/wizapp@file:../../wiz":
   version "0.1.26-beta"
-  resolved "https://registry.yarnpkg.com/@keybittech/wizapp/-/wizapp-0.1.26-beta.tgz#aa2f0af5a7f7933c009969792b9c80bb9a6780fb"
-  integrity sha512-SwM6/35xfuN1scM+MHv/YdOrvDz8XXOItOlw2PjVkB+dVb/yo9r4DCTAdSk3Bp0c8n53rG7nlO+AEZQsWfBgEQ==
   dependencies:
     "@babel/parser" "^7.21.4"
     abstract-syntax-tree "^2.20.6"

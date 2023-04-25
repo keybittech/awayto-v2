@@ -7,7 +7,7 @@
     "@date-io/dayjs": "^2.16.0",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
-    "@keybittech/wizapp": "^0.1.26-beta",
+    "@keybittech/wizapp": "file:../../../wiz",
     "@mui/icons-material": "^5.11.0",
     "@mui/material": "^5.11.7",
     "@mui/material-next": "^6.0.0-alpha.75",

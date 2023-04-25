@@ -130,10 +130,8 @@
     "@jridgewell/resolve-uri" "3.1.0"
     "@jridgewell/sourcemap-codec" "1.4.14"
 
-"@keybittech/wizapp@^0.1.26-beta":
+"@keybittech/wizapp@file:../../wiz":
   version "0.1.26-beta"
-  resolved "https://registry.yarnpkg.com/@keybittech/wizapp/-/wizapp-0.1.26-beta.tgz#aa2f0af5a7f7933c009969792b9c80bb9a6780fb"
-  integrity sha512-SwM6/35xfuN1scM+MHv/YdOrvDz8XXOItOlw2PjVkB+dVb/yo9r4DCTAdSk3Bp0c8n53rG7nlO+AEZQsWfBgEQ==
   dependencies:
     "@babel/parser" "^7.21.4"
     abstract-syntax-tree "^2.20.6"

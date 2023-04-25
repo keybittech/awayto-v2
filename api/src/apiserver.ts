@@ -36,6 +36,8 @@ import logger from './modules/logger';
 
 import { DecodedJWTToken, UserGroupRoles, StrategyUser, ApiErrorResponse, IGroup, AuthBody, siteApiRef, AuthProps, siteApiHandlerRef, ApiProps, EndpointType, validateRequestBody } from 'awayto/core';
 
+import './modules/prompts';
+
 import { useAi } from '@keybittech/wizapp/dist/server';
 
 import { connectToTwitch, TWITCH_REDIRECT_URI } from './modules/twitch';
@@ -320,7 +322,7 @@ async function go() {
             logger.log('Handling api request', requestParams.event);
 
             const handler = siteApiHandlerRef[apiRefId as keyof typeof siteApiHandlerRef] as (params: ApiProps<typeof queryArg>) => Promise<typeof resultType>;
-            
+
             const txHandler = async (props: ApiProps<typeof queryArg>): Promise<typeof resultType> => {
               if (EndpointType.MUTATION === kind) {
                 return await db.tx(async trx => {
@@ -330,7 +332,7 @@ async function go() {
               }
               return await handler(props);
             }
-            
+
             response = await txHandler(requestParams);
 
             /**
@@ -397,39 +399,49 @@ async function go() {
 
     // default protected route /test
     app.get('/api/twitch/webhook', async (req, res, next) => {
-      const { code } = req.query;
+      try {
+        const { code, access_token } = req.query;
 
-      const tokenData = [{
-        name: 'client_id',
-        value: TWITCH_CLIENT_ID
-      }, {
-        name: 'client_secret',
-        value: TWITCH_CLIENT_SECRET
-      }, {
-        name: 'code',
-        value: code
-      }, {
-        name: 'grant_type',
-        value: 'authorization_code'
-      }, {
-        name: 'redirect_uri',
-        value: TWITCH_REDIRECT_URI
-      }];
-    
-      const tokenRequest = await fetch('https://id.twitch.tv/oauth2/token', {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        method: 'POST',
-        body: tokenData.map(d => `${encodeURIComponent(d.name)}=${encodeURIComponent(d.value as string)}`).join('&')
-      });
-    
-      const { access_token, refresh_token } = await tokenRequest.json() as { access_token: string, refresh_token: string };
-    
-      await redis.set('twitch_token', access_token as string);
-      await redis.set('twitch_refresh', refresh_token as string);
+        if (access_token) {
+          await redis.set('client_access_token', access_token as string);
+        } else if (code) {
 
-      res.status(200).send();
+          const tokenData = [{
+            name: 'client_id',
+            value: TWITCH_CLIENT_ID
+          }, {
+            name: 'client_secret',
+            value: TWITCH_CLIENT_SECRET
+          }, {
+            name: 'code',
+            value: code
+          }, {
+            name: 'grant_type',
+            value: 'authorization_code'
+          }, {
+            name: 'redirect_uri',
+            value: TWITCH_REDIRECT_URI
+          }];
+  
+          const tokenRequest = await fetch('https://id.twitch.tv/oauth2/token', {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            method: 'POST',
+            body: tokenData.map(d => `${encodeURIComponent(d.name)}=${encodeURIComponent(d.value as string)}`).join('&')
+          });
+  
+          const { access_token: new_access_token, refresh_token } = await tokenRequest.json() as { access_token: string, refresh_token: string };
+  
+          await redis.set('twitch_token', new_access_token as string);
+          await redis.set('twitch_refresh', refresh_token as string);
+        }
+        
+        res.status(200).send();
+      } catch (error) {
+        console.log('twitch webhook error', error)
+      }
+
     });
 
     app.get('/api/twitch/events', (req, res) => {
