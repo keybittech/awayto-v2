@@ -7,18 +7,27 @@
       background-color: #555;
       padding-top: 10vh;
     }
+    .userlist {
+      position: fixed;
+      height: 100%;
+      overflow: auto;
+      word-wrap: break-word;
+      right: 0;
+      width: 150px;
+    }
   </style>
 </head>
 <body>
   <button id="skip" style="position:fixed;left:0;top:0;right:0;height:10vh">SKIP</button>
   <div id="connection">Click to Connect: <button id="connect">Connect</button></div>
   <div>Status: <span id="status">Disconnected</span></div>
-  <ul id="users" style="position:fixed;top:10vh;right:0;width:150px;"></ul>
+  <ul id="users" class="userlist"></ul>
   <div id="messenger" style="display:none">
     <div id="messages"></div>
   </div>
 
   <script>
+    let residentsSeen = {};
     let users = [];
     let ready = false;
     let socket = null;
@@ -61,7 +70,7 @@
           skip()
         }
 
-        if (['join','part'].includes(payload.action)) {
+        if (payload.action === 'residents') {
           handleJoinLeave(payload);
         }
 
@@ -76,13 +85,10 @@
     }
 
     function handleJoinLeave(event) {
-      console.log({ event })
-      if (event.action === 'join') {
-        users.push(event.username)
-      } else {
-        users = users.filter(u => u !== event.username)
-      }
-      document.getElementById('users').innerHTML = users.map(u => `<li>${u}</li>`)
+      document.getElementById('users').innerHTML = event.orderedResidents.map(u => {
+        residentsSeen[u] = residentsSeen[u] ? residentsSeen[u]++ : 1;
+        return `<li>${u.trim()} (${residentsSeen[u]})</li>`
+      }).join('');
     }
 
     function attemptReconnect() {

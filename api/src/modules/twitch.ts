@@ -9,7 +9,7 @@ const {
   TWITCH_CLIENT_SECRET
 } = process.env as { [prop: string]: string }
 
-export const TWITCH_REDIRECT_URI = 'https://wcapp.site.com/api/twitch/webhook'
+export const TWITCH_REDIRECT_URI = 'https://wcapp.site.com/api/twitch/webhook';
 
 export async function connectToTwitch(httpsServer: https.Server) {
 
@@ -116,6 +116,7 @@ export async function connectToTwitch(httpsServer: https.Server) {
           ws.send('JOIN #chatjoept');
         });
 
+        const residents: string[] = [];
         let open = false;
 
         ws.on('message', async function (data: Buffer) {
@@ -134,23 +135,32 @@ export async function connectToTwitch(httpsServer: https.Server) {
             const body = data.toString();
             const contents: Record<string, string> = {};
 
-            console.log({ body })
-
             if (body.startsWith(":tmi.twitch.tv PONG")) {
               console.log("Received PONG from Twitch IRC server");
+              localSocketServer.clients.forEach((localSocket) => {
+                if (localSocket.readyState == 1) {
+                  localSocket.send(JSON.stringify({ action: 'residents', residents }))
+                }
+              })
               return;
             }
 
-            console.log(body)
-
             if (data.includes(' JOIN #chatjoept')) {
-              contents.action = 'join';
-              contents.username = data.toString().split('!')[0].slice(1);
+              if (data.includes(':chatjoept!')) return;
+              data.toString().split('#chatjoept').forEach(joiner => {
+                const joinName = joiner.trim().split('!')[0].slice(1).trim();
+                if (!joinName) return;
+                residents.push(joinName);
+              });
             }
 
             if (data.includes(' PART #chatjoept')) {
-              contents.action = 'part';
-              contents.username = data.toString().split('!')[0].slice(1);
+              if (data.includes(':chatjoept!')) return;
+              data.toString().split('#chatjoept').forEach(parter => {
+                const partName = parter.trim().split('!')[0].slice(1).trim();
+                if (!partName) return;
+                residents.splice(residents.indexOf(partName));
+              })
             }
 
             if (data.includes(' PRIVMSG #chatjoept :')) {
@@ -163,7 +173,7 @@ export async function connectToTwitch(httpsServer: https.Server) {
                 contents[key.replace(/-./g, x => x[1].toUpperCase())] = value;
               });
 
-              console.log({ contents })
+              // console.log({ contents })
 
               if (contents.customRewardId) {
                 if ('Skip TTS' === rewards[contents.customRewardId].title) {
@@ -185,6 +195,7 @@ export async function connectToTwitch(httpsServer: https.Server) {
 
                 contents.message = createWordMix(contents.displayName, messageBuilder.trimEnd());
               }
+              console.log(`${contents.displayName} ${contents.message || message.trim()}`);
             }
 
             if (Object.keys(contents).length) {
