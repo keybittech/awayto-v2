@@ -1,17 +1,7 @@
 {
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "project": "./tsconfig.json",
-    "tsconfigRootDir": "./"
-  },
-  "settings": {
-    "import/resolver": {
-      "typescript": {},
-      "alias": [
-        ["awayto/core", "../core/index.ts"],
-        ["route-match", "../core/types/route-match.d.ts"]
-      ]
-    }
+    "project": "./tsconfig.json"
   },
   "plugins": [
     "@typescript-eslint",

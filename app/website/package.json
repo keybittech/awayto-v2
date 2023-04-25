@@ -7,7 +7,7 @@
     "@date-io/dayjs": "^2.16.0",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
-    "@keybittech/wizapp": "file:../../../wiz/keybittech-wizapp-0.1.26-beta.tgz",
+    "@keybittech/wizapp": "^0.1.26-beta",
     "@mui/icons-material": "^5.11.0",
     "@mui/material": "^5.11.7",
     "@mui/material-next": "^6.0.0-alpha.75",
@@ -33,7 +33,6 @@
     "redux-debounced": "^0.5.0",
     "redux-logger": "^3.0.6",
     "redux-thunk": "^2.3.0",
-    "route-match": "^0.1.6",
     "styled-components": "^5.3.6",
     "typeface-courgette": "0.0.72",
     "typeface-roboto": "0.0.54",
@@ -76,7 +75,7 @@
     "react-error-overlay": "6.0.9"
   },
   "scripts": {
-    "start": "HTTPS=true craco start",
+    "start": "WDS_SOCKET_PORT=443 HTTPS=true craco start",
     "build": "craco build --verbose"
   },
   "browserslist": {

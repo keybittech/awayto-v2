@@ -1,7 +1,0 @@
-{
-  "include": [
-    "./src",
-    "../core",
-    "../app/website"
-  ]
-}

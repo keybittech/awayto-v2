@@ -51,7 +51,7 @@ export async function rateLimitResource(resource: string, context: string, limit
   const rate = duration && 'number' !== typeof duration ? duration : 'seconds';
   const key = `${resource}:${context}:${dayjs().get(rate as dayjs.UnitType)}`;
   const [current] = await redis.multi().incr(key).expire(key, cache).exec();
-  return !!current && (current > limit);
+  return !!current && 'number' === typeof current && (current > limit);
 }
 
 async function go() {

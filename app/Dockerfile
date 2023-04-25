@@ -1,6 +1,6 @@
 # docker build -t wcapp . -f ./app/Dockerfile && kc scale deployment wcapp --replicas=0 && kc scale deployment wcapp --replicas=1 --current-replicas=0
 # docker build -t wcapp . && docker run --rm --init -p 443:443 wcapp
-FROM node:16.3.0-alpine as builder
+FROM node:16.19.0-alpine as builder
 # RUN apk add postgresql-dev python3 make build-base
 
 RUN apk update && apk add gettext
@@ -13,18 +13,18 @@ ARG SITE_NAME
 WORKDIR /land
 COPY ./app/landing/package.json /land/
 COPY ./app/landing/yarn.lock /land/
-RUN --mount=type=cache,target=/land/node_modules yarn install
+RUN --mount=type=cache,target=/land/node_modules --mount=type=cache,target=/root/.cache/yarn yarn install
 
 WORKDIR /core
 COPY ./core /core
 COPY ./core/package.json /core/
 COPY ./core/yarn.lock /core/
-RUN --mount=type=cache,target=/core/node_modules yarn install
+RUN --mount=type=cache,target=/core/node_modules --mount=type=cache,target=/root/.cache/yarn yarn install
 
 WORKDIR /app
 COPY ./app/website/package.json /app/
 COPY ./app/website/yarn.lock /app/
-RUN --mount=type=cache,target=/app/node_modules yarn install
+RUN --mount=type=cache,target=/app/node_modules --mount=type=cache,target=/root/.cache/yarn yarn install
 
 WORKDIR /land
 COPY ./app/landing /land

@@ -1,0 +1,19 @@
+{
+  "ai": {
+    "retries": "3",
+    "logFile": "results.json"
+  },
+  "ts": {
+    "configPath": "test",
+    "typeDir": "",
+    "compDir": ""
+  },
+  "git": {
+    "rootPath": "",
+    "source": "main",
+    "remote": "origin"
+  },
+  "user": {
+    "name": "wizapp"
+  }
+}

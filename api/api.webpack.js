@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 const Dotenv = require('dotenv-webpack');
 
 module.exports = {
@@ -10,10 +11,10 @@ module.exports = {
     filename: 'api.js'
   },
   resolve: {
-    alias: {
-      'awayto/core': path.resolve(__dirname, '../core/index.ts')
-    },
     extensions: ['.ts', '.js'],
+    alias: {
+      'awayto/core': path.resolve(__dirname, 'node_modules/awayto-core')
+    },
   },
   module: {
     rules: [
@@ -34,6 +35,8 @@ module.exports = {
     minimize: false
   },
   plugins: [
-    new Dotenv()
+    new Dotenv(),
+    new webpack.ContextReplacementPlugin(/@ts-morph\/common\/dist/, /^$/),
+    new webpack.ContextReplacementPlugin(/express\/lib/, /^$/),
   ]
 };

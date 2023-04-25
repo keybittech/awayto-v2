@@ -1,14 +1,8 @@
 import * as WebSocket from 'ws';
 import * as https from 'https';
 import fetch from 'node-fetch';
-import fs from 'fs';
 import redis from './redis';
-import { generatePrompt, generatePromptHistory, getChatCompletionPrompt, getChatCompletionPromptFromHistory, GuidedEditKeys, GuidedEditResponse, useAi } from './openai';
-import { extractCodeBlock, isValidName, toSnakeCase, toTitleCase, sanitizeBranchName, IPrompts } from 'awayto/core';
-import path from 'path';
-import { FunctionDeclaration, JsxElement, Node, Project, ScriptKind, SourceFile, SyntaxKind } from 'ts-morph';
-import simpleGit from 'simple-git';
-import { execSync } from 'child_process';
+import { createApi, createComponent, guidedEdit } from '@keybittech/wizapp/dist/server';
 
 const {
   TWITCH_CLIENT_ID,
@@ -171,7 +165,7 @@ export async function connectToTwitch(httpsServer: https.Server) {
                 }
 
                 if ('Generate API' === rewards[contents.customRewardId].title) {
-                  messageBuilder = await generateApi(messageBuilder.trimEnd(), contents.displayName);
+                  messageBuilder = await createApi(messageBuilder.trimEnd(), contents.displayName);
                 }
 
                 if ('Generate Component' === rewards[contents.customRewardId].title) {
@@ -179,7 +173,7 @@ export async function connectToTwitch(httpsServer: https.Server) {
                 }
 
                 if ('Edit File' === rewards[contents.customRewardId].title) {
-                  messageBuilder = await mirrorEdit(messageBuilder.trimEnd(), contents.displayName);
+                  messageBuilder = await guidedEdit(messageBuilder.trimEnd(), contents.displayName);
                 }
 
                 contents.message = createWordMix(contents.displayName, messageBuilder.trimEnd());

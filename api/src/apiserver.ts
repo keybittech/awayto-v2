@@ -33,9 +33,10 @@ import keycloak, { getGroupRegistrationRedirectParts } from './modules/keycloak'
 import { db, connected as dbConnected } from './modules/db';
 import redis, { rateLimitResource, redisProxy } from './modules/redis';
 import logger from './modules/logger';
-import completions from './modules/openai';
 
 import { DecodedJWTToken, UserGroupRoles, StrategyUser, ApiErrorResponse, IGroup, AuthBody, siteApiRef, AuthProps, siteApiHandlerRef, ApiProps, EndpointType, validateRequestBody } from 'awayto/core';
+
+import { useAi } from '@keybittech/wizapp/dist/server';
 
 import { connectToTwitch, TWITCH_REDIRECT_URI } from './modules/twitch';
 import path from 'path';
@@ -298,7 +299,7 @@ async function go() {
               keycloak: keycloak as unknown,
               redisProxy,
               fetch,
-              completions,
+              ai: { useAi },
               logger,
               event: {
                 requestId,

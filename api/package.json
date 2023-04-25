@@ -11,7 +11,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@keybittech/wizapp": "^0.1.26-beta",
     "@keycloak/keycloak-admin-client": "^20.0.3",
+    "awayto-core": "file:../core",
     "bufferutil": "^4.0.7",
     "cookie-parser": "^1.4.6",
     "cookie-session": "^2.0.0",
@@ -33,7 +35,6 @@
     "prettier": "^2.8.7",
     "redis": "^4.6.4",
     "simple-git": "^3.17.0",
-    "ts-morph": "^18.0.0",
     "twitch": "^4.6.7",
     "twitch-auth": "^4.6.7",
     "utf-8-validate": "^6.0.2",
