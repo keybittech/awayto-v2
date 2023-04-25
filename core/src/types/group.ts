@@ -546,7 +546,7 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
       const { code } = props.event.body;
 
       // Get group id and default role based on the group code
-      const { id: groupId, allowedDomains, externalId: kcGroupExternalId, defaultRoleId, createdSub } = await props.db.one<IGroup>(`
+      const { id: groupId, allowedDomains, externalId: kcGroupExternalId, defaultRoleId, createdSub } = await props.tx.one<IGroup>(`
         SELECT id, allowed_domains as "allowedDomains", external_id as "externalId", default_role_id as "defaultRoleId", created_sub as "createdSub"
         FROM dbtable_schema.groups WHERE code = $1
       `, [code]);

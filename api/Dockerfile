@@ -8,6 +8,8 @@ WORKDIR /core
 COPY ./core /core
 COPY ./core/package.json /core/
 COPY ./core/yarn.lock /core/
+
+RUN sed -i 's/file:..\/..\/wiz/0.2.0-beta.1/g' package.json
 RUN --mount=type=cache,target=/core/node_modules yarn install
 
 # build api
@@ -16,6 +18,8 @@ RUN mkdir -p /api/build
 WORKDIR /api
 COPY ./api/package.json /api/
 COPY ./api/yarn.lock /api/
+
+RUN sed -i 's/file:..\/..\/wiz/0.2.0-beta.1/g' package.json
 RUN --mount=type=cache,target=/api/node_modules yarn install
 
 COPY ./api /api

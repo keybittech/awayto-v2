@@ -2,7 +2,6 @@ package kbt;
 
 import java.net.HttpURLConnection;
 
-import org.apache.http.HttpEntity;
 import org.apache.http.client.entity.EntityBuilder;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -36,6 +35,10 @@ public final class BackchannelAuth {
     response.put("success", false);
     
     try {
+
+
+      log.info("SENDING BACKCHANNEL REQUEST TO " + " https://" + System.getenv("KC_API_HOST") + endpoint);
+      log.info("PAYLOAD: " + payload.toString());
       
       HttpPost httpPost = new HttpPost("https://" + System.getenv("KC_API_HOST") + endpoint);
       httpPost.setHeader("x-backchannel-id", getClientSecret(realm));
@@ -46,9 +49,9 @@ public final class BackchannelAuth {
           .getProvider(org.keycloak.connections.httpclient.HttpClientProvider.class)
           .getHttpClient().execute(httpPost)) {
         try {
-          HttpEntity entity = httpPostResponse.getEntity();
-          if (entity != null) {
-            response = new JSONObject(EntityUtils.toString(entity));
+          String entity = EntityUtils.toString(httpPostResponse.getEntity());
+          if (entity.length() > 0) {
+            response = new JSONObject(entity);
             response.put("success", httpPostResponse.getStatusLine().getStatusCode() == HttpURLConnection.HTTP_OK);
             return response;
           }
@@ -56,10 +59,10 @@ public final class BackchannelAuth {
           EntityUtils.consumeQuietly(httpPostResponse.getEntity());
         }
       } catch (Exception e) {
-        log.warn(e.getMessage(), e);
+        log.warnf(e, "Inner backchannel failure: %s", e.getMessage());
       }
     } catch (Exception e) {
-      log.warn(e.getMessage(), e);
+      log.warnf(e, "Before backchannel failure: %s", e.getMessage());
     }
 
     return response;

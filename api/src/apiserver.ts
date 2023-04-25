@@ -34,7 +34,7 @@ import { db, connected as dbConnected } from './modules/db';
 import redis, { rateLimitResource, redisProxy } from './modules/redis';
 import logger from './modules/logger';
 
-import { DecodedJWTToken, UserGroupRoles, StrategyUser, ApiErrorResponse, IGroup, AuthBody, siteApiRef, AuthProps, siteApiHandlerRef, ApiProps, EndpointType, validateRequestBody } from 'awayto/core';
+import { DecodedJWTToken, UserGroupRoles, StrategyUser, ApiErrorResponse, IGroup, AuthBody, siteApiRef, AuthProps, siteApiHandlerRef, ApiProps, EndpointType, validateRequestBody, IUserProfile } from 'awayto/core';
 
 import './modules/prompts';
 
@@ -179,12 +179,65 @@ async function go() {
           FROM dbview_schema.enabled_groups
           WHERE code = $1
         `, [req.body.groupCode.toLowerCase()]);
-        if (!group) throw { reason: 'BAD_GROUP' };
+        if (!group) throw new Error('BAD_GROUP');
         res.status(200).send(group);
       } catch (error) {
-        res.status(500).send(error)
+        const err = error as Error;
+        res.status(500).send({ reason: err.message })
       }
     });
+
+    app.post('/api/auth/register/confirm', checkBackchannel, async (req, res) => {
+      try {
+
+        const { firstName, lastName, email, username, sub, groupCode  } = req.body;
+
+        const requestParams = {
+          keycloak: keycloak as unknown,
+          redis,
+
+          event: {
+            body: {
+              firstName,
+              lastName,
+              email,
+              username,
+              sub
+            },
+            userSub: sub,
+            sourceIp: req.headers['x-forwarded-for'] as string,
+          }
+        } as ApiProps<IUserProfile & { code: string }>;
+
+        console.log({ requestParams: requestParams.event })
+
+        await db.tx(async trx => {
+          requestParams.tx = trx;
+
+          const postUserProfileApi = siteApiRef.postUserProfile;
+          const postUserProfile = siteApiHandlerRef['postUserProfile' as keyof typeof siteApiHandlerRef] as (params: ApiProps<typeof postUserProfileApi.queryArg>) => Promise<typeof postUserProfileApi.resultType>;
+          const userProfile = await postUserProfile(requestParams);
+
+          console.log({ newUserProfile: userProfile })
+
+          if (groupCode) {
+            requestParams.event.body.code = groupCode;
+
+            const joinGroupApi = siteApiRef.joinGroup;
+            const joinGroup = siteApiHandlerRef['joinGroup' as keyof typeof siteApiHandlerRef] as (params: ApiProps<typeof joinGroupApi.queryArg>) => Promise<typeof joinGroupApi.resultType>;  
+            const { success } = await joinGroup(requestParams);
+
+            console.log({ groupAdditionSuccess: success })
+          }
+          console.log({ sending_scucess: true })
+          res.status(200).send({});
+        });
+      } catch (error) {
+        const err = error as Error;
+        console.log({ sending_scucess: false, err: err.message })
+        res.status(500).send(JSON.stringify({ reason: 'Registration Confirmation Failure: ' + err.message }));
+      }
+    })
 
     app.get('/api/auth/checkin', (req, res, next) => {
       passport.authenticate('oidc')(req, res, next);
@@ -240,7 +293,7 @@ async function go() {
 
         await WebHooks[`AUTH_${type}`]({ event, db, redis, redisProxy, keycloak: keycloak as unknown } as AuthProps);
 
-        res.status(200).end();
+        res.status(200).send({});
       } catch (error) {
         const err = error as Error & { reason: string };
 

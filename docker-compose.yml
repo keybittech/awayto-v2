@@ -3,6 +3,7 @@
 # DOCKER_BUILDKIT=1 docker-compose up -d --build
 # docker-compose logs -f -t
 # docker-compose top
+# docker logs -f -t $(docker ps -aqf "name=auth")
 
 # docker run -it d340e8bb50f1 /bin/sh
 
@@ -107,7 +108,7 @@ services:
     #   - 8443:8443
     environment:
       - KC_API_CLIENT_ID=api-client
-      - KC_API_HOST=172.20.0.4:9443/api
+      - KC_API_HOST=172.20.0.8/api #pointing to reverse proxy or use =172.20.0.4:9443/api for internal routing
       - KC_FEATURES=declarative-user-profile,pages
       - KC_SPI_TRUSTSTORE_FILE_FILE=/opt/keycloak/conf/KeyStore.jks
       - KC_SPI_TRUSTSTORE_FILE_PASSWORD=123456

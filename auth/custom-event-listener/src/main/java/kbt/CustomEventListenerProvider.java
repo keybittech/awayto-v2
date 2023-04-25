@@ -1,15 +1,8 @@
 package kbt;
 
-import java.net.HttpURLConnection;
 import java.util.Arrays;
 
 import org.json.JSONObject;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.entity.EntityBuilder;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.util.EntityUtils;
 import org.jboss.logging.Logger;
 
 import org.keycloak.events.Event;
@@ -17,8 +10,6 @@ import org.keycloak.events.EventListenerProvider;
 import org.keycloak.events.EventType;
 import org.keycloak.events.admin.AdminEvent;
 import org.keycloak.models.KeycloakSession;
-import org.keycloak.models.RealmModel;
-import org.keycloak.models.UserModel;
 
 public class CustomEventListenerProvider implements EventListenerProvider {
 
@@ -35,10 +26,10 @@ public class CustomEventListenerProvider implements EventListenerProvider {
 
     EventType[] eventTypes = new EventType[] {
         // EventType.REGISTER,
+        // EventType.REGISTER_ERROR,
         EventType.LOGIN,
         EventType.LOGOUT,
         EventType.LOGIN_ERROR,
-        EventType.REGISTER_ERROR,
         EventType.RESET_PASSWORD,
         EventType.SEND_VERIFY_EMAIL,
         EventType.UPDATE_PROFILE
