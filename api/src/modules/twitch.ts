@@ -6,8 +6,7 @@ import { createApi, createComponent, guidedEdit } from '@keybittech/wizapp/dist/
 
 const {
   TWITCH_CLIENT_ID,
-  TWITCH_CLIENT_SECRET,
-  TWITCH_CLIENT_ACCESS_TOKEN
+  TWITCH_CLIENT_SECRET
 } = process.env as { [prop: string]: string }
 
 export const TWITCH_REDIRECT_URI = 'https://wcapp.site.com/api/twitch/webhook'
@@ -18,7 +17,7 @@ export async function connectToTwitch(httpsServer: https.Server) {
 
   localSocketServer.on('connection', (localSocket) => {
     console.log('Client connected');
-    localSocket.send(JSON.stringify({ message: 'TWITCH CONNECTED' }))
+    localSocket.send(JSON.stringify({ message: '¨' }))
 
     localSocket.on('message', message => {
       const msg = JSON.parse(message.toString()) as { action: string, command: string, message: string };
@@ -35,6 +34,14 @@ export async function connectToTwitch(httpsServer: https.Server) {
       await new Promise(res => setTimeout(res, 5000))
       console.log(`Twitch login required https://id.twitch.tv/oauth2/authorize?client_id=${TWITCH_CLIENT_ID}&redirect_uri=${encodeURIComponent(TWITCH_REDIRECT_URI)}&response_type=code&scope=channel:read:redemptions`);
       server_access_token = await redis.get('twitch_token');
+    }
+
+    let client_access_token = await  redis.get('client_access_token');
+
+    while (!client_access_token) {
+      await new Promise(res => setTimeout(res, 5000))
+      console.log(`Login for client access https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=${TWITCH_CLIENT_ID}&redirect_uri=${encodeURIComponent(TWITCH_REDIRECT_URI)}&scope=chat%3Aread+chat%3Aedit`);
+      client_access_token = await redis.get('client_access_token');
     }
 
     const tokenData = [{
@@ -104,7 +111,7 @@ export async function connectToTwitch(httpsServer: https.Server) {
 
         ws.on('open', async function () {
           ws.send('CAP REQ :twitch.tv/membership twitch.tv/tags twitch.tv/commands')
-          ws.send(`PASS oauth:${TWITCH_CLIENT_ACCESS_TOKEN}`);
+          ws.send(`PASS oauth:${client_access_token}`);
           ws.send(`NICK chatjoept`);
           ws.send('JOIN #chatjoept');
         });
@@ -118,7 +125,7 @@ export async function connectToTwitch(httpsServer: https.Server) {
             console.log('Open events at http://wcapp.site.com/api/twitch/events');
             localSocketServer.clients.forEach((localSocket) => {
               if (localSocket.readyState == 1) {
-                localSocket.send(JSON.stringify({ message: 'CHAT CONNECTED' }));
+                localSocket.send(JSON.stringify({ message: '¨¨' }));
               }
             });
           }

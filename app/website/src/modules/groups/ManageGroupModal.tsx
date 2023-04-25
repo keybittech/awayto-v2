@@ -21,7 +21,7 @@ import NotInterestedIcon from '@mui/icons-material/NotInterested';
 
 import { IPrompts } from '@keybittech/wizapp/dist/lib';
 import { IGroup, IRole } from 'awayto/core';
-import { useComponents, sh, useUtil } from 'awayto/hooks';
+import { useComponents, sh, useDebounce, useUtil } from 'awayto/hooks';
 
 import keycloak from '../../keycloak';
 
@@ -44,26 +44,25 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
   const [getPrompt] = sh.useLazyGetPromptQuery();
   const [postRole] = sh.usePostRoleMutation();
   const [deleteRole] = sh.useDeleteRoleMutation();
-  const [checkGroupName, { data: nameCheck }] = sh.useLazyCheckGroupNameQuery();
-  const { isValid: groupNameValid } = nameCheck || {};
+
+  const [group, setGroup] = useState({ name: '', purpose: '', allowedDomains: '', ...editGroup } as IGroup);
+  const debouncedName = useDebounce(group.name, 1000);
+
+  const { data: nameCheck } = sh.useCheckGroupNameQuery({ name: debouncedName }, { skip: !debouncedName });
+  const { isValid } = nameCheck || { isValid: false };
 
   const [defaultRoleId, setDefaultRoleId] = useState(editGroup?.defaultRoleId || '');
   const [roleIds, setRoleIds] = useState<string[]>([]);
-  const [group, setGroup] = useState({ name: '', purpose: '', allowedDomains: '', ...editGroup } as IGroup);
   const [viewStep, setViewStep] = useState(1);
   const [editedPurpose, setEditedPurpose] = useState(false);
   const [roleSuggestions, setRoleSuggestions] = useState([] as string[]);
   const [allowedDomains, setAllowedDomains] = useState([profile?.username?.split('@')[1]] as string[]);
   const [allowedDomain, setAllowedDomain] = useState('');
 
-  const [{ isValid, needCheckName, checkedName, checkingName }, setChecker] = useState<Partial<{
-    isValid: boolean,
-    needCheckName: boolean,
+  const [{ checkedName, checkingName }, setChecker] = useState<Partial<{
     checkedName: string,
     checkingName: boolean
   }>>({
-    isValid: !!groupNameValid,
-    needCheckName: false,
     checkedName: '',
     checkingName: false
   });
@@ -108,14 +107,14 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
     const name = event.target.value;
     if (name.length <= 50) {
       setGroup({ ...group, name });
-      setChecker({ checkedName: formatName(name), needCheckName: name != editGroup?.name });
+      setChecker({ checkedName: formatName(name) });
     } else if (isValid) {
       setChecker({ checkingName: false });
     }
   }, [group, editGroup]);
 
   const handleContinue = useCallback(() => {
-    getPrompt({ id: IPrompts.SUGGEST_ROLE, prompt: `${group.name}|||${group.purpose}` }).unwrap().then(res => {
+    getPrompt({ id: IPrompts.SUGGEST_ROLE, prompt: `${group.name}|${group.purpose}` }).unwrap().then(res => {
       setRoleSuggestions(res.promptResult);
       setViewStep(2);
     }).catch(console.error);
@@ -128,13 +127,6 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
   if (roleIds.length && !defaultRoleId) {
     setDefaultRoleId(roleIds[0]);
   }
-
-  useEffect(() => {
-    if (needCheckName && checkedName?.length) {
-      setChecker({ checkingName: true, needCheckName: false, isValid: false });
-      checkGroupName({ name: checkedName }).catch(console.error);
-    }
-  }, [needCheckName, checkedName]);
 
   const roleSuggestionLinks = <>
     AI: {roleSuggestions.filter(s => s.toLowerCase() !== 'admin').map((s, i) => {
