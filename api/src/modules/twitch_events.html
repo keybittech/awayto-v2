@@ -9,11 +9,11 @@
     }
     .userlist {
       position: fixed;
-      height: 100%;
+      height: 50%;
       overflow: auto;
       word-wrap: break-word;
       right: 0;
-      width: 150px;
+      width: 200px;
     }
   </style>
 </head>
@@ -22,7 +22,7 @@
   <div id="connection">Click to Connect: <button id="connect">Connect</button></div>
   <div>Status: <span id="status">Disconnected</span></div>
   <ul id="users" class="userlist"></ul>
-  <div id="messenger" style="display:none">
+  <div id="messenger" style="display:none;width:80%">
     <div id="messages"></div>
   </div>
 
@@ -71,7 +71,11 @@
         }
 
         if (payload.action === 'residents') {
-          handleJoinLeave(payload);
+          setResidents(payload);
+        }
+
+        if (payload.action === 'joins') {
+          setResidentSeen(payload);
         }
 
         const message = payload.message;
@@ -84,11 +88,18 @@
       });
     }
 
-    function handleJoinLeave(event) {
-      document.getElementById('users').innerHTML = event.orderedResidents.map(u => {
-        residentsSeen[u] = residentsSeen[u] ? residentsSeen[u]++ : 1;
-        return `<li>${u.trim()} (${residentsSeen[u]})</li>`
-      }).join('');
+    function setResidentSeen(event) {
+      event.joiners.forEach(resi => {
+        console.log({ userJoined: resi })
+        residentsSeen[resi] = residentsSeen[resi] ? residentsSeen[resi]++ : 1;
+      });
+    }
+
+    function setResidents(event) {
+      document.getElementById('users').innerHTML = event.residents
+        .sort((a, b) => residentsSeen[b] - residentsSeen[a])
+        .map(u => `<li>${u.trim()} (${residentsSeen[u]})</li>`)
+        .join('');
     }
 
     function attemptReconnect() {

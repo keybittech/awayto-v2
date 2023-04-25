@@ -116,7 +116,7 @@ export async function connectToTwitch(httpsServer: https.Server) {
           ws.send('JOIN #chatjoept');
         });
 
-        const residents: string[] = [];
+        let residents: string[] = [];
         let open = false;
 
         ws.on('message', async function (data: Buffer) {
@@ -147,20 +147,21 @@ export async function connectToTwitch(httpsServer: https.Server) {
 
             if (data.includes(' JOIN #chatjoept')) {
               if (data.includes(':chatjoept!')) return;
-              data.toString().split('#chatjoept').forEach(joiner => {
-                const joinName = joiner.trim().split('!')[0].slice(1).trim();
-                if (!joinName) return;
-                residents.push(joinName);
+              const joiners = data.toString().split('#chatjoept').map(n => n.trim().split('!')[0].slice(1).trim());
+              joiners.pop();
+              residents = residents.concat(joiners);
+              localSocketServer.clients.forEach((localSocket) => {
+                if (localSocket.readyState == 1) {
+                  localSocket.send(JSON.stringify({ action: 'joins', joiners }))
+                }
               });
             }
 
             if (data.includes(' PART #chatjoept')) {
               if (data.includes(':chatjoept!')) return;
-              data.toString().split('#chatjoept').forEach(parter => {
-                const partName = parter.trim().split('!')[0].slice(1).trim();
-                if (!partName) return;
-                residents.splice(residents.indexOf(partName));
-              })
+              const parters = data.toString().split('#chatjoept').map(n => n.trim().split('!')[0].slice(1).trim());
+              parters.pop();
+              parters.forEach(partName => residents.splice(residents.indexOf(partName)));
             }
 
             if (data.includes(' PRIVMSG #chatjoept :')) {
