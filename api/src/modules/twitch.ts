@@ -141,7 +141,7 @@ export async function connectToTwitch(httpsServer: https.Server) {
                 if (localSocket.readyState == 1) {
                   localSocket.send(JSON.stringify({ action: 'residents', residents }))
                 }
-              })
+              });
               return;
             }
 

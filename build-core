@@ -1,0 +1,3 @@
+#!/bin/bash
+
+cd core && tsc -p tsconfig.json && cd ../api && yarn upgrade awayto-core && cd ../app/website && yarn upgrade awayto/core && cd ../..

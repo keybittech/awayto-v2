@@ -5,7 +5,8 @@ const Dotenv = require('dotenv-webpack');
 module.exports = {
   context: __dirname,
   entry: './src/apiserver.ts',
-  mode: 'production',
+  mode: 'development',
+  devtool: 'inline-source-map',
   output: {
     path: path.resolve(__dirname, 'build'),
     filename: 'api.js'

@@ -15,6 +15,8 @@
     ],
     "module": "esnext",
     "strict": true,
+    "sourceMap": true,
+    "outDir": "build",
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,

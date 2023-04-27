@@ -8,13 +8,13 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.Provider;
 
 import org.jboss.logging.Logger;
-import org.jboss.resteasy.spi.HttpRequest;
 import org.json.JSONObject;
 import org.keycloak.utils.RegexUtils;
 import org.keycloak.authentication.FormContext;
 import org.keycloak.authentication.ValidationContext;
 import org.keycloak.authentication.forms.RegistrationUserCreation;
 import org.keycloak.forms.login.LoginFormsProvider;
+import org.keycloak.http.HttpRequest;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.utils.FormMessage;
@@ -173,6 +173,9 @@ public class CustomUserRegistration extends RegistrationUserCreation {
 
     UserModel newUser = context.getUser();
     MultivaluedMap<String, String> formData = context.getHttpRequest().getDecodedFormParameters();
+
+    log.warnf("user info %s", newUser.toString());
+    log.warnf("user attrs %s", newUser.getAttributes().toString());
 
     try {
       JSONObject registrationConfirmationPayload = new JSONObject();

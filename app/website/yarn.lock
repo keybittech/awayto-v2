@@ -1846,7 +1846,7 @@
     "@jridgewell/sourcemap-codec" "1.4.14"
 
 "@keybittech/wizapp@file:../../../wiz":
-  version "0.1.26-beta"
+  version "0.2.0-beta.1"
   dependencies:
     "@babel/parser" "^7.21.4"
     abstract-syntax-tree "^2.20.6"

@@ -58,7 +58,9 @@ const userProfileApi = {
     kind: EndpointType.QUERY,
     url: 'profile/details',
     method: 'GET',
-    opts: {} as ApiOptions,
+    opts: {
+      cache: 'skip'
+    } as ApiOptions,
     queryArg: {} as Void,
     resultType: {} as IUserProfile
   },

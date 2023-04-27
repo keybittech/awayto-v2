@@ -8,6 +8,7 @@
     "target": "es5",
     "module": "commonjs",
     "strict": true,
+    "sourceMap": true,
     "esModuleInterop": true,
     "outDir": "dist",
     "declaration": true,

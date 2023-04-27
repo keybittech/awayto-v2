@@ -33,13 +33,12 @@ public final class BackchannelAuth {
   public static JSONObject postApi(String endpoint, JSONObject payload, RealmModel realm, KeycloakSession session) {
     JSONObject response = new JSONObject();
     response.put("success", false);
-    
-    try {
 
+    try {
 
       log.info("SENDING BACKCHANNEL REQUEST TO " + " https://" + System.getenv("KC_API_HOST") + endpoint);
       log.info("PAYLOAD: " + payload.toString());
-      
+
       HttpPost httpPost = new HttpPost("https://" + System.getenv("KC_API_HOST") + endpoint);
       httpPost.setHeader("x-backchannel-id", getClientSecret(realm));
       httpPost.setEntity(EntityBuilder.create().setText(payload.toString())
@@ -50,8 +49,14 @@ public final class BackchannelAuth {
           .getHttpClient().execute(httpPost)) {
         try {
           String entity = EntityUtils.toString(httpPostResponse.getEntity());
-          if (entity.length() > 0) {
-            response = new JSONObject(entity);
+          if (entity.trim().length() > 0) {
+            log.warnf("GOT AN ENTITY RESPONSE STRING ", entity);
+            try {
+              response = new JSONObject(entity);
+            } catch (Exception e) {
+              response = new JSONObject();
+              response.put("data", entity);
+            }
             response.put("success", httpPostResponse.getStatusLine().getStatusCode() == HttpURLConnection.HTTP_OK);
             return response;
           }

@@ -97,6 +97,7 @@ export type AuthProps = {
   event: Omit<ApiEvent<AnyRecord>, 'body'> & { body: AuthBody };
   db: IDatabase<unknown>;
   fetch: typeof fetch;
+  logger: graylog;
   redis: RedisClientType;
   redisProxy: RedisProxy;
   keycloak: KeycloakAdminClient & KcSiteOpts;

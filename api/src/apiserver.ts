@@ -180,10 +180,10 @@ async function go() {
           WHERE code = $1
         `, [req.body.groupCode.toLowerCase()]);
         if (!group) throw new Error('BAD_GROUP');
-        res.status(200).send(group);
+        res.status(200).send(JSON.stringify(group));
       } catch (error) {
         const err = error as Error;
-        res.status(500).send({ reason: err.message })
+        res.status(500).send(JSON.stringify({ reason: err.message }))
       }
     });
 
@@ -195,7 +195,7 @@ async function go() {
         const requestParams = {
           keycloak: keycloak as unknown,
           redis,
-
+          redisProxy,
           event: {
             body: {
               firstName,
@@ -219,22 +219,12 @@ async function go() {
           const userProfile = await postUserProfile(requestParams);
 
           console.log({ newUserProfile: userProfile })
-
-          if (groupCode) {
-            requestParams.event.body.code = groupCode;
-
-            const joinGroupApi = siteApiRef.joinGroup;
-            const joinGroup = siteApiHandlerRef['joinGroup' as keyof typeof siteApiHandlerRef] as (params: ApiProps<typeof joinGroupApi.queryArg>) => Promise<typeof joinGroupApi.resultType>;  
-            const { success } = await joinGroup(requestParams);
-
-            console.log({ groupAdditionSuccess: success })
-          }
           console.log({ sending_scucess: true })
           res.status(200).send({});
         });
       } catch (error) {
         const err = error as Error;
-        console.log({ sending_scucess: false, err: err.message })
+        console.log({ sending_scucess: false, err: err.message, stack: err.stack })
         res.status(500).send(JSON.stringify({ reason: 'Registration Confirmation Failure: ' + err.message }));
       }
     })
@@ -291,7 +281,19 @@ async function go() {
           body
         };
 
-        await WebHooks[`AUTH_${type}`]({ event, db, redis, redisProxy, keycloak: keycloak as unknown } as AuthProps);
+        await db.tx(async tx => {
+          await WebHooks[`AUTH_${type}`]({
+            event,
+            db,
+            tx,
+            redis,
+            logger,
+            fetch,
+            redisProxy,
+            ai: { useAi },
+            keycloak: keycloak as unknown
+          } as AuthProps);
+        });
 
         res.status(200).send({});
       } catch (error) {

@@ -1,15 +1,61 @@
 Keycloak First Time Setup
 
 1. Create 'Devel' realm
+  - Realm Settings:
+    - General
+      - User Profile Enabled
+    - Login
+      - User Registration
+      - Forgot Password
+      - Remember Me
+      - Email as Username
+      - Login with Email
+    - Themes
+      - Login: site
+      - Admin: kcv2
+      - Email: site
+    - Events
+      - custom-event-listener
+  - Authentication:
+    - Duplicate built-in registration x2 orginal/custom
+    - custom registration flow
+      - Add step Custom Registration User Creation, set to Required
+      - Bind to registration
+  - not needed: add "groupCode ${groupCode}" (User Profile), enabled always, not required, all edit/view, inputTypePattern=^[a-zA-Z0-9]{8}$ inputHelperTextAfter=${invalidGroup}
 2. Create 'devel-client' and 'api-client'
-  - realm: 
-    - add custom-event-listener (Events)
-    - user registration (Login)
-    - forgot password (Login)
-    - email as username (Login)
-    - user profile enabled (General)
-    - site login/email theme (Themes)
-    - add "groupCode ${groupCode}" (User Profile), enabled always, not required, all edit/view, inputTypePattern=^[a-zA-Z0-9]{8}$ inputHelperTextAfter=${invalidGroup}
-    - custom registration (Authentication) with Custom Registration User Creation (set to Required), bind to registration
-  - devel-client: add roles, root urls, 1 minute token, create groups client scope, add to client
-  - api-client: client authentication, get secret, assign (manage-clients, manage-realm, manage-users) service account roles
+  - devel-client: 
+    - add roles
+      APP_GROUP_ADMIN
+      APP_GROUP_BOOKINGS
+      APP_GROUP_FEATURES
+      APP_GROUP_MATRIX
+      APP_GROUP_ROLES
+      APP_GROUP_SCHEDULES
+      APP_GROUP_SERVICES
+      APP_GROUP_USERS
+      APP_ROLE_CALL
+    - root urls
+      - Root: https://wcapp.site.com
+      - Home: https://wcapp.site.com
+      - Valid Redirect: https://wcapp.site.com/*
+      - Valid post logout: https://wcapp.site.com
+    - Standard Flow, Direct Access Grants
+    - 1 minute token (Advanced > Advanced > Access Token Lifespan)
+    - create a client scope 
+      - Set to Default
+      - Settings "groups", include in token scope, 
+      - Mapper "groups" token claim name "groups", full group path, add to access token), 
+      - add to client "devel-client" client scopes as Default type
+  - api-client:
+    - root urls
+      - Root: https://wcapp.site.com/api
+      - Home: https://wcapp.site.com/api
+      - Valid Redirect: https://wcapp.site.com/api/auth/login/callback
+      - Valid post logout: https://wcapp.site.com/api/auth/logout/callback
+    - client authentication,
+    - Standard Flow, Service Accounts Roles
+    - Add Secret to WCAPI project docker/dev
+    - service account roles
+      - manage-clients
+      - manage-realm
+      - manage-users

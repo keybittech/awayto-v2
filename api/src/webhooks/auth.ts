@@ -1,28 +1,12 @@
-import { ApiEvent, AuthBody, IWebhooks, IUserProfile } from 'awayto/core';
+import { IWebhooks, siteApiRef, siteApiHandlerRef, ApiProps } from 'awayto/core';
 // import profiles from '../apis/profiles';
 
 export const AuthWebhooks: IWebhooks = {
   AUTH_REGISTER: async (props) => {
     if (!props.event) return;
-    const { userId, details, ipAddress } = props.event.body as AuthBody;
-
-    // const postUserProfile = profiles.find(api => api.action === IUserProfileActionTypes.POST_USER_PROFILE);
-
-    // await postUserProfile?.cmnd({
-    //   event: {
-    //     ...props.event,
-    //     userSub: userId,
-    //     sourceIp: ipAddress,
-    //     body: {
-    //       firstName: details.first_name,
-    //       lastName: details.last_name,
-    //       email: details.email,
-    //       username: details.username
-    //     }
-    //   },
-    //   db: props.db,
-    //   redis: props.redis
-    // });
+    const joinGroupApi = siteApiRef.joinGroup;
+    const joinGroup = siteApiHandlerRef['joinGroup' as keyof typeof siteApiHandlerRef] as (params: ApiProps<typeof joinGroupApi.queryArg>) => Promise<typeof joinGroupApi.resultType>;  
+    await joinGroup({ ...props, ...{ event: { ...props.event, body: { code: props.event.body.details.groupCode } } } });
   },
   AUTH_LOGIN: async event => {
   },

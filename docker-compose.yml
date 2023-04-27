@@ -48,7 +48,7 @@ services:
       - KC_REALM=devel
       - KC_CLIENT=devel-client
       - KC_API_CLIENT_ID=api-client
-      - KC_API_CLIENT_SECRET=kymZrZ5lxC7HpP8pW37t8fsD2SAXH77i
+      - KC_API_CLIENT_SECRET=YANlSUC5w3RlMGjWbCQTZC1xYn7mtLNw
       - DB_URL=jdbc:postgresql://postgres:postgres@172.20.0.5:5432/sysmaindb #NONSECRET
       - PG_HOST=172.20.0.5 #NONSECRET
       - PG_PORT=5432 #NONSECRET
@@ -109,7 +109,6 @@ services:
     environment:
       - KC_API_CLIENT_ID=api-client
       - KC_API_HOST=172.20.0.8/api #pointing to reverse proxy or use =172.20.0.4:9443/api for internal routing
-      - KC_FEATURES=declarative-user-profile,pages
       - KC_SPI_TRUSTSTORE_FILE_FILE=/opt/keycloak/conf/KeyStore.jks
       - KC_SPI_TRUSTSTORE_FILE_PASSWORD=123456
       - KC_SPI_TRUSTSTORE_FILE_HOSTNAME_VERIFICATION_POLICY=ANY

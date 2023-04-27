@@ -189,9 +189,9 @@ export function hasRequiredArgs<T extends Record<string, unknown>>(targetType: T
       return true;
     }
 
-    if (typeof value1 === 'object' && typeof value2 === 'object') {
-      return hasRequiredArgs(value1 as AnyRecord, value2 as AnyRecord) === true;
-    }
+    // if (typeof value1 === 'object' && typeof value2 === 'object') {
+    //   return hasRequiredArgs(value1 as AnyRecord, value2 as AnyRecord) === true;
+    // }
 
     return true;
   });

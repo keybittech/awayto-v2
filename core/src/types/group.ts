@@ -164,6 +164,8 @@ const groupApi = {
 
 const groupApiHandlers: ApiHandler<typeof groupApi> = {
   postGroup: async props => {
+    let kcGroupExternalId = '';
+
     try {
       const { name, purpose, roles, allowedDomains, defaultRoleId } = props.event.body;
 
@@ -174,8 +176,6 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
         VALUES ($1, $2, $3, $4::uuid, $5, $6, $7, $8::uuid)
         RETURNING id, name
       `, [props.event.userSub, props.event.userSub, props.event.userSub, defaultRoleId, name, props.event.userSub, allowedDomains, props.event.userSub]);
-
-      let kcGroupExternalId = '';
 
       try {
         // Create a keycloak group if the previous operation was allowed
@@ -190,8 +190,6 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
           throw { reason: 'The group name is in use.' }
         }
       }
-
-      
 
       if (true === (await props.ai.useAi<boolean>(undefined, purpose)).flagged) {
         props.logger.log('moderation failure event', props.event.requestId);
@@ -252,7 +250,6 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
         INSERT INTO dbtable_schema.group_users (user_id, group_id, external_id, created_sub)
         VALUES ($1, $2, $3, $4::uuid)
         ON CONFLICT (user_id, group_id) DO NOTHING
-        RETURNING id
       `, [userId, group.id, kcAdminSubgroupExternalId, props.event.userSub]);
 
       // Attach role call so the group admin's roles force update
@@ -271,6 +268,10 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
 
     } catch (error) {
       const { constraint } = error as DbError;
+
+      try {
+        await props.keycloak.groups.del({ id: kcGroupExternalId });
+      } catch (error) {}
 
       if ('unique_group_owner' === constraint) {
         throw { reason: 'Only 1 group can be managed at a time.' }
@@ -502,10 +503,10 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
   checkGroupName: async props => {
     const { name } = props.event.pathParameters;
 
-    if (true === (await props.ai.useAi<boolean>(undefined, name.replaceAll('_', ' '))).flagged) {
-      props.logger.log('moderation failure event', props.event.requestId);
-      throw { reason: 'Moderation event flagged. Please revise the group name.' };
-    }
+    // if (true === (await props.ai.useAi<boolean>(undefined, name.replaceAll('_', ' '))).flagged) {
+    //   props.logger.log('moderation failure event', props.event.requestId);
+    //   throw { reason: 'Moderation event flagged. Please revise the group name.' };
+    // }
 
     const { count } = await props.db.one<{ count: string }>(`
       SELECT COUNT(*) as count
@@ -566,6 +567,7 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
         FROM dbview_schema.enabled_group_roles
         WHERE "groupId" = $1 AND "roleId" = $2
       `, [groupId, defaultRoleId]);
+      console.log('11111111111')
 
       // Add the joining user to the group in the app db
       await props.tx.none(`
@@ -573,11 +575,13 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
         VALUES ($1, $2, $3, $4::uuid);
       `, [userId, groupId, kcRoleSubgroupExternalId, props.event.userSub]);
 
+      console.log('222222222')
       // Attach the user to the role's subgroup in keycloak
       await props.keycloak.users.addToGroup({
         id: props.event.userSub,
         groupId: kcRoleSubgroupExternalId
       });
+      console.log('3333333')
 
       // Attach role call so the joining member's roles update
       const { appClient, roleCall } = await props.redisProxy('appClient', 'roleCall');
@@ -586,6 +590,7 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
         clientUniqueId: appClient.id!,
         roles: roleCall
       });
+      console.log('4444444')
 
       // Refresh redis cache of group users/roles
       await props.keycloak.regroup(kcGroupExternalId);
