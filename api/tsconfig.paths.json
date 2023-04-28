@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "awayto/core": ["../core/src/index.ts"]
+    }
+  }
+}

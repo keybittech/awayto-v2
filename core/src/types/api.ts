@@ -34,6 +34,22 @@ export const siteApiHandlerRef = {} as SiteApiHandlerRef;
 /**
  * @category API
  */
+type SiteApiHandlerRefFunc = {
+  [K in keyof typeof siteApiRef]: (
+    params: ApiProps<typeof siteApiRef[K]['queryArg']>
+  ) => Promise<typeof siteApiRef[K]['resultType']>;
+};
+
+/**
+ * @category API
+ */
+export function getApiFunc<K extends keyof SiteApiHandlerRefFunc>(name: K): SiteApiHandlerRefFunc[K] {
+  return siteApiHandlerRef[name] as SiteApiHandlerRefFunc[K];
+}
+
+/**
+ * @category API
+ */
 export enum EndpointType {
   QUERY = "query",
   MUTATION = "mutation"
@@ -67,11 +83,19 @@ export type ApiOptions = {
 /**
  * @category API
  */
+export type ApiFunc<T> = T extends { queryArg: infer QA extends AnyRecord, resultType: infer RT } ? (props: ApiProps<QA>) => Promise<RT extends Void ? void : Partial<RT>> : never;
+
+/**
+ * @category API
+ */
 export type ApiHandler<T> = {
-  [K in keyof T]: T[K] extends { queryArg: infer QA extends AnyRecord, resultType: infer RT } ?  (props: ApiProps<QA>) => Promise<RT extends Void ? void : Partial<RT>> : never
+  [K in keyof T]: ApiFunc<T[K]>;
 }
 
-export type AiFunc = {
+/**
+ * @category API
+ */
+export type AiFunctionalities = {
   useAi: typeof useAi
 }
 
@@ -86,7 +110,7 @@ export type ApiProps<T extends AnyRecord> = {
   redis: RedisClientType;
   redisProxy: RedisProxy;
   keycloak: KeycloakAdminClient & KcSiteOpts;
-  ai: AiFunc;
+  ai: AiFunctionalities;
   tx: ITask<unknown>;
 }
 
@@ -101,7 +125,7 @@ export type AuthProps = {
   redis: RedisClientType;
   redisProxy: RedisProxy;
   keycloak: KeycloakAdminClient & KcSiteOpts;
-  ai: AiFunc;
+  ai: AiFunctionalities;
   tx: ITask<unknown>;
 }
 

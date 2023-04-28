@@ -1,9 +1,11 @@
 /api/node_modules
 /api/build
+/api/results.json
 /app/website/node_modules
 /app/website/build
 /app/landing/node_modules
 /app/landing/build
 /app/landing/resources
 /app/landing/public
+/core/node_modules
 /sock/node_modules

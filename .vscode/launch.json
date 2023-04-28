@@ -13,6 +13,15 @@
       ],
       "localRoot": "${workspaceFolder}/api",
       "remoteRoot": "${workspaceFolder}/api"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Craco Build",
+      "program": "${workspaceFolder}/app/website/node_modules/@craco/craco/dist/scripts/build.js",
+      "cwd": "${workspaceFolder}/app/website",
+      "args": ["--verbose"],
+      "console": "integratedTerminal"
     }
   ]
 }

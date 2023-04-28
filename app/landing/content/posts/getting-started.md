@@ -6,7 +6,7 @@ title: "Getting Started"
 - AWS Administrator with AWS CLI (2.0.42)
 - Python (3.7.9)
 - Postgres (13.4)
-- NodeJS (16.3.0)
+- NodeJS (16.18.0)
 - NPM (7.15.1)
 - Docker (4.3; for SAM Local testing)
 

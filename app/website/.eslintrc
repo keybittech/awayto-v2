@@ -11,6 +11,7 @@
     "import/resolver": {
       "typescript": {},
       "alias": [
+        ["awayto/core", "../../core/src/index.ts"],
         ["awayto/hooks", "./src/hooks/index.ts"]
       ]
     }

@@ -1,36 +1,29 @@
 # docker build -t wcapi . -f ./api/Dockerfile && kc scale deployment api --replicas=0 && kc scale deployment api --replicas=1 --current-replicas=0
 
-FROM node:16.3.0-alpine as builder
+FROM node:16.18.0-alpine as builder
 RUN apk add postgresql-dev python3 make build-base
+RUN mkdir -p /core/src && mkdir -p /api/src
 
-# build core
-WORKDIR /core
-COPY ./core /core
-COPY ./core/package.json /core/
-COPY ./core/yarn.lock /core/
+ARG WIZAPP_VERSION
 
-RUN sed -i 's/file:..\/..\/wiz/0.2.0-beta.1/g' package.json
-RUN --mount=type=cache,target=/core/node_modules yarn install
+COPY /core/src/ /core/src
+COPY /core/package.json /core/yarn.lock /core/*config*.json /core/
 
-# build api
-RUN mkdir -p /api/build
+COPY /api/src/ /api/src
+COPY /api/package.json /api/yarn.lock /api/*config*.json /api/api.webpack.js /api/
 
 WORKDIR /api
-COPY ./api/package.json /api/
-COPY ./api/yarn.lock /api/
 
-RUN sed -i 's/file:..\/..\/wiz/0.2.0-beta.1/g' package.json
-RUN --mount=type=cache,target=/api/node_modules yarn install
+RUN --mount=type=cache,target=/root/.cache/yarn sed -i "s/file:..\/..\/wiz/${WIZAPP_VERSION}/g" ./package.json ../core/package.json &&\
+  yarn --cwd ../core install &&\
+  yarn install &&\
+  NODE_ENV=docker npm run build
 
-COPY ./api /api
-RUN --mount=type=cache,target=/api/node_modules npm run build
-
-FROM node:16.3.0-alpine
+FROM node:16.18.0-alpine
 CMD ["node", "api.js"]
 EXPOSE 9443
 WORKDIR /api
 
-COPY ./api/server.crt /api
-COPY ./api/server.key /api
+COPY /api/server.crt /api/server.key /api
 
 COPY --from=builder /api/build/ /api

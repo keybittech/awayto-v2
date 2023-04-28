@@ -1,12 +1,10 @@
 {
+  "extends": "./tsconfig.paths.json",
   "include": [
-    "src"
+    "./src",
+    "../core"
   ],
   "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "awayto/core": ["node_modules/awayto-core"]
-    },
     "target": "es6",
     "lib": [
       "dom",

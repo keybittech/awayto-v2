@@ -28,7 +28,7 @@ const {
 // KC Admin
 const keycloak = new KcAdminClient({
   baseUrl: `https://${KEYCLOAK_HOST}:${KEYCLOAK_PORT}`,
-  realmName: KC_REALM
+  realmName: KC_REALM,
 }) as KeycloakAdminClient & KcSiteOpts & {
   apiClient: BaseClient;
   ready: boolean;
@@ -164,16 +164,19 @@ async function go() {
     await go();
   }
 
-  // KC Passport & OIDC Client
-  const keycloakIssuer = await Issuer.discover(`https://${KEYCLOAK_HOST}:${KEYCLOAK_PORT}/realms/${KC_REALM}`);
-  
-  keycloak.apiClient = new keycloakIssuer.Client({
-    client_id: KC_API_CLIENT_ID,
-    client_secret: KC_API_CLIENT_SECRET,
-    redirect_uris: [`https://${CUST_APP_HOSTNAME}/api/auth/login/callback`],
-    post_logout_redirect_uris: [`https://${CUST_APP_HOSTNAME}/api/auth/logout/callback`],
-    response_types: ['code']
-  });
+  while (!keycloak.apiClient) {
+    // KC Passport & OIDC Client
+    const keycloakIssuer = await Issuer.discover(`https://${KEYCLOAK_HOST}:${KEYCLOAK_PORT}/realms/${KC_REALM}`);
+    
+    keycloak.apiClient = new keycloakIssuer.Client({
+      client_id: KC_API_CLIENT_ID,
+      client_secret: KC_API_CLIENT_SECRET,
+      redirect_uris: [`https://${CUST_APP_HOSTNAME}/api/auth/login/callback`],
+      post_logout_redirect_uris: [`https://${CUST_APP_HOSTNAME}/api/auth/logout/callback`],
+      response_types: ['code']
+    });
+    await new Promise(res => setTimeout(res, 5000));
+  }
 
   keycloak.ready = true;
 }

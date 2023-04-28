@@ -3,6 +3,14 @@
   "parserOptions": {
     "project": "./tsconfig.json"
   },
+  "settings": {
+    "import/resolver": {
+      "typescript": {},
+      "alias": [
+        ["awayto/core", "../core/src/index.ts"]
+      ]
+    }
+  },
   "plugins": [
     "@typescript-eslint",
     "import"

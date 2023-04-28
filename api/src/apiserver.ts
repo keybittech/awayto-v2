@@ -187,48 +187,6 @@ async function go() {
       }
     });
 
-    app.post('/api/auth/register/confirm', checkBackchannel, async (req, res) => {
-      try {
-
-        const { firstName, lastName, email, username, sub, groupCode  } = req.body;
-
-        const requestParams = {
-          keycloak: keycloak as unknown,
-          redis,
-          redisProxy,
-          event: {
-            body: {
-              firstName,
-              lastName,
-              email,
-              username,
-              sub
-            },
-            userSub: sub,
-            sourceIp: req.headers['x-forwarded-for'] as string,
-          }
-        } as ApiProps<IUserProfile & { code: string }>;
-
-        console.log({ requestParams: requestParams.event })
-
-        await db.tx(async trx => {
-          requestParams.tx = trx;
-
-          const postUserProfileApi = siteApiRef.postUserProfile;
-          const postUserProfile = siteApiHandlerRef['postUserProfile' as keyof typeof siteApiHandlerRef] as (params: ApiProps<typeof postUserProfileApi.queryArg>) => Promise<typeof postUserProfileApi.resultType>;
-          const userProfile = await postUserProfile(requestParams);
-
-          console.log({ newUserProfile: userProfile })
-          console.log({ sending_scucess: true })
-          res.status(200).send({});
-        });
-      } catch (error) {
-        const err = error as Error;
-        console.log({ sending_scucess: false, err: err.message, stack: err.stack })
-        res.status(500).send(JSON.stringify({ reason: 'Registration Confirmation Failure: ' + err.message }));
-      }
-    })
-
     app.get('/api/auth/checkin', (req, res, next) => {
       passport.authenticate('oidc')(req, res, next);
     });
@@ -265,6 +223,8 @@ async function go() {
       try {
         const body = req.body as AuthBody;
         const { type, userId, ipAddress, details } = body;
+
+        console.log('/api/auth/webhook', JSON.stringify(body, null, 2));
 
         // Create trace event
         const event = {

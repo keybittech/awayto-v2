@@ -15,6 +15,7 @@ services:
       context: ./
       dockerfile: ./app/Dockerfile
       args:
+        - WIZAPP_VERSION=${WIZAPP_VERSION}
         - CUST_LAND_HOSTNAME=${CUST_LAND_HOSTNAME}
         - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
         - CUST_HOST_IP=${CUST_HOST_IP}
@@ -39,6 +40,8 @@ services:
     build:
       context: ./
       dockerfile: ./api/Dockerfile
+      args:
+        - WIZAPP_VERSION=${WIZAPP_VERSION}
     extra_hosts:
       - wcapp.site.com:127.0.0.1
     # ports:
@@ -121,6 +124,9 @@ services:
       - KC_DB_URL=jdbc:postgresql://172.20.0.5:5432/sysmaindb #NONSECRET
       - KC_DB_USERNAME=postgres #SECRET
       - KC_DB_PASSWORD=postgres #SECRET
+      - KC_REDIS_HOST=172.20.0.14
+      - KC_REDIS_PORT=6379
+      - KC_REGISTRATION_RATE_LIMIT=1000
     depends_on:
       - db
     networks:

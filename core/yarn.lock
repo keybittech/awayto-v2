@@ -8,7 +8,7 @@
   integrity sha512-alVJj7k7zIxqBZ7BTRhz0IqJFxW1VJbm6N8JbcYhQ186df9ZBPbZBmWSqAMXwHGsCJdYks7z/voa3ibiS5bCIw==
 
 "@keybittech/wizapp@file:../../wiz":
-  version "0.1.26-beta"
+  version "0.2.0-beta.1"
   dependencies:
     "@babel/parser" "^7.21.4"
     abstract-syntax-tree "^2.20.6"
@@ -18,16 +18,15 @@
     ts-morph "18.0.0"
     yargs "17.7.1"
 
-"@keycloak/keycloak-admin-client@21.0.2":
-  version "21.0.2"
-  resolved "https://registry.yarnpkg.com/@keycloak/keycloak-admin-client/-/keycloak-admin-client-21.0.2.tgz#19ae3497cc906331cb224f03b2985e85b27dc079"
-  integrity sha512-HbcztwcNbUGNPUFiqz6jlDTz27EPKMmYHS9MlX0LnLXYa9aoxwA2dGvz8kMJ0lC1KFsh8mQUjGQXzUsjys6EHA==
+"@keycloak/keycloak-admin-client@21.1.1":
+  version "21.1.1"
+  resolved "https://registry.yarnpkg.com/@keycloak/keycloak-admin-client/-/keycloak-admin-client-21.1.1.tgz#4ffdd9a0a21cc3da9ea71a70909a701e6a45c8a5"
+  integrity sha512-pXlcS+QU7wzcVG04jVoJieb+/j3W+UgIajd6bqoPPWGIdV1vlVnvKZw0fK8VGbhc80TSqg/9hJbxy02tfg8i5w==
   dependencies:
-    axios "^0.27.2"
-    camelize-ts "^2.1.1"
+    camelize-ts "^2.5.0"
     lodash-es "^4.17.21"
     url-join "^5.0.0"
-    url-template "^3.0.0"
+    url-template "^3.1.0"
 
 "@kwsites/file-exists@^1.1.1":
   version "1.1.1"
@@ -155,7 +154,7 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-18.15.13.tgz#f64277c341150c979e42b00e4ac289290c9df469"
   integrity sha512-N+0kuo9KgrUQ1Sn/ifDXsvg0TTleP7rIy4zOBGECxAljqvqfqpTfzx0Q1NUedOixRMBfe2Whhb056a42cWs26Q==
 
-"@types/node@^16.18.0":
+"@types/node@16.18.0":
   version "16.18.0"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-16.18.0.tgz#34982c6d5b5734c900f4ee69e1b87d212db6c60f"
   integrity sha512-LqYqYzYvnbCaQfLAwRt0zboqnsViwhZm+vjaMSqcfN36vulAg7Pt0T83q4WZO2YOBw3XdyHi8cQ88H22zmULOA==
@@ -259,14 +258,6 @@ axios@^0.26.0:
   dependencies:
     follow-redirects "^1.14.8"
 
-axios@^0.27.2:
-  version "0.27.2"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-0.27.2.tgz#207658cc8621606e586c85db4b41a750e756d972"
-  integrity sha512-t+yRIyySRTp/wua5xEr+z1q60QmLq8ABsS5O9Me1AsE5dfKqgnCFzwiCZZ/cGNd1lq4/7akDWMxdhVlucjmnOQ==
-  dependencies:
-    follow-redirects "^1.14.9"
-    form-data "^4.0.0"
-
 balanced-match@^1.0.0:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.2.tgz#e83e3a7e3f300b34cb9d87f615fa0cbf357690ee"
@@ -291,7 +282,7 @@ buffer-writer@2.0.0:
   resolved "https://registry.yarnpkg.com/buffer-writer/-/buffer-writer-2.0.0.tgz#ce7eb81a38f7829db09c873f2fbb792c0c98ec04"
   integrity sha512-a7ZpuTZU1TRtnwyCNW3I5dc0wWNC3VR9S++Ewyk2HHZdrO3CQJqSpd+95Us590V6AL7JqUAH2IwZ/398PmNFgw==
 
-camelize-ts@^2.1.1:
+camelize-ts@^2.5.0:
   version "2.5.0"
   resolved "https://registry.yarnpkg.com/camelize-ts/-/camelize-ts-2.5.0.tgz#0c823555b295c6d29819e18bcd841a00ffa48697"
   integrity sha512-ERaOJadw+ID9MuKGeTOF1kQOb/zZIv6Vkt44kFYZraiAFiZU6E3TwnJebp8jofsW/hDxME/U63lFdNKIkSqijw==
@@ -411,7 +402,7 @@ fill-range@^7.0.1:
   dependencies:
     to-regex-range "^5.0.1"
 
-follow-redirects@^1.14.8, follow-redirects@^1.14.9:
+follow-redirects@^1.14.8:
   version "1.15.2"
   resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.2.tgz#b460864144ba63f2681096f274c4e57026da2c13"
   integrity sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA==
@@ -752,7 +743,7 @@ url-join@^5.0.0:
   resolved "https://registry.yarnpkg.com/url-join/-/url-join-5.0.0.tgz#c2f1e5cbd95fa91082a93b58a1f42fecb4bdbcf1"
   integrity sha512-n2huDr9h9yzd6exQVnH/jU5mr+Pfx08LRXXZhkLLetAMESRj+anQsTAh940iMrIetKAmry9coFuZQ2jY8/p3WA==
 
-url-template@^3.0.0:
+url-template@^3.1.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/url-template/-/url-template-3.1.0.tgz#d9be13d342ad31fcedc3c0bd21405fd141d02ff1"
   integrity sha512-vB/eHWttzhN+NZzk9FcQB2h1cSEgb7zDYyvyxPhw02LYw7YqIzO+w1AqkcKvZ51gPH8o4+nyiWve/xuQqMdJZw==

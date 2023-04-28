@@ -14,11 +14,10 @@ const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 
-const { getLoaders, loaderByName, addBeforeLoader, ESLINT_MODES, } = require('@craco/craco');
 const CracoEsbuildPlugin = require('craco-esbuild');
 
 
-const { AWAYTO_WEBAPP_MODULES, AWAYTO_WEBAPP } = process.env;
+const { AWAYTO_WEBAPP_MODULES, AWAYTO_WEBAPP, AWAYTO_CORE } = process.env;
 
 /**
  * 
@@ -122,9 +121,9 @@ module.exports = {
   //   enable: false,
   //   mode: ESLINT_MODES.NONE
   // },
-  plugins: [{ plugin: CracoEsbuildPlugin }],
   webpack: {
     alias: {
+      'awayto/core': resolveApp(AWAYTO_CORE + '/index.ts'),
       'awayto/hooks': resolveApp('.' + AWAYTO_WEBAPP + '/hooks/index.ts'),
     },
     configure: (webpackConfig, { env, paths }) => {
@@ -133,13 +132,27 @@ module.exports = {
         (plugin) => !(plugin instanceof ModuleScopePlugin)
       );
 
-      webpackConfig.plugins.push(
-        new ForkTsCheckerWebpackPlugin({
-          typescript: {
-            enabled: true,
-            configFile: resolveApp(`./tsconfig${dd ? '.docker' : ''}.json`),
+      CracoEsbuildPlugin.overrideWebpackConfig({
+        webpackConfig,
+        pluginOptions: {
+          esbuildLoaderOptions: {
+            loader: 'tsx',
+            target: 'es2015'
           },
-        }),
+          includePaths: [
+            resolveApp(AWAYTO_WEBAPP),
+            resolveApp(AWAYTO_CORE)
+          ]
+        },
+        context: {
+          paths: {
+            appTsConfig: resolveApp('tsconfig.json'),
+            appSrc: resolveApp('src')
+          }
+        }
+      });
+
+      webpackConfig.plugins.push(
         new CircularDependencyPlugin({
           exclude: /a\.js|node_modules/,
           include: /src/,
