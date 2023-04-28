@@ -1,4 +1,3 @@
-import createDebounce from 'redux-debounced';
 import logger from 'redux-logger';
 import thunk from 'redux-thunk';
 
@@ -205,7 +204,6 @@ export const store = configureStore({
   },
   middleware: getDefaultMiddleware => getDefaultMiddleware().concat(
     sh.middleware as Middleware,
-    createDebounce(),
     thunk,
     logger
   )

@@ -25,9 +25,9 @@ module.exports = {
         test: /\.tsx?$/,
         exclude: /node_modules/,
         use: {
-          loader: 'ts-loader',
+          loader: 'esbuild-loader',
           options: {
-            configFile: 'tsconfig.json'
+            target: 'es6'
           }
         }
       }
