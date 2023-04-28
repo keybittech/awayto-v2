@@ -157,28 +157,28 @@ async function go() {
       }
     }
 
+    while (!keycloak.apiClient) {
+      // KC Passport & OIDC Client
+      const keycloakIssuer = await Issuer.discover(`https://${KEYCLOAK_HOST}:${KEYCLOAK_PORT}/realms/${KC_REALM}`);
+      
+      keycloak.apiClient = new keycloakIssuer.Client({
+        client_id: KC_API_CLIENT_ID,
+        client_secret: KC_API_CLIENT_SECRET,
+        redirect_uris: [`https://${CUST_APP_HOSTNAME}/api/auth/login/callback`],
+        post_logout_redirect_uris: [`https://${CUST_APP_HOSTNAME}/api/auth/logout/callback`],
+        response_types: ['code']
+      });
+      await new Promise(res => setTimeout(res, 5000));
+    }
+
+    keycloak.ready = true;
+
   } catch (error) {
     const err = error as ApiErrorResponse;
     await new Promise<void>(res => setTimeout(() => res(), 1000));
-    console.log('Could not connect to keycloak ', err.message);
+    console.log('Could not connect to keycloak ', err.message, err.stack);
     await go();
   }
-
-  while (!keycloak.apiClient) {
-    // KC Passport & OIDC Client
-    const keycloakIssuer = await Issuer.discover(`https://${KEYCLOAK_HOST}:${KEYCLOAK_PORT}/realms/${KC_REALM}`);
-    
-    keycloak.apiClient = new keycloakIssuer.Client({
-      client_id: KC_API_CLIENT_ID,
-      client_secret: KC_API_CLIENT_SECRET,
-      redirect_uris: [`https://${CUST_APP_HOSTNAME}/api/auth/login/callback`],
-      post_logout_redirect_uris: [`https://${CUST_APP_HOSTNAME}/api/auth/logout/callback`],
-      response_types: ['code']
-    });
-    await new Promise(res => setTimeout(res, 5000));
-  }
-
-  keycloak.ready = true;
 }
 
 export async function getGroupRegistrationRedirectParts(groupCode: string): Promise<[string, string[]]> {
