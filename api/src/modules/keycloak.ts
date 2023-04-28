@@ -32,7 +32,9 @@ const keycloak = new KcAdminClient({
 }) as KeycloakAdminClient & KcSiteOpts & {
   apiClient: BaseClient;
   ready: boolean;
-}
+};
+
+keycloak.ready = false;
 
 const credentials: Credentials = {
   clientId: KC_API_CLIENT_ID,

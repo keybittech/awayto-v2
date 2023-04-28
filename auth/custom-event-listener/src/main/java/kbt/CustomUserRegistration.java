@@ -7,11 +7,8 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.Provider;
 
-import org.jboss.logging.Logger;
 import org.json.JSONObject;
 import org.keycloak.utils.RegexUtils;
-
-import redis.clients.jedis.Jedis;
 
 import org.keycloak.Config;
 import org.keycloak.authentication.FormContext;
@@ -25,8 +22,6 @@ import org.keycloak.models.utils.FormMessage;
 
 @Provider
 public class CustomUserRegistration extends RegistrationUserCreation {
-
-  private static final Logger log = Logger.getLogger(CustomEventListenerProvider.class);
 
   @Override
   public void init(Config.Scope config) {
@@ -108,14 +103,11 @@ public class CustomUserRegistration extends RegistrationUserCreation {
     List<FormMessage> validationErrors = new ArrayList<>();
     MultivaluedMap<String, String> formData = context.getHttpRequest().getDecodedFormParameters();
 
-    String ipAddress = context.getConnection().getRemoteAddr();
     String xForwardedFor = context.getHttpRequest().getHttpHeaders().getHeaderString("x-forwarded-for");
 
-    log.warnf("COMPARE IP REFERENCES: %s ", ipAddress + " " + xForwardedFor);
-
     RedisConnection redis = new RedisConnection();
-    boolean rateLimitExceeded = redis.rateLimit(ipAddress, "submit_registration",
-        Integer.valueOf(System.getenv("KC_REGISTRATION_RATE_LIMIT")), 900);
+    boolean rateLimitExceeded = redis.rateLimit(xForwardedFor, "submit_registration",
+        Integer.valueOf(System.getenv("KC_REGISTRATION_RATE_LIMIT")), 3600);
 
     if (rateLimitExceeded) {
       formData.clear();
@@ -123,84 +115,75 @@ public class CustomUserRegistration extends RegistrationUserCreation {
       context.validationError(formData, validationErrors);
       return;
     } else {
-      KeycloakSession session = context.getSession();
-
+      
       if (formData.containsKey("groupCode")) {
-        try (Jedis jedis = redis.connect()) {
+        KeycloakSession session = context.getSession();
+        String groupCode = formData.getFirst("groupCode");
+        String email = formData.getFirst("email");
 
-          String groupCode = formData.getFirst("groupCode");
-          String email = formData.getFirst("email");
+        String groupName = (String) session.getAttribute("groupName");
+        String allowedDomains = (String) session.getAttribute("allowedDomains");
 
-          String groupName = (String) session.getAttribute("groupName");
-          String allowedDomains = (String) session.getAttribute("allowedDomains");
+        Boolean suppliedCode = groupCode != null && groupCode.length() > 0;
 
-          Boolean suppliedCode = groupCode != null && groupCode.length() > 0;
+        if ((groupName == null || allowedDomains == null) && suppliedCode) {
 
-          if ((groupName == null || allowedDomains == null) && suppliedCode) {
+          if (!RegexUtils.valueMatchesRegex("[a-zA-Z0-9]{8}", groupCode)) {
+            validationErrors.add(new FormMessage("groupCode", "invalidGroup"));
+          } else {
 
-            if (!RegexUtils.valueMatchesRegex("[a-zA-Z0-9]{8}", groupCode)) {
-              validationErrors.add(new FormMessage("groupCode", "invalidGroup"));
-            } else {
+            if (groupCode != session.getAttribute("groupCode")) {
 
-              if (groupCode != session.getAttribute("groupCode")) {
+              // Get group information for registration
+              JSONObject registrationValidationPayload = new JSONObject();
+              registrationValidationPayload.put("groupCode", groupCode);
+              JSONObject registrationValidationResponse = BackchannelAuth.postApi("/auth/register/validate",
+                  registrationValidationPayload,
+                  context.getRealm(), context.getSession());
 
-                // Get group information for registration
-                JSONObject registrationValidationPayload = new JSONObject();
-                registrationValidationPayload.put("groupCode", groupCode);
-                JSONObject registrationValidationResponse = BackchannelAuth.postApi("/auth/register/validate",
-                    registrationValidationPayload,
-                    context.getRealm(), context.getSession());
+              if (false == registrationValidationResponse.getBoolean("success")) {
 
-                if (false == registrationValidationResponse.getBoolean("success")) {
+                String reason = registrationValidationResponse.getString("reason");
 
-                  String reason = registrationValidationResponse.getString("reason");
-
-                  if (reason.contains("BAD_GROUP")) {
-                    validationErrors.add(new FormMessage("groupCode", "invalidGroup"));
-                  }
-                } else {
-                  groupName = registrationValidationResponse.getString("name");
-                  allowedDomains = registrationValidationResponse.getString("allowedDomains");
-                  session.setAttribute("groupName", groupName);
-                  session.setAttribute("allowedDomains", allowedDomains);
+                if (reason.contains("BAD_GROUP")) {
+                  validationErrors.add(new FormMessage("groupCode", "invalidGroup"));
                 }
+              } else {
+                groupName = registrationValidationResponse.getString("name");
+                allowedDomains = registrationValidationResponse.getString("allowedDomains");
+                session.setAttribute("groupName", groupName);
+                session.setAttribute("allowedDomains", allowedDomains);
               }
             }
           }
-
-          if (allowedDomains != null) {
-            List<String> domains = List.of(allowedDomains.split(","));
-
-            if (email == null || email.contains("@") && !domains.contains(email.split("@")[1])) {
-              validationErrors.add(new FormMessage("email", "invalidEmail"));
-            }
-          } else if (suppliedCode) {
-            validationErrors.add(new FormMessage("groupCode", "invalidGroup"));
-          }
-
-          UserModel userWithEmail = context.getSession().users().getUserByEmail(context.getRealm(), email);
-
-          if (userWithEmail != null) {
-            validationErrors.add(new FormMessage("email", "emailInUse"));
-          }
-
-          if (!validationErrors.isEmpty()) {
-            context.error("VALIDATION_ERROR");
-            context.validationError(formData, validationErrors);
-            return;
-          }
-
-          jedis.setex(ipAddress + "_group_code", Long.valueOf(60), groupCode);
-          
-          super.validate(context);
-        } catch (Exception e) {
-          log.warnf("Failed redis setting during registration");
-          e.printStackTrace();
         }
 
-      } else {
-        super.validate(context);
+        if (allowedDomains != null) {
+          List<String> domains = List.of(allowedDomains.split(","));
+
+          if (email == null || email.contains("@") && !domains.contains(email.split("@")[1])) {
+            validationErrors.add(new FormMessage("email", "invalidEmail"));
+          }
+        } else if (suppliedCode) {
+          validationErrors.add(new FormMessage("groupCode", "invalidGroup"));
+        }
+
+        UserModel userWithEmail = context.getSession().users().getUserByEmail(context.getRealm(), email);
+
+        if (userWithEmail != null) {
+          validationErrors.add(new FormMessage("email", "emailInUse"));
+        }
+
+        if (!validationErrors.isEmpty()) {
+          context.error("VALIDATION_ERROR");
+          context.validationError(formData, validationErrors);
+          return;
+        }
+
+        context.getEvent().detail("group_code", groupCode);
       }
+
+      super.validate(context);
     }
   }
 }

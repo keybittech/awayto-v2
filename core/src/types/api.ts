@@ -34,22 +34,6 @@ export const siteApiHandlerRef = {} as SiteApiHandlerRef;
 /**
  * @category API
  */
-type SiteApiHandlerRefFunc = {
-  [K in keyof typeof siteApiRef]: (
-    params: ApiProps<typeof siteApiRef[K]['queryArg']>
-  ) => Promise<typeof siteApiRef[K]['resultType']>;
-};
-
-/**
- * @category API
- */
-export function getApiFunc<K extends keyof SiteApiHandlerRefFunc>(name: K): SiteApiHandlerRefFunc[K] {
-  return siteApiHandlerRef[name] as SiteApiHandlerRefFunc[K];
-}
-
-/**
- * @category API
- */
 export enum EndpointType {
   QUERY = "query",
   MUTATION = "mutation"
