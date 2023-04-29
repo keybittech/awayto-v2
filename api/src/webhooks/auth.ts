@@ -6,7 +6,7 @@ export const AuthWebhooks: IWebhooks = {
     if (!props.event) return;
 
     try {
-      const { userId: sub, details: { group_code: code, first_name: firstName, last_name: lastName, email, username } } = props.event.body;
+      const { userId: sub, ipAddress, details: { group_code: code, first_name: firstName, last_name: lastName, email, username } } = props.event.body;
 
       const requestParams = {
         ...props,
@@ -18,9 +18,13 @@ export const AuthWebhooks: IWebhooks = {
             username,
             sub,
             code
-          }
+          },
+          userSub: sub,
+          sourceIp: ipAddress
         }
       } as ApiProps<IUserProfile & { code: string }>;
+
+      await siteApiHandlerRef.postUserProfile(requestParams);
       
       if (code) {
         await siteApiHandlerRef.joinGroup(requestParams);
