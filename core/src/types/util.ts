@@ -50,9 +50,9 @@ export const utilConfig = {
     closeConfirm: (state: IUtil) => {
       state.isConfirming = false;
     },
-    setLoading: (state: IUtil, action: { payload: Pick<IUtil, 'isLoading' | 'loadingMessage'> }) => {
+    setLoading: (state: IUtil, action: { payload: { isLoading: boolean, loadingMessage?: string } }) => {
       state.isLoading = action.payload.isLoading;
-      state.loadingMessage = action.payload.loadingMessage;
+      state.loadingMessage = action.payload.loadingMessage || '';
     },
     setSnack: (state: IUtil, action: { payload: Partial<Pick<IUtil, 'snackOn' | 'snackType' | 'snackRequestId'>> }) => {
       state.snackOn = action.payload.snackOn || '';

@@ -6,7 +6,7 @@ import { fetchBaseQuery, SkipToken } from '@reduxjs/toolkit/dist/query';
 import { configureStore, AnyAction, createSlice, Middleware, Reducer, Store, ThunkDispatch } from '@reduxjs/toolkit';
 import { createApi, setupListeners } from '@reduxjs/toolkit/query/react';
 
-import { QueryDefinition, MutationDefinition } from '@reduxjs/toolkit/dist/query/endpointDefinitions';
+import { QueryDefinition, MutationDefinition, QueryLifecycleApi } from '@reduxjs/toolkit/dist/query/endpointDefinitions';
 import { MutationTrigger, LazyQueryTrigger, UseLazyQueryLastPromiseInfo, UseQuery, UseLazyQuery, UseMutation } from '@reduxjs/toolkit/dist/query/react/buildHooks';
 
 import { EndpointType, RemoveNever, ReplaceVoid, siteApiRef, SiteApiRef, utilConfig } from 'awayto/core';
@@ -157,6 +157,8 @@ type EndpointInfo<T> = {
 
 type EndpointQuery<T> = (args: T) => string | { url: string; method: string; body: T };
 
+export const utilSlice = createSlice(utilConfig);
+
 // Store Hooks
 export const sh = createApi({
   baseQuery: getQueryAuth,
@@ -165,7 +167,7 @@ export const sh = createApi({
     type BuiltEndpoint = typeof siteApiRef[typeof endpointKey];
 
     const ep = siteApiRef[endpointName as keyof SiteApiRef] as BuiltEndpoint;
-    const { method, queryArg, resultType, url } = ep;
+    const { method, queryArg, resultType, url, opts } = ep;
 
     const kind = ep.kind as EndpointType;
 
@@ -174,6 +176,12 @@ export const sh = createApi({
 
     const builderPayload: {
       query: EndpointQuery<EPQueryArg>;
+      onQueryStarted?(
+        arg: typeof queryArg,
+        {
+          queryFulfilled
+        }: Pick<QueryLifecycleApi<typeof queryArg, SiteBaseEndpoint, typeof resultType>, 'queryFulfilled'>
+      ): Promise<void>;
     } = {
       query: ((args: EPQueryArg) => {
         const processedUrl = url.replace(/:(\w+)/g, (_, key) => args[key as keyof EPQueryArg]);
@@ -181,7 +189,18 @@ export const sh = createApi({
           return processedUrl;
         }
         return { url: processedUrl, method, body: args };
-      })
+      }),
+      onQueryStarted: async (qa, { queryFulfilled }) => {
+        if (opts.load) {
+          store.dispatch(utilSlice.actions.setLoading({ isLoading: true }));
+
+          try {
+            await queryFulfilled;
+          } catch { }
+
+          store.dispatch(utilSlice.actions.setLoading({ isLoading: false }));
+        }
+      }
     };
 
     return {
@@ -193,9 +212,7 @@ export const sh = createApi({
   }, {})
 }) as RemoveNever<EndpointInfo<SiteApiRef>> & ReturnType<typeof createApi>;
 
-console.log({ loadedup: Object.keys(sh) })
-
-export const utilSlice = createSlice(utilConfig);
+console.log({ loadedup: Object.keys(sh) });
 
 export const store = configureStore({
   reducer: {

@@ -62,6 +62,7 @@ export type ApiEvent<T extends AnyRecord> = {
  */
 export type ApiOptions = {
   readonly cache?: 'skip' | number | boolean | null | undefined;
+  readonly load?: boolean | undefined;
 }
 
 /**

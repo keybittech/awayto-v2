@@ -20,7 +20,10 @@ const assistApi = {
     kind: EndpointType.QUERY,
     url: 'assist/prompt?id=:id&prompt=:prompt',
     method: 'GET',
-    opts: { cache: null } as ApiOptions,
+    opts: {
+      cache: null,
+      load: true
+    } as ApiOptions,
     queryArg: {
       id: '' as string,
       prompt: '' as string

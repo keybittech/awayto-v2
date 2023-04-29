@@ -60,7 +60,9 @@ const groupApi = {
     kind: EndpointType.MUTATION,
     url: 'group',
     method: 'POST',
-    opts: {} as ApiOptions,
+    opts: {
+      load: true
+    } as ApiOptions,
     queryArg: {
       name: '' as string,
       purpose: '' as string,
@@ -131,7 +133,10 @@ const groupApi = {
     kind: EndpointType.QUERY,
     url: 'group/valid/:name',
     method: 'GET',
-    opts: { cache: null } as ApiOptions,
+    opts: {
+      cache: null,
+      load: true
+    } as ApiOptions,
     queryArg: { name: '' as string },
     resultType: { isValid: true as boolean }
   },
