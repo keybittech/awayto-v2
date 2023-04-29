@@ -9,25 +9,27 @@ type UseScheduleProps<T extends GridValidRowModel> = {
   rowId?: string;
   noPagination?: boolean;
   selected?: GridRowSelectionModel;
+  disableRowSelectionOnClick?: boolean;
   onSelected?: (value: GridRowSelectionModel) => void;
   toolbar?: () => JSX.Element;
 };
 
-export function useGrid<T extends GridValidRowModel>({ rows, columns, rowId, noPagination, selected, onSelected, toolbar }: UseScheduleProps<T>): () => JSX.Element {
+export function useGrid<T extends GridValidRowModel>({ rows, columns, rowId, noPagination, selected, onSelected, toolbar, disableRowSelectionOnClick = true }: UseScheduleProps<T>): () => JSX.Element {
   const grid = useMemo(() => {
     return <DataGrid
       autoHeight
-      sx={{ bgcolor: 'secondary.dark', boxShadow: '4' }}
+      sx={{ bgcolor: 'secondary.dark' }}
       rows={rows}
       columns={columns}
-      checkboxSelection={!!selected}
-      pageSizeOptions={noPagination ? [] : [5, 10, 25]}
       rowSelectionModel={selected}
-      getRowId={row => (rowId ? row[rowId] : row.id) as string}
+      checkboxSelection={!!selected}
       onRowSelectionModelChange={onSelected}
+      pageSizeOptions={noPagination ? [] : [5, 10, 25]}
+      disableRowSelectionOnClick={disableRowSelectionOnClick}
+      getRowId={row => (rowId ? row[rowId] : row.id) as string}
       slots={{ toolbar: () => toolbar ? <Grid container p={2} alignItems="center">{toolbar()}</Grid> : <></> }}
     />
-  }, [rows, rowId, columns, noPagination, selected]);
+  }, [rows, rowId, columns, noPagination]);
 
   return () => grid;
 }
