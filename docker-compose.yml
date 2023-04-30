@@ -6,6 +6,7 @@
 # docker logs -f -t $(docker ps -aqf "name=auth")
 
 # docker run -it d340e8bb50f1 /bin/sh
+# redis-cli --scan --pattern '*happiness*' | xargs -I {} redis-cli del {}
 
 version: '3.9'
 services:

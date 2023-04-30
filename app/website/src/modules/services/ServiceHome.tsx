@@ -56,7 +56,7 @@ export function ServiceHome(props: IProps): JSX.Element {
   const [group, setGroup] = useState(Object.values(profile?.groups || {})[0]);
 
   const { data: groupServiceAddons, refetch: getGroupServiceAddons } = sh.useGetGroupServiceAddonsQuery({ groupName: group.name });
-  const { data: groupForms } = sh.useGetGroupFormsQuery({ groupName: group.name });
+  const { data: groupForms, isSuccess: groupFormsLoaded } = sh.useGetGroupFormsQuery({ groupName: group.name });
 
   const [newService, setNewService] = useState({ ...serviceSchema, tiers: {} } as IService);
   const [newServiceTier, setNewServiceTier] = useState({ ...serviceTierSchema, addons: {} } as IServiceTier);
@@ -122,7 +122,7 @@ export function ServiceHome(props: IProps): JSX.Element {
                 <TextField fullWidth label="Cost" helperText="Optional." value={newService.cost || ''} onChange={e => validCost(e.target.value) && setNewService({ ...newService, cost: /\.\d\d/.test(e.target.value) ? parseFloat(e.target.value).toFixed(2) : e.target.value })} />
               </Box>
 
-              <Box>
+              {groupFormsLoaded && <Box>
                 <TextField
                   select
                   fullWidth
@@ -141,7 +141,7 @@ export function ServiceHome(props: IProps): JSX.Element {
                 >
                   {groupForms?.map(form => <MenuItem key={`form-version-select${form.id}`} value={form.id}>{form.name}</MenuItem>)}
                 </TextField>
-              </Box>
+              </Box>}
             </Grid>
           </Grid>
         </CardContent>
@@ -197,7 +197,7 @@ export function ServiceHome(props: IProps): JSX.Element {
                 </Box>
               </Box>}
 
-              <Box mb={4}>
+              {groupFormsLoaded && <Box mb={4}>
                 <TextField
                   select
                   fullWidth
@@ -216,7 +216,7 @@ export function ServiceHome(props: IProps): JSX.Element {
                 >
                   {groupForms?.map(form => <MenuItem key={`form-version-select${form.id}`} value={form.id}>{form.name}</MenuItem>)}
                 </TextField>
-              </Box>
+              </Box>}
 
               <Box>
                 <Typography variant="h6">Multiplier</Typography>
