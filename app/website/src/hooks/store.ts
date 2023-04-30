@@ -159,6 +159,8 @@ type EndpointQuery<T> = (args: T) => string | { url: string; method: string; bod
 
 export const utilSlice = createSlice(utilConfig);
 
+let currentlyLoading = 0;
+
 // Store Hooks
 export const sh = createApi({
   baseQuery: getQueryAuth,
@@ -192,13 +194,19 @@ export const sh = createApi({
       }),
       onQueryStarted: async (qa, { queryFulfilled }) => {
         if (opts.load) {
-          store.dispatch(utilSlice.actions.setLoading({ isLoading: true }));
+          if (currentlyLoading === 0) {
+            store.dispatch(utilSlice.actions.setLoading({ isLoading: true }));
+          }
+          currentlyLoading++;
 
           try {
             await queryFulfilled;
           } catch { }
 
-          store.dispatch(utilSlice.actions.setLoading({ isLoading: false }));
+          currentlyLoading--;
+          if (currentlyLoading === 0) {
+            store.dispatch(utilSlice.actions.setLoading({ isLoading: false }));
+          }
         }
       }
     };

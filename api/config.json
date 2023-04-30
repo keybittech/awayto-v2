@@ -1,10 +1,12 @@
 {
   "ai": {
     "retries": "3",
-    "logFile": "results.json"
+    "logFile": "results.json",
+    "chatModel": "gpt-3.5-turbo",
+    "completionModel": "curie"
   },
   "ts": {
-    "configPath": "test",
+    "configPath": "",
     "typeDir": "",
     "compDir": ""
   },
