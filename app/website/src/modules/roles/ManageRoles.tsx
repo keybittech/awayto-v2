@@ -12,11 +12,12 @@ import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import { IRole } from 'awayto/core';
-import { sh, useGrid } from 'awayto/hooks';
+import { sh, useGrid, useStyles } from 'awayto/hooks';
 
 import ManageRoleModal from './ManageRoleModal';
 
 export function ManageRoles(props: IProps): JSX.Element {
+  const classes = useStyles();
 
   const { data: profile, refetch: getUserProfileDetails } = sh.useGetUserProfileDetailsQuery();
 
@@ -38,7 +39,7 @@ export function ManageRoles(props: IProps): JSX.Element {
           }
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Edit</Typography>
-          <CreateIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
+          <CreateIcon className={classes.variableButtonIcon} />
         </Button>
       </Tooltip>
     ] : [];
@@ -55,7 +56,7 @@ export function ManageRoles(props: IProps): JSX.Element {
           void go();
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Delete</Typography>
-          <DeleteIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
+          <DeleteIcon className={classes.variableButtonIcon} />
         </Button>
       </Tooltip>
     ]
@@ -77,7 +78,7 @@ export function ManageRoles(props: IProps): JSX.Element {
           setDialog('manage_role')
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Create</Typography>
-          <GroupAddIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
+          <GroupAddIcon className={classes.variableButtonIcon} />
         </Button>
       </Tooltip>
       {!!selected.length && <Box sx={{ flexGrow: 1, textAlign: 'right' }}>{actions}</Box>}

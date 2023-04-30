@@ -13,7 +13,7 @@ const drawerWidth = 175;
 /**
  * @category Style
  */
-export const useStyles = makeStyles(({ spacing }: Theme) => ({
+export const useStyles = makeStyles((theme: Theme) => ({
 
   appLogo: { width: '64px' },
   logo: { width: '64px' },
@@ -55,9 +55,19 @@ export const useStyles = makeStyles(({ spacing }: Theme) => ({
 
   blueChecked: { '& .MuiSvgIcon-root': { color: 'lightblue' } },
 
-  chipRoot: { margin: spacing(1), height: '100%', display: 'flex', flexDirection: 'row' },
+  chipRoot: { margin: theme.spacing(1), height: '100%', display: 'flex', flexDirection: 'row' },
 
-  chipLabel: { overflowWrap: 'break-word', whiteSpace: 'normal', textOverflow: 'clip' }
+  chipLabel: { overflowWrap: 'break-word', whiteSpace: 'normal', textOverflow: 'clip' },
+  
+  variableButtonIcon: {
+    [theme.breakpoints.down('sm')]: {
+      fontSize: '24px',
+    },
+    [theme.breakpoints.up('md')]: {
+      marginTop: '-4px',
+      fontSize: '12px',
+    },
+  },
 
 }));
 

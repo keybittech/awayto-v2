@@ -17,7 +17,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import Logout from '@mui/icons-material/Logout';
 
 import { IGroup, IUserProfile, SiteRoles } from 'awayto/core';
-import { useAppSelector, useSecure, useGrid, sh, useUtil } from 'awayto/hooks';
+import { useAppSelector, useSecure, useGrid, sh, useUtil, useStyles } from 'awayto/hooks';
 
 import ManageGroupModal from './ManageGroupModal';
 import JoinGroupModal from './JoinGroupModal';
@@ -25,6 +25,8 @@ import JoinGroupModal from './JoinGroupModal';
 import keycloak from '../../keycloak';
 
 export function ManageGroups(props: IProps): JSX.Element {
+  const classes = useStyles();
+
   const [deleteGroup] = sh.useDeleteGroupMutation();
   const [leaveGroup] = sh.useLeaveGroupMutation();
 
@@ -59,7 +61,7 @@ export function ManageGroups(props: IProps): JSX.Element {
           });
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Leave</Typography>
-          <Logout sx={{ fontSize: { xs: '24px', md: '12px' } }} />
+          <Logout className={classes.variableButtonIcon} />
         </Button>
       </Tooltip>,
       gr && isOwner && hasRole([SiteRoles.APP_GROUP_ADMIN]) && <Tooltip key={'view_group_details'} title="Details">
@@ -67,7 +69,7 @@ export function ManageGroups(props: IProps): JSX.Element {
           navigate(`/group/${gr.name}/manage/users`)
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Details</Typography>
-          <ManageAccountsIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
+          <ManageAccountsIcon className={classes.variableButtonIcon} />
         </Button>
       </Tooltip>,
       isOwner && <Tooltip key={'manage_group'} title="Edit">
@@ -77,7 +79,7 @@ export function ManageGroups(props: IProps): JSX.Element {
           setSelected([]);
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Edit</Typography>
-          <CreateIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
+          <CreateIcon className={classes.variableButtonIcon} />
         </Button>
       </Tooltip>
     ] : [];
@@ -95,7 +97,7 @@ export function ManageGroups(props: IProps): JSX.Element {
           });
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Delete</Typography>
-          <DeleteIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
+          <DeleteIcon className={classes.variableButtonIcon} />
         </Button>
       </Tooltip>
     ];
@@ -119,7 +121,7 @@ export function ManageGroups(props: IProps): JSX.Element {
           setDialog('join_group');
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Join</Typography>
-          <DomainAddIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
+          <DomainAddIcon className={classes.variableButtonIcon} />
         </Button>
       </Tooltip>
       <Tooltip key={'create_group'} title="Create">
@@ -128,7 +130,7 @@ export function ManageGroups(props: IProps): JSX.Element {
           setDialog('create_group');
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Create</Typography>
-          <GroupAddIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
+          <GroupAddIcon className={classes.variableButtonIcon} />
         </Button>
       </Tooltip>
       {!!selected.length && <Box sx={{ flexGrow: 1, textAlign: 'right' }}>{actions}</Box>}

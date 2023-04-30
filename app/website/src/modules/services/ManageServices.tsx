@@ -13,11 +13,12 @@ import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import { IService } from 'awayto/core';
-import { useGrid, sh, useUtil } from 'awayto/hooks';
+import { useGrid, sh, useUtil, useStyles } from 'awayto/hooks';
 
 import ManageServiceModal from './ManageServiceModal';
 
 export function ManageServices(props: IProps): JSX.Element {
+  const classes = useStyles();
 
   const { groupName } = useParams();
   if (!groupName) return <></>;
@@ -43,7 +44,7 @@ export function ManageServices(props: IProps): JSX.Element {
           setSelected([]);
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Edit</Typography>
-          <CreateIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
+          <CreateIcon className={classes.variableButtonIcon} />
         </Button>
       </Tooltip>
     ] : [];
@@ -64,7 +65,7 @@ export function ManageServices(props: IProps): JSX.Element {
           });
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Delete</Typography>
-          <DeleteIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
+          <DeleteIcon className={classes.variableButtonIcon} />
         </Button>
       </Tooltip>
     ]
@@ -83,7 +84,7 @@ export function ManageServices(props: IProps): JSX.Element {
       <Tooltip key={'create_service'} title="Create">
         <Button onClick={() => navigate('/service')}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Create</Typography>
-          <DomainAddIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
+          <DomainAddIcon className={classes.variableButtonIcon} />
         </Button>
       </Tooltip>
       {!!selected.length && <Box sx={{ flexGrow: 1, textAlign: 'right' }}>{actions}</Box>}

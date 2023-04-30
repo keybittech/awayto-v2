@@ -13,11 +13,12 @@ import NoteAddIcon from '@mui/icons-material/NoteAdd';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import { IGroupForm } from 'awayto/core';
-import { sh, useGrid } from 'awayto/hooks';
+import { sh, useGrid, useStyles } from 'awayto/hooks';
 
 import ManageFormModal from './ManageFormModal';
 
 export function ManageForms(props: IProps): JSX.Element {
+  const classes = useStyles();
 
   const { groupName } = useParams();
   if (!groupName) return <></>;
@@ -39,7 +40,7 @@ export function ManageForms(props: IProps): JSX.Element {
           setSelected([]);
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Edit</Typography>
-          <CreateIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
+          <CreateIcon className={classes.variableButtonIcon} />
         </Button>
       </Tooltip> 
     ] : [];
@@ -56,7 +57,7 @@ export function ManageForms(props: IProps): JSX.Element {
           }
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Delete</Typography>
-          <DeleteIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
+          <DeleteIcon className={classes.variableButtonIcon} />
         </Button>
       </Tooltip>
     ]
@@ -79,7 +80,7 @@ export function ManageForms(props: IProps): JSX.Element {
         }}
         >
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Create</Typography>
-          <NoteAddIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
+          <NoteAddIcon className={classes.variableButtonIcon} />
         </Button>
       </Tooltip>
       {!!selected.length && <Box sx={{ flexGrow: 1, textAlign: 'right' }}>{actions}</Box>}

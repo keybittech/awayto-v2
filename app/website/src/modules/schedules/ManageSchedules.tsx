@@ -12,13 +12,14 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import MoreTimeIcon from '@mui/icons-material/MoreTime';
 
 import { ISchedule } from 'awayto/core';
-import { useComponents, useGrid, sh, useUtil } from 'awayto/hooks';
+import { useComponents, useGrid, sh, useUtil, useStyles } from 'awayto/hooks';
 
 import ManageSchedulesModal from './ManageSchedulesModal';
 import { useParams } from 'react-router';
 
 // This is how group owners interact with the schedule
 export function ManageSchedules(props: IProps): JSX.Element {
+  const classes = useStyles();
 
   const { groupName } = useParams();
   if (!groupName) return <></>;
@@ -44,7 +45,7 @@ export function ManageSchedules(props: IProps): JSX.Element {
           setSelected([]);
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Edit</Typography>
-          <CreateIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
+          <CreateIcon className={classes.variableButtonIcon} />
         </Button>
       </Tooltip>
     ] : [];
@@ -64,7 +65,7 @@ export function ManageSchedules(props: IProps): JSX.Element {
           });
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Delete</Typography>
-          <DeleteIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
+          <DeleteIcon className={classes.variableButtonIcon} />
         </Button>
       </Tooltip>
     ]
@@ -86,7 +87,7 @@ export function ManageSchedules(props: IProps): JSX.Element {
           setDialog('manage_schedule')
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Create</Typography>
-          <MoreTimeIcon sx={{ fontSize: { xs: '24px', md: '12px' } }} />
+          <MoreTimeIcon className={classes.variableButtonIcon} />
         </Button>
       </Tooltip>
       {!!selected.length && <Box sx={{ flexGrow: 1, textAlign: 'right' }}>{actions}</Box>}
