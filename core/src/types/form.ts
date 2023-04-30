@@ -11,7 +11,8 @@ export type IField = Record<string, string | boolean> & {
   l: string; // label
   v?: string; // value
   h?: string; // helperText
-  t?: string; // type
+  x?: string; // text
+  t?: string; // input type
   d?: string; // defaultValue
   r?: boolean; // required
 };
@@ -80,7 +81,7 @@ const formApi = {
     url: 'forms/:formId/versions',
     method: 'POST',
     opts: {} as ApiOptions,
-    queryArg: { version: {} as IFormVersion },
+    queryArg: {  name: '' as string, version: {} as IFormVersion },
     resultType: {} as IFormVersion
   },
   putForm: {
@@ -141,7 +142,7 @@ const formApiHandlers: ApiHandler<typeof formApi> = {
   },
 
   postFormVersion: async (props) => {
-    const { version } = props.event.body;
+    const { version, name } = props.event.body;
     const { formId } = props.event.pathParameters;
     const { id: versionId } = await props.tx.one<{ id: string }>(`
       INSERT INTO dbtable_schema.form_versions (form_id, form, created_on, created_sub)
@@ -151,6 +152,7 @@ const formApiHandlers: ApiHandler<typeof formApi> = {
 
     const updateProps = buildUpdate({
       id: formId,
+      name,
       updated_on: utcNowString(),
       updated_sub: props.event.userSub
     });

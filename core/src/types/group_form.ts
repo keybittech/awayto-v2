@@ -29,10 +29,10 @@ const groupFormApi = {
   },
   postGroupFormVersion: {
     kind: EndpointType.MUTATION,
-    url: 'group/:groupName/forms/:id',
+    url: 'group/:groupName/forms/:formId',
     method: 'POST',
     opts: {} as ApiOptions,
-    queryArg: {} as IGroupForm,
+    queryArg: { formId: '' as string, groupName: '' as string, name: '' as string, version: {} as IFormVersion } as IGroupForm,
     resultType: [] as IGroupForm[]
   },
   putGroupForm: {
@@ -76,8 +76,6 @@ const groupFormApiHandlers: ApiHandler<typeof groupFormApi> = {
   postGroupForm: async props => {
     const { groupName } = props.event.pathParameters;
 
-    console.log('in gorup post form', groupName);
-
     const { id: groupId } = await props.tx.one<IGroup>(`
       SELECT id
       FROM dbview_schema.enabled_groups
@@ -117,7 +115,6 @@ const groupFormApiHandlers: ApiHandler<typeof groupFormApi> = {
       INSERT INTO dbtable_schema.group_forms (group_id, form_id, created_sub)
       VALUES ($1::uuid, $2::uuid, $3::uuid)
       ON CONFLICT (group_id, form_id) DO NOTHING
-      RETURNING id
     `, [groupId, form.id, groupSub]);
 
     await props.redis.del(`${props.event.userSub}group/${groupName}/forms`);
@@ -125,7 +122,7 @@ const groupFormApiHandlers: ApiHandler<typeof groupFormApi> = {
     return [form];
   },
   postGroupFormVersion: async props => {
-    const { id: formId, groupName } = props.event.pathParameters;
+    const { formId, groupName } = props.event.pathParameters;
     const form = props.event.body;
 
     form.version = await siteApiHandlerRef.postFormVersion(props) as IFormVersion;

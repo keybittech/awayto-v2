@@ -10,7 +10,7 @@ import CardActions from '@mui/material/CardActions';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 
-import { IForm, IFormVersion, IField, IGroupForm } from 'awayto/core';
+import { IForm, IFormVersion, IField, IGroupForm, deepClone } from 'awayto/core';
 import { useComponents, sh, useUtil } from 'awayto/hooks';
 
 declare global {
@@ -47,8 +47,10 @@ export function ManageFormModal({ editForm, closeModal, ...props }: IProps): JSX
   }, [editForm]);
 
   useEffect(() => {
-    if (form.version && Object.keys(form.version).length) {
-      const vers = form.version;
+    const formClone = deepClone(form);
+    if (formClone.version && Object.keys(formClone.version).length) {
+
+      const vers = formClone.version;
 
       Object.keys(vers.form).forEach(k => {
         vers.form[k].forEach(f => {
@@ -58,7 +60,7 @@ export function ManageFormModal({ editForm, closeModal, ...props }: IProps): JSX
         });
       });
 
-      setVersion(form.version);
+      setVersion(formClone.version);
     }
   }, [form]);
 
@@ -88,7 +90,6 @@ export function ManageFormModal({ editForm, closeModal, ...props }: IProps): JSX
     }, {});
 
     const formVersion = {
-      id,
       name,
       version: {
         form: newForm,
@@ -96,7 +97,7 @@ export function ManageFormModal({ editForm, closeModal, ...props }: IProps): JSX
       }
     } as IForm;
 
-    (id ? postGroupFormVersion : postGroupForm)((id ? { ...formVersion, formId: id, groupName } : { ...formVersion, groupName }) as IGroupForm).unwrap().then(() => closeModal && closeModal()).catch(console.error);
+    (id ? postGroupFormVersion : postGroupForm)((id ? { ...formVersion, groupName, formId: id } : { ...formVersion, groupName }) as IGroupForm).unwrap().then(() => closeModal && closeModal()).catch(console.error);
   }, [form, version.form]);
 
   return <Card sx={{ display: 'flex', flex: 1, flexDirection: 'column' }}>

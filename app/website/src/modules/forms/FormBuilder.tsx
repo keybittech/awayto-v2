@@ -85,7 +85,7 @@ import MenuItem from '@mui/material/MenuItem';
 
 
 
-import { IField, IFormVersion } from 'awayto/core';
+import { IField, IFormVersion, deepClone } from 'awayto/core';
 
 import Field from './Field';
 
@@ -137,9 +137,25 @@ export default function FormBuilder({ version, setVersion, editable = true }: IP
   const makeField = useCallback((): IField => ({ l: '', t: 'text', h: '', r: false, v: '', x: '' }), []);
 
   const setCellAttr = useCallback((value: string, attr: string) => {
-    rows[position.row][position.col][attr] = value;
-    setRows({ ...rows })
-  }, [rows, position]);
+    if (cell && Object.keys(cell).length) {
+      const newCell = {
+        ...cell,
+        [attr]: value
+      };
+
+      setCell(newCell);
+      setRows((oldRows) => {
+        if (oldRows && position && position.row !== undefined && position.col !== undefined) {
+          const newRows = deepClone(oldRows);
+          if (newRows[position.row] && newRows[position.row][position.col]) {
+            newRows[position.row][position.col] = newCell;
+          }
+          return newRows;
+        }
+        return oldRows;
+      });
+    }
+  }, [rows, cell]);  
 
   return <Grid container spacing={2}>
 

@@ -94,6 +94,26 @@ export function throttle<T extends unknown[]>(func: ThrottleFunction<T>, limit: 
   };
 }
 
+export function deepClone<T>(obj: T): T {
+  if (obj === null || typeof obj !== 'object') {
+    return obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map((item) => deepClone(item) as T) as unknown as T;
+  }
+
+  const result: Record<string, unknown> = {};
+
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      result[key] = deepClone((obj as Record<string, unknown>)[key]);
+    }
+  }
+
+  return result as T;
+}
+
 export function getMapFromArray<T extends { id: string }>(state: Map<string, T>, payload: T[]): Map<string, T> {
   return payload.reduce((m, d) => {
     m.set(d.id, { ...m.get(d.id), ...d });

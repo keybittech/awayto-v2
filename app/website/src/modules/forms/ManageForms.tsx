@@ -14,7 +14,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 import { DataGrid } from '@mui/x-data-grid';
 
-import { IGroupForm } from 'awayto/core';
+import { AnyRecord, IGroupForm } from 'awayto/core';
 import { sh, useGrid, useStyles } from 'awayto/hooks';
 
 import ManageFormModal from './ManageFormModal';
