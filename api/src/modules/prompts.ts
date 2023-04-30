@@ -1,28 +1,59 @@
 import { IPrompts, injectPrompts } from '@keybittech/wizapp/dist/lib';
 import { injectResponseValidators } from '@keybittech/wizapp/dist/server'
 
+declare module '@keybittech/wizapp/dist/lib' {
+  export enum IPrompts {
+    // new prompts here
+    // NEW_PROMPT = 'new_prompt'
+  }
+}
+
+const customSuggestion = 'You generate 3 to 5 suggestions following a common format. Some examples: Kite Ball|Library Card|Carrot Cake|Pogs|Dog; Red|Green|Blue|Yellow|Orange; First Place|Second Chance|Third Rock|Fourth Meal|Fifth of Vodka. You ensure all lists are basic, without numbering, etc; just words and pipe symbols.';
+
 injectPrompts({
   [IPrompts.SUGGEST_ROLE]: [
     {
       role: 'system',
-      content: 'You generate 5 suggestions following a common format. Some examples: Kite Ball|Library Card|Carrot Cake|Pogs|Dog; Red|Green|Blue|Yellow|Orange; First Place|Second Chance|Third Rock|Fourth Meal|Fifth of Vodka. You ensure all lists are basic, without numbering, etc; just words and pipe symbols.'
+      content: customSuggestion
     },
+    { role: 'user', content: 'role names for a group named writing center which is interested in consulting on writing' },
+    { role: 'assistant', content: 'Tutor|Student|Advisor|Administrator|Consultant' },
+    { role: 'user', content: 'role names for a group named city maintenance department which is interested in maintaining the facilities in the city' },
+    { role: 'assistant', content: 'Dispatcher|Engineer|Administrator|Technician|Manager' },
+    { role: 'user', content: 'role names for a group named ${prompt1} which is interested in ${prompt2}' }
+  ],
+  [IPrompts.SUGGEST_SERVICE]: [
     {
-      role: 'assistant',
-      content: '5 role names for a group named ${prompt1} which is interested in ${prompt2}, are: '
-    }
+      role: 'system',
+      content: customSuggestion
+    },
+    { role: 'user', content: 'gerund verbs performed for the purpose of offering educational services to community college students' },
+    { role: 'assistant', content: 'Tutoring|Advising|Consulting|Instruction|Mentoring' },
+    { role: 'user', content: 'gerund verbs performed for the purpose of providing banking services to the local area' },
+    { role: 'assistant', content: 'Accounting|Financing|Securities|Financial Planning|Investing' },
+    { role: 'user', content: 'gerund verbs performed for the purpose of ${prompt1}' }
+  ],
+  [IPrompts.SUGGEST_TIER]: [
+    {
+      role: 'system',
+      content: customSuggestion
+    },
+    { role: 'user', content: 'service level names for a generic service' },
+    { role: 'assistant', content: 'Small|Medium|Large' },
+    { role: 'user', content: 'service level names for writing tutoring at a school writing center' },
+    { role: 'assistant', content: 'WRI 1010|WRI 1020|WRI 2010|WRI 2020|WRI 3010' },
+    { role: 'user', content: 'service level names for streaming at a web media platform' },
+    { role: 'assistant', content: 'Basic|Standard|Premium' },
+    { role: 'user', content: 'service level names for advising at a school learning center' },
+    { role: 'assistant', content: 'ENG 1010|WRI 1010|MAT 1010|SCI 1010|HIS 1010' },
+    { role: 'user', content: 'service level names for travelling on an airline service' },
+    { role: 'assistant', content: 'Economy|Business|First Class' },
+    { role: 'user', content: 'service level names for reading tutoring at a school reading center' },
+    { role: 'assistant', content: 'ESL 900|ESL 990|ENG 1010|ENG 1020|ENG 2010' },
+    { role: 'user', content: 'service level names for ${prompt1}'}
   ]
 });
 
 injectResponseValidators([
   obj => 'string' === typeof obj && obj.indexOf('|') > -1
 ]);
-
-
-// [
-//   { role: "system", content: "I, DelimitedOptions, will provide 5 options delimited by |." },
-//   { role: "assistant", content: `Simply provide your desired prompt, and I'll fill in the result!
-//   Here are some examples: ${suggestRoleMessagesOld}
-//   Provide the following text "Prompt: <some prompt> Result:" and I will complete the result.` },
-//   { role: "user", content: generateExample('role names for a group named "${prompt1}" which is interested in ${prompt2}') }
-// ];
