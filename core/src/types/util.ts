@@ -27,43 +27,44 @@ export type IUtil = {
   theme: 'light' | 'dark';
 }
 
+type UtilPayload = [
+  state: IUtil,
+  action: { payload: Partial<IUtil> }
+]
+
 export const utilConfig = {
   name: 'util',
   initialState: {
     snackOn: '',
     isLoading: false,
     loadingMessage: '',
-    isConfirming: false,
-    canSubmitAssignments: true
+    isConfirming: false
   } as IUtil,
   reducers: {
-    setTheme: (state: IUtil, action: { payload: Pick<IUtil, 'theme'> }) => {
-      const { theme } = action.payload;
-      state.theme = theme;
+    setTheme: (...[state, { payload: { theme }}]: UtilPayload) => {
+      if (theme) {
+        state.theme = theme;
+      }
     },
-    openConfirm: (state: IUtil, action: { payload: Pick<IUtil, 'isConfirming' | 'confirmEffect' | 'confirmSideEffect' | 'confirmAction'> }) => {
-      state.isConfirming = true;
-      state.confirmEffect = action.payload.confirmEffect;
-      state.confirmSideEffect = action.payload.confirmSideEffect;
-      state.confirmAction = action.payload.confirmAction;
+    openConfirm: (...[state, { payload: { confirmEffect, confirmSideEffect, confirmAction }}]: UtilPayload) => {
+      if (confirmEffect && confirmAction) {
+        state.isConfirming = true;
+        state.confirmEffect = confirmEffect;
+        state.confirmSideEffect = confirmSideEffect;
+        state.confirmAction = confirmAction;
+      }
     },
-    closeConfirm: (state: IUtil) => {
+    closeConfirm: (...[state]: UtilPayload) => {
       state.isConfirming = false;
     },
-    setLoading: (state: IUtil, action: { payload: { isLoading: boolean, loadingMessage?: string } }) => {
-      state.isLoading = action.payload.isLoading;
-      state.loadingMessage = action.payload.loadingMessage || '';
+    setLoading: (...[state, { payload: { isLoading, loadingMessage }}]: UtilPayload) => {
+      state.isLoading = isLoading || !state.isLoading;
+      state.loadingMessage = loadingMessage || '';
     },
-    setSnack: (state: IUtil, action: { payload: Partial<Pick<IUtil, 'snackOn' | 'snackType' | 'snackRequestId'>> }) => {
+    setSnack: (...[state, action]: UtilPayload) => {
       state.snackOn = action.payload.snackOn || '';
       state.snackType = action.payload.snackType || 'info';
       state.snackRequestId = action.payload.snackRequestId || '';
-    },
-    apiError: (state: IUtil, action: { payload: Pick<IUtil, 'error'> }) => {
-      state.snackOn = action.payload.error.message;
-    },
-    setUpdateAssignments: (state: IUtil, action: { payload: Pick<IUtil, 'canSubmitAssignments'> }) => {
-      state.canSubmitAssignments = action.payload.canSubmitAssignments;
-    },
+    }
   },
-} as const;
+};

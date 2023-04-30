@@ -26,7 +26,7 @@ export function ConfirmAction(): JSX.Element {
               <CardActionArea sx={{ height: '100%', padding: '50px' }} onClick={() => {
                 async function go() {
                   await util.confirmAction(true);
-                  closeConfirm();
+                  closeConfirm({});
                 }
                 void go();
               }}>
@@ -45,7 +45,7 @@ export function ConfirmAction(): JSX.Element {
               <CardActionArea sx={{ height: '100%', padding: '50px' }} onClick={() => {
                 async function go() {
                   await util.confirmAction(false);
-                  closeConfirm();
+                  closeConfirm({});
                 }
                 void go();
               }}>
@@ -57,7 +57,7 @@ export function ConfirmAction(): JSX.Element {
             </Grid>}
           </Grid>
           <CardActions>
-            <Button onClick={() => { closeConfirm(); }}>Cancel</Button>
+            <Button onClick={() => { closeConfirm({}); }}>Cancel</Button>
           </CardActions>
         </Card>
       </Dialog>

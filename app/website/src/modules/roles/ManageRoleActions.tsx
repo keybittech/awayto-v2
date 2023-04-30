@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import Card from '@mui/material/Card';
 import Box from '@mui/material/Box';
@@ -7,7 +7,7 @@ import Grid from '@mui/material/Grid';
 import CardActionArea from '@mui/material/CardActionArea';
 import Checkbox from '@mui/material/Checkbox';
 
-import { GridColDef } from '@mui/x-data-grid';
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
 
 import { SiteRoles, IGroupRoleAuthActions } from 'awayto/core';
 import { useGrid, useAppSelector, sh, useUtil } from 'awayto/hooks';
@@ -17,16 +17,16 @@ export function ManageRoleActions(): JSX.Element {
   const { groupName } = useParams();
   if (!groupName) return <></>;
 
-  const { setSnack, setUpdateAssignments } = useUtil();
+  const { setSnack } = useUtil();
   const [putAssignments] = sh.usePutGroupAssignmentsMutation();
 
-  const { data: availableGroupAssignments } = sh.useGetGroupAssignmentsQuery({ groupName })
+  const { data: availableGroupAssignments } = sh.useGetGroupAssignmentsQuery({ groupName });
 
   const { data: profile } = sh.useGetUserProfileDetailsQuery();
 
-  const { canSubmitAssignments } = useAppSelector(state => state.util);
-  
   const [assignments, setAssignments] = useState(availableGroupAssignments || {});
+
+  useEffect(() => availableGroupAssignments && setAssignments(availableGroupAssignments), [availableGroupAssignments]);
 
   const groupsValues = useMemo(() => Object.values(profile?.groups || {}), [profile]);
 
@@ -37,15 +37,9 @@ export function ManageRoleActions(): JSX.Element {
   }, [assignments]);
 
   const handleSubmit = useCallback(() => {
-    try {
-      setUpdateAssignments({ canSubmitAssignments: false });
-      putAssignments({ groupName, assignments }).unwrap().then(() => {
-        setSnack({ snackType: 'success', snackOn: 'Assignments can be updated again in 1 minute.' });
-        setTimeout(() => setUpdateAssignments({ canSubmitAssignments: true }), 58 * 1000);
-      }).catch(console.error);
-    } catch (error) {
-      setUpdateAssignments({ canSubmitAssignments: true });
-    }
+    putAssignments({ groupName, assignments }).unwrap().then(() => {
+      setSnack({ snackType: 'success', snackOn: 'Assignments can be updated again in 1 minute.' });
+    }).catch(console.error);
   }, [groupName, assignments]);
 
   const columns = useMemo(() => {
@@ -63,10 +57,12 @@ export function ManageRoleActions(): JSX.Element {
             minWidth: 75,
             headerName: name,
             field: name,
-            renderCell: ({ row }) => <Checkbox
-              checked={assignments[subgroup] ? assignments[subgroup].actions.some(a => a.name === row.name) : false}
-              onChange={e => handleCheck(subgroup, row.name, e.target.checked)}
-            />
+            renderCell: ({ row }) => {
+              return <Checkbox
+                checked={assignments[subgroup] ? assignments[subgroup].actions.some(a => a.name === row.name) : false}
+                onChange={e => handleCheck(subgroup, row.name, e.target.checked)}
+              />
+            } 
           });
         }
         
@@ -78,7 +74,7 @@ export function ManageRoleActions(): JSX.Element {
 
   const options = useMemo(() => Object.values(SiteRoles).filter(r => ![SiteRoles.APP_ROLE_CALL, SiteRoles.APP_GROUP_ADMIN].includes(r)).map((name, id) => ({ id, name })), []);
 
-  const RoleActionGrid = useGrid({
+  const roleActionGridProps = useGrid({
     rows: options,
     columns,
     noPagination: true
@@ -89,7 +85,7 @@ export function ManageRoleActions(): JSX.Element {
     <Grid container>
       <Grid item mb={2} xs={12}>
         <Card>
-          <CardActionArea disabled={!canSubmitAssignments} onClick={handleSubmit}>
+          <CardActionArea onClick={handleSubmit}>
             <Grid container direction="row" justifyContent="space-between">
               <Grid item>
                 <Box m={2}>
@@ -107,7 +103,7 @@ export function ManageRoleActions(): JSX.Element {
       </Grid>
     </Grid>
 
-    <RoleActionGrid />
+    <DataGrid {...roleActionGridProps} />
 
   </>
 }

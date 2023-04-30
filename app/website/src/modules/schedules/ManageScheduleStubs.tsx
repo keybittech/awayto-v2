@@ -9,6 +9,8 @@ import Tooltip from '@mui/material/Tooltip';
 
 import CreateIcon from '@mui/icons-material/Create';
 
+import { DataGrid } from '@mui/x-data-grid';
+
 import { IGroupUserScheduleStub, shortNSweet } from 'awayto/core';
 import { useGrid, sh } from 'awayto/hooks';
 
@@ -44,7 +46,7 @@ export function ManageSchedules(props: IProps): JSX.Element {
     ] : []
   }, [selected, groupName]);
 
-  const ScheduleStubGrid = useGrid({
+  const scheduleStubGridProps = useGrid({
     rows: stubs || [],
     columns: [
       { flex: 1, headerName: 'Date', field: 'slotDate', renderCell: ({ row }) => shortNSweet(row.slotDate, row.startTime) },
@@ -71,7 +73,7 @@ export function ManageSchedules(props: IProps): JSX.Element {
       </Suspense>
     </Dialog>
 
-    <ScheduleStubGrid />
+    <DataGrid {...scheduleStubGridProps} />
   </>
 }
 

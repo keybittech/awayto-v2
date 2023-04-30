@@ -8,6 +8,8 @@ import Dialog from '@mui/material/Dialog';
 
 import CreateIcon from '@mui/icons-material/Create';
 
+import { DataGrid } from '@mui/x-data-grid';
+
 import { IGroupUser, IActionTypes, IGroupRole } from 'awayto/core';
 import { sh, useGrid } from 'awayto/hooks';
 
@@ -50,7 +52,7 @@ export function ManageUsers(props: IProps): JSX.Element {
     ];
   }, [selected]);
 
-  const UserGrid = useGrid<IGroupUser>({
+  const userGridProps = useGrid<IGroupUser>({
     rows: groupUsers || [],
     columns: [
       { flex: 1, headerName: 'Username', field: 'username' },
@@ -74,7 +76,7 @@ export function ManageUsers(props: IProps): JSX.Element {
       </Suspense>
     </Dialog>
     
-    <UserGrid />
+    <DataGrid {...userGridProps} />
   </>
 }
 

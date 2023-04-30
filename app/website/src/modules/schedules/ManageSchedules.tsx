@@ -11,6 +11,8 @@ import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MoreTimeIcon from '@mui/icons-material/MoreTime';
 
+import { DataGrid } from '@mui/x-data-grid';
+
 import { ISchedule } from 'awayto/core';
 import { useComponents, useGrid, sh, useUtil, useStyles } from 'awayto/hooks';
 
@@ -71,7 +73,7 @@ export function ManageSchedules(props: IProps): JSX.Element {
     ]
   }, [selected, groupName]);
 
-  const ScheduleGrid = useGrid({
+  const scheduleGridProps = useGrid({
     rows: groupSchedules || [],
     columns: [
       { flex: 1, headerName: 'Name', field: 'name' },
@@ -105,7 +107,7 @@ export function ManageSchedules(props: IProps): JSX.Element {
     </Dialog>
 
     <Box mb={2}>
-      <ScheduleGrid />
+      <DataGrid {...scheduleGridProps} />
     </Box>
 
     <Box mb={2}>

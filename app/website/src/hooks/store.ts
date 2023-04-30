@@ -5,13 +5,11 @@ import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import { fetchBaseQuery, SkipToken } from '@reduxjs/toolkit/dist/query';
 import { configureStore, AnyAction, createSlice, Middleware, Reducer, Store, ThunkDispatch } from '@reduxjs/toolkit';
 import { createApi, setupListeners } from '@reduxjs/toolkit/query/react';
-
-import { QueryDefinition, MutationDefinition, QueryLifecycleApi } from '@reduxjs/toolkit/dist/query/endpointDefinitions';
+import { RootState as ApiRootState } from '@reduxjs/toolkit/dist/query/core/apiState';
+import { QueryArgFrom, ResultTypeFrom, EndpointDefinition, QueryDefinition, MutationDefinition, QueryLifecycleApi, EndpointDefinitions } from '@reduxjs/toolkit/dist/query/endpointDefinitions';
 import { MutationTrigger, LazyQueryTrigger, UseLazyQueryLastPromiseInfo, UseQuery, UseLazyQuery, UseMutation } from '@reduxjs/toolkit/dist/query/react/buildHooks';
 
 import { EndpointType, RemoveNever, ReplaceVoid, siteApiRef, SiteApiRef, utilConfig } from 'awayto/core';
-
-import { QueryArgFrom, ResultTypeFrom } from '@reduxjs/toolkit/dist/query/endpointDefinitions';
 
 export const getQueryAuth = fetchBaseQuery({
   baseUrl: '/api',
@@ -27,6 +25,7 @@ export const getQueryAuth = fetchBaseQuery({
 export type SiteBaseEndpoint = typeof getQueryAuth;
 export type SiteQuery<TQueryArg, TResultType> = QueryDefinition<TQueryArg, SiteBaseEndpoint, 'Root', TResultType, 'api'>;
 export type SiteMutation<TQueryArg, TResultType> = MutationDefinition<TQueryArg, SiteBaseEndpoint, 'Root', TResultType, 'api'>;
+export type SiteEndpointDefinition<T> = T extends { queryArg: infer QA, resultType: infer RT } ? T extends { kind: EndpointType.QUERY } ? SiteQuery<QA, RT> : SiteMutation<QA, RT> : never;
 
 export type { MutationTrigger };
 /**
@@ -157,6 +156,16 @@ type EndpointInfo<T> = {
 
 type EndpointQuery<T> = (args: T) => string | { url: string; method: string; body: T };
 
+type SiteEndpointDefinitions<T extends Record<string, any>> = {
+  [K in keyof T]: EndpointDefinition<
+    T[K]['queryArg'],
+    T[K]['opts']['baseQuery'],
+    string, // or T[K]['tagTypes'] if it exists in the original definition
+    T[K]['resultType'],
+    string // or T[K]['reducerPath'] if it exists in the original definition
+  >
+};
+
 export const utilSlice = createSlice(utilConfig);
 
 let currentlyLoading = 0;
@@ -164,26 +173,21 @@ let currentlyLoading = 0;
 // Store Hooks
 export const sh = createApi({
   baseQuery: getQueryAuth,
-  endpoints: builder => Object.keys(siteApiRef).reduce((m, endpointName) => {
+  endpoints: builder => Object.keys(siteApiRef).reduce<EndpointDefinitions>((m, endpointName) => {
     const endpointKey = endpointName as keyof SiteApiRef;
     type BuiltEndpoint = typeof siteApiRef[typeof endpointKey];
 
     const ep = siteApiRef[endpointName as keyof SiteApiRef] as BuiltEndpoint;
     const { method, queryArg, resultType, url, opts } = ep;
-
+  
     const kind = ep.kind as EndpointType;
-
+  
     type EPQueryArg = typeof queryArg;
     type EPResultType = typeof resultType;
 
     const builderPayload: {
       query: EndpointQuery<EPQueryArg>;
-      onQueryStarted?(
-        arg: typeof queryArg,
-        {
-          queryFulfilled
-        }: Pick<QueryLifecycleApi<typeof queryArg, SiteBaseEndpoint, typeof resultType>, 'queryFulfilled'>
-      ): Promise<void>;
+      onQueryStarted(arg: EPQueryArg, { queryFulfilled }: Pick<QueryLifecycleApi<EPQueryArg, SiteBaseEndpoint, typeof resultType>, 'queryFulfilled'>): Promise<void>;
     } = {
       query: ((args: EPQueryArg) => {
         const processedUrl = url.replace(/:(\w+)/g, (_, key) => args[key as keyof EPQueryArg]);
@@ -198,11 +202,11 @@ export const sh = createApi({
             store.dispatch(utilSlice.actions.setLoading({ isLoading: true }));
           }
           currentlyLoading++;
-
+  
           try {
             await queryFulfilled;
           } catch { }
-
+  
           currentlyLoading--;
           if (currentlyLoading === 0) {
             store.dispatch(utilSlice.actions.setLoading({ isLoading: false }));
@@ -210,17 +214,29 @@ export const sh = createApi({
         }
       }
     };
-
+  
     return {
       ...m,
       [endpointName]: kind === EndpointType.QUERY ?
         builder.query<EPResultType, EPQueryArg>(builderPayload) :
         builder.mutation<EPResultType, EPQueryArg>(builderPayload),
     };
-  }, {})
+  }, {} as EndpointDefinitions)
 }) as RemoveNever<EndpointInfo<SiteApiRef>> & ReturnType<typeof createApi>;
 
 console.log({ loadedup: Object.keys(sh) });
+
+export const customErrorMiddleware: Middleware = (storeApi) => (next) => (action: { type: string, payload: { data: { reason: string } } }) => {
+  if (action.type.endsWith('/rejected')) {
+    const { data } = action.payload;
+
+    if (data && data.reason) {
+      storeApi.dispatch(utilSlice.actions.setSnack({ snackOn: data.reason, snackType: 'error' }));
+    }
+  }
+
+  return next(action);
+};
 
 export const store = configureStore({
   reducer: {
@@ -229,6 +245,7 @@ export const store = configureStore({
   },
   middleware: getDefaultMiddleware => getDefaultMiddleware().concat(
     sh.middleware as Middleware,
+    customErrorMiddleware,
     thunk,
     logger
   )
@@ -249,7 +266,7 @@ export const useAppDispatch: () => AppDispatch = useDispatch;
 /**
 * @category Awayto Redux
 */
-export interface RootState extends ReturnType<typeof store.getState> { }
+export interface RootState extends ReturnType<typeof store.getState>, ApiRootState<SiteEndpointDefinitions<typeof siteApiRef>, 'Root', 'api'> { }
 
 /**
 * @category Awayto Redux

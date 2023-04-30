@@ -3,6 +3,7 @@ import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
+import { DataGrid } from '@mui/x-data-grid';
 
 import { sh, useGrid } from 'awayto/hooks';
 
@@ -27,7 +28,7 @@ export function FileManager(): JSX.Element {
     ];
   }, [selected]);
 
-  const FileGrid = useGrid({
+  const fileGridProps = useGrid({
     rows: files || [],
     columns: [
       { flex: 1, headerName: 'Name', field: 'name' },
@@ -73,7 +74,7 @@ export function FileManager(): JSX.Element {
 
     <Card>
       <CardContent>
-        <FileGrid />
+        <DataGrid {...fileGridProps} />
       </CardContent>
     </Card>
   </>

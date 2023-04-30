@@ -8,6 +8,8 @@ import Tooltip from '@mui/material/Tooltip';
 import ApprovalIcon from '@mui/icons-material/Approval';
 import DoNotDisturbIcon from '@mui/icons-material/DoNotDisturb';
 
+import { DataGrid } from '@mui/x-data-grid';
+
 import { IQuote, utcDTLocal, shortNSweet } from 'awayto/core';
 import { useGrid } from 'awayto/hooks';
 import { PendingQuotesContext, PendingQuotesContextType } from './PendingQuotesContext';
@@ -43,7 +45,7 @@ function QuoteHome(): JSX.Element {
     ]
   }, [selectedPendingQuotes]);
 
-  const QuoteGrid = useGrid<IQuote>({
+  const quoteGridProps = useGrid<IQuote>({
     rows: pendingQuotes,
     columns: [
       { flex: 1, headerName: 'Booking Slot', field: 'slotDate', renderCell: ({ row }) => shortNSweet(row.slotDate, row.startTime) },
@@ -58,7 +60,7 @@ function QuoteHome(): JSX.Element {
       {!!selectedPendingQuotes.length && <Box sx={{ flexGrow: 1, textAlign: 'right' }}>{actions}</Box>}
     </>
   });
-  return <QuoteGrid />
+  return <DataGrid {...quoteGridProps} />
 }
 
 export default QuoteHome;

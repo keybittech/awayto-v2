@@ -11,6 +11,8 @@ import CreateIcon from '@mui/icons-material/Create';
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import DeleteIcon from '@mui/icons-material/Delete';
 
+import { DataGrid } from '@mui/x-data-grid';
+
 import { IRole } from 'awayto/core';
 import { sh, useGrid, useStyles } from 'awayto/hooks';
 
@@ -62,7 +64,7 @@ export function ManageRoles(props: IProps): JSX.Element {
     ]
   }, [selected]);
 
-  const RoleGrid = useGrid({
+  const roleGridProps = useGrid({
     rows: Object.values(profile?.roles || {}),
     columns: [
       { flex: 1, headerName: 'Name', field: 'name' },
@@ -95,7 +97,7 @@ export function ManageRoles(props: IProps): JSX.Element {
       </Suspense>
     </Dialog>
 
-    <RoleGrid />
+    <DataGrid {...roleGridProps} />
   </>
 }
 

@@ -155,7 +155,7 @@ async function go() {
 
     // default protected route /test
     app.get('/api/join/:groupCode', async (req, res) => {
-      if (await rateLimitResource(req.body.ipAddress, 'group/register', 10, 'minute')) {
+      if (await rateLimitResource(req.body.ipAddress, 'group/register')) {
         return res.status(429).send({ reason: 'Rate limit exceeded. Try again in a minute.' });
       }
 
@@ -271,7 +271,7 @@ async function go() {
     });
 
     for (const apiRefId in siteApiRef) {
-      const { method, url, queryArg, resultType, kind, opts: { cache } } = siteApiRef[apiRefId as keyof typeof siteApiRef];
+      const { method, url, queryArg, resultType, kind, opts: { cache, throttle } } = siteApiRef[apiRefId as keyof typeof siteApiRef];
 
       // Here we make use of the extra /api from the reverse proxy
       app[method.toLowerCase() as keyof Express](`/api/${url.split('?')[0]}`, checkAuthenticated, validateRequestBody(queryArg, url), async (req: Request & { headers: { authorization: string } }, res: Response) => {
@@ -279,7 +279,13 @@ async function go() {
         const requestId = uuid();
         const user = req.user as StrategyUser;
 
-        if (await rateLimitResource(user.sub, 'api', 10)) { // limit n general api requests per second
+        if (throttle) {
+          if (await rateLimitResource(user.sub, `${method}/${url}`, 1, throttle)) {
+            return res.status(429).send({ reason: 'You must wait ' + throttle + ' seconds.', requestId });
+          }
+        }
+
+        if (await rateLimitResource(user.sub, 'api')) { // limit n general api requests per second
           return res.status(429).send({ reason: 'Rate limit exceeded.', requestId });
         }
 

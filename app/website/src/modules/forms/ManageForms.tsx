@@ -12,6 +12,8 @@ import CreateIcon from '@mui/icons-material/Create';
 import NoteAddIcon from '@mui/icons-material/NoteAdd';
 import DeleteIcon from '@mui/icons-material/Delete';
 
+import { DataGrid } from '@mui/x-data-grid';
+
 import { IGroupForm } from 'awayto/core';
 import { sh, useGrid, useStyles } from 'awayto/hooks';
 
@@ -63,7 +65,7 @@ export function ManageForms(props: IProps): JSX.Element {
     ]
   }, [selected]);
 
-  const FormGrid = useGrid<IGroupForm>({
+  const formGridProps = useGrid<IGroupForm>({
     rows: groupForms || [],
     columns: [
       { flex: 1, headerName: 'Name', field: 'name' },
@@ -97,7 +99,7 @@ export function ManageForms(props: IProps): JSX.Element {
       </Suspense>
     </Dialog>
 
-    <FormGrid />
+    <DataGrid {...formGridProps} />
 
   </>
 }

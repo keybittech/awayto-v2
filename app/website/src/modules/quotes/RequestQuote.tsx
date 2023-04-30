@@ -20,6 +20,8 @@ import MenuItem from '@mui/material/MenuItem';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckIcon from '@mui/icons-material/Check';
 
+import { DataGrid } from '@mui/x-data-grid';
+
 import { ISchedule, IService, IServiceTier, IForm, IGroup, IQuote, ITimeUnitNames, TimeUnit, timeUnitOrder, IGroupScheduleDateSlots, quotedDT } from 'awayto/core';
 import { useComponents, useStyles, useGrid, sh, useUtil } from 'awayto/hooks';
 
@@ -102,7 +104,7 @@ export function RequestQuote(props: IProps): JSX.Element {
       }, []);
   }, [serviceTiers]);
 
-  const TierGrid = useGrid({
+  const tierGridProps = useGrid({
     rows: serviceTierAddons.map(name => ({ name })),
     columns: [
       { type: 'string', field: 'name', headerName: '' },
@@ -256,7 +258,7 @@ export function RequestQuote(props: IProps): JSX.Element {
             <Typography>Features</Typography>
           </AccordionSummary>
           <AccordionDetails>
-            <TierGrid />
+            <DataGrid {...tierGridProps} />
           </AccordionDetails>
         </Accordion>
 

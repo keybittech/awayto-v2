@@ -16,6 +16,8 @@ import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Logout from '@mui/icons-material/Logout';
 
+import { DataGrid } from '@mui/x-data-grid';
+
 import { IGroup, IUserProfile, SiteRoles } from 'awayto/core';
 import { useAppSelector, useSecure, useGrid, sh, useUtil, useStyles } from 'awayto/hooks';
 
@@ -103,7 +105,7 @@ export function ManageGroups(props: IProps): JSX.Element {
     ];
   }, [selected, groups]);
 
-  const GroupsGrid = useGrid({
+  const groupsGridProps = useGrid({
     rows: Object.values(groups || {}),
     columns: [
       { flex: 1, headerName: 'Name', field: 'name' },
@@ -171,7 +173,7 @@ export function ManageGroups(props: IProps): JSX.Element {
       </Suspense>
     </Dialog>
 
-    <GroupsGrid />
+    <DataGrid {...groupsGridProps} />
 
   </>
 }

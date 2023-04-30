@@ -90,7 +90,9 @@ const groupApi = {
     kind: EndpointType.MUTATION,
     url: 'group/:groupName/assignments',
     method: 'PUT',
-    opts: {} as ApiOptions,
+    opts: {
+      throttle: 60
+    } as ApiOptions,
     queryArg: {
       groupName: '' as string,
       assignments: {} as Record<string, { actions: { name: string }[] }>,

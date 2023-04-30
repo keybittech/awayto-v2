@@ -58,8 +58,6 @@ export const hasRole = function (availableUserGroupRoles?: UserGroupRoles, targe
  * @category Authorization
  */
 export const hasGroupRole = function (groupName: string, availableUserGroupRoles?: UserGroupRoles, targetRoles?: SiteRoles[]): boolean {
-  console.log(' getting roles', groupName, availableUserGroupRoles, targetRoles)
-  
   if (!targetRoles) return false;
   if (!availableUserGroupRoles) return false;
   if (!availableUserGroupRoles[groupName]) return false;

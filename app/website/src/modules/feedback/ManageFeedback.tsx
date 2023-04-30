@@ -1,6 +1,8 @@
 import React from 'react';
 import dayjs from 'dayjs';
 
+import { DataGrid } from '@mui/x-data-grid';
+
 import { useGrid, sh } from 'awayto/hooks';
 import { useParams } from 'react-router';
 
@@ -11,7 +13,7 @@ export function ManageFeedbacks(): JSX.Element {
   
   const { data: feedbacks } = sh.useGetGroupFeedbackQuery({ groupName });
 
-  const FeedbackGrid = useGrid({
+  const feedbackGridProps  = useGrid({
     rows: feedbacks || [],
     columns: [
       { flex: 1, headerName: 'User', field: 'username' },
@@ -20,7 +22,7 @@ export function ManageFeedbacks(): JSX.Element {
     ]
   });
 
-  return <FeedbackGrid />
+  return <DataGrid {...feedbackGridProps}  />
 }
 
 export default ManageFeedbacks;

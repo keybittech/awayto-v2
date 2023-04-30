@@ -12,6 +12,8 @@ import DomainAddIcon from '@mui/icons-material/DomainAdd';
 import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 
+import { DataGrid } from '@mui/x-data-grid';
+
 import { IService } from 'awayto/core';
 import { useGrid, sh, useUtil, useStyles } from 'awayto/hooks';
 
@@ -71,7 +73,7 @@ export function ManageServices(props: IProps): JSX.Element {
     ]
   }, [selected]);
 
-  const ServiceGrid = useGrid({
+  const serviceGridProps = useGrid({
     rows: groupServices || [],
     columns: [
       { flex: 1, headerName: 'Name', field: 'name' },
@@ -100,7 +102,7 @@ export function ManageServices(props: IProps): JSX.Element {
         }} />
       </Suspense>
     </Dialog>
-    <ServiceGrid />
+    <DataGrid {...serviceGridProps} />
   </>
 }
 

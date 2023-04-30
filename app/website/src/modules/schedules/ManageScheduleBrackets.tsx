@@ -13,6 +13,8 @@ import MenuItem from '@mui/material/MenuItem';
 import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 
+import { DataGrid } from '@mui/x-data-grid';
+
 import { ISchedule, IGroup, plural } from 'awayto/core';
 import { useGrid, useUtil, sh } from 'awayto/hooks';
 
@@ -75,7 +77,7 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
     ]
   }, [selected, group]);
 
-  const ScheduleBracketGrid = useGrid({
+  const scheduleBracketGridProps = useGrid({
     rows: schedules || [],
     columns: [
       { flex: 1, headerName: 'Name', field: 'name' },
@@ -122,7 +124,7 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
       </Suspense>
     </Dialog>
 
-    <ScheduleBracketGrid />
+    <DataGrid {...scheduleBracketGridProps} />
   </>
 }
 
