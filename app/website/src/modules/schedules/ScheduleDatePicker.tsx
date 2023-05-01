@@ -1,18 +1,17 @@
-import React, { useState } from 'react';
+import React from 'react';
 import dayjs from 'dayjs';
 
 import TextField from '@mui/material/TextField';
 import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker';
 
-import { IGroupScheduleDateSlots, TimeUnit, userTimezone } from 'awayto/core';
-import { sh } from 'awayto/hooks';
+import { IGroupScheduleDateSlots } from 'awayto/core';
 
 type ScheduleDatePickerType = {  
-  groupName?: string;
-  scheduleId?: string;
   firstAvailable?: IGroupScheduleDateSlots & { time: dayjs.Dayjs };
   bracketSlotDate?: dayjs.Dayjs | null;
+  dateSlots?: IGroupScheduleDateSlots[];
   onDateChange?(value: dayjs.Dayjs | null, keyboardInputValue?: string | undefined): void;
+  setStartOfMonth?(value: dayjs.Dayjs): void;
 }
 
 declare global {
@@ -21,16 +20,7 @@ declare global {
 
 export function ScheduleDatePicker(props: IProps): JSX.Element {
 
-  const { groupName, scheduleId, firstAvailable, bracketSlotDate, onDateChange } = props as Required<ScheduleDatePickerType>;
-
-  const [monthSeekDate, setMonthSeekDate] = useState(dayjs().startOf(TimeUnit.MONTH));
-
-  const { data: dateSlots } = sh.useGetGroupScheduleByDateQuery({
-    groupName,
-    scheduleId,
-    date: monthSeekDate.format("YYYY-MM-DD"),
-    timezone: btoa(userTimezone)
-  });
+  const { firstAvailable, bracketSlotDate, dateSlots, onDateChange, setStartOfMonth } = props as Required<ScheduleDatePickerType>;
 
   return <DesktopDatePicker
     value={bracketSlotDate}
@@ -38,9 +28,9 @@ export function ScheduleDatePicker(props: IProps): JSX.Element {
     label="Date"
     inputFormat="MM/DD/YYYY"
     minDate={firstAvailable.time}
-    onOpen={() => setMonthSeekDate(firstAvailable.time)}
-    onMonthChange={date => date && setMonthSeekDate(date)}
-    onYearChange={date => date && setMonthSeekDate(date)}
+    onOpen={() => setStartOfMonth(firstAvailable.time)}
+    onMonthChange={date => date && setStartOfMonth(date)}
+    onYearChange={date => date && setStartOfMonth(date)}
     renderInput={(params) => <TextField fullWidth {...params} />}
     disableHighlightToday={true}
     shouldDisableDate={date => {

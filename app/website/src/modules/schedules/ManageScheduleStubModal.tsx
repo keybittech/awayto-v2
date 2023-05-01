@@ -103,8 +103,7 @@ export function ManageScheduleStubModal({ editGroupUserScheduleStub, closeModal 
             <Grid item xs={6}>
               <ScheduleDatePicker
                 key={editGroupUserScheduleStub.userScheduleId}
-                scheduleId={editGroupUserScheduleStub.groupScheduleId}
-                groupName={groupName}
+                // will need to add dateSlots here after this component is updated
                 firstAvailable={firstAvailable}
                 bracketSlotDate={bracketSlotDate || firstAvailable.time || null}
                 onDateChange={(date: dayjs.Dayjs | null) => setBracketSlotDate(date ? date.isBefore(firstAvailable.time) ? firstAvailable.time : date : null)}
