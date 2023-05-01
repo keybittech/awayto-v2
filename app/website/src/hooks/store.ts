@@ -9,7 +9,7 @@ import { RootState as ApiRootState } from '@reduxjs/toolkit/dist/query/core/apiS
 import { QueryArgFrom, ResultTypeFrom, EndpointDefinition, QueryDefinition, MutationDefinition, QueryLifecycleApi, EndpointDefinitions } from '@reduxjs/toolkit/dist/query/endpointDefinitions';
 import { MutationTrigger, LazyQueryTrigger, UseLazyQueryLastPromiseInfo, UseQuery, UseLazyQuery, UseMutation } from '@reduxjs/toolkit/dist/query/react/buildHooks';
 
-import { EndpointType, RemoveNever, ReplaceVoid, siteApiRef, SiteApiRef, utilConfig } from 'awayto/core';
+import { ConfirmActionProps, EndpointType, IUtil, RemoveNever, ReplaceVoid, siteApiRef, SiteApiRef, utilConfig } from 'awayto/core';
 
 export const getQueryAuth = fetchBaseQuery({
   baseUrl: '/api',
@@ -87,12 +87,12 @@ type UseMutationResult<T> = CommonHookResult<T> & {
   reset: () => void
 };
 
-type CustomUseQuery<D extends QueryDefinition<QueryArgFrom<D>, SiteBaseEndpoint, 'Root', ResultTypeFrom<D>, 'api'>> = (
+export type CustomUseQuery<D extends QueryDefinition<QueryArgFrom<D>, SiteBaseEndpoint, 'Root', ResultTypeFrom<D>, 'api'>> = (
   arg: QueryArgFrom<D> | SkipToken,
   options?: UseQueryOptions<ResultTypeFrom<D>>
 ) => UseQueryResult<ResultTypeFrom<D>>;
 
-type CustomUseLazyQuery<D extends QueryDefinition<QueryArgFrom<D>, SiteBaseEndpoint, 'Root', ResultTypeFrom<D>, 'api'>> = (
+export type CustomUseLazyQuery<D extends QueryDefinition<QueryArgFrom<D>, SiteBaseEndpoint, 'Root', ResultTypeFrom<D>, 'api'>> = (
   options?: UseLazyQueryOptions<ResultTypeFrom<D>>
 ) => [
   LazyQueryTrigger<D>, 
@@ -100,7 +100,7 @@ type CustomUseLazyQuery<D extends QueryDefinition<QueryArgFrom<D>, SiteBaseEndpo
   UseLazyQueryLastPromiseInfo<D>
 ];
 
-type CustomUseMutation<D extends MutationDefinition<QueryArgFrom<D>, SiteBaseEndpoint, 'Root', ResultTypeFrom<D>, 'api'>> = (
+export type CustomUseMutation<D extends MutationDefinition<QueryArgFrom<D>, SiteBaseEndpoint, 'Root', ResultTypeFrom<D>, 'api'>> = (
   options?: UseMutationStateOptions<ResultTypeFrom<D>>
 ) => [
   MutationTrigger<D>, 
@@ -156,14 +156,14 @@ type EndpointInfo<T> = {
 
 type EndpointQuery<T> = (args: T) => string | { url: string; method: string; body: T };
 
-type SiteEndpointDefinitions<T extends Record<string, any>> = {
-  [K in keyof T]: EndpointDefinition<
-    T[K]['queryArg'],
-    T[K]['opts']['baseQuery'],
+type SiteEndpointDefinitions<T> = {
+  [K in keyof T]: T[K] extends { queryArg: infer QA, resultType: infer RT } ? EndpointDefinition<
+    QA,
+    SiteBaseEndpoint,
     string, // or T[K]['tagTypes'] if it exists in the original definition
-    T[K]['resultType'],
+    RT,
     string // or T[K]['reducerPath'] if it exists in the original definition
-  >
+  > : never;
 };
 
 export const utilSlice = createSlice(utilConfig);
@@ -226,7 +226,7 @@ export const sh = createApi({
 
 console.log({ loadedup: Object.keys(sh) });
 
-export const customErrorMiddleware: Middleware = (storeApi) => (next) => (action: { type: string, payload: { data: { reason: string } } }) => {
+export const customErrorMiddleware: Middleware = storeApi => next => (action: { type: string, payload: { data: { reason: string } } }) => {
   if (action.type.endsWith('/rejected')) {
     const { data } = action.payload;
 
@@ -238,6 +238,31 @@ export const customErrorMiddleware: Middleware = (storeApi) => (next) => (action
   return next(action);
 };
 
+export type ConfirmActionType = (...props: ConfirmActionProps) => void | Promise<void>;
+export type ActionRegistry = Record<string, ConfirmActionType>;
+const actionRegistry: ActionRegistry = {};
+
+function registerAction(id: string, action: ConfirmActionType): void {
+  actionRegistry[id] = action;
+}
+
+export function getUtilRegisteredAction(id: string): ConfirmActionType {
+  return actionRegistry[id];
+}
+
+// eslint-disable-next-line
+const customUtilMiddleware: Middleware = _ => next => (action: { type: string, payload: Partial<IUtil> }) => {
+  if (action.type.includes('openConfirm')) {
+    const { confirmEffect, confirmAction } = action.payload;
+    if (confirmEffect && confirmAction) {
+      registerAction(btoa(confirmEffect), confirmAction)
+      action.payload.confirmAction = undefined;
+    }
+  }
+
+  return next(action);
+}
+
 export const store = configureStore({
   reducer: {
     [sh.reducerPath]: sh.reducer as Reducer,
@@ -246,6 +271,7 @@ export const store = configureStore({
   middleware: getDefaultMiddleware => getDefaultMiddleware().concat(
     sh.middleware as Middleware,
     customErrorMiddleware,
+    customUtilMiddleware,
     thunk,
     logger
   )

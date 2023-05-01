@@ -1,4 +1,4 @@
-type ConfirmActionProps = [
+export type ConfirmActionProps = [
   approval?: boolean,
 ]
 
@@ -8,6 +8,7 @@ type ConfirmActionProps = [
  */
 export type IUtil = {
   confirmAction(...props: ConfirmActionProps): void | Promise<void>;
+  confirmActionId: string;
   isConfirming: boolean;
   confirmEffect: string;
   confirmSideEffect?: {
@@ -46,12 +47,12 @@ export const utilConfig = {
         state.theme = theme;
       }
     },
-    openConfirm: (...[state, { payload: { confirmEffect, confirmSideEffect, confirmAction }}]: UtilPayload) => {
-      if (confirmEffect && confirmAction) {
+    openConfirm: (...[state, { payload: { confirmEffect, confirmSideEffect }}]: UtilPayload) => {
+      if (confirmEffect) {
         state.isConfirming = true;
         state.confirmEffect = confirmEffect;
         state.confirmSideEffect = confirmSideEffect;
-        state.confirmAction = confirmAction;
+        state.confirmActionId = btoa(confirmEffect);
       }
     },
     closeConfirm: (...[state]: UtilPayload) => {

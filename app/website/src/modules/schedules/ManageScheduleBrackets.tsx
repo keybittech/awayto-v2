@@ -34,7 +34,7 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
   const [dialog, setDialog] = useState('');
   const [group, setGroup] = useState({ id: '' } as IGroup);
 
-  const { data: profile, isSuccess: profileLoaded, refetch: getUserProfileDetails } = sh.useGetUserProfileDetailsQuery();
+  const { data: profile, isSuccess: profileLoaded } = sh.useGetUserProfileDetailsQuery();
   if (!profileLoaded) return <></>;
 
   const groupsValues = useMemo(() => Object.values(profile?.groups || {}), [profile]);
@@ -69,7 +69,7 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
               const ids = selected.join(',');
               await deleteGroupUserScheduleByUserScheduleId({ groupName: group.name, ids }).unwrap();
               await deleteSchedule({ ids }).unwrap();
-              void getUserProfileDetails();
+              getSchedules().catch(console.error);
               setSnack({ snackType: 'success', snackOn: 'Successfully removed schedule records.' });
             }
           });

@@ -8,7 +8,7 @@ import CardActions from '@mui/material/CardActions';
 import CardActionArea from '@mui/material/CardActionArea';
 import Dialog from '@mui/material/Dialog';
 
-import { useAppSelector, useUtil } from 'awayto/hooks';
+import { useAppSelector, useUtil, getUtilRegisteredAction } from 'awayto/hooks';
 import { CardHeader } from '@mui/material';
 
 export function ConfirmAction(): JSX.Element {
@@ -25,7 +25,7 @@ export function ConfirmAction(): JSX.Element {
             <Grid item xs={util.confirmSideEffect ? 6 : 12}>
               <CardActionArea sx={{ height: '100%', padding: '50px' }} onClick={() => {
                 async function go() {
-                  await util.confirmAction(true);
+                  await getUtilRegisteredAction(util.confirmActionId as string)(true);
                   closeConfirm({});
                 }
                 void go();
@@ -44,7 +44,7 @@ export function ConfirmAction(): JSX.Element {
 
               <CardActionArea sx={{ height: '100%', padding: '50px' }} onClick={() => {
                 async function go() {
-                  await util.confirmAction(false);
+                  await getUtilRegisteredAction(util.confirmActionId as string)(false);
                   closeConfirm({});
                 }
                 void go();
