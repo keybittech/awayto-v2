@@ -41,7 +41,7 @@ const groupSchedulesApi = {
     url: 'group/:groupName/schedules',
     method: 'POST',
     opts: {} as ApiOptions,
-    queryArg: {} as IGroupSchedule,
+    queryArg: { groupName: '' as string, schedule: {} as ISchedule },
     resultType: {} as IGroupSchedule
   },
   putGroupSchedule: {
@@ -105,22 +105,24 @@ const groupSchedulesApiHandlers: ApiHandler<typeof groupSchedulesApi> = {
       WHERE username = $1
     `, ['system_group_' + groupName]);
 
-    const groupSchedule = siteApiHandlerRef.postSchedule({
+    const newSchedule = await siteApiHandlerRef.postSchedule({
       ... props,
       event: {
         ...props.event,
         userSub: groupSub,
-        body: props.event.body
+        body: props.event.body.schedule
       }
-    }) as Partial<IGroupSchedule>;
+    });
 
-    groupSchedule.groupId = groupId;
+    const groupSchedule = {
+      ...newSchedule,
+      groupId
+    } as IGroupSchedule;
 
     // Attach schedule to group
     await props.tx.none(`
       INSERT INTO dbtable_schema.group_schedules (group_id, schedule_id, created_sub)
       VALUES ($1, $2, $3::uuid)
-      RETURNING id
       `, [groupId, groupSchedule.id, groupSub]);
 
     await props.redis.del(`${props.event.userSub}group/${groupName}/schedules`);

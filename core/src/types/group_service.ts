@@ -22,7 +22,7 @@ export type IGroupService = IService & {
 const groupServicesApi = {
   postGroupService: {
     kind: EndpointType.MUTATION,
-    url: 'group/:groupName/services',
+    url: 'group/:groupName/services/:serviceId',
     method: 'POST',
     opts: {} as ApiOptions,
     queryArg: { groupName: '' as string, serviceId: '' as string },

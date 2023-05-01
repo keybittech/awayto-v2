@@ -68,7 +68,7 @@ const groupUserSchedulesApi = {
   },
   getGroupUserScheduleStubs: {
     kind: EndpointType.QUERY,
-    url: 'group/:groupName/user_schedules/stubs',
+    url: 'group/:groupName/user_schedules_stubs',
     method: 'GET',
     opts: { cache: 'skip' } as ApiOptions,
     queryArg: { groupName: '' as string },

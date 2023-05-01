@@ -36,7 +36,7 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
   const [getGroupSchedules] = sh.useLazyGetGroupSchedulesQuery();
   const [getGroupScheduleMasterById] = sh.useLazyGetGroupScheduleMasterByIdQuery();
 
-  const { data: lookups } = sh.useGetLookupsQuery();
+  const { data: lookups, isSuccess: lookupsRetrieved } = sh.useGetLookupsQuery();
   
   const { SelectLookup } = useComponents();
   
@@ -98,11 +98,11 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
         if (!id) {
           if (name && startTime) {
             schedule.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            await postGroupSchedule({ ...schedule, groupName } as IGroupSchedule).unwrap();
-            await getGroupSchedules({ groupName }).unwrap();
-            setSnack({ snackOn: 'Successfully added ' + name + ' as a master schedule!', snackType: 'info' });
+            await postGroupSchedule({ groupName, schedule }).unwrap();
+            setSnack({ snackOn: 'Successfully added ' + name + ' as a master schedule!', snackType: 'success' });
           } else {
-            setSnack({ snackOn: 'A schedule should have a name, a start time.', snackType: 'info' });
+            setSnack({ snackOn: 'Must have schedule name and start date.', snackType: 'warning' });
+            return;
           }
         } else {
           await putGroupSchedule({ id, startTime, endTime, groupName } as IGroupSchedule).unwrap();
@@ -118,17 +118,19 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
 
   useEffect(() => {
     async function go() {
-      if (groupName && editSchedule) {
-        const masterSchedule = await getGroupScheduleMasterById({ groupName, scheduleId: editSchedule.id }).unwrap();
-        attachScheduleUnits(masterSchedule);
-        setSchedule(masterSchedule);
-      } else {
-        setDefault('40hoursweekly30minsessions');
+      if (lookupsRetrieved) {
+        if (groupName && editSchedule) {
+          const masterSchedule = await getGroupScheduleMasterById({ groupName, scheduleId: editSchedule.id }).unwrap();
+          attachScheduleUnits(masterSchedule);
+          setSchedule(masterSchedule);
+        } else {
+          setDefault('40hoursweekly30minsessions');
+        }
       }
     }
     void go();
-  }, []);
-
+  }, [lookupsRetrieved]);
+  
   return <>
     <DialogTitle>{schedule.id ? 'Manage' : 'Create'} Schedule</DialogTitle>
     <DialogContent>
