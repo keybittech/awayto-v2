@@ -51,6 +51,21 @@ injectPrompts({
     { role: 'user', content: 'service level names for reading tutoring at a school reading center' },
     { role: 'assistant', content: 'ESL 900|ESL 990|ENG 1010|ENG 1020|ENG 2010' },
     { role: 'user', content: 'service level names for ${prompt1}'}
+  ],
+  [IPrompts.SUGGEST_FEATURE]: [
+    {
+      role: 'system',
+      content: customSuggestion
+    },
+    { role: 'user', content: 'features of ENGL 1010 writing tutoring' },
+    { role: 'assistant', content: 'Feedback|Revisions|Brainstorming|Discussion|Ideation' },
+    { role: 'user', content: 'features of Standard gym membership' },
+    { role: 'assistant', content: 'Full Gym Equipment|Limited Training|Half-Day Access' },
+    { role: 'user', content: 'features of Pro web hosting service' },
+    { role: 'assistant', content: 'Unlimited Sites|Unlimited Storage|1TB Bandwidth|Daily Backups' },
+    { role: 'user', content: 'features of professional photography service' },
+    { role: 'assistant', content: 'Next-Day Prints|High-quality digital photos|Retouching and editing|Choice of location|Choice of outfit changes' },
+    { role: 'user', content: 'features of ${prompt1}'}
   ]
 });
 
