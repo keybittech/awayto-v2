@@ -84,7 +84,7 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
     return <CardActionArea
       style={gridCell.style}
       sx={{
-        backgroundColor: '#444',
+        backgroundColor: '#eee',
         textAlign: 'center',
         position: 'relative',
         '&:hover': {
@@ -93,7 +93,7 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
           boxShadow: '2'
         },
         border: exists ? `1px solid ${bracketColors[scheduleBracketsValues.findIndex(b => b.id === exists.scheduleBracketId)]}` : undefined,
-        opacity: !exists ? '.33' : '1',
+        color: !exists ? '#666' : 'black',
         boxShadow: exists ? '2' : undefined
       }}
       onMouseLeave={() => buttonDown && setValue(startTime)}

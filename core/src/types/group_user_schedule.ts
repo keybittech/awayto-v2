@@ -105,7 +105,8 @@ const groupUserSchedulesApi = {
  */
 const groupUserSchedulesApiHandlers: ApiHandler<typeof groupUserSchedulesApi> = {
   postGroupUserSchedule: async (props) => {
-    const { groupName, groupScheduleId, userScheduleId } = props.event.pathParameters;
+    const { groupName } = props.event.pathParameters;
+    const { groupScheduleId, userScheduleId } = props.event.body;
 
     await props.tx.none(`
       INSERT INTO dbtable_schema.group_user_schedules (group_schedule_id, user_schedule_id, created_sub)

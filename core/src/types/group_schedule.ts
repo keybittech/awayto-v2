@@ -110,7 +110,7 @@ const groupSchedulesApiHandlers: ApiHandler<typeof groupSchedulesApi> = {
       event: {
         ...props.event,
         userSub: groupSub,
-        body: props.event.body.schedule
+        body: { schedule: props.event.body.schedule }
       }
     });
 

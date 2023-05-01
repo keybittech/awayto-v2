@@ -76,7 +76,7 @@ const scheduleApi = {
     url: 'schedules',
     method: 'POST',
     opts: {} as ApiOptions,
-    queryArg: {} as ISchedule,
+    queryArg: { schedule: {} as ISchedule },
     resultType: {} as ISchedule
   },
   postScheduleBrackets: {
@@ -134,7 +134,7 @@ const scheduleApi = {
  */
 const scheduleApiHandlers: ApiHandler<typeof scheduleApi> = {
   postSchedule: async props => {
-    const schedule = props.event.body;
+    const { schedule } = props.event.body;
 
     const { name, scheduleTimeUnitId, bracketTimeUnitId, slotTimeUnitId, slotDuration, startTime, endTime, timezone } = schedule;
 
@@ -165,11 +165,12 @@ const scheduleApiHandlers: ApiHandler<typeof scheduleApi> = {
 
       b.id = bracketId;
 
-      for (const servId in b.services) {
+      for (const servRef in b.services) {
+        const serv = b.services[servRef];
         await props.tx.none(`
           INSERT INTO dbtable_schema.schedule_bracket_services (schedule_bracket_id, service_id, created_sub)
           VALUES ($1, $2, $3::uuid)
-        `, [bracketId, servId, props.event.userSub]);
+        `, [bracketId, serv.id, props.event.userSub]);
       }
 
       for (const slotTemporaryId in b.slots) {

@@ -34,10 +34,13 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
   const [dialog, setDialog] = useState('');
   const [group, setGroup] = useState({ id: '' } as IGroup);
 
-  const { data: schedules } = sh.useGetSchedulesQuery();
-  const { data: profile, refetch: getUserProfileDetails } = sh.useGetUserProfileDetailsQuery();
+  const { data: profile, isSuccess: profileLoaded, refetch: getUserProfileDetails } = sh.useGetUserProfileDetailsQuery();
+  if (!profileLoaded) return <></>;
 
   const groupsValues = useMemo(() => Object.values(profile?.groups || {}), [profile]);
+
+  const { data: schedules } = sh.useGetSchedulesQuery();
+  const { data: groupSchedules } = sh.useGetGroupSchedulesQuery({ groupName: groupsValues[0].name }, { skip: !groupsValues.length });
 
   if (groupsValues.length && !group.id) {
     setGroup(groupsValues[0]);
@@ -103,7 +106,7 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
       <Box pt={2} sx={{ width: '100%' }}>
         <Typography variant="button">Schedules:</Typography>
         <Button key={'create_schedule_button'} onClick={() => {
-          if (schedules?.length) {
+          if (groupSchedules?.length) {
             setSchedule(undefined);
             setDialog('manage_schedule');
           } else {
@@ -116,7 +119,7 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
   })
 
   return <>
-    <Dialog open={dialog === 'manage_schedule'} fullWidth maxWidth="sm">
+    <Dialog fullScreen open={dialog === 'manage_schedule'} fullWidth maxWidth="sm">
       <Suspense>
         <ManageScheduleBracketsModal {...props} group={group} editSchedule={schedule} closeModal={() => {
           setDialog('');

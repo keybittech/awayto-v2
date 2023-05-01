@@ -14,7 +14,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 
-import { getRelativeDuration, IGroup, ISchedule, IScheduleBracket, IScheduleBracketSlot, IService, ITimeUnitNames, timeUnitOrder } from 'awayto/core';
+import { deepClone, getRelativeDuration, IGroup, ISchedule, IScheduleBracket, IScheduleBracketSlot, IService, ITimeUnitNames, timeUnitOrder } from 'awayto/core';
 import { useComponents, sh, useUtil } from 'awayto/hooks';
 
 import { scheduleSchema } from './ScheduleHome';
@@ -40,8 +40,8 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
 
   const { data: lookups } = sh.useGetLookupsQuery();
   const { data: schedules } = sh.useGetSchedulesQuery();
-  const { data: groupServices } = sh.useGetGroupServicesQuery({ groupName: group.name });
-  const { data: groupSchedules } = sh.useGetGroupSchedulesQuery({ groupName: group.name });
+  const { data: groupServices, isSuccess: groupServicesLoaded } = sh.useGetGroupServicesQuery({ groupName: group.name });
+  const { data: groupSchedules, isSuccess: groupSchedulesLoaded } = sh.useGetGroupSchedulesQuery({ groupName: group.name });
 
   const [getUserProfileDetails] = sh.useLazyGetUserProfileDetailsQuery();
   const [getScheduleById] = sh.useLazyGetScheduleByIdQuery();
@@ -63,20 +63,20 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
   }, [lookups]);
 
   useEffect(() => {
-    if (groupSchedules?.length) {
+    if (groupSchedules?.length && lookups) {
       if (editSchedule) {
         getScheduleById({ id: editSchedule.id }).catch(console.error);
       } else {
-        const sched = groupSchedules[0];
+        const sched = deepClone(groupSchedules[0]);
         attachScheduleUnits(sched);
         setSchedule({ ...sched, brackets: {} });
       }
     }
-  }, [editSchedule, groupSchedules]);
+  }, [editSchedule, groupSchedules, lookups]);
 
   useEffect(() => {
     if (editSchedule) {
-      const sched = schedules?.find(s => s.id === editSchedule.id);
+      const sched = deepClone(schedules?.find(s => s.id === editSchedule.id));
       if (sched) {
         attachScheduleUnits(sched);
         setSchedule({ ...sched });
@@ -109,27 +109,27 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
         if (name && scheduleTimeUnitName && scheduleBracketsValues.length) {
           const userSchedule = { ...schedule };
           if (!editSchedule) {
-            const newSchedule = await postSchedule(schedule).unwrap();
+            const newSchedule = await postSchedule({ schedule }).unwrap();
             userSchedule.id = newSchedule.id;
           }
           
-          const newBrackets = scheduleBracketsValues.map(
-            ({ id, duration, automatic, multiplier, slots, services }) => [
-              id,
-              {
+          const newBrackets = scheduleBracketsValues.reduce<Record<string, IScheduleBracket>>(
+            (m, { id, duration, automatic, multiplier, slots, services }) => ({
+              ...m,
+              [id]: {
                 id,
                 duration,
                 automatic,
                 multiplier,
-                slots: Object.values(slots).map(({ startTime }, i) => [String(i), { startTime } as IScheduleBracketSlot]),
-                services: Object.values(services).map(({ id }, i) => [String(i), { id } as IService])
-              }
-            ]
+                slots,
+                services
+              } as IScheduleBracket
+            }), {}
           );
   
           await postScheduleBrackets({
             scheduleId: userSchedule.id,
-            brackets: Object.fromEntries(newBrackets) as Record<string, IScheduleBracket>
+            brackets: newBrackets
           }).catch(console.error);
   
           if (!editSchedule) {
@@ -158,7 +158,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
       {1 === viewStep ? <>
         <Box mt={2} />
 
-        <Box mb={4}>
+        {groupSchedulesLoaded && <Box mb={4}>
           <TextField
             select
             fullWidth
@@ -168,7 +168,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
             value={schedule.id}
             onChange={e => {
               if (!editSchedule) {
-                const sched = groupSchedules?.find(gs => gs.id === e.target.value);
+                const sched = deepClone(groupSchedules?.find(gs => gs.id === e.target.value));
                 if (sched) {
                   attachScheduleUnits(sched);
                   setSchedule({ ...sched, brackets: {} });
@@ -187,7 +187,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
               </MenuItem>
             })}
           </TextField>
-        </Box>
+        </Box>}
 
         <Box mb={4}>
           <Typography variant="body1"></Typography>
@@ -216,7 +216,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
           <Switch color="primary" value={bracket.automatic} onChange={e => setBracket({ ...bracket, automatic: e.target.checked })} />
         </Box>
 
-        <Box mb={4}>
+        {groupServicesLoaded && <Box mb={4}>
           <TextField
             select
             fullWidth
@@ -242,7 +242,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
               }} /></Box>
             })}
           </Box>
-        </Box>
+        </Box>}
       </> : <>
         <Suspense fallback={<CircularProgress />}>
           <ScheduleDisplay {...props} parentRef={scheduleParent} schedule={schedule} setSchedule={setSchedule} />
