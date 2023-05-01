@@ -188,7 +188,6 @@ const groupSchedulesApiHandlers: ApiHandler<typeof groupSchedulesApi> = {
       await props.tx.none(`
         DELETE FROM dbtable_schema.group_schedules
         WHERE group_id = $1 AND schedule_id = $2
-        RETURNING id
       `, [groupId, scheduleId]);
     });
 

@@ -188,14 +188,12 @@ const groupUserSchedulesApiHandlers: ApiHandler<typeof groupUserSchedulesApi> = 
         await props.tx.none(`
           DELETE FROM dbtable_schema.group_user_schedules
           WHERE user_schedule_id = $1
-          RETURNING id
         `, [userScheduleId]);
       } else {
         await props.tx.none(`
           UPDATE dbtable_schema.group_user_schedules
           SET enabled = false
           WHERE user_schedule_id = $1
-          RETURNING id
         `, [userScheduleId]);
       }
     });

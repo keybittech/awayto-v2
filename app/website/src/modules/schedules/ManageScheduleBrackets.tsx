@@ -39,7 +39,7 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
 
   const groupsValues = useMemo(() => Object.values(profile?.groups || {}), [profile]);
 
-  const { data: schedules } = sh.useGetSchedulesQuery();
+  const { data: schedules, refetch: getSchedules } = sh.useGetSchedulesQuery();
   const { data: groupSchedules } = sh.useGetGroupSchedulesQuery({ groupName: groupsValues[0].name }, { skip: !groupsValues.length });
 
   if (groupsValues.length && !group.id) {
@@ -123,6 +123,7 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
       <Suspense>
         <ManageScheduleBracketsModal {...props} group={group} editSchedule={schedule} closeModal={() => {
           setDialog('');
+          getSchedules().catch(console.error);
         }} />
       </Suspense>
     </Dialog>

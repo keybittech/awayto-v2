@@ -285,7 +285,7 @@ async function go() {
           }
         }
 
-        if (await rateLimitResource(user.sub, 'api', 4, 1)) { // limit n general api requests per second
+        if (await rateLimitResource(user.sub, 'api', 10, 1)) { // limit n general api requests per second
           return res.status(429).send({ reason: 'Rate limit exceeded.', requestId });
         }
 

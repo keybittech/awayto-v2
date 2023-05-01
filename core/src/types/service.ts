@@ -166,7 +166,6 @@ const serviceApiHandlers: ApiHandler<typeof serviceApi> = {
       await props.tx.none(`
         DELETE FROM dbtable_schema.services
         WHERE id = $1
-        RETURNING id
       `, [id]);
 
       await props.redis.del(props.event.userSub + 'services/' + id);
