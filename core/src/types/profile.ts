@@ -59,8 +59,7 @@ const userProfileApi = {
     url: 'profile/details',
     method: 'GET',
     opts: {
-      cache: 'skip',
-      load: true
+      cache: 'skip'
     } as ApiOptions,
     queryArg: {} as Void,
     resultType: {} as IUserProfile

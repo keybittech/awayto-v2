@@ -65,7 +65,7 @@ export const useStyles = makeStyles((theme: Theme) => ({
     },
     [theme.breakpoints.up('md')]: {
       marginTop: '-4px',
-      fontSize: '12px',
+      fontSize: '12px !important',
     },
   },
 
