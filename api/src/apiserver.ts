@@ -306,6 +306,7 @@ async function go() {
 
           try {
 
+            const sourceIp = req.headers['x-forwarded-for'] as string;
             const token = jwtDecode<DecodedJWTToken & IdTokenClaims>(req.headers.authorization);
             const tokenGroupRoles = {} as UserGroupRoles;
 
@@ -333,24 +334,27 @@ async function go() {
                 availableUserGroupRoles: tokenGroupRoles,
                 username: user.username,
                 userSub: user.sub,
-                sourceIp: req.headers['x-forwarded-for'] as string,
+                sourceIp,
                 pathParameters: req.params as Record<string, string>,
                 queryParameters: req.query as Record<string, string>,
                 body: req.body as typeof queryArg
               }
             } as ApiProps<typeof queryArg>;
 
-            logger.log('Handling api request', requestParams.event);
-
             const handler = siteApiHandlerRef[apiRefId as keyof typeof siteApiHandlerRef] as (params: ApiProps<typeof queryArg>) => Promise<typeof resultType>;
 
             const txHandler = async (props: ApiProps<typeof queryArg>): Promise<typeof resultType> => {
+              const eventLength = JSON.stringify(requestParams.event).length;
+              console.log('handling', method, url, user.sub, requestId, eventLength);
               if (EndpointType.MUTATION === kind) {
                 return await db.tx(async trx => {
                   requestParams.tx = trx;
+                  logger.log('Handling api mutation with size ' + eventLength, requestParams.event);
                   return await handler(props);
                 })
               }
+
+              logger.log('Handling api query with size ' + eventLength, requestParams.event);
               return await handler(props);
             }
 
