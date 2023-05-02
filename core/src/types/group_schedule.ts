@@ -70,7 +70,7 @@ const groupSchedulesApi = {
   },
   getGroupScheduleByDate: {
     kind: EndpointType.QUERY,
-    url: 'group/:groupName/schedules/:scheduleId/:date',
+    url: 'group/:groupName/schedules/:scheduleId/datetz/:date/:timezone',
     method: 'GET',
     opts: { cache: 'skip' } as ApiOptions,
     queryArg: { groupName: '' as string, scheduleId: '' as string, date: '' as string, timezone: '' as string },
@@ -169,7 +169,7 @@ const groupSchedulesApiHandlers: ApiHandler<typeof groupSchedulesApi> = {
   },
   getGroupScheduleByDate: async props => {
     const { scheduleId, date } = props.event.pathParameters;
-    const timezone = Buffer.from(props.event.pathParameters.timezone, 'base64');
+    const timezone = Buffer.from(props.event.pathParameters.timezone, 'base64').toString();
     const scheduleDateSlots = await props.db.manyOrNone<IGroupScheduleDateSlots>(`
       SELECT * FROM dbfunc_schema.get_group_schedules($1, $2, $3);
     `, [date, scheduleId, timezone]);
