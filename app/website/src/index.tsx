@@ -39,7 +39,7 @@ declare global {
   interface IProps {
     children?: ReactNode;
     loading?: boolean;
-    closeModal?(): void;
+    closeModal?(prop?: unknown): void;
     theme?: Theme;
   }
 }

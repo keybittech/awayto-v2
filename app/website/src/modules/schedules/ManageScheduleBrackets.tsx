@@ -121,9 +121,9 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
   return <>
     <Dialog fullScreen open={dialog === 'manage_schedule'} fullWidth maxWidth="sm">
       <Suspense>
-        <ManageScheduleBracketsModal {...props} group={group} editSchedule={schedule} closeModal={() => {
+        <ManageScheduleBracketsModal {...props} group={group} editSchedule={schedule} closeModal={(added: boolean) => {
           setDialog('');
-          getSchedules().catch(console.error);
+          added && getSchedules().catch(console.error);
         }} />
       </Suspense>
     </Dialog>

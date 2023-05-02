@@ -39,68 +39,68 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
   const { setSnack } = useUtil();
 
   const { data: lookups } = sh.useGetLookupsQuery();
-  const { data: schedules } = sh.useGetSchedulesQuery();
+
   const { data: groupServices, isSuccess: groupServicesLoaded } = sh.useGetGroupServicesQuery({ groupName: group.name });
   const { data: groupSchedules, isSuccess: groupSchedulesLoaded } = sh.useGetGroupSchedulesQuery({ groupName: group.name });
 
-  const [getUserProfileDetails] = sh.useLazyGetUserProfileDetailsQuery();
-  const [getScheduleById] = sh.useLazyGetScheduleByIdQuery();
+  const [schedule, setSchedule] = useState({ ...(groupSchedules?.length ? groupSchedules[0] : scheduleSchema), brackets: {} } as ISchedule);
+
+  const { data: scheduleDetails, refetch: getScheduleById } = sh.useGetScheduleByIdQuery({ id: editSchedule?.id || '' }, { skip: !editSchedule });
+
+  if (scheduleDetails && !Object.keys(schedule.brackets).length) {
+    setSchedule(deepClone(scheduleDetails));
+  }
+
+  const [viewStep, setViewStep] = useState(1);
+  if (Object.keys(schedule.brackets).length && viewStep === 1) {
+    setViewStep(2);
+  }
+
+  type TimeUnitNames = { scheduleTimeUnitName: ITimeUnitNames; bracketTimeUnitName: ITimeUnitNames; slotTimeUnitName: ITimeUnitNames } | undefined;
+
+  const timeUnitNames: TimeUnitNames = lookups?.timeUnits.reduce((m, d) => {
+    if (d.id === schedule.scheduleTimeUnitId) {
+      m.scheduleTimeUnitName = d.name;
+    } else if (d.id === schedule.bracketTimeUnitId) {
+      m.bracketTimeUnitName = d.name;
+    } else if (d.id === schedule.slotTimeUnitId) {
+      m.slotTimeUnitName = d.name;
+    }
+    return m;
+  }, {} as NonNullable<TimeUnitNames>);
+
+  if (timeUnitNames && schedule.bracketTimeUnitId && !schedule.scheduleTimeUnitName) {
+    setSchedule({
+      ...schedule,
+      scheduleTimeUnitName: timeUnitNames.scheduleTimeUnitName,
+      bracketTimeUnitName: timeUnitNames.bracketTimeUnitName,
+      slotTimeUnitName: timeUnitNames.slotTimeUnitName
+    })
+  }
+
   const [postSchedule] = sh.usePostScheduleMutation();
   const [postScheduleBrackets] = sh.usePostScheduleBracketsMutation();
-  const [postGroupUserSchedule] = sh.usePostGroupUserScheduleMutation()
+  const [postGroupUserSchedule] = sh.usePostGroupUserScheduleMutation();
   
   const { ScheduleDisplay } = useComponents();
 
   const scheduleParent = useRef<HTMLDivElement>(null);
-  const [viewStep, setViewStep] = useState(1);
-  const [schedule, setSchedule] = useState({ ...scheduleSchema, brackets: {} } as ISchedule);
   const [bracket, setBracket] = useState({ ...bracketSchema, services: {}, slots: {} } as IScheduleBracket);
-
-  const attachScheduleUnits = useCallback((sched: ISchedule) => {
-    sched.scheduleTimeUnitName = lookups?.timeUnits?.find(u => u.id === sched.scheduleTimeUnitId)?.name as ITimeUnitNames;
-    sched.bracketTimeUnitName = lookups?.timeUnits?.find(u => u.id === sched.bracketTimeUnitId)?.name as ITimeUnitNames;
-    sched.slotTimeUnitName = lookups?.timeUnits?.find(u => u.id === sched.slotTimeUnitId)?.name as ITimeUnitNames;
-  }, [lookups]);
-
-  useEffect(() => {
-    if (groupSchedules?.length && lookups) {
-      if (editSchedule) {
-        getScheduleById({ id: editSchedule.id }).catch(console.error);
-      } else {
-        const sched = deepClone(groupSchedules[0]);
-        attachScheduleUnits(sched);
-        setSchedule({ ...sched, brackets: {} });
-      }
-    }
-  }, [editSchedule, groupSchedules, lookups]);
-
-  useEffect(() => {
-    if (editSchedule) {
-      const sched = deepClone(schedules?.find(s => s.id === editSchedule.id));
-      if (sched) {
-        attachScheduleUnits(sched);
-        setSchedule({ ...sched });
-        if (Object.keys(sched.brackets).length) {
-          setViewStep(2);
-        }
-      }
-    }
-  }, [editSchedule, schedules]);
 
   const scheduleBracketsValues = useMemo(() => Object.values(schedule.brackets || {}), [schedule.brackets]);
   const bracketServicesValues = useMemo(() => Object.values(bracket.services || {}), [bracket.services]);
 
   const remainingBracketTime = useMemo(() => {
-    if (schedule.scheduleTimeUnitName) {
+    if (timeUnitNames?.scheduleTimeUnitName) {
       // Complex time adjustment example - this gets the remaining time that can be scheduled based on the schedule context, which always selects its first child as the subcontext (Week > Day), multiply this by the schedule duration in that context (1 week is 7 days), then convert the result to whatever the bracket type is. So if the schedule is for 40 hours per week, the schedule duration is 1 week, which is 7 days. The bracket, in hours, gives 24 hrs per day * 7 days, resulting in 168 total hours. Finally, subtract the time used by selected slots in the schedule display.
-      const scheduleUnitChildUnit = timeUnitOrder[timeUnitOrder.indexOf(schedule.scheduleTimeUnitName) - 1];
-      const scheduleChildDuration = getRelativeDuration(1, schedule.scheduleTimeUnitName, scheduleUnitChildUnit); // 7
+      const scheduleUnitChildUnit = timeUnitOrder[timeUnitOrder.indexOf(timeUnitNames.scheduleTimeUnitName) - 1];
+      const scheduleChildDuration = getRelativeDuration(1, timeUnitNames.scheduleTimeUnitName, scheduleUnitChildUnit); // 7
       const usedDuration = scheduleBracketsValues.reduce((m, d) => m + d.duration, 0);
-      const totalDuration = getRelativeDuration(Math.floor(scheduleChildDuration), scheduleUnitChildUnit, schedule.bracketTimeUnitName);
+      const totalDuration = getRelativeDuration(Math.floor(scheduleChildDuration), scheduleUnitChildUnit, timeUnitNames.bracketTimeUnitName);
       return Math.floor(totalDuration - usedDuration);
     }
     return 0;
-  }, [schedule, scheduleBracketsValues]);
+  }, [timeUnitNames, scheduleBracketsValues]);
 
   const handleSubmit = useCallback(() => {
     async function go() {
@@ -138,11 +138,12 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
               userScheduleId: userSchedule.id,
               groupScheduleId: schedule.id
             }).catch(console.error);
+          } else {
+            await getScheduleById().catch(console.error);
           }
   
-          await getUserProfileDetails().catch(console.error);
           setSnack({ snackOn: 'Successfully added ' + name, snackType: 'info' });
-          if (closeModal) closeModal();
+          if (closeModal) closeModal(!editSchedule);
         } else {
           setSnack({ snackOn: 'A schedule should have a name, a duration, and at least 1 bracket.', snackType: 'info' });
         }
@@ -170,7 +171,6 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
               if (!editSchedule) {
                 const sched = deepClone(groupSchedules?.find(gs => gs.id === e.target.value));
                 if (sched) {
-                  attachScheduleUnits(sched);
                   setSchedule({ ...sched, brackets: {} });
                 }
               }
@@ -189,17 +189,17 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
           </TextField>
         </Box>}
 
-        <Box mb={4}>
+        {timeUnitNames && <Box mb={4}>
           <Typography variant="body1"></Typography>
           <TextField
             fullWidth
             type="number"
-            helperText={`Number of ${schedule.bracketTimeUnitName}s for this schedule. (Remaining: ${remainingBracketTime})`}
-            label={`# of ${schedule.bracketTimeUnitName}s`}
+            helperText={`Number of ${timeUnitNames.bracketTimeUnitName}s for this schedule. (Remaining: ${remainingBracketTime})`}
+            label={`# of ${timeUnitNames.bracketTimeUnitName}s`}
             value={bracket.duration || ''}
             onChange={e => setBracket({ ...bracket, duration: Math.min(Math.max(0, parseInt(e.target.value || '', 10)), remainingBracketTime) })}
           />
-        </Box>
+        </Box>}
 
         <Box sx={{ display: 'none' }}>
           <Typography variant="h6">Multiplier</Typography>
@@ -251,7 +251,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
     </DialogContent>
     <DialogActions>
       <Grid container justifyContent="space-between">
-        <Button onClick={closeModal}>Cancel</Button>
+        <Button onClick={() => closeModal && closeModal(false)}>Cancel</Button>
         {1 === viewStep ? <Grid item>
           {!!scheduleBracketsValues.length && <Button
             onClick={() => {
