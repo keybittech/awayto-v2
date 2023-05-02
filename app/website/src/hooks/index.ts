@@ -5,6 +5,7 @@ export * from './useFileStore';
 export * from './useStyles';
 export * from './useSecure';
 export * from './useGroupSecure';
+export * from './useSelectOne';
 export * from './useSchedule';
 export * from './useGrid';
 export * from './useUtil';

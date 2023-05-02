@@ -18,7 +18,7 @@ import MenuItem from '@mui/material/MenuItem';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 import { IService, IServiceTier, IForm, IQuote, ITimeUnitNames, TimeUnit, timeUnitOrder, IGroupScheduleDateSlots, quotedDT, userTimezone, IGroup } from 'awayto/core';
-import { useComponents, sh, useUtil } from 'awayto/hooks';
+import { useComponents, sh, useUtil, useSelectOne } from 'awayto/hooks';
 
 export function RequestQuote(props: IProps): JSX.Element {
 
@@ -54,15 +54,10 @@ export function RequestQuote(props: IProps): JSX.Element {
   const [group, setGroup] = useState<IGroup | undefined>(groupsValues[0]);
   const groupName = group?.name || '';
 
-  const { data: groupSchedules = [] } = sh.useGetGroupSchedulesQuery({ groupName }, { skip: !groupName });
-
-  const [scheduleId, setScheduleId] = useState('');
-
-  if (groupSchedules.length && !scheduleId) {
-    setScheduleId(groupSchedules[0].id);
-  }
-
-  const { data: groupScheduleMaster } = sh.useGetGroupScheduleMasterByIdQuery({ groupName, scheduleId: scheduleId }, { skip: !groupName || !scheduleId });
+  const [groupSchedule, ScheduleSelect] = useSelectOne('Schedules', sh.useGetGroupSchedulesQuery({ groupName }, { skip: !groupName }));
+  const scheduleId = groupSchedule?.id || '';
+  
+  const { data: groupScheduleMaster } = sh.useGetGroupScheduleMasterByIdQuery({ groupName, scheduleId }, { skip: !groupName || !scheduleId });
   const timeUnitNames = lookups?.timeUnits.reduce((m, d) => {
     if (d.id === groupScheduleMaster?.scheduleTimeUnitId) {
       m.scheduleTimeUnitName = d.name;
@@ -133,22 +128,9 @@ export function RequestQuote(props: IProps): JSX.Element {
             }
           />
           <CardContent>
-
             <Grid container spacing={2}>
               <Grid item xs={4}>
-                {scheduleId && <TextField
-                  select
-                  label="Schedules"
-                  fullWidth
-                  value={scheduleId}
-                  onChange={e => {
-                    if (e.target.value !== scheduleId) {
-                      setScheduleId(e.target.value);
-                    }
-                  }}
-                >
-                  {groupSchedules.map((sched, i) => <MenuItem key={i} value={sched.id}>{sched.name}</MenuItem>)}
-                </TextField>}
+                <ScheduleSelect />
               </Grid>
               <Grid item xs={4}>
                 {!!services.length && <TextField
