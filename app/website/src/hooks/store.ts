@@ -197,7 +197,7 @@ export const sh = createApi({
         return { url: processedUrl, method, body: args };
       }),
       onQueryStarted: async (qa, { queryFulfilled }) => {
-        if (opts.load) {
+        if (opts.load || kind === EndpointType.MUTATION) {
           if (currentlyLoading === 0) {
             store.dispatch(utilSlice.actions.setLoading({ isLoading: true }));
           }
@@ -207,10 +207,12 @@ export const sh = createApi({
             await queryFulfilled;
           } catch { }
   
-          currentlyLoading--;
-          if (currentlyLoading === 0) {
-            store.dispatch(utilSlice.actions.setLoading({ isLoading: false }));
-          }
+          setTimeout(() => {
+            currentlyLoading--;
+            if (currentlyLoading === 0) {
+              store.dispatch(utilSlice.actions.setLoading({ isLoading: false }));
+            }
+          }, 0);
         }
       }
     };
