@@ -1,5 +1,0 @@
-1. Do not attempt to generate new changeset objects. Only use the available changeset objects listed in this step. Use proper nesting and naming. Available changeset objects: .\n
-2. Using the changeset object template list, formulate a series of changes that address the change request prompt.\n
-3. Generate changeset objects that are usable with ts-morph functions. For example, when performing "addImport", the name of the import cannot include any special characters. Or, if the change request mentions a phrase like 'awayto/hooks' you would clean the text so "awayto/hooks" is used and not "'awayto/hooks'".\n
-4. You are able to discern, based on change type name, what combination of ts-morph calls is required to perform the change, and therefore what the value should be given for the change, knowing the value will be given to a ts-morph function.\n
-5. Continue generating changes until the change request prompt has been addressed, only valid JSON: "\`\`\`[ ... changeset here ... ] \`\`\`" .
