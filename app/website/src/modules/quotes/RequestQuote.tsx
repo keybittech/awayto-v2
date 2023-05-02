@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import dayjs from 'dayjs';
 
@@ -46,27 +46,23 @@ export function RequestQuote(props: IProps): JSX.Element {
   // }, [tier, tierForm, group]);
 
   const { data: lookups } = sh.useGetLookupsQuery();
+
   const { data: profile } = sh.useGetUserProfileDetailsQuery();
 
   const groupsValues = Object.values(profile?.groups || {});
+
   const [group, setGroup] = useState<IGroup | undefined>(groupsValues[0]);
   const groupName = group?.name || '';
 
-  const { data: groupSchedules } = sh.useGetGroupSchedulesQuery({ groupName }, { skip: !groupName });
+  const { data: groupSchedules = [] } = sh.useGetGroupSchedulesQuery({ groupName }, { skip: !groupName });
 
-  const [currentMasterScheduleId, setCurrentMasterScheduleId] = useState(groupSchedules ? groupSchedules[0].id : '');
+  const [scheduleId, setScheduleId] = useState('');
 
-  const { data: groupScheduleMaster } = sh.useGetGroupScheduleMasterByIdQuery({ groupName, scheduleId: currentMasterScheduleId }, { skip: !groupName || !currentMasterScheduleId });
+  if (groupSchedules.length && !scheduleId) {
+    setScheduleId(groupSchedules[0].id);
+  }
 
-  const { data: groupUserSchedules } = sh.useGetGroupUserSchedulesQuery({ groupName, groupScheduleId: currentMasterScheduleId }, { skip: !groupName || !currentMasterScheduleId });
-
-  const services = groupUserSchedules?.reduce((m, d) => {
-    return {
-      ...m,
-      ...d.services
-    }
-  }, {} as Record<string, IService>) || {};
-
+  const { data: groupScheduleMaster } = sh.useGetGroupScheduleMasterByIdQuery({ groupName, scheduleId: scheduleId }, { skip: !groupName || !scheduleId });
   const timeUnitNames = lookups?.timeUnits.reduce((m, d) => {
     if (d.id === groupScheduleMaster?.scheduleTimeUnitId) {
       m.scheduleTimeUnitName = d.name;
@@ -78,24 +74,35 @@ export function RequestQuote(props: IProps): JSX.Element {
     return m;
   }, {} as { scheduleTimeUnitName: ITimeUnitNames; bracketTimeUnitName: ITimeUnitNames; slotTimeUnitName: ITimeUnitNames });
 
+  const { data: groupUserSchedules = [] } = sh.useGetGroupUserSchedulesQuery({ groupName, groupScheduleId: scheduleId }, { skip: !groupName || !scheduleId });
 
+  const services = groupUserSchedules?.flatMap(gus => Object.values(gus.brackets).flatMap(b => Object.values(b.services))) || [];
+
+  const [service, setService] = useState<IService | undefined>();
+  if (services.length && !service) {
+    setService(services[0]);
+  }
+
+  const serviceTiers = Object.values(service?.tiers || {}).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime());
+
+  const [tier, setTier] = useState<IServiceTier | undefined>();
+  if (serviceTiers.length && !tier) {
+    setTier(serviceTiers[0]);
+  }
+  
   const [startOfMonth, setStartOfMonth] = useState(dayjs().startOf(TimeUnit.MONTH));
   const { data: dateSlots } = sh.useGetGroupScheduleByDateQuery({
     groupName,
-    scheduleId: currentMasterScheduleId,
+    scheduleId,
     date: startOfMonth.format("YYYY-MM-DD"),
     timezone: btoa(userTimezone)
-  }, { skip: !groupName || !currentMasterScheduleId });
+  }, { skip: !groupName || !scheduleId });
   
   const [firstAvailable, setFirstAvailable] = useState({ time: dayjs().startOf('day') } as IGroupScheduleDateSlots);
   if (dateSlots?.length && !firstAvailable.scheduleBracketSlotId) {
     const [slot] = dateSlots;
     setFirstAvailable({ ...slot, time: quotedDT(slot.weekStart, slot.startTime) });
   }
-
-  const [service, setService] = useState<IService | undefined>(Object.values(services)[0]);
-  const serviceTiers = useMemo(() => Object.values(service?.tiers || {}).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime()), [service?.tiers]);
-  const [tier, setTier] = useState<IServiceTier | undefined>(serviceTiers[0]);
 
   const [serviceForm, setServiceForm] = useState({} as IForm);
   const [tierForm, setTierForm] = useState({} as IForm);
@@ -129,31 +136,34 @@ export function RequestQuote(props: IProps): JSX.Element {
 
             <Grid container spacing={2}>
               <Grid item xs={4}>
-                {groupSchedules && groupSchedules.length && <TextField
+                {scheduleId && <TextField
                   select
                   label="Schedules"
                   fullWidth
-                  value={currentMasterScheduleId}
+                  value={scheduleId}
                   onChange={e => {
-                    if (e.target.value !== currentMasterScheduleId) {
-                      setCurrentMasterScheduleId(e.target.value);
+                    if (e.target.value !== scheduleId) {
+                      setScheduleId(e.target.value);
                     }
                   }}
                 >
-                  {groupSchedules?.map((sched, i) => <MenuItem key={i} value={sched.id}>{sched.name}</MenuItem>)}
+                  {groupSchedules.map((sched, i) => <MenuItem key={i} value={sched.id}>{sched.name}</MenuItem>)}
                 </TextField>}
               </Grid>
               <Grid item xs={4}>
-                {!!Object.keys(services).length && <TextField
+                {!!services.length && <TextField
                   select
                   label="Service"
                   fullWidth
                   value={service?.id}
                   onChange={e => {
-                    setService(services[e.target.value]);
+                    const nextService = services.find(s => s.id === e.target.value);
+                    if (nextService) {
+                      setService(nextService);
+                    }
                   }}
                 >
-                  {Object.values(services).map((service, i) => <MenuItem key={`service_request_selection_${i}`} value={service.id}>{service.name}</MenuItem>)}
+                  {services.map((service, i) => <MenuItem key={`service_request_selection_${i}`} value={service.id}>{service.name}</MenuItem>)}
                 </TextField>}
               </Grid>
               <Grid item xs={4}>
@@ -214,17 +224,17 @@ export function RequestQuote(props: IProps): JSX.Element {
             <Grid container spacing={2}>
               <Grid item xs={4}>
                 <ScheduleDatePicker
-                  key={currentMasterScheduleId}
+                  key={scheduleId}
                   dateSlots={dateSlots}
                   firstAvailable={firstAvailable}
-                  value={bracketSlotDate || firstAvailable.time || null}
+                  bracketSlotDate={bracketSlotDate || firstAvailable.time || null}
                   setStartOfMonth={setStartOfMonth}
                   onDateChange={(date: dayjs.Dayjs | null) => setBracketSlotDate(date ? date.isBefore(firstAvailable.time) ? firstAvailable.time : date  : null)}
                 />
               </Grid>
               {timeUnitNames && timeUnitOrder.indexOf(timeUnitNames.slotTimeUnitName) <= timeUnitOrder.indexOf(TimeUnit.HOUR) && <Grid item xs={4}>
                 <ScheduleTimePicker
-                  key={currentMasterScheduleId}
+                  key={scheduleId}
                   firstAvailable={firstAvailable}
                   bracketSlotDate={bracketSlotDate}
                   bracketTimeUnitName={timeUnitNames.bracketTimeUnitName}
