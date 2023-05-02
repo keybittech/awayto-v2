@@ -6,7 +6,7 @@ import { SiteQuery } from './store';
 import { UseQuery } from '@reduxjs/toolkit/dist/query/react/buildHooks';
 import { ILookup } from 'awayto/core';
 
-export function useSelectOne<T extends ILookup>(label: string, { data: items }: ReturnType<UseQuery<SiteQuery<{ readonly [prop: string]: string }, T[]>>> & { data?: T[] }): [T | undefined, React.LazyExoticComponent<IBaseComponent> | (() => JSX.Element)] {
+export function useSelectOne<T extends ILookup>(label: string, { data: items }: Partial<ReturnType<UseQuery<SiteQuery<{ readonly [prop: string]: string }, T[]>>>> & { data?: T[] }): [T | undefined, React.LazyExoticComponent<IBaseComponent> | (() => JSX.Element)] {
   const [itemId, setItemId] = useState('');
   
   if (Array.isArray(items) && items.length && !itemId) {

@@ -9,3 +9,4 @@ export * from './useSelectOne';
 export * from './useSchedule';
 export * from './useGrid';
 export * from './useUtil';
+export * from './useTimeName';
