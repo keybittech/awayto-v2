@@ -75,11 +75,12 @@ let oldRolesOutputHash;
  */
 function checkWriteBuildFile(next) {
   try {
+    // all files are placed into this object as views
     const files = {
       views: parseResource('.' + AWAYTO_WEBAPP_MODULES + '/**/*.tsx')
     };
-    const filesString = JSON.stringify(files);
 
+    // search all files for role exporting, which will later be used to limit the fetching of that file based on roles
     const roles = {};
     Object.values(files.views).forEach(file => {
       const fileString = fs.readFileSync('.' + AWAYTO_WEBAPP + '/' + file + '.tsx').toString();
@@ -89,19 +90,16 @@ function checkWriteBuildFile(next) {
       }
     });
     const rolesString = JSON.stringify({ roles });
-
     const newRolesOutputHash = crypto.createHash('sha1').update(Buffer.from(rolesString)).digest('base64');
-
     if (oldRolesOutputHash !== newRolesOutputHash) {
       oldRolesOutputHash = newRolesOutputHash;
       fs.writeFileSync(appRolesOutputPath, rolesString);
     }
 
+    const filesString = JSON.stringify(files);
     const newAppOutputHash = crypto.createHash('sha1').update(Buffer.from(filesString)).digest('base64');
-
     if (oldAppOutputHash !== newAppOutputHash) {
       oldAppOutputHash = newAppOutputHash;
-      // write new roles here
       fs.writeFile(appBuildOutputPath, filesString, () => next && next())
     } else {
       next && next()

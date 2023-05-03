@@ -1,4 +1,16 @@
+import { v4 } from 'uuid';
 import { Request, Response, NextFunction } from 'express';
+
+let arbitraryCounter = 0;
+
+export function nid(uuid?: string) {
+  if ('v4' === uuid) {
+    return v4();
+  }
+  arbitraryCounter++;
+  return arbitraryCounter;
+}
+
 /**
  * @category Util
  */
@@ -28,6 +40,14 @@ export const passwordGen = (): string => {
 
   return pass.join('');
 }
+
+export const toSnakeCase = (name: string): string => {
+  return name.substr(1).replace(/[A-Z]/g, (match) => `_${match.toLowerCase()}`).slice(1);
+};
+
+export const toTitleCase = (name: string): string => {
+  return name.substr(1).replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase());
+};
 
 // convert a string into a unique symbol for the purposes of dynamic attr selection
 // const thing = 'myAttr';

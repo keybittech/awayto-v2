@@ -1,10 +1,7 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router';
 import dayjs from 'dayjs';
 
-import Accordion from '@mui/material/Accordion';
-import AccordionSummary from '@mui/material/AccordionSummary';
-import AccordionDetails from '@mui/material/AccordionDetails';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
@@ -13,10 +10,8 @@ import CardHeader from '@mui/material/CardHeader';
 import CardContent from '@mui/material/CardContent';
 import CardActionArea from '@mui/material/CardActionArea';
 
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-
 import { IForm, IQuote, TimeUnit, IGroupScheduleDateSlots, quotedDT, userTimezone } from 'awayto/core';
-import { useComponents, sh, useUtil, useSelectOne } from 'awayto/hooks';
+import { useComponents, useContexts, sh, useUtil, useSelectOne } from 'awayto/hooks';
 
 export function RequestQuote(props: IProps): JSX.Element {
 
@@ -43,9 +38,12 @@ export function RequestQuote(props: IProps): JSX.Element {
   //   }
   // }, [tier, tierForm, group]);
 
-  const { data: profile } = sh.useGetUserProfileDetailsQuery();
 
-  const [group, GroupSelect] = useSelectOne('Groups', { data: Object.values(profile?.groups || {}) })
+  const { GroupContext } = useContexts();
+
+  const { group, GroupSelect } = useContext(GroupContext) as GroupContextType;
+
+  console.log({ group, GroupSelect })
 
   const [groupSchedule, ScheduleSelect] = useSelectOne('Schedules', sh.useGetGroupSchedulesQuery({ groupName: group?.name || '' }, { skip: !group }));
 
@@ -54,6 +52,7 @@ export function RequestQuote(props: IProps): JSX.Element {
   const [service, ServiceSelect] = useSelectOne('Service', { data: groupUserSchedules?.flatMap(gus => Object.values(gus.brackets).flatMap(b => Object.values(b.services))) });
 
   const [tier, TierSelect] = useSelectOne('Tier', { data: Object.values(service?.tiers || {}).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime()) });
+
 
   const [startOfMonth, setStartOfMonth] = useState(dayjs().startOf(TimeUnit.MONTH));
   const { data: dateSlots } = sh.useGetGroupScheduleByDateQuery({
@@ -78,7 +77,7 @@ export function RequestQuote(props: IProps): JSX.Element {
 
   // Re-add service tier addons component
 
-  if (!groupSchedule) return <></>;
+  if (!groupSchedule || !GroupSelect) return <></>;
   return <>
     <Grid container spacing={2}>
 
@@ -105,7 +104,8 @@ export function RequestQuote(props: IProps): JSX.Element {
           </CardContent>
         </Card>
 
-        {serviceForm.version && <Accordion defaultExpanded={true}>
+
+        {/* {serviceForm.version && <Accordion defaultExpanded={true}>
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
             aria-controls="service-request-section-service-questionnaire-content"
@@ -176,8 +176,7 @@ export function RequestQuote(props: IProps): JSX.Element {
                 />
               </Grid>
 
-              {/*
-              TODO LATER SHOULD ONLY SHOW USER SELECTION BASED ON AUTO/ROUND-ROBIN/DIRECT-SELECT
+              
               {quote.scheduleBracketSlotId && <Grid item xs={4}>
                 <TextField
                   select
@@ -195,10 +194,10 @@ export function RequestQuote(props: IProps): JSX.Element {
                       return <MenuItem key={`schedule-slot-selection-${i}`} value={bv.id}>{name}</MenuItem>
                     })}
                 </TextField>
-              </Grid>} */}
+              </Grid>}
             </Grid>}
           </AccordionDetails>
-        </Accordion>
+        </Accordion> */}
 
         <FileManager {...props} />
       </Grid>

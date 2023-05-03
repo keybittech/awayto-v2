@@ -2,16 +2,6 @@ import { ComponentType, FunctionComponent, ReactNode, LazyExoticComponent, creat
 import { useParams } from 'react-router';
 
 import { hasGroupRole, SiteRoles } from 'awayto/core';
-/**
- * @category Awayto React
- */
-// eslint-disable-next-line
-export type IBaseComponent = FunctionComponent<IProps> & ComponentType<any> & ReactNode;
-
-/**
- * @category Awayto React
- */
-export type IBaseComponents = { [component: string]: LazyExoticComponent<IBaseComponent> | (() => JSX.Element) }
 
 import buildOutput from '../build.json';
 import rolesOutput from '../roles.json';
@@ -23,6 +13,17 @@ const { roles } = rolesOutput as {
     [prop: string]: SiteRoles[]
   }
 };
+
+/**
+ * @category Awayto React
+ */
+// eslint-disable-next-line
+export type IBaseComponent = FunctionComponent<IProps> & ComponentType<any> & ReactNode;
+
+/**
+ * @category Awayto React
+ */
+export type IBaseComponents = Record<string, LazyExoticComponent<IBaseComponent> | (() => JSX.Element)>
 
 const components = {} as IBaseComponents;
 
@@ -50,21 +51,14 @@ const components = {} as IBaseComponents;
  * @category Hooks
  */
 export function useComponents(): IBaseComponents {
-  const { data: profile } = sh.useGetUserProfileDetailsQuery();
+  const { data: profile = { availableUserGroupRoles: {} } } = sh.useGetUserProfileDetailsQuery();
 
   const { groupName } = useParams();
 
   const comps = useMemo(() => {
     return new Proxy(components, {
       get: function (target: IBaseComponents, prop: string): LazyExoticComponent<IBaseComponent> | (() => JSX.Element) {
-
-        if (!profile) {
-          return () => createElement('div');
-        }
-
-        const compPath = views[prop];
-
-        if (groupName && roles[compPath]?.length && !hasGroupRole(groupName, profile.availableUserGroupRoles, roles[compPath] )) {
+        if (groupName && roles[views[prop]]?.length && !hasGroupRole(groupName, profile.availableUserGroupRoles, roles[views[prop]] )) {
           components[prop] = ((): JSX.Element => createElement('div'));
         }
       
