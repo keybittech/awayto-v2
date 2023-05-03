@@ -1,11 +1,10 @@
 # docker build -t wcapp . -f ./app/Dockerfile && kc scale deployment wcapp --replicas=0 && kc scale deployment wcapp --replicas=1 --current-replicas=0
 # docker build -t wcapp . && docker run --rm --init -p 443:443 wcapp
-FROM node:20.0.0-alpine as builder
+FROM node:18.16.0-alpine as builder
 # RUN apk add postgresql-dev python3 make build-base
 
 RUN apk update && apk add gettext
 
-ARG WIZAPP_VERSION
 ARG CUST_LAND_HOSTNAME
 ARG CUST_APP_HOSTNAME
 ARG CUST_HOST_IP
@@ -15,26 +14,22 @@ COPY ./app/landing /land
 
 WORKDIR /land
 RUN --mount=type=cache,target=/root/.cache/yarn yarn install &&\
-    envsubst < config.yaml.template > config.yaml &&\
-    npm run build
+  envsubst < config.yaml.template > config.yaml &&\
+  npm run build
 
 RUN mkdir -p /core/src && mkdir -p /app/website/src && mkdir -p /app/website/public
 
-COPY /core/src/ /core/src
-COPY /core/package.json /core/yarn.lock /core/*config*.json /core/
-
-WORKDIR /core
-RUN --mount=type=cache,target=/root/.cache/yarn sed -i "s/file:..\/..\/wiz/${WIZAPP_VERSION}/g" ./package.json &&\
-  yarn install
-
 WORKDIR /app/website
-COPY /app/website/package.json /app/website/yarn.lock /app/website/*config*.* /app/website/settings.application.env.template /app/website/
-RUN --mount=type=cache,target=/root/.cache/yarn envsubst < ./settings.application.env.template > ./settings.application.env &&\
-  sed -i "s/file:..\/..\/..\/wiz/${WIZAPP_VERSION}/g" ./package.json &&\
-  yarn install
 
-COPY /app/website/public/ /app/website/public
+COPY --from=awayto-deps /deps/node_modules /core/node_modules
+COPY --from=awayto-deps /deps/node_modules /app/website/node_modules
+
+COPY /core/src/ /core/src
 COPY /app/website/src/ /app/website/src
+COPY /app/website/public/ /app/website/public
+COPY /app/website/package.json /app/website/*config*.* /app/website/settings.application.env.template /app/website/
+
+RUN envsubst < ./settings.application.env.template > ./settings.application.env
 
 RUN npm run build
 

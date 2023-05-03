@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -e
+
+export $(grep -v '^#' .env | xargs)
+
+DOCKER_BUILDKIT=1
+
+docker build --build-arg WIZAPP_VERSION -t awayto-deps . -f ./Dockerfile.deps

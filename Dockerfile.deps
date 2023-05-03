@@ -1,0 +1,19 @@
+FROM node:18.16.0-alpine
+RUN apk add postgresql-dev python3 make build-base
+
+ARG WIZAPP_VERSION
+
+RUN mkdir -p /deps/api && mkdir -p /deps/core && mkdir -p /deps/app/website
+
+COPY /package.json /deps
+COPY /api/package.json /api/yarn.lock /deps/api
+COPY /core/package.json /core/yarn.lock /deps/core
+COPY /app/website/package.json /app/website/yarn.lock /deps/app/website
+
+WORKDIR /deps
+
+RUN sed -i "s/file:..\/..\/wiz/${WIZAPP_VERSION}/g" /deps/api/package.json &&\
+  sed -i "s/file:..\/..\/wiz/${WIZAPP_VERSION}/g" /deps/core/package.json &&\
+  sed -i "s/file:..\/..\/..\/wiz/${WIZAPP_VERSION}/g" /deps/app/website/package.json
+
+RUN yarn install

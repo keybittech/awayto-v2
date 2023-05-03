@@ -1,0 +1,9 @@
+{
+  "name": "awayto",
+  "private": true,
+  "workspaces": [
+    "api",
+    "core",
+    "app/website"
+  ]
+}

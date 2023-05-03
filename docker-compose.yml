@@ -16,7 +16,6 @@ services:
       context: ./
       dockerfile: ./app/Dockerfile
       args:
-        - WIZAPP_VERSION=${WIZAPP_VERSION}
         - CUST_LAND_HOSTNAME=${CUST_LAND_HOSTNAME}
         - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
         - CUST_HOST_IP=${CUST_HOST_IP}
@@ -41,8 +40,6 @@ services:
     build:
       context: ./
       dockerfile: ./api/Dockerfile
-      args:
-        - WIZAPP_VERSION=${WIZAPP_VERSION}
     extra_hosts:
       - wcapp.site.com:127.0.0.1
     # ports:
