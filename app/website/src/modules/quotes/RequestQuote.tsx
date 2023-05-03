@@ -1,6 +1,5 @@
 import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router';
-import dayjs from 'dayjs';
 
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
@@ -10,17 +9,38 @@ import CardHeader from '@mui/material/CardHeader';
 import CardContent from '@mui/material/CardContent';
 import CardActionArea from '@mui/material/CardActionArea';
 
-import { IForm, IQuote, TimeUnit, IGroupScheduleDateSlots, quotedDT, userTimezone } from 'awayto/core';
-import { useComponents, useContexts, sh, useUtil, useSelectOne } from 'awayto/hooks';
+import { IForm } from 'awayto/core';
+import { useComponents, useContexts, sh, useUtil } from 'awayto/hooks';
 
 export function RequestQuote(props: IProps): JSX.Element {
 
   const navigate = useNavigate();
   const { setSnack } = useUtil();
-  const { FileManager, FormDisplay, ScheduleDatePicker, ScheduleTimePicker } = useComponents();
+  const { FileManager, FormDisplay } = useComponents();
+  const [postQuote] = sh.usePostQuoteMutation();
+
+  const { GroupContext, GroupScheduleContext, GroupScheduleSelectionContext } = useContexts();
+
+  const { GroupSelect } = useContext(GroupContext) as GroupContextType;
+  const {
+    groupSchedule,
+    groupScheduleServiceTier,
+    GroupScheduleSelect,
+    GroupScheduleServiceSelect,
+    GroupScheduleServiceTierSelect
+  } = useContext(GroupScheduleContext) as GroupScheduleContextType;
+
+  const {
+    quote,
+    firstAvailable,
+    selectedTime,
+    GroupScheduleSelectionPickers
+  } = useContext(GroupScheduleSelectionContext) as GroupScheduleSelectionContextType;
+
 
   const [getGroupFormById] = sh.useLazyGetGroupFormByIdQuery();
-  const [postQuote] = sh.usePostQuoteMutation();
+  const [serviceForm, setServiceForm] = useState({} as IForm);
+  const [tierForm, setTierForm] = useState({} as IForm);
 
   // useEffect(() => {
   //   if (group.name && service.formId && service.formId != serviceForm.id) {
@@ -38,43 +58,6 @@ export function RequestQuote(props: IProps): JSX.Element {
   //   }
   // }, [tier, tierForm, group]);
 
-
-  const { GroupContext } = useContexts();
-
-  const { group, GroupSelect } = useContext(GroupContext) as GroupContextType;
-
-  console.log({ group, GroupSelect })
-
-  const [groupSchedule, ScheduleSelect] = useSelectOne('Schedules', sh.useGetGroupSchedulesQuery({ groupName: group?.name || '' }, { skip: !group }));
-
-  const { data: groupUserSchedules } = sh.useGetGroupUserSchedulesQuery({ groupName: group?.name || '', groupScheduleId: groupSchedule?.id || '' }, { skip: !group || !groupSchedule });
-
-  const [service, ServiceSelect] = useSelectOne('Service', { data: groupUserSchedules?.flatMap(gus => Object.values(gus.brackets).flatMap(b => Object.values(b.services))) });
-
-  const [tier, TierSelect] = useSelectOne('Tier', { data: Object.values(service?.tiers || {}).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime()) });
-
-
-  const [startOfMonth, setStartOfMonth] = useState(dayjs().startOf(TimeUnit.MONTH));
-  const { data: dateSlots } = sh.useGetGroupScheduleByDateQuery({
-    groupName: group?.name || '',
-    scheduleId: groupSchedule?.id || '',
-    date: startOfMonth.format("YYYY-MM-DD"),
-    timezone: btoa(userTimezone)
-  }, { skip: !group || !groupSchedule });
-  
-  const [firstAvailable, setFirstAvailable] = useState({ time: dayjs().startOf('day') } as IGroupScheduleDateSlots);
-  if (dateSlots?.length && !firstAvailable.scheduleBracketSlotId) {
-    const [slot] = dateSlots;
-    setFirstAvailable({ ...slot, time: quotedDT(slot.weekStart, slot.startTime) });
-  }
-
-  const [serviceForm, setServiceForm] = useState({} as IForm);
-  const [tierForm, setTierForm] = useState({} as IForm);
-  const [quote, setQuote] = useState({} as IQuote);
-
-  const [bracketSlotDate, setBracketSlotDate] = useState<dayjs.Dayjs | null>();
-  const [bracketSlotTime, setBracketSlotTime] = useState<dayjs.Dayjs | null>();
-
   // Re-add service tier addons component
 
   if (!groupSchedule || !GroupSelect) return <></>;
@@ -91,13 +74,13 @@ export function RequestQuote(props: IProps): JSX.Element {
           <CardContent>
             <Grid container spacing={2}>
               <Grid item xs={4}>
-                <ScheduleSelect />
+                <GroupScheduleSelect />
               </Grid>
               <Grid item xs={4}>
-                <ServiceSelect />
+                <GroupScheduleServiceSelect />
               </Grid>
               <Grid item xs={4}>
-                <TierSelect />
+                <GroupScheduleServiceTierSelect />
               </Grid>
             </Grid>
 
@@ -140,64 +123,11 @@ export function RequestQuote(props: IProps): JSX.Element {
             <Typography>Schedule</Typography>
           </AccordionSummary>
           <AccordionDetails>
-            {groupSchedule && <Grid container spacing={2}>
-              <Grid item xs={4}>
-                <ScheduleDatePicker
-                  key={groupSchedule.id}
-                  dateSlots={dateSlots}
-                  firstAvailable={firstAvailable}
-                  bracketSlotDate={bracketSlotDate || firstAvailable.time || null}
-                  setStartOfMonth={setStartOfMonth}
-                  onDateChange={(date: dayjs.Dayjs | null) => setBracketSlotDate(date ? date.isBefore(firstAvailable.time) ? firstAvailable.time : date  : null)}
-                />
-              </Grid>
-              <Grid item xs={4}>
-                <ScheduleTimePicker // removed the hiddenness of this when hours are not needed, need to move that idea into some component hide prop
-                  key={groupSchedule.id}
-                  scheduleId={groupSchedule.id}
-                  firstAvailable={firstAvailable}
-                  bracketSlotDate={bracketSlotDate}
-                  value={bracketSlotTime || firstAvailable.time}
-                  onTimeChange={({ time, quote: newQuote }: { time: dayjs.Dayjs | null, quote?: IQuote }) => {
-                    setBracketSlotTime(time);
-                    if (newQuote) {
-                      setQuote({
-                        ...quote,
-                        ...newQuote
-                      })
-                    }
-                  }}
-                  onTimeAccept={(newQuote: IQuote) => {
-                    setQuote({
-                      ...quote,
-                      ...newQuote
-                    })
-                  }}
-                />
-              </Grid>
-
-              
-              {quote.scheduleBracketSlotId && <Grid item xs={4}>
-                <TextField
-                  select
-                  fullWidth
-                  label="User"
-                  value={quote.scheduleBracketSlotId}
-                  onChange={e => {
-                    setQuote({ ...quote, scheduleBracketSlotId: e.target.value })
-                  }}
-                >
-                  {bracketsValues
-                    .filter(bv => Object.values(bv.slots).findIndex(s => s.startTime === quote.slotTime) === -1)
-                    .map((bv, i) => {
-                      const { name } = Object.values(groupUserSchedules).find(gus => gus.userScheduleId === bv.scheduleId) || {};
-                      return <MenuItem key={`schedule-slot-selection-${i}`} value={bv.id}>{name}</MenuItem>
-                    })}
-                </TextField>
-              </Grid>}
-            </Grid>}
+            {groupSchedule && <GroupScheduleSelectionPickers />}
           </AccordionDetails>
         </Accordion> */}
+
+        <GroupScheduleSelectionPickers />
 
         <FileManager {...props} />
       </Grid>
@@ -206,8 +136,8 @@ export function RequestQuote(props: IProps): JSX.Element {
         <Card>
           <CardActionArea onClick={() => {
             async function go() {
-              if (tier) {
-                quote.serviceTierId = tier.id;
+              if (selectedTime || groupScheduleServiceTier) {
+                quote.serviceTierId = groupScheduleServiceTier.id;
     
                 if (!quote.scheduleBracketSlotId) {
                   const { scheduleBracketSlotId, startDate } = firstAvailable;

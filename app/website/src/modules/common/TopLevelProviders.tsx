@@ -2,10 +2,12 @@ import React from 'react';
 import { useComponents } from 'awayto/hooks';
 
 export function TopLevelProviders({ children }: IProps): JSX.Element {
-  const { GroupProvider } = useComponents();
+  const { GroupProvider, GroupScheduleProvider } = useComponents();
   return <>
     <GroupProvider>
-      {children}
+      <GroupScheduleProvider>
+        {children}
+      </GroupScheduleProvider>
     </GroupProvider>
   </>
 }

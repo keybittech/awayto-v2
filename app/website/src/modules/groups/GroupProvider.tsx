@@ -17,9 +17,12 @@ export function GroupProvider({ children }: IProps): JSX.Element {
     GroupSelect
   } as GroupContextType | null;
 
-  return useMemo(() =>GroupContext ? <GroupContext.Provider value={groupContext}>
-    {children}
-  </GroupContext.Provider> : <></>, [GroupContext, groupContext]);
+  return useMemo(() => !GroupContext ? <></> :
+    <GroupContext.Provider value={groupContext}>
+      {children}
+    </GroupContext.Provider>,
+    [GroupContext, groupContext]
+  );
 }
 
 export default GroupProvider;
