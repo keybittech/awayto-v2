@@ -8,9 +8,10 @@ import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 import { nid, toSnakeCase } from 'awayto/core';
+import { IBaseComponent } from './useComponents';
 
-export function useAccordion(label: string, child: JSX.Element) {
-  return <Accordion defaultExpanded={true}>
+export function useAccordion(label: string, child: JSX.Element): React.LazyExoticComponent<IBaseComponent> | (() => JSX.Element) {
+  return () => <Accordion defaultExpanded={true}>
   <AccordionSummary
     expandIcon={<ExpandMoreIcon />}
     aria-controls={`accordion-content-${nid()}-${toSnakeCase(label)}`}

@@ -103,7 +103,6 @@ const groupServiceAddonApiHandlers: ApiHandler<typeof groupServiceAddonApi> = {
     await props.tx.none(`
       DELETE FROM dbtable_schema.uuid_service_addons
       WHERE parent_uuid = $1 AND service_addon_id = $2
-      RETURNING id
     `, [groupId, serviceAddonId]);
 
     await props.redis.del(props.event.userSub + `group/${groupName}/service_addons`);

@@ -12,8 +12,6 @@ declare global {
     GroupScheduleSelect: React.LazyExoticComponent<IBaseComponent> | (() => JSX.Element);
     GroupScheduleServiceSelect: React.LazyExoticComponent<IBaseComponent> | (() => JSX.Element);
     GroupScheduleServiceTierSelect: React.LazyExoticComponent<IBaseComponent> | (() => JSX.Element);
-    GroupScheduleDatePicker: React.LazyExoticComponent<IBaseComponent> | (() => JSX.Element);
-    GroupScheduleTimePicker: React.LazyExoticComponent<IBaseComponent> | (() => JSX.Element);
   }
 }
 

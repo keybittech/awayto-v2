@@ -101,7 +101,6 @@ const groupServicesApiHandlers: ApiHandler<typeof groupServicesApi> = {
       await props.tx.none(`
         DELETE FROM dbtable_schema.group_services
         WHERE group_id = $1 AND service_id = $2
-        RETURNING id
       `, [groupId, serviceId]);
     });
 

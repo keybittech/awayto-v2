@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { UseQuery } from '@reduxjs/toolkit/dist/query/react/buildHooks';
+
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
+
+import { ILookup } from 'awayto/core';
 import { IBaseComponent } from './useComponents';
 import { SiteQuery } from './store';
-import { UseQuery } from '@reduxjs/toolkit/dist/query/react/buildHooks';
-import { ILookup } from 'awayto/core';
 
 export function useSelectOne<T extends ILookup>(label: string, { data: items }: Partial<ReturnType<UseQuery<SiteQuery<{ readonly [prop: string]: string }, T[]>>>> & { data?: T[] }): [T | undefined, React.LazyExoticComponent<IBaseComponent> | (() => JSX.Element)] {
   const [itemId, setItemId] = useState('');

@@ -9,14 +9,13 @@ import CardHeader from '@mui/material/CardHeader';
 import CardContent from '@mui/material/CardContent';
 import CardActionArea from '@mui/material/CardActionArea';
 
-import { IForm } from 'awayto/core';
-import { useComponents, useContexts, sh, useUtil } from 'awayto/hooks';
+import { useComponents, useContexts, sh, useUtil, useGroupForm } from 'awayto/hooks';
 
 export function RequestQuote(props: IProps): JSX.Element {
 
   const navigate = useNavigate();
   const { setSnack } = useUtil();
-  const { FileManager, FormDisplay } = useComponents();
+  const { FileManager } = useComponents();
   const [postQuote] = sh.usePostQuoteMutation();
 
   const { GroupContext, GroupScheduleContext, GroupScheduleSelectionContext } = useContexts();
@@ -24,6 +23,7 @@ export function RequestQuote(props: IProps): JSX.Element {
   const { GroupSelect } = useContext(GroupContext) as GroupContextType;
   const {
     groupSchedule,
+    groupScheduleService,
     groupScheduleServiceTier,
     GroupScheduleSelect,
     GroupScheduleServiceSelect,
@@ -37,28 +37,8 @@ export function RequestQuote(props: IProps): JSX.Element {
     GroupScheduleSelectionPickers
   } = useContext(GroupScheduleSelectionContext) as GroupScheduleSelectionContextType;
 
-
-  const [getGroupFormById] = sh.useLazyGetGroupFormByIdQuery();
-  const [serviceForm, setServiceForm] = useState({} as IForm);
-  const [tierForm, setTierForm] = useState({} as IForm);
-
-  // useEffect(() => {
-  //   if (group.name && service.formId && service.formId != serviceForm.id) {
-  //     getGroupFormById({ groupName: group.name, formId: service.formId }).unwrap().then(groupServiceForm => {
-  //       setServiceForm(groupServiceForm);
-  //     }).catch(console.error);
-  //   }
-  // }, [service, serviceForm, group]);
-
-  // useEffect(() => {
-  //   if (group.name && tier.formId && tier.formId != tierForm.id) {
-  //     getGroupFormById({ groupName: group.name, formId: tier.formId }).unwrap().then(groupTierForm => {
-  //       setTierForm(groupTierForm);
-  //     }).catch(console.error);
-  //   }
-  // }, [tier, tierForm, group]);
-
-  // Re-add service tier addons component
+  const [serviceForm, ServiceForm] = useGroupForm(groupScheduleService?.name, groupScheduleService?.formId);
+  const [tierForm, TierForm] = useGroupForm(groupScheduleServiceTier?.name, groupScheduleServiceTier?.formId);
 
   if (!groupSchedule || !GroupSelect) return <></>;
   return <>
@@ -87,45 +67,9 @@ export function RequestQuote(props: IProps): JSX.Element {
           </CardContent>
         </Card>
 
+        <ServiceForm />
 
-        {/* {serviceForm.version && <Accordion defaultExpanded={true}>
-          <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            aria-controls="service-request-section-service-questionnaire-content"
-            id="service-request-section-service-questionnaire-header"
-          >
-            <Typography>{service?.name} Questionnaire</Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            <FormDisplay form={serviceForm} setForm={setServiceForm} />
-          </AccordionDetails>
-        </Accordion>}
-
-        {tierForm.version && <Accordion defaultExpanded={true}>
-          <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            aria-controls="service-request-section-tier-questionnaire-content"
-            id="service-request-section-tier-questionnaire-header"
-          >
-            <Typography>{tier?.name} Questionnaire</Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            <FormDisplay form={tierForm} setForm={setTierForm} />
-          </AccordionDetails>
-        </Accordion>}
-
-        <Accordion defaultExpanded={true}>
-          <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            aria-controls="service-request-section-time-selection-content"
-            id="service-request-section-time-selection-header"
-          >
-            <Typography>Schedule</Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            {groupSchedule && <GroupScheduleSelectionPickers />}
-          </AccordionDetails>
-        </Accordion> */}
+        <TierForm />
 
         <GroupScheduleSelectionPickers />
 
