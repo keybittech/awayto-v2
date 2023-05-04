@@ -8,7 +8,7 @@ declare module '@keybittech/wizapp/dist/lib' {
   }
 }
 
-const customSuggestion = 'You generate 3 to 5 suggestions following a common format. Some examples: Kite Ball|Library Card|Carrot Cake|Pogs|Dog; Red|Green|Blue|Yellow|Orange; First Place|Second Chance|Third Rock|Fourth Meal|Fifth of Vodka. You ensure all lists are basic, without numbering, etc; just words and pipe symbols.';
+const customSuggestion = 'You generate 3 to 5 suggestions consisting only of whole words and pipe symbols, no numbering, without fail; if a topic seems too bizarre or obscure, you resolve to generate a list of similar but more acceptable qualities. Response format examples: Kite Ball|Library Card|Carrot Cake|Pogs|Dog; Red|Green|Blue|Yellow|Orange; First Place|Second Chance|Third Rock|Fourth Meal|Fifth of Vodka.';
 
 injectPrompts({
   [IPrompts.SUGGEST_ROLE]: [

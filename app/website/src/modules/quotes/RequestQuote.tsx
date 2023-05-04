@@ -1,6 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router';
 
+import Alert from '@mui/material/Alert';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
@@ -37,10 +38,22 @@ export function RequestQuote(props: IProps): JSX.Element {
     GroupScheduleSelectionPickers
   } = useContext(GroupScheduleSelectionContext) as GroupScheduleSelectionContextType;
 
-  const [serviceForm, ServiceForm] = useGroupForm(groupScheduleService?.name, groupScheduleService?.formId);
-  const [tierForm, TierForm] = useGroupForm(groupScheduleServiceTier?.name, groupScheduleServiceTier?.formId);
+  const {
+    form: serviceForm,
+    comp: ServiceForm,
+    valid: serviceFormValid
+  } = useGroupForm(groupScheduleService?.name, groupScheduleService?.formId);
 
-  if (!groupSchedule || !GroupSelect) return <></>;
+  const {
+    form: tierForm,
+    comp: TierForm,
+    valid: tierFormValid
+  } = useGroupForm(groupScheduleServiceTier?.name, groupScheduleServiceTier?.formId);
+
+  if (!groupSchedule || !groupScheduleService || !GroupSelect) return <Alert severity="info">
+    There are no active schedules or operations are currently halted.  
+  </Alert>;
+
   return <>
     <Grid container spacing={2}>
 
@@ -89,29 +102,20 @@ export function RequestQuote(props: IProps): JSX.Element {
                   quote.slotDate = startDate;
                 }
     
-                if (Object.keys(serviceForm).length) {
-                  const missingValues = Object.keys(serviceForm.version.form).some(rowId => serviceForm.version.form[rowId].some((field, i) => field.r && [undefined, ''].includes(serviceForm.version.submission[rowId][i])));
-                  if (missingValues) {
-                    setSnack({ snackType: 'error', snackOn: 'The Service Questionnaire is missing required fields!' });
-                    return;
-                  }
-                  quote.serviceForm = {
-                    formVersionId: serviceForm.version.id,
-                    submission: serviceForm.version.submission
-                  }
+                if (!serviceFormValid || !tierFormValid) {
+                  setSnack({ snackType: 'error', snackOn: 'Please ensure all required fields are filled out.' });
+                  return;
                 }
     
-                if (Object.keys(tierForm).length) {
-                  const missingValues = Object.keys(tierForm.version.form).some(rowId => tierForm.version.form[rowId].some((field, i) => field.r && [undefined, ''].includes(tierForm.version.submission[rowId][i])));
-                  if (missingValues) {
-                    setSnack({ snackType: 'error', snackOn: 'The Tier Questionnaire is missing required fields!' });
-                    return;
-                  }
-                  quote.tierForm = {
-                    formVersionId: tierForm.version.id,
-                    submission: tierForm.version.submission
-                  }
-                }
+                quote.serviceForm = serviceForm ? {
+                  formVersionId: serviceForm.version.id,
+                  submission: serviceForm.version.submission
+                } : undefined;
+
+                quote.tierForm = tierForm ? {
+                  formVersionId: tierForm.version.id,
+                  submission: tierForm.version.submission
+                } : undefined;
     
                 await postQuote(quote).unwrap();
                 setSnack({ snackOn: 'Your request has been made successfully!' });

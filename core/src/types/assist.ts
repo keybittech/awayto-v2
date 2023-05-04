@@ -21,8 +21,7 @@ const assistApi = {
     url: 'assist/prompt?id=:id&prompt=:prompt',
     method: 'GET',
     opts: {
-      cache: null,
-      load: true
+      cache: null
     } as ApiOptions,
     queryArg: {
       id: '' as string,
