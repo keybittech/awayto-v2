@@ -1,8 +1,8 @@
-import React, { useCallback, useMemo, useState, useEffect } from 'react';
+import React, { useCallback, useMemo, useEffect } from 'react';
 import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
 
-import { IForm, IFormTemplate } from 'awayto/core';
+import { IForm } from 'awayto/core';
 
 export type FormDisplayProps = {
   form?: IForm;
@@ -13,54 +13,49 @@ declare global {
   interface IProps extends FormDisplayProps { }
 }
 
+
 export default function FormDisplay({ form, setForm }: IProps & Required<FormDisplayProps>): JSX.Element {
 
-  const [rows, setRows] = useState({} as IFormTemplate);
-  const [formId, setFormId] = useState('');
-
   useEffect(() => {
-    if (Object.keys(rows).length) {
+    if (!form.version.submission) {
+      const submission = Object.keys(form.version.form).reduce((m, rowId) => {
+        return {
+          ...m,
+          [rowId]: form.version.form[rowId].map(r => r.v)
+        }
+      }, {});
       setForm({
         ...form,
         version: {
           ...form.version,
-          submission: Object.keys(rows).reduce((m, rowId) => {
-            return {
-              ...m,
-              [rowId]: rows[rowId].map(r => r.v)
-            }
-          }, {})
+          submission
         }
       });
     }
-  }, [rows]);
+  }, [form, setForm]);
 
-  useEffect(() => {
-    if (form.id !== formId && Object.keys(form.version.form).length) {
-      setRows({ ...form.version.form });
-      setFormId(form.id)
-    }
-  }, [form, formId]);
-
-  const rowKeys = useMemo(() => Object.keys(rows), [rows]);
+  const rowKeys = useMemo(() => Object.keys(form.version.form), [form]);
 
   const setCellAttr = useCallback((row: string, col: number, value: string, attr: string) => {
-    rows[row][col][attr] = value;
-    setRows({ ...rows })
-  }, [rows]);
+    const updatedForm = { ...form };
+    updatedForm.version.form[row][col][attr] = value;
+    updatedForm.version.submission[row][col] = value;
+    setForm(updatedForm);
+  }, [form, setForm]);
 
   return <Grid container spacing={2}>
 
     {rowKeys.map((rowId, i) => <Grid key={`form_fields_row_${i}`} item xs={12}>
       <Grid container spacing={2}>
-        {rows[rowId].map((cell, j) => {
-          return <Grid key={`form_fields_cell_${i + 1}_${j}`} item xs={12 / rows[rowId].length}>
+        {form.version.form[rowId].map((cell, j) => {
+          return <Grid key={`form_fields_cell_${i + 1}_${j}`} item xs={12 / form.version.form[rowId].length}>
             <TextField
               fullWidth
               label={cell.l}
               type={cell.t || 'text'}
               helperText={`${cell.r ? 'Required. ' : ''}${cell.h || ''}`}
-              onChange={e => setCellAttr(rowId, j, e.target.value, 'v')}
+              onBlur={e => {setCellAttr(rowId, j, e.target.value, 'v')}}
+              defaultValue={cell.v || ''}
             />
           </Grid>
         })}

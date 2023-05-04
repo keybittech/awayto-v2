@@ -1,12 +1,12 @@
 import { IGroup } from 'awayto/core';
-import { IBaseComponent } from 'awayto/hooks';
+import { IDefaultedComponent } from 'awayto/hooks';
 import { createContext } from 'react';
 
 declare global {
   type GroupContextType = {
     groups: IGroup[];
     group: IGroup;
-    GroupSelect: React.LazyExoticComponent<IBaseComponent> | (() => JSX.Element);
+    GroupSelect: IDefaultedComponent;
   }
 }
 

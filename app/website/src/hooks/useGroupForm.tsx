@@ -1,21 +1,32 @@
-import React, { useMemo, useState } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 
-import { IForm } from 'awayto/core';
-import { IBaseComponent, useComponents } from './useComponents';
+import { IForm, deepClone } from 'awayto/core';
+import { IDefaultedComponent, useComponents } from './useComponents';
 import { useAccordion } from './useAccordion';
 import { sh } from './store';
+import { useContexts } from './useContexts';
 
 type UseGroupFormResponse = {
   form: IForm,
-  comp: React.LazyExoticComponent<IBaseComponent> | (() => JSX.Element),
+  comp: IDefaultedComponent,
   valid: boolean
 };
 
 export function useGroupForm(label: string, id: string): UseGroupFormResponse {
 
+  const { group } = useContext(useContexts().GroupContext) as GroupContextType;
+
   const { FormDisplay } = useComponents();
 
+  const { data: formTemplate } = sh.useGetGroupFormByIdQuery({ groupName: group.name, formId: id }, { skip: !group.name || !id });
+  
   const [form, setForm] = useState({} as IForm);
+
+  const hasForm = Object.keys(form).length;
+
+  if (formTemplate && !hasForm) {
+    setForm(deepClone(formTemplate));
+  }
 
   const valid = useMemo(() => {
     let v = true;
@@ -30,15 +41,12 @@ export function useGroupForm(label: string, id: string): UseGroupFormResponse {
     return v;
   }, [form]);
 
-  const { data: formTemplate } = sh.useGetFormByIdQuery({ id }, { skip: !id });
+  const FormDisplayComponent = useMemo(() => hasForm ? <FormDisplay form={form} setForm={setForm} /> : <></>, [hasForm, form, setForm]);
+  const FormDisplayMemo = useAccordion(label, FormDisplayComponent);
 
-  if (formTemplate && !Object.keys(form).length) {
-    setForm(formTemplate);
-  }
-  
   return {
     form,
-    comp: !label || !id || !formTemplate ? (() => <></>) : useAccordion(label, <FormDisplay form={form} setForm={setForm} />),
+    comp: !label || !id || !hasForm ? (() => <></>) : FormDisplayMemo,
     valid
   }
 }

@@ -5,10 +5,10 @@ import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 
 import { ILookup } from 'awayto/core';
-import { IBaseComponent } from './useComponents';
+import { IDefaultedComponent } from './useComponents';
 import { SiteQuery } from './store';
 
-export function useSelectOne<T extends ILookup>(label: string, { data: items }: Partial<ReturnType<UseQuery<SiteQuery<{ readonly [prop: string]: string }, T[]>>>> & { data?: T[] }): [T | undefined, React.LazyExoticComponent<IBaseComponent> | (() => JSX.Element)] {
+export function useSelectOne<T extends ILookup>(label: string, { data: items }: Partial<ReturnType<UseQuery<SiteQuery<{ readonly [prop: string]: string }, T[]>>>> & { data?: T[] }): [T | undefined, IDefaultedComponent] {
   const [itemId, setItemId] = useState('');
   
   if (Array.isArray(items) && items.length && !itemId) {

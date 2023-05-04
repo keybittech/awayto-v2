@@ -1,5 +1,5 @@
 import { IGroupSchedule, IGroupUserSchedule, IService, IServiceTier } from 'awayto/core';
-import { IBaseComponent } from 'awayto/hooks';
+import { IDefaultedComponent } from 'awayto/hooks';
 import { createContext } from 'react';
 
 declare global {
@@ -9,9 +9,9 @@ declare global {
     groupUserSchedules: IGroupUserSchedule[];
     groupScheduleService: IService;
     groupScheduleServiceTier: IServiceTier;
-    GroupScheduleSelect: React.LazyExoticComponent<IBaseComponent> | (() => JSX.Element);
-    GroupScheduleServiceSelect: React.LazyExoticComponent<IBaseComponent> | (() => JSX.Element);
-    GroupScheduleServiceTierSelect: React.LazyExoticComponent<IBaseComponent> | (() => JSX.Element);
+    GroupScheduleSelect: IDefaultedComponent;
+    GroupScheduleServiceSelect: IDefaultedComponent;
+    GroupScheduleServiceTierSelect: IDefaultedComponent;
   }
 }
 
