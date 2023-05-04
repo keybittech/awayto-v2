@@ -11,7 +11,8 @@ declare global {
     startOfMonth: dayjs.Dayjs;
     dateSlots: IGroupScheduleDateSlots[];
     firstAvailable: IGroupScheduleDateSlots;
-    GroupScheduleSelectionPickers: FunctionComponent<IProps>;
+    GroupScheduleDateSelection: FunctionComponent<IProps>;
+    GroupScheduleTimeSelection: FunctionComponent<IProps>;
   }
 }
 

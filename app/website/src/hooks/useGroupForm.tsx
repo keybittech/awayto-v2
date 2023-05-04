@@ -12,7 +12,7 @@ type UseGroupFormResponse = {
   valid: boolean
 };
 
-export function useGroupForm(label: string, id: string): UseGroupFormResponse {
+export function useGroupForm(label = '', id = ''): UseGroupFormResponse {
 
   const { group } = useContext(useContexts().GroupContext) as GroupContextType;
 

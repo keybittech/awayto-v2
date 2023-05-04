@@ -1,8 +1,6 @@
 import React, { useContext, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
 
-import Grid from '@mui/material/Grid';
-
 import { IGroupScheduleDateSlots, IQuote, TimeUnit, quotedDT, userTimezone } from 'awayto/core';
 import { sh, useComponents, useContexts } from 'awayto/hooks';
 
@@ -41,37 +39,36 @@ export function GroupScheduleSelectionProvider({ children }: IProps): JSX.Elemen
     firstAvailable,
     selectedDate,
     selectedTime,
-    GroupScheduleSelectionPickers() {
-      return <Grid container spacing={2}>
-        <Grid item xs={4}>
-          <ScheduleDatePicker
-            key={groupSchedule.id}
-            dateSlots={dateSlots}
-            firstAvailable={firstAvailable}
-            bracketSlotDate={selectedDate || firstAvailable.time || null}
-            setStartOfMonth={setStartOfMonth}
-            onDateChange={(date: dayjs.Dayjs | null) => setSelectedDate(date ? date.isBefore(firstAvailable.time) ? firstAvailable.time : date  : null)}
-          />  
-        </Grid>
-        <Grid item xs={4}>
-          <ScheduleTimePicker
-            key={groupSchedule.id}
-            scheduleId={groupSchedule.id}
-            firstAvailable={firstAvailable}
-            bracketSlotDate={selectedDate}
-            value={selectedTime || firstAvailable.time}
-            onTimeChange={({ time, quote: newQuote }: { time: dayjs.Dayjs | null, quote?: IQuote }) => {
-              setSelectedTime(time);
-              if (newQuote) {
-                setQuote({ ...quote, ...newQuote })
-              }
-            }}
-            onTimeAccept={(newQuote: IQuote) => {
-              setQuote({ ...quote, ...newQuote })
-            }}
-          />
-        </Grid>
-      </Grid>
+    GroupScheduleDateSelection() {
+      return groupSchedule ? <ScheduleDatePicker
+        key={groupSchedule.id || ''}
+        dateSlots={dateSlots}
+        firstAvailable={firstAvailable}
+        bracketSlotDate={selectedDate || firstAvailable.time || null}
+        setStartOfMonth={setStartOfMonth}
+        onDateChange={(date: dayjs.Dayjs | null) => {
+          debugger
+          return setSelectedDate(date ? date.isBefore(firstAvailable.time) ? firstAvailable.time : date  : null)
+        }}
+      /> : <></>;
+    },
+    GroupScheduleTimeSelection() {
+      return groupSchedule ? <ScheduleTimePicker
+        key={groupSchedule.id}
+        scheduleId={groupSchedule.id}
+        firstAvailable={firstAvailable}
+        bracketSlotDate={selectedDate}
+        value={selectedTime || firstAvailable.time}
+        onTimeChange={({ time, quote: newQuote }: { time: dayjs.Dayjs | null, quote?: IQuote }) => {
+          setSelectedTime(time);
+          if (newQuote) {
+            setQuote({ ...quote, ...newQuote })
+          }
+        }}
+        onTimeAccept={(newQuote: IQuote) => {
+          setQuote({ ...quote, ...newQuote })
+        }}
+      /> : <></>;
     }
   } as GroupScheduleSelectionContextType | null;
 

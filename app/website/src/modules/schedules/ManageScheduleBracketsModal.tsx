@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef, useCallback, Suspense, useEffect } from 'react';
+import React, { useMemo, useState, useRef, useCallback, Suspense } from 'react';
 
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
@@ -14,7 +14,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 
-import { deepClone, getRelativeDuration, IGroup, ISchedule, IScheduleBracket, IScheduleBracketSlot, IService, ITimeUnitNames, timeUnitOrder } from 'awayto/core';
+import { deepClone, getRelativeDuration, IGroup, ISchedule, IScheduleBracket, timeUnitOrder } from 'awayto/core';
 import { useComponents, sh, useUtil } from 'awayto/hooks';
 
 import { scheduleSchema } from './ScheduleHome';

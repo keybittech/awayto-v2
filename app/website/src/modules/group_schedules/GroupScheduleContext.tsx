@@ -1,14 +1,14 @@
+import { createContext } from 'react';
 import { IGroupSchedule, IGroupUserSchedule, IService, IServiceTier } from 'awayto/core';
 import { IDefaultedComponent } from 'awayto/hooks';
-import { createContext } from 'react';
 
 declare global {
   type GroupScheduleContextType = {
     groupSchedules: IGroupSchedule[];
-    groupSchedule: IGroupSchedule;
     groupUserSchedules: IGroupUserSchedule[];
-    groupScheduleService: IService;
-    groupScheduleServiceTier: IServiceTier;
+    groupSchedule?: IGroupSchedule;
+    groupScheduleService?: IService;
+    groupScheduleServiceTier?: IServiceTier;
     GroupScheduleSelect: IDefaultedComponent;
     GroupScheduleServiceSelect: IDefaultedComponent;
     GroupScheduleServiceTierSelect: IDefaultedComponent;

@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext } from 'react';
 import { useNavigate } from 'react-router';
 
 import Alert from '@mui/material/Alert';
@@ -10,7 +10,7 @@ import CardHeader from '@mui/material/CardHeader';
 import CardContent from '@mui/material/CardContent';
 import CardActionArea from '@mui/material/CardActionArea';
 
-import { useComponents, useContexts, sh, useUtil, useGroupForm } from 'awayto/hooks';
+import { useComponents, useContexts, sh, useUtil, useGroupForm, useAccordion } from 'awayto/hooks';
 
 export function RequestQuote(props: IProps): JSX.Element {
 
@@ -22,6 +22,7 @@ export function RequestQuote(props: IProps): JSX.Element {
   const { GroupContext, GroupScheduleContext, GroupScheduleSelectionContext } = useContexts();
 
   const { GroupSelect } = useContext(GroupContext) as GroupContextType;
+
   const {
     groupSchedule,
     groupScheduleService,
@@ -34,24 +35,33 @@ export function RequestQuote(props: IProps): JSX.Element {
   const {
     quote,
     firstAvailable,
-    selectedTime,
-    GroupScheduleSelectionPickers
+    GroupScheduleDateSelection,
+    GroupScheduleTimeSelection
   } = useContext(GroupScheduleSelectionContext) as GroupScheduleSelectionContextType;
 
   const {
     form: serviceForm,
     comp: ServiceForm,
     valid: serviceFormValid
-  } = useGroupForm(groupScheduleService?.name, groupScheduleService?.formId);
+  } = useGroupForm((groupScheduleService?.name || '') + ' Questionnaire', groupScheduleService?.formId);
 
   const {
     form: tierForm,
     comp: TierForm,
     valid: tierFormValid
-  } = useGroupForm(groupScheduleServiceTier?.name, groupScheduleServiceTier?.formId);
+  } = useGroupForm((groupScheduleServiceTier?.name || '') + ' Questionnaire', groupScheduleServiceTier?.formId);
 
-  if (!groupSchedule || !groupScheduleService || !GroupSelect) return <Alert severity="info">
-    There are no active schedules or operations are currently halted.  
+  const GroupScheduleSelectionAccordion = useAccordion('Select Time', <Grid container spacing={2}>
+    <Grid item xs={4}>
+      <GroupScheduleDateSelection />
+    </Grid>
+    <Grid item xs={4}>
+      <GroupScheduleTimeSelection />
+    </Grid>
+  </Grid>);
+
+  if (!groupSchedule || !groupScheduleService) return <Alert severity="info">
+    There are no active schedules or operations are currently halted.
   </Alert>;
 
   return <>
@@ -84,7 +94,7 @@ export function RequestQuote(props: IProps): JSX.Element {
 
         <TierForm />
 
-        <GroupScheduleSelectionPickers />
+        <GroupScheduleSelectionAccordion />
 
         <FileManager {...props} />
       </Grid>
@@ -93,20 +103,20 @@ export function RequestQuote(props: IProps): JSX.Element {
         <Card>
           <CardActionArea onClick={() => {
             async function go() {
-              if (selectedTime || groupScheduleServiceTier) {
+              if (groupScheduleServiceTier) {
                 quote.serviceTierId = groupScheduleServiceTier.id;
-    
+
                 if (!quote.scheduleBracketSlotId) {
                   const { scheduleBracketSlotId, startDate } = firstAvailable;
                   quote.scheduleBracketSlotId = scheduleBracketSlotId;
                   quote.slotDate = startDate;
                 }
-    
+
                 if (!serviceFormValid || !tierFormValid) {
                   setSnack({ snackType: 'error', snackOn: 'Please ensure all required fields are filled out.' });
                   return;
                 }
-    
+
                 quote.serviceForm = serviceForm ? {
                   formVersionId: serviceForm.version.id,
                   submission: serviceForm.version.submission
@@ -116,7 +126,7 @@ export function RequestQuote(props: IProps): JSX.Element {
                   formVersionId: tierForm.version.id,
                   submission: tierForm.version.submission
                 } : undefined;
-    
+
                 await postQuote(quote).unwrap();
                 setSnack({ snackOn: 'Your request has been made successfully!' });
                 navigate('/');
