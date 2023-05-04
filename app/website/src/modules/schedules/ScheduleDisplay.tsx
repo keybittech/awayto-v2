@@ -3,7 +3,6 @@ import { FixedSizeGrid } from 'react-window';
 
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
-import CardActionArea from '@mui/material/CardActionArea';
 import Typography from '@mui/material/Typography';
 
 import { getRelativeDuration, ISchedule, IScheduleBracket, IScheduleBracketSlot } from 'awayto/core';
@@ -81,9 +80,11 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
     const target = `schedule_bracket_slot_selection_${startTime}`;    
     const exists = selected[target];
 
-    return <CardActionArea
+    return <Box
       style={gridCell.style}
       sx={{
+        userSelect: 'none',
+        cursor: 'pointer',
         backgroundColor: '#eee',
         textAlign: 'center',
         position: 'relative',
@@ -104,7 +105,7 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
       }}
     >
       {contextFormat}
-    </CardActionArea>
+    </Box>
   }, [selected, buttonDown, selectedBracket, xAxisTypeName]);
 
   useEffect(() => {
