@@ -8,10 +8,9 @@ import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 import { nid, toSnakeCase } from 'awayto/core';
-import { IDefaultedComponent } from './useComponents';
 
-export function useAccordion(label: string, child: JSX.Element): IDefaultedComponent {
-  const renderAccordion = useCallback(() => {
+export function useAccordion(label: string): ((props: IProps) => JSX.Element) {
+  const renderAccordion = useCallback(({ children }: IProps) => {
     return <Accordion defaultExpanded={true}>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
@@ -20,9 +19,9 @@ export function useAccordion(label: string, child: JSX.Element): IDefaultedCompo
         <Typography>{label}</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {child}
+        {children}
       </AccordionDetails>
     </Accordion>
-  }, [label, child]);
+  }, [label]);
   return renderAccordion;
 }

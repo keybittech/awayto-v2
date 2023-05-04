@@ -1,18 +1,17 @@
 import React, { useContext, useMemo, useState } from 'react';
 
 import { IForm, deepClone } from 'awayto/core';
-import { IDefaultedComponent, useComponents } from './useComponents';
-import { useAccordion } from './useAccordion';
+import { useComponents } from './useComponents';
 import { sh } from './store';
 import { useContexts } from './useContexts';
 
 type UseGroupFormResponse = {
   form: IForm,
-  comp: IDefaultedComponent,
+  comp: () => JSX.Element,
   valid: boolean
 };
 
-export function useGroupForm(label = '', id = ''): UseGroupFormResponse {
+export function useGroupForm(id = ''): UseGroupFormResponse {
 
   const { group } = useContext(useContexts().GroupContext) as GroupContextType;
 
@@ -41,12 +40,9 @@ export function useGroupForm(label = '', id = ''): UseGroupFormResponse {
     return v;
   }, [form]);
 
-  const FormDisplayComponent = useMemo(() => hasForm ? <FormDisplay form={form} setForm={setForm} /> : <></>, [hasForm, form, setForm]);
-  const FormDisplayMemo = useAccordion(label, FormDisplayComponent);
-
   return {
     form,
-    comp: !label || !id || !hasForm ? (() => <></>) : FormDisplayMemo,
+    comp: !hasForm ? (() => <></>) : () => <FormDisplay form={form} setForm={setForm} />,
     valid
   }
 }

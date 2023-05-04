@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
 import { useNavigate } from 'react-router';
+import dayjs from 'dayjs';
 
 import Alert from '@mui/material/Alert';
 import Grid from '@mui/material/Grid';
@@ -11,19 +12,26 @@ import CardContent from '@mui/material/CardContent';
 import CardActionArea from '@mui/material/CardActionArea';
 
 import { useComponents, useContexts, sh, useUtil, useGroupForm, useAccordion } from 'awayto/hooks';
+import { IQuote } from 'awayto/core';
 
 export function RequestQuote(props: IProps): JSX.Element {
 
   const navigate = useNavigate();
   const { setSnack } = useUtil();
-  const { FileManager } = useComponents();
+  const { FileManager, ScheduleDatePicker, ScheduleTimePicker } = useComponents();
   const [postQuote] = sh.usePostQuoteMutation();
 
-  const { GroupContext, GroupScheduleContext, GroupScheduleSelectionContext } = useContexts();
+  const { 
+    GroupContext,
+    GroupScheduleContext,
+    GroupScheduleSelectionContext
+  } = useContexts();
 
-  const { GroupSelect } = useContext(GroupContext) as GroupContextType;
+  const { 
+    GroupSelect
+  } = useContext(GroupContext) as GroupContextType;
 
-  const {
+  const { 
     groupSchedule,
     groupScheduleService,
     groupScheduleServiceTier,
@@ -32,33 +40,33 @@ export function RequestQuote(props: IProps): JSX.Element {
     GroupScheduleServiceTierSelect
   } = useContext(GroupScheduleContext) as GroupScheduleContextType;
 
-  const {
+  const { 
     quote,
+    setQuote,
+    selectedDate,
+    setSelectedDate,
+    selectedTime,
+    setSelectedTime,
     firstAvailable,
-    GroupScheduleDateSelection,
-    GroupScheduleTimeSelection
+    setStartOfMonth,
+    dateSlots
   } = useContext(GroupScheduleSelectionContext) as GroupScheduleSelectionContextType;
 
-  const {
+  const { 
     form: serviceForm,
     comp: ServiceForm,
     valid: serviceFormValid
-  } = useGroupForm((groupScheduleService?.name || '') + ' Questionnaire', groupScheduleService?.formId);
+  } = useGroupForm(groupScheduleService?.formId);
 
-  const {
+  const { 
     form: tierForm,
     comp: TierForm,
     valid: tierFormValid
-  } = useGroupForm((groupScheduleServiceTier?.name || '') + ' Questionnaire', groupScheduleServiceTier?.formId);
+  } = useGroupForm(groupScheduleServiceTier?.formId);
 
-  const GroupScheduleSelectionAccordion = useAccordion('Select Time', <Grid container spacing={2}>
-    <Grid item xs={4}>
-      <GroupScheduleDateSelection />
-    </Grid>
-    <Grid item xs={4}>
-      <GroupScheduleTimeSelection />
-    </Grid>
-  </Grid>);
+  const SelectTimeAccordion = useAccordion('Select Time');
+  const GroupScheduleServiceAccordion = useAccordion((groupScheduleService?.name || '') + ' Questionnaire');
+  const GroupScheduleServiceTierAccordion = useAccordion((groupScheduleServiceTier?.name || '') + ' Questionnaire');
 
   if (!groupSchedule || !groupScheduleService) return <Alert severity="info">
     There are no active schedules or operations are currently halted.
@@ -90,11 +98,46 @@ export function RequestQuote(props: IProps): JSX.Element {
           </CardContent>
         </Card>
 
-        <ServiceForm />
+        <GroupScheduleServiceAccordion>
+          <ServiceForm />
+        </GroupScheduleServiceAccordion>
 
-        <TierForm />
+        <GroupScheduleServiceTierAccordion>
+          <TierForm />
+        </GroupScheduleServiceTierAccordion>
 
-        <GroupScheduleSelectionAccordion />
+        <SelectTimeAccordion>
+          <Grid container spacing={2}>
+            <Grid item xs={4}>
+              <ScheduleDatePicker
+                key={groupSchedule.id || ''}
+                dateSlots={dateSlots}
+                firstAvailable={firstAvailable}
+                bracketSlotDate={selectedDate || firstAvailable.time || null}
+                setStartOfMonth={setStartOfMonth}
+                onDateChange={(date: dayjs.Dayjs | null) => setSelectedDate(date ? date.isBefore(firstAvailable.time) ? firstAvailable.time : date : null)}
+              />
+            </Grid>
+            <Grid item xs={4}>
+              <ScheduleTimePicker
+                key={groupSchedule.id}
+                scheduleId={groupSchedule.id}
+                firstAvailable={firstAvailable}
+                bracketSlotDate={selectedDate}
+                value={selectedTime || firstAvailable.time}
+                onTimeChange={({ time, quote: newQuote }: { time: dayjs.Dayjs | null, quote?: IQuote }) => {
+                  setSelectedTime(time);
+                  if (newQuote) {
+                    setQuote({ ...quote, ...newQuote })
+                  }
+                }}
+                onTimeAccept={(newQuote: IQuote) => {
+                  setQuote({ ...quote, ...newQuote })
+                }}
+              />
+            </Grid>
+          </Grid>
+        </SelectTimeAccordion>
 
         <FileManager {...props} />
       </Grid>

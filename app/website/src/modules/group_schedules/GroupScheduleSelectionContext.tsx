@@ -6,9 +6,13 @@ import { IGroupScheduleDateSlots, IQuote } from 'awayto/core';
 declare global {
   type GroupScheduleSelectionContextType = {
     quote: IQuote;
+    setQuote(quote: IQuote): void;
     selectedDate: dayjs.Dayjs;
+    setSelectedDate(date: dayjs.Dayjs | null): void;
     selectedTime: dayjs.Dayjs;
+    setSelectedTime(time: dayjs.Dayjs | null): void;
     startOfMonth: dayjs.Dayjs;
+    setStartOfMonth(start: dayjs.Dayjs): void;
     dateSlots: IGroupScheduleDateSlots[];
     firstAvailable: IGroupScheduleDateSlots;
     GroupScheduleDateSelection: FunctionComponent<IProps>;
