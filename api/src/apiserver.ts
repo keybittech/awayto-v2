@@ -31,7 +31,7 @@ import WebHooks from './webhooks/index';
 
 import keycloak, { getGroupRegistrationRedirectParts } from './modules/keycloak';
 import { db, connected as dbConnected } from './modules/db';
-import redis, { rateLimitResource, redisProxy } from './modules/redis';
+import redis, { DEFAULT_THROTTLE, rateLimitResource, redisProxy } from './modules/redis';
 import logger from './modules/logger';
 
 import { DecodedJWTToken, UserGroupRoles, StrategyUser, ApiErrorResponse, IGroup, AuthBody, siteApiRef, AuthProps, siteApiHandlerRef, ApiProps, EndpointType, validateRequestBody, IUserProfile } from 'awayto/core';
@@ -279,10 +279,8 @@ async function go() {
         const requestId = uuid();
         const user = req.user as StrategyUser;
 
-        if (throttle) {
-          if (await rateLimitResource(user.sub, `${method}/${url}`, 1, throttle)) {
-            return res.status(429).send({ reason: 'You must wait ' + throttle + ' seconds.', requestId });
-          }
+        if ('skip' !== throttle && ((throttle || EndpointType.MUTATION === kind) && await rateLimitResource(user.sub, `${method}/${url}`, 1, throttle))) {
+          return res.status(429).send({ reason: 'You must wait ' + (throttle || DEFAULT_THROTTLE) + ' seconds.', requestId });
         }
 
         if (await rateLimitResource(user.sub, 'api', 10, 1)) { // limit n general api requests per second

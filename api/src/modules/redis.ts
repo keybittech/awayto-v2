@@ -1,6 +1,7 @@
 import { RedisClientType, createClient } from 'redis';
-import dayjs from 'dayjs';
-import { millisTimeUnits, ProxyKeys } from 'awayto/core';
+import { ProxyKeys } from 'awayto/core';
+
+export const DEFAULT_THROTTLE = 10;
 
 const {
   REDIS_HOST
@@ -46,7 +47,7 @@ export const redisProxy = async function(...args: string[]): Promise<ProxyKeys> 
   return Object.assign({}, ...props);
 }
 
-export async function rateLimitResource(resource: string, context: string, limit: number = 10, duration: number = 60): Promise<boolean> {
+export async function rateLimitResource(resource: string, context: string, limit: number = 10, duration: number = DEFAULT_THROTTLE): Promise<boolean> {
   
   const key = `rl:${resource}:${context}`;
 
