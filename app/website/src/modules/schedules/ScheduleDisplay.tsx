@@ -6,7 +6,7 @@ import Chip from '@mui/material/Chip';
 import Typography from '@mui/material/Typography';
 
 import { getRelativeDuration, ISchedule, IScheduleBracket, IScheduleBracketSlot } from 'awayto/core';
-import { useSchedule } from 'awayto/hooks';
+import { useSchedule, useTimeName } from 'awayto/hooks';
 
 export type ScheduleDisplayProps = {
   schedule?: ISchedule;
@@ -34,10 +34,13 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
   const [buttonDown, setButtonDown] = useState(false);
   const [width, setWidth] = useState(1);
 
-  const { scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName, slotDuration } = schedule;
+  const scheduleTimeUnitName = useTimeName(schedule.scheduleTimeUnitId);
+  const bracketTimeUnitName = useTimeName(schedule.bracketTimeUnitId);
+  const slotTimeUnitName = useTimeName(schedule.slotTimeUnitId);
+  
   const { divisions, durations, selections, xAxisTypeName } = useMemo(() => {
-    return getScheduleData({ scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName, slotDuration });
-  }, [scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName, slotDuration])
+    return getScheduleData({ scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName, slotDuration: schedule.slotDuration });
+  }, [scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName, schedule.slotDuration])
 
   const scheduleBracketsValues = useMemo(() => Object.values(schedule.brackets || {}), [schedule.brackets]);
 
@@ -106,7 +109,7 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
     >
       {contextFormat}
     </Box>
-  }, [selected, buttonDown, selectedBracket, xAxisTypeName]);
+  }, [durations, selected, scheduleBracketsValues, buttonDown, selectedBracket, xAxisTypeName]);
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver(([event]) => {
@@ -138,7 +141,7 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
           if (!bracket.slots) bracket.slots = {};
           return <Box key={`bracket-chip${i + 1}new`} m={1}>
             <Chip
-              label={`#${i + 1} ${getRelativeDuration(bracket.duration, schedule.bracketTimeUnitName, schedule.slotTimeUnitName) - (Object.keys(bracket.slots).length * schedule.slotDuration)} ${schedule.slotTimeUnitName}s (${bracket.multiplier}x)`}
+              label={`#${i + 1} ${getRelativeDuration(bracket.duration, bracketTimeUnitName, slotTimeUnitName) - (Object.keys(bracket.slots).length * schedule.slotDuration)} ${slotTimeUnitName}s (${bracket.multiplier}x)`}
               sx={{ '&:hover': { cursor: 'pointer' }, borderWidth: '1px', borderStyle: 'solid', borderColor: bracketColors[i], boxShadow: selectedBracket?.id === bracket.id ? 2 : undefined }}
               onDelete={() => {
                 delete schedule.brackets[bracket.id];

@@ -18,6 +18,7 @@ import { deepClone, getRelativeDuration, IGroup, ISchedule, IScheduleBracket, IS
 import { useComponents, sh, useUtil } from 'awayto/hooks';
 
 import { scheduleSchema } from './ScheduleHome';
+import { useTimeName } from 'awayto/hooks';
 
 const bracketSchema = {
   duration: 1,
@@ -38,8 +39,6 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
 
   const { setSnack } = useUtil();
 
-  const { data: lookups } = sh.useGetLookupsQuery();
-
   const { data: groupServices, isSuccess: groupServicesLoaded } = sh.useGetGroupServicesQuery({ groupName: group.name });
   const { data: groupSchedules, isSuccess: groupSchedulesLoaded } = sh.useGetGroupSchedulesQuery({ groupName: group.name });
 
@@ -51,32 +50,16 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
     setSchedule(deepClone(scheduleDetails));
   }
 
+  const scheduleTimeUnitName = useTimeName(schedule.scheduleTimeUnitId);
+  const bracketTimeUnitName = useTimeName(schedule.bracketTimeUnitId);
+
+  const firstLoad = useRef(true);
   const [viewStep, setViewStep] = useState(1);
-  if (Object.keys(schedule.brackets).length && viewStep === 1) {
+  if (Object.keys(schedule.brackets).length && viewStep === 1 && firstLoad.current) {
     setViewStep(2);
   }
 
-  type TimeUnitNames = { scheduleTimeUnitName: ITimeUnitNames; bracketTimeUnitName: ITimeUnitNames; slotTimeUnitName: ITimeUnitNames } | undefined;
-
-  const timeUnitNames: TimeUnitNames = lookups?.timeUnits.reduce((m, d) => {
-    if (d.id === schedule.scheduleTimeUnitId) {
-      m.scheduleTimeUnitName = d.name;
-    } else if (d.id === schedule.bracketTimeUnitId) {
-      m.bracketTimeUnitName = d.name;
-    } else if (d.id === schedule.slotTimeUnitId) {
-      m.slotTimeUnitName = d.name;
-    }
-    return m;
-  }, {} as NonNullable<TimeUnitNames>);
-
-  if (timeUnitNames && schedule.bracketTimeUnitId && !schedule.scheduleTimeUnitName) {
-    setSchedule({
-      ...schedule,
-      scheduleTimeUnitName: timeUnitNames.scheduleTimeUnitName,
-      bracketTimeUnitName: timeUnitNames.bracketTimeUnitName,
-      slotTimeUnitName: timeUnitNames.slotTimeUnitName
-    })
-  }
+  firstLoad.current = false;
 
   const [postSchedule] = sh.usePostScheduleMutation();
   const [postScheduleBrackets] = sh.usePostScheduleBracketsMutation();
@@ -91,16 +74,16 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
   const bracketServicesValues = useMemo(() => Object.values(bracket.services || {}), [bracket.services]);
 
   const remainingBracketTime = useMemo(() => {
-    if (timeUnitNames?.scheduleTimeUnitName) {
+    if (scheduleTimeUnitName && bracketTimeUnitName) {
       // Complex time adjustment example - this gets the remaining time that can be scheduled based on the schedule context, which always selects its first child as the subcontext (Week > Day), multiply this by the schedule duration in that context (1 week is 7 days), then convert the result to whatever the bracket type is. So if the schedule is for 40 hours per week, the schedule duration is 1 week, which is 7 days. The bracket, in hours, gives 24 hrs per day * 7 days, resulting in 168 total hours. Finally, subtract the time used by selected slots in the schedule display.
-      const scheduleUnitChildUnit = timeUnitOrder[timeUnitOrder.indexOf(timeUnitNames.scheduleTimeUnitName) - 1];
-      const scheduleChildDuration = getRelativeDuration(1, timeUnitNames.scheduleTimeUnitName, scheduleUnitChildUnit); // 7
+      const scheduleUnitChildUnit = timeUnitOrder[timeUnitOrder.indexOf(scheduleTimeUnitName) - 1];
+      const scheduleChildDuration = getRelativeDuration(1, scheduleTimeUnitName, scheduleUnitChildUnit); // 7
       const usedDuration = scheduleBracketsValues.reduce((m, d) => m + d.duration, 0);
-      const totalDuration = getRelativeDuration(Math.floor(scheduleChildDuration), scheduleUnitChildUnit, timeUnitNames.bracketTimeUnitName);
+      const totalDuration = getRelativeDuration(Math.floor(scheduleChildDuration), scheduleUnitChildUnit, bracketTimeUnitName);
       return Math.floor(totalDuration - usedDuration);
     }
     return 0;
-  }, [timeUnitNames, scheduleBracketsValues]);
+  }, [scheduleTimeUnitName, bracketTimeUnitName]);
 
   const handleSubmit = useCallback(() => {
     async function go() {
@@ -189,17 +172,17 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
           </TextField>
         </Box>}
 
-        {timeUnitNames && <Box mb={4}>
+        <Box mb={4}>
           <Typography variant="body1"></Typography>
           <TextField
             fullWidth
             type="number"
-            helperText={`Number of ${timeUnitNames.bracketTimeUnitName}s for this schedule. (Remaining: ${remainingBracketTime})`}
-            label={`# of ${timeUnitNames.bracketTimeUnitName}s`}
+            helperText={`Number of ${bracketTimeUnitName}s for this schedule. (Remaining: ${remainingBracketTime})`}
+            label={`# of ${bracketTimeUnitName}s`}
             value={bracket.duration || ''}
             onChange={e => setBracket({ ...bracket, duration: Math.min(Math.max(0, parseInt(e.target.value || '', 10)), remainingBracketTime) })}
           />
-        </Box>}
+        </Box>
 
         <Box sx={{ display: 'none' }}>
           <Typography variant="h6">Multiplier</Typography>
