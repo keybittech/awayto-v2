@@ -1,20 +1,14 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useParams } from 'react-router';
+import React, { useContext, useEffect, useMemo, useRef } from 'react';
 import dayjs from 'dayjs';
 import { Duration, DurationUnitType } from 'dayjs/plugin/duration';
 
 import TextField from '@mui/material/TextField';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 
-import { getRelativeDuration, IGroupScheduleDateSlots, IQuote, ITimeUnitNames, TimeUnit } from 'awayto/core';
-import { sh } from 'awayto/hooks';
+import { getRelativeDuration, IGroupScheduleDateSlots, IQuote, TimeUnit } from 'awayto/core';
+import { useContexts, useTimeName } from 'awayto/hooks';
 
 type ScheduleTimePickerType = {
-  scheduleId?: string;
-  bracketSlotDate?: dayjs.Dayjs | null;
-  bracketSlotTime?: dayjs.Dayjs | null;
-  firstAvailable?: IGroupScheduleDateSlots & { time: dayjs.Dayjs };
-  onTimeChange?(props: { time: dayjs.Dayjs | null, quote?: IQuote }): void;
   onTimeAccept?(value: IQuote): void;
 }
 
@@ -22,22 +16,29 @@ declare global {
   interface IProps extends ScheduleTimePickerType {}
 }
 
-export function ScheduleTimePicker(props: IProps): JSX.Element {
+export function ScheduleTimePicker({ onTimeAccept }: IProps): JSX.Element {
 
-  const { scheduleId, bracketSlotDate, firstAvailable, bracketSlotTime, onTimeChange, onTimeAccept } = props as Required<ScheduleTimePickerType>;
+  const { GroupScheduleContext, GroupScheduleSelectionContext } = useContexts();
 
-  const { groupName } = useParams();
-  if (!groupName) return <></>;
+  const {
+    groupSchedule,
+  } = useContext(GroupScheduleContext) as GroupScheduleContextType;
 
-  const [_, { data: dateSlots }] = sh.useLazyGetGroupScheduleByDateQuery();
-  const { data: lookups } = sh.useGetLookupsQuery();
-  const { data: groupSchedules } = sh.useGetGroupSchedulesQuery({ groupName });
+  const { 
+    quote,
+    setQuote,
+    selectedDate,
+    selectedTime,
+    setSelectedTime,
+    firstAvailable,
+    dateSlots
+  } = useContext(GroupScheduleSelectionContext) as GroupScheduleSelectionContextType;
 
   const didInit = useRef(false);
-
-  const { bracketTimeUnitId, slotTimeUnitId } = groupSchedules?.find(gs => gs.id === scheduleId) || {};
-  const bracketTimeUnitName = lookups?.timeUnits.find(u => u.id === bracketTimeUnitId)?.name as ITimeUnitNames;
-  const slotTimeUnitName = lookups?.timeUnits.find(u => u.id === slotTimeUnitId)?.name as ITimeUnitNames;
+  
+  const { bracketTimeUnitId, slotTimeUnitId } = groupSchedule || {};
+  const bracketTimeUnitName = useTimeName(bracketTimeUnitId);
+  const slotTimeUnitName = useTimeName(slotTimeUnitId);
   const sessionDuration = Math.round(getRelativeDuration(1, bracketTimeUnitName, slotTimeUnitName));
   
   const slotFactors = [] as number[];
@@ -48,12 +49,12 @@ export function ScheduleTimePicker(props: IProps): JSX.Element {
   }
 
   const bracketSlotDateDayDiff = useMemo(() => {
-    if (bracketSlotDate) {
-      const startOfDay = bracketSlotDate.startOf('day');
+    if (selectedDate) {
+      const startOfDay = selectedDate.startOf('day');
       return startOfDay.diff(startOfDay.day(0), TimeUnit.DAY);
     }
     return 0;
-  }, [bracketSlotDate]);
+  }, [selectedDate]);
 
   function getSlot(time: dayjs.Dayjs, date: string): IGroupScheduleDateSlots | undefined {
     const timeHour = time.hour();
@@ -68,54 +69,58 @@ export function ScheduleTimePicker(props: IProps): JSX.Element {
   }
 
   function getQuote(time: dayjs.Dayjs | null): IQuote | undefined {
-    let quote: IQuote | undefined = undefined;
+    let newQuote: IQuote | undefined = undefined;
     if (time) {
-      const currentSlotDate = bracketSlotDate || firstAvailable.time;
+      const currentSlotDate = selectedDate || firstAvailable.time;
       const date = currentSlotDate.format('YYYY-MM-DD');
       const slot = getSlot(time, date);
       if (slot) {
-        quote = {
+        newQuote = {
           slotDate: date,
           startTime: slot.startTime,
           scheduleBracketSlotId: slot.scheduleBracketSlotId,
         } as IQuote;
       }
     }
-    return quote;
+    return newQuote;
   }
 
   useEffect(() => {
     if (dateSlots?.length && firstAvailable.time && !didInit.current) {
       didInit.current = true;
-      const quote = getQuote(firstAvailable.time);
-      quote && onTimeAccept(quote);
+      const newQuote = getQuote(firstAvailable.time);
+      newQuote && onTimeAccept && onTimeAccept(newQuote);
     }
   }, [dateSlots, firstAvailable, didInit.current]);
 
   return <TimePicker
     label="Time"
-    value={bracketSlotTime}
+    value={selectedTime}
     onChange={time => {
-      const quote = getQuote(time)
-      onTimeChange({ time, quote });
+      setSelectedTime(time);
+      const newQuote = getQuote(time)
+      newQuote && setQuote({ ...quote, ...newQuote });
     }}
     ampmInClock={true}
     ignoreInvalidInputs={true}
     onAccept={time => {
-      const quote = getQuote(time);
-      if (quote) onTimeAccept(quote);
+      const newQuote = getQuote(time);
+      if (newQuote) {
+        setQuote({ ...quote, ...newQuote });
+        onTimeAccept && onTimeAccept(newQuote);
+      }
     }}
     shouldDisableTime={(time, clockType) => {
       if (dateSlots?.length) {
-        const currentSlotTime = bracketSlotTime;
-        const currentSlotDate = bracketSlotDate || firstAvailable.time;
+        const currentSlotTime = selectedTime;
+        const currentSlotDate = selectedDate || firstAvailable.time;
         // Ignore seconds check because final time doesn't need seconds, so this will cause invalidity
         if ('seconds' === clockType) return false;
 
         // Create a duration based on the current clock validation check and the days from start of current week
         let duration: Duration = dayjs.duration(time, clockType).add(bracketSlotDateDayDiff, TimeUnit.DAY);
 
-        // Submitting a new time a two step process, an hour is selected, and then a minute. Upon hour selection, bracketSlotTime is first set, and then when the user selects a minute, that will cause this block to run, so we should add the existing hour from bracketSlotTime such that "hour + minute" will give us the total duration, i.e. 4:30 AM = PT4H30M
+        // Submitting a new time a two step process, an hour is selected, and then a minute. Upon hour selection, selectedTime is first set, and then when the user selects a minute, that will cause this block to run, so we should add the existing hour from selectedTime such that "hour + minute" will give us the total duration, i.e. 4:30 AM = PT4H30M
         if ('minutes' === clockType && currentSlotTime) {
           duration = duration.add(currentSlotTime.hour(), TimeUnit.HOUR);
         }

@@ -13,8 +13,10 @@ export function GroupScheduleSelectionProvider({ children }: IProps): JSX.Elemen
   const { groupSchedule } = useContext(GroupScheduleContext) as GroupScheduleContextType;
   
   const [firstAvailable, setFirstAvailable] = useState({ time: dayjs().startOf('day') } as IGroupScheduleDateSlots);
-
   const [startOfMonth, setStartOfMonth] = useState(dayjs().startOf(TimeUnit.MONTH));
+  const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>();
+  const [selectedTime, setSelectedTime] = useState<dayjs.Dayjs | null>();
+  const [quote, setQuote] = useState({} as IQuote);
 
   const { data: dateSlots } = sh.useGetGroupScheduleByDateQuery({
     groupName: group?.name || '',
@@ -25,11 +27,10 @@ export function GroupScheduleSelectionProvider({ children }: IProps): JSX.Elemen
 
   if (dateSlots?.length && !firstAvailable.scheduleBracketSlotId) {
     const [slot] = dateSlots;
-    setFirstAvailable({ ...slot, time: quotedDT(slot.weekStart, slot.startTime) });
+    const firstAvail = { ...slot, time: quotedDT(slot.weekStart, slot.startTime) };
+    setFirstAvailable(firstAvail);
+    setSelectedDate(firstAvail.time);
   }
-  const [quote, setQuote] = useState({} as IQuote);
-  const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>();
-  const [selectedTime, setSelectedTime] = useState<dayjs.Dayjs | null>();
 
   const groupScheduleSelectionContext = {
     quote,

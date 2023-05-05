@@ -13,10 +13,7 @@ import CardActions from '@mui/material/CardActions';
 import Button from '@mui/material/Button';
 
 import { IGroupScheduleDateSlots, IGroupUserScheduleStub, quotedDT, shortNSweet, IGroupUserSchedule, IGroupUserScheduleStubReplacement } from 'awayto/core';
-import { sh } from 'awayto/hooks';
-
-import ScheduleDatePicker from './ScheduleDatePicker';
-import ScheduleTimePicker from './ScheduleTimePicker';
+import { sh, useComponents } from 'awayto/hooks';
 
 declare global {
   interface IProps {
@@ -29,6 +26,8 @@ export function ManageScheduleStubModal({ editGroupUserScheduleStub, closeModal 
 
   const { groupName } = useParams();
   if (!groupName) return <></>;
+  
+  const { ScheduleDatePicker, ScheduleTimePicker } = useComponents();
 
   const [putGroupUserScheduleStubReplacement] = sh.usePutGroupUserScheduleStubReplacementMutation();
   const [getGroupUserScheduleStubReplacement] = sh.useLazyGetGroupUserScheduleStubReplacementQuery(); 
@@ -103,36 +102,27 @@ export function ManageScheduleStubModal({ editGroupUserScheduleStub, closeModal 
             <Grid item xs={6}>
               <ScheduleDatePicker
                 key={editGroupUserScheduleStub.userScheduleId}
-                // will need to add dateSlots here after this component is updated
-                firstAvailable={firstAvailable}
-                bracketSlotDate={bracketSlotDate || firstAvailable.time || null}
-                onDateChange={(date: dayjs.Dayjs | null) => setBracketSlotDate(date ? date.isBefore(firstAvailable.time) ? firstAvailable.time : date : null)}
               />
             </Grid>
             <Grid item xs={6}>
               <ScheduleTimePicker
                 key={bracketSlotDate?.format("YYYY-MM-DD")}
-                scheduleId={editGroupUserScheduleStub.groupScheduleId}
-                firstAvailable={firstAvailable}
-                bracketSlotDate={bracketSlotDate || firstAvailable.time}
-                bracketSlotTime={bracketSlotTime || firstAvailable.time}
-                onTimeChange={({ time }) => setBracketSlotTime(time)}
-                onTimeAccept={({ slotDate, startTime }) => {
-                  const { userScheduleId, tierName } = editGroupUserScheduleStub;
+                // onTimeAccept={({ slotDate, startTime }) => {
+                //   const { userScheduleId, tierName } = editGroupUserScheduleStub;
             
-                  getGroupUserScheduleStubReplacement({
-                    groupName,
-                    userScheduleId,
-                    slotDate,
-                    startTime,
-                    tierName
-                  }).unwrap().then(({ stubs }) => {
-                    const [replacementStub] = stubs;
-                    if (replacementStub) {
-                      setReplacement(replacementStub.replacement);
-                    }
-                  }).catch(console.error);
-                }}
+                //   getGroupUserScheduleStubReplacement({
+                //     groupName,
+                //     userScheduleId,
+                //     slotDate,
+                //     startTime,
+                //     tierName
+                //   }).unwrap().then(({ stubs }) => {
+                //     const [replacementStub] = stubs;
+                //     if (replacementStub) {
+                //       setReplacement(replacementStub.replacement);
+                //     }
+                //   }).catch(console.error);
+                // }}
               />
             </Grid>
           </Grid>

@@ -27,11 +27,11 @@ export function RequestQuote(props: IProps): JSX.Element {
     GroupScheduleSelectionContext
   } = useContexts();
 
-  const { 
+  const {
     GroupSelect
   } = useContext(GroupContext) as GroupContextType;
 
-  const { 
+  const {
     groupSchedule,
     groupScheduleService,
     groupScheduleServiceTier,
@@ -109,32 +109,10 @@ export function RequestQuote(props: IProps): JSX.Element {
         <SelectTimeAccordion>
           <Grid container spacing={2}>
             <Grid item xs={4}>
-              <ScheduleDatePicker
-                key={groupSchedule.id || ''}
-                dateSlots={dateSlots}
-                firstAvailable={firstAvailable}
-                bracketSlotDate={selectedDate || firstAvailable.time || null}
-                setStartOfMonth={setStartOfMonth}
-                onDateChange={(date: dayjs.Dayjs | null) => setSelectedDate(date ? date.isBefore(firstAvailable.time) ? firstAvailable.time : date : null)}
-              />
+              <ScheduleDatePicker key={groupSchedule.id} />
             </Grid>
             <Grid item xs={4}>
-              <ScheduleTimePicker
-                key={groupSchedule.id}
-                scheduleId={groupSchedule.id}
-                firstAvailable={firstAvailable}
-                bracketSlotDate={selectedDate}
-                value={selectedTime || firstAvailable.time}
-                onTimeChange={({ time, quote: newQuote }: { time: dayjs.Dayjs | null, quote?: IQuote }) => {
-                  setSelectedTime(time);
-                  if (newQuote) {
-                    setQuote({ ...quote, ...newQuote })
-                  }
-                }}
-                onTimeAccept={(newQuote: IQuote) => {
-                  setQuote({ ...quote, ...newQuote })
-                }}
-              />
+              <ScheduleTimePicker key={groupSchedule.id} />
             </Grid>
           </Grid>
         </SelectTimeAccordion>
