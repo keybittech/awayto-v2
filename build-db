@@ -1,0 +1,30 @@
+#!/bin/bash
+
+set -e
+
+cd db/scripts
+
+# Create a temporary directory to store the copied shell files
+temp_dir=$(mktemp -d)
+
+# Copy the shell files to the temporary directory
+cp ./*.sh "$temp_dir"
+
+# Change the permissions of the copied shell files to make them executable
+chmod +x "$temp_dir"/*.sh
+
+# Get the Docker container ID
+container_id=$(docker ps -aqf "name=db")
+
+# Run the shell files in alphanumeric order within the PostgreSQL Docker container
+for file in $(ls -1v "$temp_dir"/*.sh); do
+  echo "Executing $file..."
+  cat "$file" | docker exec -i "$container_id" bash
+done
+
+# Clean up the temporary directory
+rm -rf "$temp_dir"
+
+cd ../..
+
+echo "Database refreshed successfully!"
