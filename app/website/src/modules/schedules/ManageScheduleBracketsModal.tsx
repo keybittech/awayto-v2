@@ -64,7 +64,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
   const [postSchedule] = sh.usePostScheduleMutation();
   const [postScheduleBrackets] = sh.usePostScheduleBracketsMutation();
   const [postGroupUserSchedule] = sh.usePostGroupUserScheduleMutation();
-  
+
   const { ScheduleDisplay } = useComponents();
 
   const scheduleParent = useRef<HTMLDivElement>(null);
@@ -87,49 +87,46 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
 
   const handleSubmit = useCallback(() => {
     async function go() {
-      if (schedule && group?.name) {
-        const { name, scheduleTimeUnitName } = schedule;
-        if (name && scheduleTimeUnitName && scheduleBracketsValues.length) {
-          const userSchedule = { ...schedule };
-          if (!editSchedule) {
-            const newSchedule = await postSchedule({ schedule }).unwrap();
-            userSchedule.id = newSchedule.id;
-          }
-          
-          const newBrackets = scheduleBracketsValues.reduce<Record<string, IScheduleBracket>>(
-            (m, { id, duration, automatic, multiplier, slots, services }) => ({
-              ...m,
-              [id]: {
-                id,
-                duration,
-                automatic,
-                multiplier,
-                slots,
-                services
-              } as IScheduleBracket
-            }), {}
-          );
-  
-          await postScheduleBrackets({
-            scheduleId: userSchedule.id,
-            brackets: newBrackets
-          }).catch(console.error);
-  
-          if (!editSchedule) {
-            await postGroupUserSchedule({
-              groupName: group.name,
-              userScheduleId: userSchedule.id,
-              groupScheduleId: schedule.id
-            }).catch(console.error);
-          } else {
-            await getScheduleById().catch(console.error);
-          }
-  
-          setSnack({ snackOn: 'Successfully added ' + name, snackType: 'info' });
-          if (closeModal) closeModal(!editSchedule);
-        } else {
-          setSnack({ snackOn: 'A schedule should have a name, a duration, and at least 1 bracket.', snackType: 'info' });
+      if (schedule && group?.name && schedule.name && scheduleBracketsValues.length) {
+        const userSchedule = { ...schedule };
+        if (!editSchedule) {
+          const newSchedule = await postSchedule({ schedule }).unwrap();
+          userSchedule.id = newSchedule.id;
         }
+
+        const newBrackets = scheduleBracketsValues.reduce<Record<string, IScheduleBracket>>(
+          (m, { id, duration, automatic, multiplier, slots, services }) => ({
+            ...m,
+            [id]: {
+              id,
+              duration,
+              automatic,
+              multiplier,
+              slots,
+              services
+            } as IScheduleBracket
+          }), {}
+        );
+
+        await postScheduleBrackets({
+          scheduleId: userSchedule.id,
+          brackets: newBrackets
+        }).catch(console.error);
+
+        if (!editSchedule) {
+          await postGroupUserSchedule({
+            groupName: group.name,
+            userScheduleId: userSchedule.id,
+            groupScheduleId: schedule.id
+          }).catch(console.error);
+        } else {
+          await getScheduleById().catch(console.error);
+        }
+
+        setSnack({ snackOn: 'Successfully added your schedule to group schedule: ' + schedule.name, snackType: 'info' });
+        if (closeModal) closeModal(!editSchedule);
+      } else {
+        setSnack({ snackOn: 'A schedule should have a name, a duration, and at least 1 bracket.', snackType: 'info' });
       }
     }
     void go();

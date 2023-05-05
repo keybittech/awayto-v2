@@ -31,7 +31,7 @@ export function useGroupForm(id = ''): UseGroupFormResponse {
     let v = true;
     for (const rowId of Object.keys(form.version?.form || {})) {
       form.version.form[rowId].forEach((field, i, arr) => {
-        if (field.r && [undefined, ''].includes(form.version.submission[rowId][i])) {
+        if (field.r && form.version.submission && [undefined, ''].includes(form.version.submission[rowId][i])) {
           v = false;
           arr.length = i + 1;
         }
