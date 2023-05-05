@@ -37,8 +37,8 @@ const quoteApi = {
       scheduleBracketSlotId: ''  as string,
       serviceTierId: '' as string,
       slotDate: '' as string,
-      serviceForm: {} as IFormVersionSubmission | undefined,
-      tierForm: {} as IFormVersionSubmission | undefined
+      serviceForm: {} as IFormVersionSubmission,
+      tierForm: {} as IFormVersionSubmission
     },
     resultType: [] as IQuote[]
   },
@@ -95,7 +95,7 @@ const quoteApiHandlers: ApiHandler<typeof quoteApi> = {
     const { serviceForm, tierForm, slotDate, scheduleBracketSlotId, serviceTierId } = quote;
 
     await asyncForEach([serviceForm, tierForm], async form => {
-      if (form) {
+      if (form && Object.keys(form).length) {
         const { id: formId } = await props.tx.one<IFormVersionSubmission>(`
           INSERT INTO dbtable_schema.form_version_submissions (form_version_id, submission, created_sub)
           VALUES ($1, $2::jsonb, $3::uuid)

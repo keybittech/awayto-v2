@@ -12,7 +12,7 @@ import CardContent from '@mui/material/CardContent';
 import CardActionArea from '@mui/material/CardActionArea';
 
 import { useComponents, useContexts, sh, useUtil, useGroupForm, useAccordion } from 'awayto/hooks';
-import { IQuote } from 'awayto/core';
+import { IFormVersionSubmission, IQuote } from 'awayto/core';
 
 export function RequestQuote(props: IProps): JSX.Element {
 
@@ -42,14 +42,7 @@ export function RequestQuote(props: IProps): JSX.Element {
 
   const { 
     quote,
-    setQuote,
-    selectedDate,
-    setSelectedDate,
-    selectedTime,
-    setSelectedTime,
     firstAvailable,
-    setStartOfMonth,
-    dateSlots
   } = useContext(GroupScheduleSelectionContext) as GroupScheduleSelectionContextType;
 
   const { 
@@ -98,13 +91,13 @@ export function RequestQuote(props: IProps): JSX.Element {
           </CardContent>
         </Card>
 
-        <GroupScheduleServiceAccordion>
+        {serviceForm && <GroupScheduleServiceAccordion>
           <ServiceForm />
-        </GroupScheduleServiceAccordion>
+        </GroupScheduleServiceAccordion>}
 
-        <GroupScheduleServiceTierAccordion>
+        {tierForm && <GroupScheduleServiceTierAccordion>
           <TierForm />
-        </GroupScheduleServiceTierAccordion>
+        </GroupScheduleServiceTierAccordion>}
 
         <SelectTimeAccordion>
           <Grid container spacing={2}>
@@ -142,14 +135,14 @@ export function RequestQuote(props: IProps): JSX.Element {
                   slotDate: quote.slotDate,
                   scheduleBracketSlotId: quote.scheduleBracketSlotId,
                   serviceTierId: quote.serviceTierId,
-                  serviceForm: serviceForm ? {
+                  serviceForm: (serviceForm ? {
                     formVersionId: serviceForm.version.id,
                     submission: serviceForm.version.submission
-                  } : undefined,
-                  tierForm: tierForm ? {
+                  } : {}) as IFormVersionSubmission,
+                  tierForm: (tierForm ? {
                     formVersionId: tierForm.version.id,
                     submission: tierForm.version.submission
-                  } : undefined
+                  } : {}) as IFormVersionSubmission
                 }).unwrap();
                 setSnack({ snackOn: 'Your request has been made successfully!' });
                 navigate('/');

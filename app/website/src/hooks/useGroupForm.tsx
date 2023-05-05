@@ -6,7 +6,7 @@ import { sh } from './store';
 import { useContexts } from './useContexts';
 
 type UseGroupFormResponse = {
-  form: IForm,
+  form?: IForm,
   comp: () => JSX.Element,
   valid: boolean
 };
@@ -19,9 +19,9 @@ export function useGroupForm(id = ''): UseGroupFormResponse {
 
   const { data: formTemplate } = sh.useGetGroupFormByIdQuery({ groupName: group.name, formId: id }, { skip: !group.name || !id });
   
-  const [form, setForm] = useState({} as IForm);
+  const [form, setForm] = useState<IForm | undefined>();
 
-  const hasForm = Object.keys(form).length;
+  const hasForm = Object.keys(form || {}).length;
 
   if (formTemplate && !hasForm) {
     setForm(deepClone(formTemplate));
@@ -29,13 +29,15 @@ export function useGroupForm(id = ''): UseGroupFormResponse {
 
   const valid = useMemo(() => {
     let v = true;
-    for (const rowId of Object.keys(form.version?.form || {})) {
-      form.version.form[rowId].forEach((field, i, arr) => {
-        if (field.r && form.version.submission && [undefined, ''].includes(form.version.submission[rowId][i])) {
-          v = false;
-          arr.length = i + 1;
-        }
-      })
+    if (form) {
+      for (const rowId of Object.keys(form.version?.form || {})) {
+        form.version.form[rowId].forEach((field, i, arr) => {
+          if (field.r && form.version.submission && [undefined, ''].includes(form.version.submission[rowId][i])) {
+            v = false;
+            arr.length = i + 1;
+          }
+        })
+      }
     }
     return v;
   }, [form]);
