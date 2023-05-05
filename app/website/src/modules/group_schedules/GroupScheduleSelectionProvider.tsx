@@ -30,6 +30,7 @@ export function GroupScheduleSelectionProvider({ children }: IProps): JSX.Elemen
     const firstAvail = { ...slot, time: quotedDT(slot.weekStart, slot.startTime) };
     setFirstAvailable(firstAvail);
     setSelectedDate(firstAvail.time);
+    setSelectedTime(firstAvail.time);
   }
 
   const groupScheduleSelectionContext = {

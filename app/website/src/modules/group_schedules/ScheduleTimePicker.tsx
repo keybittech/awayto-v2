@@ -40,7 +40,6 @@ export function ScheduleTimePicker({ onTimeAccept }: IProps): JSX.Element {
   const bracketTimeUnitName = useTimeName(bracketTimeUnitId);
   const slotTimeUnitName = useTimeName(slotTimeUnitId);
   const sessionDuration = Math.round(getRelativeDuration(1, bracketTimeUnitName, slotTimeUnitName));
-  
   const slotFactors = [] as number[];
   for (let factor = 1; factor < sessionDuration; factor++) {
     if (sessionDuration % factor === 0) {
@@ -133,9 +132,17 @@ export function ScheduleTimePicker({ onTimeAccept }: IProps): JSX.Element {
           }
         }
 
-        const matches = dateSlots.filter(s => s.startDate === currentSlotDate.format("YYYY-MM-DD") && checkDurations.filter(d => d.hours() === s.hour && d.minutes() === s.minute).length > 0);
-        // Checks that have no existing slots are invalid
-        return !matches.length;
+        // Check if any matching slot is available
+        const hasMatchingSlot = dateSlots.some(s => {
+          return s.startDate === currentSlotDate.format("YYYY-MM-DD") && checkDurations.some(d => {
+            // Convert startTime to milliseconds before making the comparison
+            const startTimeDuration = dayjs.duration(s.startTime);
+            return d.hours() === startTimeDuration.hours() && d.minutes() === startTimeDuration.minutes();
+          });
+        });
+
+        // Disable the time if there's no matching slot
+        return !hasMatchingSlot;
       }
       return true;
     }}
