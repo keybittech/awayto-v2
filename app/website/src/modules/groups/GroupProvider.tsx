@@ -10,10 +10,21 @@ export function GroupProvider({ children }: IProps): JSX.Element {
   const groups = useMemo(() => profile ? Object.values(profile.groups || {}) : [], [profile]);
 
   const [group, GroupSelect] = useSelectOne('Groups', { data: groups });
+  const groupName = group?.name || '';
+  const skip = { skip: !groupName };
+
+  const { data: groupSchedules = [] } = sh.useGetGroupSchedulesQuery({ groupName }, skip);
+  const { data: groupServices = [] } = sh.useGetGroupServicesQuery({ groupName }, skip);
+  const { data: groupForms = [] } = sh.useGetGroupFormsQuery({ groupName }, skip);
+  const { data: groupRoles = [] } = sh.useGetGroupRolesQuery({ groupName }, skip);
 
   const groupContext = {
     groups,
     group,
+    groupSchedules,
+    groupServices,
+    groupForms,
+    groupRoles,
     GroupSelect
   } as GroupContextType | null;
 

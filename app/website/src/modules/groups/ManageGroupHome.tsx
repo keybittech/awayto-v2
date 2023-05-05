@@ -6,7 +6,7 @@ import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
 
 import { SiteRoles} from 'awayto/core';
-import { sh, useComponents } from 'awayto/hooks';
+import { useComponents } from 'awayto/hooks';
 
 const { APP_GROUP_ADMIN, APP_GROUP_ROLES, APP_GROUP_SCHEDULES, APP_GROUP_SERVICES, APP_GROUP_USERS } = SiteRoles;
 
@@ -16,8 +16,6 @@ export function ManageGroupHome(props: IProps): JSX.Element {
   if (!groupName || !component) return <></>;
 
   const navigate = useNavigate();
-
-  const { data : profile } = sh.useGetUserProfileDetailsQuery();
 
   const { ManageFeedback, ManageUsers, ManageRoles, ManageRoleActions, ManageForms, ManageServices, ManageSchedules, GroupSecure } = useComponents();
 

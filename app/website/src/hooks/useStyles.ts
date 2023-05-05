@@ -22,13 +22,13 @@ export const useStyles = makeStyles((theme: Theme) => ({
 
   siteTitle: { fontSize: '1.5rem', textAlign: 'center' },
 
-  menuText: { fontSize: '.75rem', margin: '0' },
+  menuText: { fontSize: '.75rem' },
 
   colorBox: { width: '30px', height: '30px', display: 'block', margin: '12px', border: '1px solid #333', cursor: 'pointer', '&:hover': { opacity: .5 } },
 
   appBar: { width: `calc(100% - ${drawerWidth}px)`, marginLeft: drawerWidth, backgroundColor: '#666' },
 
-  menuIcon: { "&:hover svg": { color: 'rgb(39 109 129)' }, width: '100%' },
+  menuIcon: { "&:hover svg": { color: 'rgb(39 109 129)' } },
 
   loginWrap: { height: '75vh' },
 
