@@ -45,7 +45,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
   const [postRole] = sh.usePostRoleMutation();
   const [deleteRole] = sh.useDeleteRoleMutation();
 
-  const [group, setGroup] = useState({ name: '', purpose: '', allowedDomains: '', ...editGroup } as IGroup);
+  const [group, setGroup] = useState({ name: '', displayName: '', purpose: '', allowedDomains: '', ...editGroup } as IGroup);
   const debouncedName = useDebounce(group.name, 1000);
 
   const { data: nameCheck } = sh.useCheckGroupNameQuery({ name: debouncedName }, { skip: !debouncedName });
@@ -90,6 +90,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
    
     (id ? putGroup : postGroup)({
       id,
+      displayName: name,
       name: formatName(name),
       purpose,
       allowedDomains: allowedDomains.join(','),
@@ -100,7 +101,6 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): J
       !id && keycloak.clearToken();
     }).catch(console.error);
   }, [group, profile, roleIds, defaultRoleId]);
-
 
   const handleName = useCallback((event: ChangeEvent<HTMLTextAreaElement>) => {
     setChecker({ checkingName: true });

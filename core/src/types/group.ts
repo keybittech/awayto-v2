@@ -37,6 +37,7 @@ export type IGroup = {
   createdOn: string;
   defaultRoleId: string;
   allowedDomains: string;
+  displayName: string;
   name: string;
   purpose: string;
   code: string;
@@ -65,6 +66,7 @@ const groupApi = {
     } as ApiOptions,
     queryArg: {
       name: '' as string,
+      displayName: '' as string,
       purpose: '' as string,
       roles: {} as Record<string, IRole>,
       allowedDomains: '' as string,
@@ -80,6 +82,7 @@ const groupApi = {
     queryArg: {
       id: '' as string,
       name: '' as string,
+      displayName: '' as string,
       roles: {} as Record<string, IRole>,
       allowedDomains: '' as string,
       defaultRoleId: '' as string,
@@ -174,7 +177,7 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
     let kcGroupExternalId = '';
 
     try {
-      const { name, purpose, roles, allowedDomains, defaultRoleId } = props.event.body;
+      const { name, displayName, purpose, roles, allowedDomains, defaultRoleId } = props.event.body;
 
       if (true === (await props.ai.useAi<boolean>(undefined, purpose)).flagged) {
         props.logger.log('moderation failure event', props.event.requestId);
@@ -184,10 +187,10 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
       // Do this first for now to check if user already made a group
       // Create a group in app db if user has no groups and name is unique
       const group = await props.tx.one<IGroup>(`
-        INSERT INTO dbtable_schema.groups (external_id, code, admin_external_id, default_role_id, name, purpose, allowed_domains, created_sub)
-        VALUES ($1, $2, $3, $4::uuid, $5, $6, $7, $8::uuid)
+        INSERT INTO dbtable_schema.groups (external_id, code, admin_external_id, default_role_id, name, purpose, allowed_domains, created_sub, display_name)
+        VALUES ($1, $2, $3, $4::uuid, $5, $6, $7, $8::uuid, $9)
         RETURNING id, name
-      `, [props.event.userSub, props.event.userSub, props.event.userSub, defaultRoleId, name, props.event.userSub, allowedDomains, props.event.userSub]);
+      `, [props.event.userSub, props.event.userSub, props.event.userSub, defaultRoleId, name, props.event.userSub, allowedDomains, props.event.userSub, displayName]);
 
       try {
         // Create a keycloak group if the previous operation was allowed
@@ -288,11 +291,12 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
     }
   },
   putGroup: async props => {
-    const { id, name, roles, defaultRoleId } = props.event.body;
+    const { id, name, displayName, roles, defaultRoleId } = props.event.body;
 
     const updateProps = buildUpdate({
       id,
       name,
+      display_name: displayName,
       default_role_id: defaultRoleId,
       updated_sub: props.event.userSub,
       updated_on: utcNowString()
