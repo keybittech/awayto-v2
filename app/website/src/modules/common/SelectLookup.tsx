@@ -51,10 +51,9 @@ export function SelectLookup({ lookupChange, disabled = false, invalidValues = [
 
   const refresh = () => {
     setAddingNew(false);
-    setNewLookup({ name: '' } as ILookup)
-
-    if (refetchAction && parentUuidName && parentUuid) {
-      refetchAction({ [parentUuidName]: parentUuid });
+    setNewLookup({ name: '' } as ILookup);
+    if (refetchAction) {
+      refetchAction(parentUuidName && parentUuid ? { [parentUuidName]: parentUuid } : undefined);
     }
   }
 

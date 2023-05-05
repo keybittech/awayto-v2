@@ -21,7 +21,9 @@ const roleApi = {
     kind: EndpointType.MUTATION,
     url: 'roles',
     method: 'POST',
-    opts: {} as ApiOptions,
+    opts: {
+      throttle: 1
+    } as ApiOptions,
     queryArg: { name: '' as string },
     resultType: {} as IRole
   },

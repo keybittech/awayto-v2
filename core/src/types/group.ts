@@ -176,6 +176,11 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
     try {
       const { name, purpose, roles, allowedDomains, defaultRoleId } = props.event.body;
 
+      if (true === (await props.ai.useAi<boolean>(undefined, purpose)).flagged) {
+        props.logger.log('moderation failure event', props.event.requestId);
+        throw { reason: 'Moderation event flagged. Please revise the group purpose.' };
+      }
+
       // Do this first for now to check if user already made a group
       // Create a group in app db if user has no groups and name is unique
       const group = await props.tx.one<IGroup>(`
@@ -196,11 +201,6 @@ const groupApiHandlers: ApiHandler<typeof groupApi> = {
           `, [group.id]);
           throw { reason: 'The group name is in use.' }
         }
-      }
-
-      if (true === (await props.ai.useAi<boolean>(undefined, purpose)).flagged) {
-        props.logger.log('moderation failure event', props.event.requestId);
-        throw { reason: 'Moderation event flagged. Please revise the group purpose.' };
       }
 
       const purposeMission = (await props.ai.useAi<string>(IPrompts.CONVERT_PURPOSE, name, purpose)).message;
