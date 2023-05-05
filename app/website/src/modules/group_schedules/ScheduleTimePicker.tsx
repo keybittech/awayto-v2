@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useRef } from 'react';
 import dayjs from 'dayjs';
 import { Duration, DurationUnitType } from 'dayjs/plugin/duration';
 
@@ -55,19 +55,22 @@ export function ScheduleTimePicker({ onTimeAccept }: IProps): JSX.Element {
     return 0;
   }, [selectedDate]);
 
-  function getSlot(time: dayjs.Dayjs, date: string): IGroupScheduleDateSlots | undefined {
+  const getSlot = useCallback((time: dayjs.Dayjs, date: string): IGroupScheduleDateSlots | undefined => {
     const timeHour = time.hour();
     const timeMins = time.minute();
     const duration = dayjs.duration(0)
       .add(bracketSlotDateDayDiff, TimeUnit.DAY)
       .add(timeHour, TimeUnit.HOUR)
       .add(timeMins, TimeUnit.MINUTE);
-    const [slot] = dateSlots?.filter(s => s.startDate === date && duration.hours() === s.hour && duration.minutes() === s.minute) || [];
+    const [slot] = dateSlots?.filter(s => {
+      const startTimeDuration = dayjs.duration(s.startTime);
+      return s.startDate === date && duration.hours() === startTimeDuration.hours() && duration.minutes() === startTimeDuration.minutes();
+    }) || [];
 
     return slot;
-  }
+  }, [dateSlots, bracketSlotDateDayDiff]);
 
-  function getQuote(time: dayjs.Dayjs | null): IQuote | undefined {
+  const getQuote = useCallback((time: dayjs.Dayjs | null): IQuote | undefined => {
     let newQuote: IQuote | undefined = undefined;
     if (time) {
       const currentSlotDate = selectedDate || firstAvailable.time;
@@ -82,7 +85,7 @@ export function ScheduleTimePicker({ onTimeAccept }: IProps): JSX.Element {
       }
     }
     return newQuote;
-  }
+  }, [dateSlots, bracketSlotDateDayDiff, selectedDate, firstAvailable]);
 
   useEffect(() => {
     if (dateSlots?.length && firstAvailable.time && !didInit.current) {
