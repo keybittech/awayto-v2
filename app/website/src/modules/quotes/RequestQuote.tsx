@@ -40,22 +40,10 @@ export function RequestQuote(props: IProps): JSX.Element {
     GroupScheduleServiceTierSelect
   } = useContext(GroupScheduleContext) as GroupScheduleContextType;
 
-  const { 
-    quote,
-    firstAvailable,
-  } = useContext(GroupScheduleSelectionContext) as GroupScheduleSelectionContextType;
+  const { quote } = useContext(GroupScheduleSelectionContext) as GroupScheduleSelectionContextType;
 
-  const { 
-    form: serviceForm,
-    comp: ServiceForm,
-    valid: serviceFormValid
-  } = useGroupForm(groupScheduleService?.formId);
-
-  const { 
-    form: tierForm,
-    comp: TierForm,
-    valid: tierFormValid
-  } = useGroupForm(groupScheduleServiceTier?.formId);
+  const { form: serviceForm, comp: ServiceForm, valid: serviceFormValid } = useGroupForm(groupScheduleService?.formId);
+  const { form: tierForm, comp: TierForm, valid: tierFormValid } = useGroupForm(groupScheduleServiceTier?.formId);
 
   const SelectTimeAccordion = useAccordion('Select Time');
   const GroupScheduleServiceAccordion = useAccordion((groupScheduleService?.name || '') + ' Questionnaire');
@@ -116,39 +104,27 @@ export function RequestQuote(props: IProps): JSX.Element {
       <Grid item xs={12}>
         <Card>
           <CardActionArea onClick={() => {
-            async function go() {
-              if (groupScheduleServiceTier) {
-                quote.serviceTierId = groupScheduleServiceTier.id;
-
-                if (!quote.scheduleBracketSlotId) {
-                  const { scheduleBracketSlotId, startDate } = firstAvailable;
-                  quote.scheduleBracketSlotId = scheduleBracketSlotId;
-                  quote.slotDate = startDate;
-                }
-
-                if (!serviceFormValid || !tierFormValid) {
-                  setSnack({ snackType: 'error', snackOn: 'Please ensure all required fields are filled out.' });
-                  return;
-                }
-
-                await postQuote({
-                  slotDate: quote.slotDate,
-                  scheduleBracketSlotId: quote.scheduleBracketSlotId,
-                  serviceTierId: quote.serviceTierId,
-                  serviceForm: (serviceForm ? {
-                    formVersionId: serviceForm.version.id,
-                    submission: serviceForm.version.submission
-                  } : {}) as IFormVersionSubmission,
-                  tierForm: (tierForm ? {
-                    formVersionId: tierForm.version.id,
-                    submission: tierForm.version.submission
-                  } : {}) as IFormVersionSubmission
-                }).unwrap();
-                setSnack({ snackOn: 'Your request has been made successfully!' });
-                navigate('/');
-              }
+            if (!serviceFormValid || !tierFormValid || !groupScheduleServiceTier) {
+              setSnack({ snackType: 'error', snackOn: 'Please ensure all required fields are filled out.' });
+              return;
             }
-            void go();
+
+            postQuote({
+              slotDate: quote.slotDate,
+              scheduleBracketSlotId: quote.scheduleBracketSlotId,
+              serviceTierId: groupScheduleServiceTier.id,
+              serviceForm: (serviceForm ? {
+                formVersionId: serviceForm.version.id,
+                submission: serviceForm.version.submission
+              } : {}) as IFormVersionSubmission,
+              tierForm: (tierForm ? {
+                formVersionId: tierForm.version.id,
+                submission: tierForm.version.submission
+              } : {}) as IFormVersionSubmission
+            }).unwrap().then(() => {
+              setSnack({ snackOn: 'Your request has been made successfully!' });
+              navigate('/');
+            }).catch(console.error);
           }}>
             <Box m={2} sx={{ display: 'flex' }}>
               <Typography color="secondary" variant="button">Submit Request</Typography>
