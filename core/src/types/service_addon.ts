@@ -20,7 +20,9 @@ const serviceAddonApi = {
     kind: EndpointType.MUTATION,
     url: 'service_addons',
     method: 'POST',
-    opts: {} as ApiOptions,
+    opts: {
+      throttle: 1
+    } as ApiOptions,
     queryArg: { name: '' as string },
     resultType: {} as IServiceAddon
   },
