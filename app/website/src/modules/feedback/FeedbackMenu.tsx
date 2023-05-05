@@ -42,7 +42,7 @@ export function FeedbackMenu ({ handleMenuClose, feedbackAnchorEl, feedbackMenuI
     anchorEl={feedbackAnchorEl}
     anchorOrigin={{
       vertical: 'bottom',
-      horizontal: 'left',
+      horizontal: 'right',
     }}
     id={feedbackMenuId}
     keepMounted

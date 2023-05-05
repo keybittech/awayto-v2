@@ -42,7 +42,7 @@ export function PendingQuotesMenu({ handleMenuClose, pendingQuotesAnchorEl, pend
     anchorEl={pendingQuotesAnchorEl}
     anchorOrigin={{
       vertical: 'bottom',
-      horizontal: 'left',
+      horizontal: 'right',
     }}
     id={pendingQuotesMenuId}
     keepMounted

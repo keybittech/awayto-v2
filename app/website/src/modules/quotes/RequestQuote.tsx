@@ -160,17 +160,19 @@ export function RequestQuote(props: IProps): JSX.Element {
                   return;
                 }
 
-                quote.serviceForm = serviceForm ? {
-                  formVersionId: serviceForm.version.id,
-                  submission: serviceForm.version.submission
-                } : undefined;
-
-                quote.tierForm = tierForm ? {
-                  formVersionId: tierForm.version.id,
-                  submission: tierForm.version.submission
-                } : undefined;
-
-                await postQuote(quote).unwrap();
+                await postQuote({
+                  slotDate: quote.slotDate,
+                  scheduleBracketSlotId: quote.scheduleBracketSlotId,
+                  serviceTierId: quote.serviceTierId,
+                  serviceForm: serviceForm ? {
+                    formVersionId: serviceForm.version.id,
+                    submission: serviceForm.version.submission
+                  } : undefined,
+                  tierForm: tierForm ? {
+                    formVersionId: tierForm.version.id,
+                    submission: tierForm.version.submission
+                  } : undefined
+                }).unwrap();
                 setSnack({ snackOn: 'Your request has been made successfully!' });
                 navigate('/');
               }

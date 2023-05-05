@@ -153,7 +153,7 @@ export type Merge<T> = T extends AnyRecord
   }
   : never;
 
-export interface AnyRecord { [prop: string]: (string | number | boolean | Partial<Void> | unknown[] | AnyRecord) extends infer U ? U : never; }
+export interface AnyRecord { [prop: string]: (string | number | boolean | Partial<Void> | undefined | unknown[] | AnyRecord) extends infer U ? U : never; }
 
 export type Void = { _void: never };
 export type ReplaceVoid<T> = T extends Void ? void : T;

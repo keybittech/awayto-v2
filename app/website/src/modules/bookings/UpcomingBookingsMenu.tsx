@@ -40,7 +40,7 @@ export function UpcomingBookingsMenu({ handleMenuClose, upcomingBookingsAnchorEl
     anchorEl={upcomingBookingsAnchorEl}
     anchorOrigin={{
       vertical: 'bottom',
-      horizontal: 'left',
+      horizontal: 'right',
     }}
     id={upcomingBookingsMenuId}
     keepMounted

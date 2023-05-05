@@ -33,7 +33,13 @@ const quoteApi = {
     url: 'quotes',
     method: 'POST',
     opts: {} as ApiOptions,
-    queryArg: {} as IQuote,
+    queryArg: {
+      scheduleBracketSlotId: ''  as string,
+      serviceTierId: '' as string,
+      slotDate: '' as string,
+      serviceForm: {} as IFormVersionSubmission | undefined,
+      tierForm: {} as IFormVersionSubmission | undefined
+    },
     resultType: [] as IQuote[]
   },
   putQuote: {
@@ -85,7 +91,7 @@ const quoteApiHandlers: ApiHandler<typeof quoteApi> = {
   postQuote: async props => {
     const { roleCall, appClient } = await props.redisProxy('roleCall', 'appClient');
 
-    const quote = props.event.body;
+    const quote = { ...props.event.body } as IQuote;
     const { serviceForm, tierForm, slotDate, scheduleBracketSlotId, serviceTierId } = quote;
 
     await asyncForEach([serviceForm, tierForm], async form => {
