@@ -1,4 +1,4 @@
-import React, { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
@@ -7,7 +7,7 @@ import IconButton from '@mui/material/IconButton';
 
 import Send from '@mui/icons-material/Send';
 
-import { asyncForEach, Sender, SenderStreams } from 'awayto/core';
+import { SenderStreams } from 'awayto/core';
 import { sh, useComponents, useUtil, useWebSocketSubscribe } from 'awayto/hooks';
 
 import { ExchangeContext, ExchangeContextType } from './ExchangeContext';
@@ -29,20 +29,15 @@ export function ExchangeProvider({ children }: IProps): JSX.Element {
 
   const { Video } = useComponents();
 
-  const socket = useRef<WebSocket>();
   const speechRecognizer = useRef<SpeechRecognition>();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const [textMessage, setTextMessage] = useState('');
   const [messages, setMessages] = useState<string[]>([]);
-  const [pendingMessages, setPendingMessages] = useState<string[]>([]);
-
 
   const trackStream = (mediaStream: MediaStream) => {
 
-    const mediaRecorder = new MediaRecorder(mediaStream, {
-      mimeType: 'audio/webm'
-    });
+    const mediaRecorder = new MediaRecorder(mediaStream, { mimeType: 'audio/webm' });
     const chunks: BlobPart[] = [];
 
     // Listen for dataavailable event to obtain the recorded data
@@ -66,20 +61,14 @@ export function ExchangeProvider({ children }: IProps): JSX.Element {
 
     // Handle speech recognition results
     speechRecognizer.current.addEventListener('result', (event: SpeechRecognitionEvent) => {
-      const transcript = Array.from(event.results)
-        .map(result => result[0].transcript)
-        .join('');
       const lastResult = event.results[event.results.length - 1];
-      // console.log(lastResult)
+      const transcript = lastResult[0].transcript;
+    
       const isFinal = lastResult.isFinal;
-      // const confidence = lastResult[0].confidence;
-      // const isSilence = lastResult[0].transcript === '';
-
-      // console.log({ transcript })
-
+    
       // Check if the user is speaking or not
       if (isFinal) {
-        sendMessage(transcript);
+        sendExchangeMessage('text', { message: transcript });
       }
     });
 
@@ -90,11 +79,8 @@ export function ExchangeProvider({ children }: IProps): JSX.Element {
   const [canStartStop, setCanStartStop] = useState('start');
   const [senderStreams, setSenderStreams] = useState<SenderStreams>({});
 
-  const [pendingSDPs, setPendingSDPs] = useState<{ [prop: string]: RTCSessionDescriptionInit }>({});
-  const [pendingICEs, setPendingICEs] = useState<{ [prop: string]: RTCIceCandidateInit }>({});
-
   const { connected, sendMessage: sendExchangeMessage } = useWebSocketSubscribe('exchange-id', ({ sender, topic, type, payload }) => {
-    console.log('RECEIVED A NEW SOCKET MESSAGE', sender, topic, type, JSON.stringify(payload));
+    console.log('RECEIVED A NEW SOCKET MESSAGE', { localId, sender, topic, type }, JSON.stringify(payload));
 
     const { formats, target, sdp, ice, message } = payload;
 
@@ -103,27 +89,91 @@ export function ExchangeProvider({ children }: IProps): JSX.Element {
     }
 
     if ('text' === type && message) {
-      setPendingMessages([message]);
+      setMessages([...messages, message]);
     } else if (['join-call', 'peer-response'].includes(type)) {
       // Parties to an incoming caller's 'join-call' will see this, and then notify the caller that they exist in return
       // The caller gets a party member's 'peer-response', and sets them up in return
       if (!localStream && formats) {
-        setPendingMessages([`${sender} wants to start a ${formats.indexOf('video') > -1 ? 'video' : 'voice'} call.`])
+        setMessages([...messages, `${sender} wants to start a ${formats.indexOf('video') > -1 ? 'video' : 'voice'} call.`]);
       }
 
-      setSenderStreams(Object.assign({}, senderStreams, {
-        [sender]: {
-          peerResponse: 'peer-response' === type ? true : false
+      const senders = Object.keys(senderStreams).filter(sender => !senderStreams[sender].pc);
+      const startedSenders: SenderStreams = {};
+
+      for (const senderId of senders) {
+        const startedSender = senderStreams[senderId];
+
+        if (connected) {
+  
+          startedSender.pc = new RTCPeerConnection(peerConnectionConfig)
+  
+          startedSender.pc.onicecandidate = event => {
+            if (event.candidate !== null) {
+              sendExchangeMessage('rtc', { ice: event.candidate, target: senderId });
+            }
+          };
+  
+          startedSender.pc.ontrack = event => {
+            startedSender.mediaStream = startedSender.mediaStream ? startedSender.mediaStream : new MediaStream();
+            startedSender.mediaStream.addTrack(event.track);
+            setSenderStreams(Object.assign({}, senderStreams, { [senderId]: startedSender }));
+          };
+  
+          startedSender.pc.oniceconnectionstatechange = () => {
+            if (startedSender.pc && ['failed', 'closed', 'disconnected'].includes(startedSender.pc.iceConnectionState)) {
+              const streams = { ...senderStreams };
+              delete streams[senderId];
+              setSenderStreams(streams);
+            }
+          }
+  
+          if (localStream) {
+            const tracks = localStream.getTracks();
+            tracks.forEach(track => startedSender.pc?.addTrack(track));
+          }
+
+          if ('peer-response' === type) {
+            const { createOffer, setLocalDescription, localDescription } = startedSender.pc;
+            createOffer().then(description => {
+              setLocalDescription(description).then(() => {
+                sendExchangeMessage('rtc', {
+                  sdp: localDescription,
+                  target: senderId
+                });
+              }).catch(console.error);
+            }).catch(console.error);
+          } else {
+            sendExchangeMessage('peer-response', {
+              target: senderId
+            });
+          }
+  
+          startedSenders[senderId] = startedSender;
         }
-      }));
+      }
     } else if (sdp) {
-      setPendingSDPs(Object.assign({}, pendingSDPs, {
-        [sender]: sdp
-      }));
+      const senderStream = senderStreams[sender];
+
+      if (senderStream && senderStream.pc) {
+        const { createAnswer, setRemoteDescription, setLocalDescription, localDescription } = senderStream.pc;
+        setRemoteDescription(new RTCSessionDescription(sdp)).then(() => {
+          if ('offer' === sdp.type) {
+            createAnswer().then(description => {
+              setLocalDescription(description).then(() => {
+                sendExchangeMessage('rtc', {
+                  sdp: localDescription,
+                  target: sender
+                });
+              }).catch(console.error);
+            }).catch(console.error);
+          }
+        }).catch(console.error);
+      }
     } else if (ice) {
-      setPendingICEs(Object.assign({}, pendingICEs, {
-        [sender]: ice
-      }));
+      const senderStream = senderStreams[sender];
+      if (senderStream && senderStream.pc && !['failed', 'closed', 'disconnected'].includes(senderStream.pc.iceConnectionState)) {
+        senderStream.pc.addIceCandidate(new RTCIceCandidate(ice)).catch(console.error);
+      }
     }
   });
 
@@ -159,153 +209,11 @@ export function ExchangeProvider({ children }: IProps): JSX.Element {
     void go();
   }, [connected, localStream, canStartStop, localId]);
 
-  const sendMessage = function (message: string) {
-    setTextMessage('');
-    // setMessages([...messages, textMessage]);
-  }
-
-  function gotIceCandidate(event: RTCPeerConnectionIceEvent, sender: string) {
-    if (socket.current && event.candidate !== null) {
-      sendExchangeMessage('rtc', { ice: event.candidate, target: sender });
-    }
-  }
-
-  const gotRemoteStream = useCallback((event: RTCTrackEvent, id: string, sender: Sender) => {
-    sender.mediaStream = sender.mediaStream ? sender.mediaStream : new MediaStream();
-    sender.mediaStream.addTrack(event.track);
-    setSenderStreams(Object.assign({}, senderStreams, { [id]: sender }));
-  }, [senderStreams]);
-
-  const checkPeerDisconnect = useCallback((id: string, sender: Sender) => {
-    if (sender.pc) {
-      if (['failed', 'closed', 'disconnected'].includes(sender.pc.iceConnectionState)) {
-        const streams = { ...senderStreams };
-        delete streams[id];
-        setSenderStreams(streams);
-      }
-    }
-  }, [senderStreams]);
-
   const localStreamRef = useCallback((node: HTMLVideoElement) => {
     if (node && !node.srcObject && localStream) {
       node.srcObject = localStream
     }
   }, [localStream]);
-
-  // Handle incoming peer streams
-  useEffect(() => {
-    async function go() {
-      const senders = Object.keys(senderStreams).filter(sender => !senderStreams[sender].pc);
-      const startedSenders: SenderStreams = {};
-
-      // console.log(JSON.stringify(senders));
-
-      await asyncForEach(senders, async (senderId) => {
-        const startedSender = senderStreams[senderId];
-
-        if (socket.current) {
-          // startedSender.pc = await generatePeerConnection(sender, startedSender.peerResponse);
-
-          // console.log('generating peer');
-          startedSender.pc = new RTCPeerConnection(peerConnectionConfig)
-          startedSender.pc.onicecandidate = event => gotIceCandidate(event, senderId);
-          startedSender.pc.ontrack = event => gotRemoteStream(event, senderId, startedSender);
-          startedSender.pc.oniceconnectionstatechange = () => checkPeerDisconnect(senderId, startedSender);
-          if (localStream) {
-            // console.log('sending local stream to peers');
-            const tracks = localStream.getTracks();
-            tracks.forEach(track => startedSender.pc?.addTrack(track));
-          }
-
-          if (startedSender.peerResponse && socket.current) {
-            // console.log('received peer response');
-            const description = await startedSender.pc.createOffer();
-            await startedSender.pc.setLocalDescription(description);
-            socket.current.send(JSON.stringify({
-              sdp: startedSender.pc.localDescription,
-              sender: localId,
-              target: senderId
-            }));
-          } else {
-            socket.current.send(JSON.stringify({
-              sender: localId,
-              target: senderId,
-              type: 'peer-response'
-            }));
-          }
-
-          startedSenders[senderId] = startedSender;
-        }
-      });
-
-      if (Object.keys(startedSenders).length) {
-        // console.log('started peers', JSON.stringify(startedSenders, null, 2));
-        setSenderStreams(Object.assign({}, senderStreams, startedSenders));
-      }
-    }
-    void go();
-
-  }, [socket.current, senderStreams]);
-
-  // Handle incoming pending SDPs
-  useEffect(() => {
-    if (Object.keys(pendingSDPs).length) {
-
-      async function go() {
-
-        await asyncForEach(Object.keys(pendingSDPs), async sender => {
-          const senderSDP = pendingSDPs[sender];
-          const senderStream = senderStreams[sender];
-
-          if (senderStream && senderStream.pc) {
-            // console.log("going to assign", senderSDP, " to ", senderStream);
-
-            await senderStream.pc.setRemoteDescription(new RTCSessionDescription(senderSDP));
-
-            if ('offer' === senderSDP.type) {
-              const description = await senderStream.pc.createAnswer();
-              await senderStream.pc.setLocalDescription(description);
-              socket.current && socket.current.send(JSON.stringify({
-                sdp: senderStream.pc.localDescription,
-                sender: localId,
-                target: sender
-              }));
-            }
-          }
-        })
-      }
-      void go();
-
-      setPendingSDPs({});
-    }
-  }, [socket.current, senderStreams, pendingSDPs]);
-
-  // Handle incoming pending ICEs
-  useEffect(() => {
-    if (Object.keys(pendingICEs).length) {
-
-      async function go() {
-
-        await asyncForEach(Object.keys(pendingICEs), async sender => {
-          const senderStream = senderStreams[sender];
-          if (senderStream && senderStream.pc && !['failed', 'closed', 'disconnected'].includes(senderStream.pc.iceConnectionState)) {
-            await senderStream.pc.addIceCandidate(new RTCIceCandidate(pendingICEs[sender]));
-          }
-        });
-      }
-      void go();
-
-      setPendingSDPs({});
-    }
-  }, [socket.current, senderStreams, pendingICEs]);
-
-  // Handle incoming text messages
-  useEffect(() => {
-    if (pendingMessages.length) {
-      setMessages([...messages, ...pendingMessages]);
-      setPendingMessages([]);
-    }
-  }, [pendingMessages, messages]);
 
   // Chat auto scroll to bottom on new messages
   useEffect(() => {

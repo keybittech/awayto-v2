@@ -5,7 +5,7 @@ import { IBooking } from './booking';
  * @purpose maps websocket responses which contain common WebRTC protocol objects
  */
 export type SocketResponseMessageAttributes = {
-  sdp: RTCSessionDescriptionInit;
+  sdp: RTCSessionDescriptionInit | null;
   ice: RTCIceCandidateInit;
   formats: string[];
   message: string;
