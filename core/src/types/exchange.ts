@@ -4,30 +4,13 @@ import { IBooking } from './booking';
  * @category Exchange
  * @purpose maps websocket responses which contain common WebRTC protocol objects
  */
-export type SocketResponseMessageAttributes = {
+export type ExchangeSessionAttributes = {
   sdp: RTCSessionDescriptionInit | null;
   ice: RTCIceCandidateInit;
   formats: string[];
   message: string;
   target: string;
 };
-
-/**
- * @category Exchange
- * @purpose the form of a socket response
- */
-export type SocketResponse = {
-  sender: string;
-  type: string;
-  topic: string;
-  payload: Partial<SocketResponseMessageAttributes>;
-};
-
-/**
- * @category Exchange
- * @purpose handles topic listener results
- */
-export type SocketResponseHandler = (response: SocketResponse) => void;
 
 /**
  * @category Exchange

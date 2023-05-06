@@ -7,7 +7,7 @@ import IconButton from '@mui/material/IconButton';
 
 import Send from '@mui/icons-material/Send';
 
-import { SenderStreams } from 'awayto/core';
+import { ExchangeSessionAttributes, SenderStreams } from 'awayto/core';
 import { sh, useComponents, useUtil, useWebSocketSubscribe } from 'awayto/hooks';
 
 import { ExchangeContext, ExchangeContextType } from './ExchangeContext';
@@ -79,7 +79,7 @@ export function ExchangeProvider({ children }: IProps): JSX.Element {
   const [canStartStop, setCanStartStop] = useState('start');
   const [senderStreams, setSenderStreams] = useState<SenderStreams>({});
 
-  const { connected, sendMessage: sendExchangeMessage } = useWebSocketSubscribe('exchange-id', ({ sender, topic, type, payload }) => {
+  const { connected, sendMessage: sendExchangeMessage } = useWebSocketSubscribe<ExchangeSessionAttributes>('exchange-id', ({ sender, topic, type, payload }) => {
     console.log('RECEIVED A NEW SOCKET MESSAGE', { localId, sender, topic, type }, JSON.stringify(payload));
 
     const { formats, target, sdp, ice, message } = payload;

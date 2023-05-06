@@ -1,6 +1,6 @@
 // useWebSocket.js
-import { useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { SocketResponseHandler, SocketResponseMessageAttributes } from 'awayto/core';
+import { useContext, useEffect, useMemo, useRef } from 'react';
+import { SocketResponseHandler } from 'awayto/core';
 import { useContexts } from './useContexts';
 
 export function useWebSocketSend() {
@@ -8,7 +8,7 @@ export function useWebSocketSend() {
   return context.sendMessage;
 }
 
-export function useWebSocketSubscribe (topic: string, callback: SocketResponseHandler) {
+export function useWebSocketSubscribe <T>(topic: string, callback: SocketResponseHandler<T>) {
 
   const { connected, sendMessage, subscribe } = useContext(useContexts().WebSocketContext) as WebSocketContextType;
   const subscribed = useRef(false);
@@ -39,7 +39,7 @@ export function useWebSocketSubscribe (topic: string, callback: SocketResponseHa
 
   return useMemo(() => ({
     connected,
-    sendMessage: (type: string, payload?: Partial<SocketResponseMessageAttributes>) => {
+    sendMessage: (type: string, payload?: Partial<T>) => {
       if (connected) {
         sendMessage(type, topic, payload);
       }

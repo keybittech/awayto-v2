@@ -107,3 +107,4 @@ export * from './time_unit';
 export * from './util';
 export * from './uuid_files';
 export * from './uuid_notes';
+export * from './web_socket';

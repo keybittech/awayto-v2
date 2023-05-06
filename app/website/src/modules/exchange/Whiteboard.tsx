@@ -1,50 +1,36 @@
-import React, { MutableRefObject, useCallback, useEffect, useRef, useState } from "react";
+import { useWebSocketSubscribe } from "awayto/hooks";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
-function useWebSocketWhiteboard(id: string, socket: MutableRefObject<WebSocket | undefined>) {
-  const [whiteboard, setWhiteboard] = useState({ id, lines: [] } as Whiteboard);
+function useWebSocketWhiteboard(id: string) {
 
-  useEffect(() => {
-    if (socket?.current) {
-      function handleMessage(event: { data: string }) {
-        const message = JSON.parse(event.data) as { type: string, data: string };
-  
-        if (message.type === "whiteboardUpdate") {
-          setWhiteboard(JSON.parse(message.data) as Whiteboard);
-        }
-      }
-  
-      socket.current.addEventListener("message", handleMessage);
-  
-      return () => {
-        socket?.current?.removeEventListener("message", handleMessage);
-      };
+  const [whiteboard, setWhiteboard] = useState({ lines: [] } as Whiteboard);
+
+
+  const { connected, sendMessage: sendExchangeMessage } = useWebSocketSubscribe<Whiteboard>(id, ({ sender, topic, type, payload }) => {
+    console.log('whiteboard event', { sender, topic, type, payload })
+    if (payload.lines) {
+      setWhiteboard(payload as Whiteboard);
     }
-  }, [socket]);
+  });
 
   const addLine = useCallback((
     startPoint: { x: number; y: number },
     endPoint: { x: number; y: number }
   ) => {
-    if (!socket?.current) return;
-    const updatedWhiteboard = {
-      id: whiteboard.id,
-      lines: [...whiteboard.lines, { startPoint, endPoint }],
-    };
-
-    setWhiteboard(updatedWhiteboard);
-    socket.current.send(
-      JSON.stringify({
-        type: "whiteboardUpdate",
-        data: JSON.stringify(updatedWhiteboard),
-      })
-    );
-  }, [socket]);
+    if (connected) {
+      const updatedWhiteboard = {
+        lines: [...whiteboard.lines, { startPoint, endPoint }],
+      };
+  
+      setWhiteboard(updatedWhiteboard);
+      sendExchangeMessage('whiteboardUpdate', updatedWhiteboard);
+    }
+  }, [connected, whiteboard]);
 
   return { whiteboard, addLine };
 }
 
 interface Whiteboard {
-  id: string;
   lines: { startPoint: { x: number; y: number }; endPoint: { x: number; y: number } }[];
 }
 
@@ -52,8 +38,8 @@ interface IProps {
   whiteboard?: Whiteboard | null;
 }
 
-function getRelativeCoordinates(event: React.MouseEvent<HTMLCanvasElement>) {
-  const rect = event.currentTarget.getBoundingClientRect();
+function getRelativeCoordinates(event: MouseEvent | React.MouseEvent<HTMLCanvasElement>, canvas: HTMLCanvasElement) {
+  const rect = canvas.getBoundingClientRect();
   const x = event.clientX - rect.left;
   const y = event.clientY - rect.top;
   return { x, y };
@@ -61,14 +47,8 @@ function getRelativeCoordinates(event: React.MouseEvent<HTMLCanvasElement>) {
 
 export default function Whiteboard(props: IProps): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const socket = useRef<WebSocket>();
 
-  // useEffect(() => {
-  //   socket.current = new WebSocket("wss://wcapp.site.com/sock");
-  // }, []);
-  
-  const { whiteboard, addLine } = useWebSocketWhiteboard("whiteboard-id", socket);
-
+  const { whiteboard, addLine } = useWebSocketWhiteboard("exchange-id");
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -90,17 +70,25 @@ export default function Whiteboard(props: IProps): JSX.Element {
 
   const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
     event.preventDefault();
-    const startPoint = getRelativeCoordinates(event);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const startPoint = getRelativeCoordinates(event, canvas);
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
     const onMouseMove = (e: MouseEvent) => {
-      const endPoint = { x: e.clientX, y: e.clientY };
-      const relativeEndPoint = {
-        x: endPoint.x - canvasRef.current!.getBoundingClientRect().left,
-        y: endPoint.y - canvasRef.current!.getBoundingClientRect().top,
-      };
-      addLine(startPoint, relativeEndPoint);
-      startPoint.x = relativeEndPoint.x;
-      startPoint.y = relativeEndPoint.y;
+      const endPoint = getRelativeCoordinates(e, canvas);
+
+      // Draw line segment
+      ctx.beginPath();
+      ctx.moveTo(startPoint.x, startPoint.y);
+      ctx.lineTo(endPoint.x, endPoint.y);
+      ctx.stroke();
+
+      // Update startPoint
+      startPoint.x = endPoint.x;
+      startPoint.y = endPoint.y;
     };
 
     const onMouseUp = () => {
@@ -112,14 +100,20 @@ export default function Whiteboard(props: IProps): JSX.Element {
     window.addEventListener("mouseup", onMouseUp);
   };
 
-
   return (
-    <canvas
-      ref={canvasRef}
-      width="100%"
-      height="70vh"
-      onMouseDown={handleMouseDown}
-      style={{ border: "1px solid black" }}
-    />
+    <div style={{ width: "100%", height: "100%", position: "relative" }}>
+      <canvas
+        ref={canvasRef}
+        width="100%"
+        height="100%"
+        onMouseDown={handleMouseDown}
+        style={{
+          border: "1px solid black",
+          position: "absolute",
+          top: 0,
+          left: 0,
+        }}
+      />
+    </div>
   );
 }

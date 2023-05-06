@@ -12,7 +12,7 @@ function WebSocketProvider({ children }: IProps): JSX.Element {
   const { data: profile } = sh.useGetUserProfileDetailsQuery();
 
   const [socket, setSocket] = useState<WebSocket | undefined>();
-  const messageListeners = useRef(new Map<string, Set<SocketResponseHandler>>());
+  const messageListeners = useRef(new Map<string, Set<SocketResponseHandler<unknown>>>());
 
   const connect = (username: string) => {
 
@@ -31,7 +31,7 @@ function WebSocketProvider({ children }: IProps): JSX.Element {
 
       ws.onmessage = (event: MessageEvent<{ text(): Promise<string> }>) => {
         async function go () {
-          const { sender, type, topic, payload } = JSON.parse(await event.data.text()) as SocketResponse;
+          const { sender, type, topic, payload } = JSON.parse(await event.data.text()) as SocketResponse<unknown>;
 
           const listeners = messageListeners.current.get(topic);
     
