@@ -25,7 +25,7 @@ const Layout = (props: IProps): JSX.Element => {
           <Grid px={1} sx={{ bgcolor: 'primary.dark' }}>
             <Topbar {...props} />
           </Grid>
-          <Grid p={2} width="100%">
+          <Grid p={2} sx={{ width: '100%', height: 'calc(100vh - 50px)' }}>
             <Routes>
               <Route path="/" element={<Suspense fallback={<></>}><Home {...props} /></Suspense>} />
               <Route path="/profile" element={<Suspense fallback={<></>}><Profile {...props} /></Suspense>} />
