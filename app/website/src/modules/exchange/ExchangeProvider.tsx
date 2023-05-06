@@ -7,11 +7,10 @@ import IconButton from '@mui/material/IconButton';
 
 import Send from '@mui/icons-material/Send';
 
-import { asyncForEach, Sender, SenderStreams, SocketResponseMessageAttributes } from 'awayto/core';
-import { useComponents, useUtil } from 'awayto/hooks';
+import { asyncForEach, Sender, SenderStreams } from 'awayto/core';
+import { sh, useComponents, useUtil, useWebSocketSubscribe } from 'awayto/hooks';
 
 import { ExchangeContext, ExchangeContextType } from './ExchangeContext';
-import keycloak from '../../keycloak';
 
 const peerConnectionConfig = {
   'iceServers': [
@@ -20,20 +19,11 @@ const peerConnectionConfig = {
   ]
 };
 
-function heartbeat(this: { [prop: string]: ReturnType<typeof setTimeout> }) {
-  clearTimeout(this.pingTimeout);
-  this.pingTimeout = setTimeout(function () {
-    console.log('hb')
-  }, 30000 + 1000);
-}
-
-function clearbeat(this: WebSocket & { [prop: string]: ReturnType<typeof setTimeout> }) {
-  clearTimeout(this.pingTimeout);
-}
-
 export function ExchangeProvider({ children }: IProps): JSX.Element {
 
-  const localId = `test-${(new Date).getTime()}`;
+  const { data: profile } = sh.useGetUserProfileDetailsQuery();
+
+  const localId = profile?.username;
 
   const { setSnack } = useUtil();
 
@@ -47,13 +37,6 @@ export function ExchangeProvider({ children }: IProps): JSX.Element {
   const [messages, setMessages] = useState<string[]>([]);
   const [pendingMessages, setPendingMessages] = useState<string[]>([]);
 
-
-  const [localStream, setLocalStream] = useState<MediaStream>();
-  const [canStartStop, setCanStartStop] = useState('start');
-  const [senderStreams, setSenderStreams] = useState<SenderStreams>({});
-
-  const [pendingSDPs, setPendingSDPs] = useState<{ [prop: string]: RTCSessionDescriptionInit }>({});
-  const [pendingICEs, setPendingICEs] = useState<{ [prop: string]: RTCIceCandidateInit }>({});
 
   const trackStream = (mediaStream: MediaStream) => {
 
@@ -103,18 +86,59 @@ export function ExchangeProvider({ children }: IProps): JSX.Element {
     speechRecognizer.current.start();
   }
 
+  const [localStream, setLocalStream] = useState<MediaStream>();
+  const [canStartStop, setCanStartStop] = useState('start');
+  const [senderStreams, setSenderStreams] = useState<SenderStreams>({});
+
+  const [pendingSDPs, setPendingSDPs] = useState<{ [prop: string]: RTCSessionDescriptionInit }>({});
+  const [pendingICEs, setPendingICEs] = useState<{ [prop: string]: RTCIceCandidateInit }>({});
+
+  const { connected, sendMessage: sendExchangeMessage } = useWebSocketSubscribe('exchange-id', ({ sender, topic, type, payload }) => {
+    console.log('RECEIVED A NEW SOCKET MESSAGE', sender, topic, type, JSON.stringify(payload));
+
+    const { formats, target, sdp, ice, message } = payload;
+
+    if (sender === localId || (target !== localId && !(sdp || ice || message))) {
+      return;
+    }
+
+    if ('text' === type && message) {
+      setPendingMessages([message]);
+    } else if (['join-call', 'peer-response'].includes(type)) {
+      // Parties to an incoming caller's 'join-call' will see this, and then notify the caller that they exist in return
+      // The caller gets a party member's 'peer-response', and sets them up in return
+      if (!localStream && formats) {
+        setPendingMessages([`${sender} wants to start a ${formats.indexOf('video') > -1 ? 'video' : 'voice'} call.`])
+      }
+
+      setSenderStreams(Object.assign({}, senderStreams, {
+        [sender]: {
+          peerResponse: 'peer-response' === type ? true : false
+        }
+      }));
+    } else if (sdp) {
+      setPendingSDPs(Object.assign({}, pendingSDPs, {
+        [sender]: sdp
+      }));
+    } else if (ice) {
+      setPendingICEs(Object.assign({}, pendingICEs, {
+        [sender]: ice
+      }));
+    }
+  });
+
   const setLocalStreamAndBroadcast = useCallback((video: boolean): void => {
     async function go() {
       try {
-        if (socket.current && !localStream && localId && 'start' === canStartStop) {
+        if (connected && !localStream && localId && 'start' === canStartStop) {
           setCanStartStop('');
-  
+
           const callOptions: MediaStreamConstraints = {
             audio: {
               autoGainControl: true
             }
           };
-  
+
           if (video) {
             callOptions.video = {
               width: 520,
@@ -122,16 +146,10 @@ export function ExchangeProvider({ children }: IProps): JSX.Element {
               frameRate: { max: 30 }
             };
           }
-  
           const mediaStream = await navigator.mediaDevices.getUserMedia(callOptions);
           trackStream(mediaStream);
           setLocalStream(mediaStream);
-          socket.current.send(JSON.stringify({
-            sender: localId,
-            type: 'join-call',
-            formats: Object.keys(callOptions),
-            rtc: true
-          }));
+          sendExchangeMessage('join-call', { formats: Object.keys(callOptions) });
           setCanStartStop('stop');
         }
       } catch (error) {
@@ -139,74 +157,16 @@ export function ExchangeProvider({ children }: IProps): JSX.Element {
       }
     }
     void go();
-  }, [socket.current, localStream, canStartStop, localId]);
+  }, [connected, localStream, canStartStop, localId]);
 
-  const submitMessage = useCallback((e?: KeyboardEvent | FormEvent): void => {
-    e && e.preventDefault();
-    if (!socket.current || !textMessage) return;
-    try {
-      sendMessage(textMessage);
-    } catch (error) {
-      setSnack({ snackOn: error as string });
-    }
-  }, [socket.current, messages, textMessage]);
-
-  const sendMessage = function(message: string) {
-    socket.current?.send(JSON.stringify({
-      sender: localId,
-      type: 'text',
-      message: message
-    }));
+  const sendMessage = function (message: string) {
     setTextMessage('');
     // setMessages([...messages, textMessage]);
   }
 
-  const messageHandler = useCallback((sockMsg: MessageEvent<{ text(): Promise<string> }>): void => {
-    async function go() {
-      // console.log('setting handler')
-      if (!socket.current) return;
-      const { sender, type, formats, target, sdp, ice, message, rtc } = JSON.parse(await sockMsg.data.text()) as SocketResponseMessageAttributes;
-  
-      if (sender === localId || (target !== localId && !(rtc || sdp || ice || message))) {
-        return;
-      }
-  
-      if ('text' === type) {
-        setPendingMessages([message]);
-      } else if (['join-call', 'peer-response'].includes(type)) {
-        // Parties to an incoming caller's 'join-call' will see this, and then notify the caller that they exist in return
-        // The caller gets a party member's 'peer-response', and sets them up in return
-        if (!localStream && formats) {
-          setPendingMessages([`${sender} wants to start a ${formats.indexOf('video') > -1 ? 'video' : 'voice'} call.`])
-        }
-  
-        setSenderStreams(Object.assign({}, senderStreams, {
-          [sender]: {
-            peerResponse: 'peer-response' === type ? true : false
-          }
-        }));
-      } else if (sdp) {
-        setPendingSDPs(Object.assign({}, pendingSDPs, {
-          [sender]: sdp
-        }));
-      } else if (ice) {
-        setPendingICEs(Object.assign({}, pendingICEs, {
-          [sender]: ice
-        }));
-      }
-    }
-    void go();
-  }, [socket.current, messages, senderStreams]);
-
-
   function gotIceCandidate(event: RTCPeerConnectionIceEvent, sender: string) {
     if (socket.current && event.candidate !== null) {
-      socket.current.send(JSON.stringify({
-        ice: event.candidate,
-        sender: localId,
-        target: sender,
-        rtc: true
-      }));
+      sendExchangeMessage('rtc', { ice: event.candidate, target: sender });
     }
   }
 
@@ -231,49 +191,6 @@ export function ExchangeProvider({ children }: IProps): JSX.Element {
       node.srcObject = localStream
     }
   }, [localStream]);
-
-  useEffect(() => {
-    async function go() {
-      try {
-        if (!keycloak.token) return;
-        // Make a type for api
-        await fetch(`https://${location.hostname}/api/ticket/`, {
-          headers: {
-            Authorization: keycloak.token
-          }
-        });
-        socket.current = new WebSocket(`wss://${location.hostname}/sock/${localId}`);
-      } catch (error) {
-        // console.log({ goterror: error });
-        setSnack({ snackOn: error as string, snackType: 'error' });
-      }
-    }
-    void go();
-  }, []);
-
-  useEffect(() => {
-    if (socket.current) {
-
-      const sock = socket.current;
-
-      if (!sock) return;
-
-      sock.addEventListener('error', console.log);
-      sock.addEventListener('open', heartbeat);
-      sock.addEventListener('ping', heartbeat);
-      sock.addEventListener('close', clearbeat);
-      sock.addEventListener('message', messageHandler);
-
-      return () => {
-        sock.close();
-        sock.removeEventListener('error', console.log);
-        sock.removeEventListener('open', heartbeat);
-        sock.removeEventListener('ping', heartbeat);
-        sock.removeEventListener('close', clearbeat);
-        sock.removeEventListener('message', messageHandler);
-      }
-    }
-  }, [socket.current]);
 
   // Handle incoming peer streams
   useEffect(() => {
@@ -307,15 +224,13 @@ export function ExchangeProvider({ children }: IProps): JSX.Element {
             socket.current.send(JSON.stringify({
               sdp: startedSender.pc.localDescription,
               sender: localId,
-              target: senderId,
-              rtc: true
+              target: senderId
             }));
           } else {
             socket.current.send(JSON.stringify({
               sender: localId,
               target: senderId,
-              type: 'peer-response',
-              rtc: true
+              type: 'peer-response'
             }));
           }
 
@@ -353,8 +268,7 @@ export function ExchangeProvider({ children }: IProps): JSX.Element {
               socket.current && socket.current.send(JSON.stringify({
                 sdp: senderStream.pc.localDescription,
                 sender: localId,
-                target: sender,
-                rtc: true
+                target: sender
               }));
             }
           }
@@ -397,6 +311,11 @@ export function ExchangeProvider({ children }: IProps): JSX.Element {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'auto', block: 'end', inline: 'nearest' })
   }, [messagesEndRef.current, messages]);
+  
+  const sendTextMessage = () => {
+    sendExchangeMessage('text', { message: textMessage });
+    setTextMessage('');
+  }
 
   const pendingQuotesContext = {
     canStartStop,
@@ -431,10 +350,11 @@ export function ExchangeProvider({ children }: IProps): JSX.Element {
     }), [senderStreams]),
     localStreamElement: useMemo(() => !localStream ? undefined : <video key={'local-video'} style={{ width: '25%' }} autoPlay controls ref={localStreamRef} />, [localStream, localStreamRef]),
 
-    submitMessage,
-
     submitMessageForm: useMemo(() => {
-      return <form onSubmit={submitMessage}>
+      return <form onSubmit={e => {
+        e.preventDefault();
+        sendTextMessage();
+      }}>
         <TextField
           fullWidth
           multiline
@@ -446,7 +366,7 @@ export function ExchangeProvider({ children }: IProps): JSX.Element {
           InputProps={{
             onKeyDown: e => {
               if ('Enter' === e.key && !e.shiftKey) {
-                submitMessage(e);
+                sendTextMessage();
               }
             },
             endAdornment: (

@@ -13,3 +13,4 @@ export * from './useGrid';
 export * from './useUtil';
 export * from './useTimeName';
 export * from './useAccordion';
+export * from './useWebSocket';

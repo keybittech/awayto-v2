@@ -140,6 +140,7 @@ wss.on('connection', function (ws, req) {
   // Setup socket info and attach to server
   ws.id = v4();
   ws.isAlive = true;
+  ws.subscribedTopics = new Set();
   connections[ws.localId] = ws;
 
   // Remove any active processes and server refs on close
@@ -157,33 +158,17 @@ wss.on('connection', function (ws, req) {
     try {
       // Messages will have a sender and type, might have a message or other
       const parsed = JSON.parse(message.toString());
-      const localIdBuffer = Buffer.from(ws.localId);
 
-      if ('text' === parsed.type) {
-
-        if (parsed.target) {
-          // p2p messaging
-          dm(parsed.target, Buffer.concat([localIdBuffer, message]));
-        } else {
-          // For generic text messages, send to all participants for now
-          wss.clients.forEach(function (ws) {
-            if (ws.readyState === WebSocket.OPEN) {
-              ws.send(message);
-            }
-          });
-        }
-      } else if (parsed.rtc) { // WebRTC catchall
-        if (parsed.target) {
-          dm(parsed.target, message);
-        } else {
-          // Handles join-call
-          wss.clients.forEach(function (ws) {
-            if (ws.localId !== parsed.sender && ws.readyState === WebSocket.OPEN) {
-              ws.send(message);
-            }
-          });
-        }
-
+      if ('subscribe' === parsed.type) {
+        ws.subscribedTopics.add(parsed.topic);
+      } else if ('unsubscribe' === parsed.type) {
+        ws.subscribedTopics.delete(parsed.topic);
+      } else if (parsed.topic) {
+        wss.clients.forEach(ws => {
+          if (ws.readyState === WebSocket.OPEN && ws.subscribedTopics && ws.subscribedTopics.has(parsed.topic)) {
+            ws.send(message);
+          }
+        })
       }
 
     } catch (error) {

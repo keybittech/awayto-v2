@@ -8,9 +8,26 @@ export type SocketResponseMessageAttributes = {
   sdp: RTCSessionDescriptionInit;
   ice: RTCIceCandidateInit;
   formats: string[];
-} & {
-  [prop: string]: string;
-}
+  message: string;
+  target: string;
+};
+
+/**
+ * @category Exchange
+ * @purpose the form of a socket response
+ */
+export type SocketResponse = {
+  sender: string;
+  type: string;
+  topic: string;
+  payload: Partial<SocketResponseMessageAttributes>;
+};
+
+/**
+ * @category Exchange
+ * @purpose handles topic listener results
+ */
+export type SocketResponseHandler = (response: SocketResponse) => void;
 
 /**
  * @category Exchange
