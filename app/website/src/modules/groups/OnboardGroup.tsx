@@ -33,7 +33,7 @@ function OnboardGroup() {
 
   return groups.map((group, i) => {
       return <Card key={`group-setup-${i}`}>
-      <CardHeader title="Welcome!" subheader={`Complete the following set up for ${group.displayName as string}.`} />
+      <CardHeader title="Welcome!" subheader={`Complete the following set up for ${group.displayName}.`} />
       <CardContent>
         <Box mb={2}>
           <Alert severity={hasSchedule ? 'success' : 'info'} action={!hasSchedule && <Button onClick={() => navigate(`/group/${group.name}/manage/schedules`)}><ChevronRightIcon /></Button>}>1. Add a Master Schedule</Alert>

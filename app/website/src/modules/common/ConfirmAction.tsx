@@ -25,7 +25,7 @@ export function ConfirmAction(): JSX.Element {
             <Grid item xs={util.confirmSideEffect ? 6 : 12}>
               <CardActionArea sx={{ height: '100%', padding: '50px' }} onClick={() => {
                 async function go() {
-                  await getUtilRegisteredAction(util.confirmActionId as string)(true);
+                  await getUtilRegisteredAction(util.confirmActionId)(true);
                   closeConfirm({});
                 }
                 void go();
@@ -44,7 +44,7 @@ export function ConfirmAction(): JSX.Element {
 
               <CardActionArea sx={{ height: '100%', padding: '50px' }} onClick={() => {
                 async function go() {
-                  await getUtilRegisteredAction(util.confirmActionId as string)(false);
+                  await getUtilRegisteredAction(util.confirmActionId)(false);
                   closeConfirm({});
                 }
                 void go();

@@ -11,7 +11,6 @@ const crypto = require('crypto');
 const glob = require('glob');
 
 const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin');
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 
 const CracoEsbuildPlugin = require('craco-esbuild');
@@ -115,10 +114,6 @@ const appDirectory = fs.realpathSync(process.cwd());
 const resolveApp = (relativePath) => path.resolve(appDirectory, relativePath);
 
 module.exports = {
-  // eslint: {
-  //   enable: false,
-  //   mode: ESLINT_MODES.NONE
-  // },
   webpack: {
     alias: {
       'awayto/core': resolveApp(AWAYTO_CORE + '/index.ts'),
@@ -160,15 +155,19 @@ module.exports = {
         })
       );
 
+      // webpackConfig.devServer = {};
+      // webpackConfig.devServer.setupMiddlewares = middlewares => {
+      //   middlewares.unshift({
+      //     name: 'check-write-build-file',
+      //     middleware: (req, res, next) => {
+      //       console.log('hello world');
+      //       checkWriteBuildFile(next);
+      //     }
+      //   });
+      //   return middlewares;
+      // }
+
       return webpackConfig;
-    },
-    devServer: (devServerConfig, { env, paths, proxy, allowedHost }) => {
-      devServerConfig.before = (app, server, compiler) => {
-        app.use((req, res, next) => {
-          checkWriteBuildFile(next);
-        });
-      };
-      return devServerConfig;
     }
   }
 };
