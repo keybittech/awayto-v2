@@ -6,7 +6,7 @@ import CardContent from '@mui/material/CardContent';
 import { DataGrid } from '@mui/x-data-grid';
 
 import { sh, useGrid } from 'awayto/hooks';
-import { IFile } from 'awayto/core';
+import { IFile, nid } from 'awayto/core';
 
 declare global {
   interface IProps {
@@ -32,7 +32,6 @@ function FileManager({ files, setFiles }: Required<IProps>): JSX.Element {
   const fileGridProps = useGrid({
     rows: files || [],
     columns: [
-      { flex: 1, headerName: 'Id', field: 'id' },
       { flex: 1, headerName: 'Name', field: 'name' },
     ],
     selected,
@@ -51,11 +50,10 @@ function FileManager({ files, setFiles }: Required<IProps>): JSX.Element {
   
         if (response) {
           return {
-            id: response.id,
-            fileTypeId: '', // Update this based on your implementation
-            fileTypeName: '', // Update this based on your implementation
+            id: nid(),
+            uuid: response.id,
             name: file.name,
-            location: '', // Update this based on your implementation
+            mimeType: file.type
           };
         }
         return null;

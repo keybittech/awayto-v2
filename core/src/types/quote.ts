@@ -1,5 +1,6 @@
 import { asyncForEach, Extend, Void } from '../util';
 import { ApiHandler, ApiOptions, buildUpdate, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
+import { IFile } from './file';
 import { IFormVersionSubmission } from './form';
 import { utcNowString } from './time_unit';
 
@@ -15,6 +16,7 @@ export type IQuote = {
   serviceTierId: string;
   serviceTierName: string;
   serviceName: string;
+  files: IFile[];
   scheduleBracketSlotId: string;
   serviceFormVersionSubmissionId: string;
   tierFormVersionSubmissionId: string;
@@ -38,7 +40,8 @@ const quoteApi = {
       serviceTierId: '' as string,
       slotDate: '' as string,
       serviceForm: {} as IFormVersionSubmission,
-      tierForm: {} as IFormVersionSubmission
+      tierForm: {} as IFormVersionSubmission,
+      files: [] as IFile[]
     },
     resultType: [] as IQuote[]
   },
@@ -92,7 +95,7 @@ const quoteApiHandlers: ApiHandler<typeof quoteApi> = {
     const { roleCall, appClient } = await props.redisProxy('roleCall', 'appClient');
 
     const quote = { ...props.event.body } as IQuote;
-    const { serviceForm, tierForm, slotDate, scheduleBracketSlotId, serviceTierId } = quote;
+    const { serviceForm, tierForm, slotDate, scheduleBracketSlotId, serviceTierId, files } = quote;
 
     await asyncForEach([serviceForm, tierForm], async form => {
       if (form && Object.keys(form).length) {
@@ -105,6 +108,18 @@ const quoteApiHandlers: ApiHandler<typeof quoteApi> = {
         form.id = formId;
       }
     });
+
+    if (files.length) {
+      await Promise.all(files.map(file => {
+        return siteApiHandlerRef.postFile({
+          ...props,
+          event: {
+            ...props.event,
+            body: file
+          }
+        });
+      }));
+    }
 
     const { id: quoteId } = await props.tx.one<IQuote>(`
       INSERT INTO dbtable_schema.quotes (slot_date, schedule_bracket_slot_id, service_tier_id, service_form_version_submission_id, tier_form_version_submission_id, created_sub)

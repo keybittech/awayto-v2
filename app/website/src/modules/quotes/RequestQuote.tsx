@@ -121,7 +121,8 @@ export function RequestQuote(props: IProps): JSX.Element {
               tierForm: (tierForm ? {
                 formVersionId: tierForm.version.id,
                 submission: tierForm.version.submission
-              } : {}) as IFormVersionSubmission
+              } : {}) as IFormVersionSubmission,
+              files
             }).unwrap().then(() => {
               setSnack({ snackOn: 'Your request has been made successfully!' });
               navigate('/');

@@ -24,10 +24,9 @@ export type IFileType = {
  */
 export type IFile = {
   id: string;
-  fileTypeId: string;
-  fileTypeName: string;
+  uuid: string;
   name: string;
-  location: string;
+  mimeType: string;
 }
 
 /**
@@ -49,15 +48,15 @@ const fileApi = {
     url: 'files',
     method: 'POST',
     opts: {} as ApiOptions,
-    queryArg: { name: '' as string, fileTypeId: '' as string, location: '' as string },
-    resultType: { id: '' as string, newUuid: '' as string }
+    queryArg: { uuid: '' as string, name: '' as string, mimeType: '' as string },
+    resultType: { id: '' as string, uuid: '' as string, name: '' as string, mimeType: '' as string }
   },
   putFile: {
     kind: EndpointType.MUTATION,
     url: 'files',
     method: 'PUT',
     opts: {} as ApiOptions,
-    queryArg: { id: '' as string, name: '' as string, fileTypeId: '' as string, location: '' as string },
+    queryArg: { id: '' as string, name: '' as string },
     resultType: { id: '' as string }
   },
   getFiles: {
@@ -103,22 +102,19 @@ const fileApiHandlers: ApiHandler<typeof fileApi> = {
     return { id: fileId };
   },
   postFile: async props => {
-    const newUuid = uuid();
-    const { name, fileTypeId: file_type_id, location } = props.event.body;
+    const { uuid, name, mimeType: mime_type } = props.event.body;
     const file = await props.tx.one<{ id: string }>(`
-      INSERT INTO dbtable_schema.files (uuid, name, file_type_id, location, created_on, created_sub)
-      VALUES ($1, $2, $3, $4, $5, $6::uuid)
+      INSERT INTO dbtable_schema.files (uuid, name, mime_type, created_on, created_sub)
+      VALUES ($1, $2, $3, $4, $5::uuid)
       RETURNING id
-    `, [newUuid, name, file_type_id, location, utcNowString(), props.event.userSub]);
-    return { id: file.id, newUuid };
+    `, [uuid, name, mime_type, utcNowString(), props.event.userSub]);
+    return { id: file.id, uuid };
   },
   putFile: async props => {
-    const { id, name, fileTypeId: file_type_id, location } = props.event.body;
+    const { id, name } = props.event.body;
     const updateProps = buildUpdate({
       id,
       name,
-      file_type_id,
-      location,
       updated_on: utcNowString(),
       updated_sub: props.event.userSub
     });
