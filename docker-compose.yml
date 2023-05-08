@@ -99,6 +99,22 @@ services:
     networks:
       site:
         ipv4_address: 172.20.0.14
+  # docker run --rm --name curl-container --net site alpine sh -c "apk add --no-cache curl && curl -X POST -H 'Content-Type: text/plain' -H 'Expires-At: 2023-12-31 23:59:59' -d 'hello' http://172.20.0.16:8000/file"
+  # docker exec curl-container /usr/bin/curl -X POST -H 'Content-Type: text/plain' -H 'Expires-At: 2023-12-31 23:59:59' -d 'hello' http://172.20.0.16:8001/file
+  # docker exec curl-container /usr/bin/curl http://172.20.0.16:8000/file/1
+  fs:
+    image: wcfs
+    build:
+      context: ./fs
+      dockerfile: ./Dockerfile
+    environment:
+      - SQLITE_DATA=/app/data/sqlite-db.db
+    volumes:
+      # - ./fs/sh:/app
+      - sqlitedata:/app/data
+    networks:
+      site:
+        ipv4_address: 172.20.0.16
 
   auth: # keycloak
     image: wcauth
@@ -227,6 +243,8 @@ services:
           - mail
 
 volumes:
+  sqlitedata:
+    external: true
   pg15store:
     external: true
   graylogdata:

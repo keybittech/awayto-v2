@@ -1,10 +1,12 @@
-import { useAi } from '@keybittech/wizapp/dist/server';
-import { KeycloakAdminClient } from '@keycloak/keycloak-admin-client/lib/client';
-import RoleRepresentation, { RoleMappingPayload } from '@keycloak/keycloak-admin-client/lib/defs/roleRepresentation';
-import ClientRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientRepresentation';
-import { IDatabase, ITask } from 'pg-promise';
-import { RedisClientType } from 'redis';
-import { graylog } from 'graylog2';
+import type { useAi } from '@keybittech/wizapp/dist/server';
+import type { KeycloakAdminClient } from '@keycloak/keycloak-admin-client/lib/client';
+import type RoleRepresentation from '@keycloak/keycloak-admin-client/lib/defs/roleRepresentation';
+import type { RoleMappingPayload } from '@keycloak/keycloak-admin-client/lib/defs/roleRepresentation';
+import type ClientRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientRepresentation';
+import type { IDatabase, ITask } from 'pg-promise';
+import type { RedisClientType } from 'redis';
+import type { graylog } from 'graylog2';
+
 import { UserGroupRoles } from './profile';
 import { IGroupRoleAuthActions } from './group';
 import { AnyRecord, Void } from '../util';
