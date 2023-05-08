@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { v4 as uuid } from 'uuid';
 import { Extend, Void } from '../util';
 import { ApiHandler, ApiOptions, buildUpdate, EndpointType, siteApiHandlerRef, siteApiRef } from './api';
@@ -33,6 +34,16 @@ export type IFile = {
  * @category File
  */
 const fileApi = {
+  postFileContents: {
+    kind: EndpointType.MUTATION,
+    url: 'files/content',
+    method: 'POST',
+    opts: {
+      contentType: 'application/octet-stream'
+    } as ApiOptions,
+    queryArg: new ArrayBuffer(0),
+    resultType: { id: '' as string }
+  },
   postFile: {
     kind: EndpointType.MUTATION,
     url: 'files',
@@ -87,6 +98,10 @@ const fileApi = {
  * @category File
  */
 const fileApiHandlers: ApiHandler<typeof fileApi> = {
+  postFileContents: async props => {
+    const fileId = await props.fs.saveFile(props.event.body, dayjs().add(dayjs.duration(30, 'day')))
+    return { id: fileId };
+  },
   postFile: async props => {
     const newUuid = uuid();
     const { name, fileTypeId: file_type_id, location } = props.event.body;

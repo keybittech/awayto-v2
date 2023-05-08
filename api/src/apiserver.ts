@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config({ path: __dirname + '../.env' })
 
+import path from 'path';
 import fetch from 'node-fetch';
 import dayjs from 'dayjs';
 
@@ -17,7 +18,7 @@ import 'dayjs/locale/en';
 
 import fs from 'fs';
 import https from 'https';
-import express, { Express, NextFunction, Request, Response } from 'express';
+import express, { RequestHandler, Express, NextFunction, Request, Response } from 'express';
 import cookieSession from 'cookie-session';
 import cookieParser from 'cookie-parser';
 import httpProxy from 'http-proxy';
@@ -27,21 +28,21 @@ import { v4 as uuid } from 'uuid';
 import passport from 'passport';
 import { IdTokenClaims, Strategy, StrategyVerifyCallbackUserInfo } from 'openid-client';
 
+import { DecodedJWTToken, UserGroupRoles, StrategyUser, ApiErrorResponse, IGroup, AuthBody, siteApiRef, AuthProps, siteApiHandlerRef, ApiProps, EndpointType } from 'awayto/core';
+
+import { useAi } from '@keybittech/wizapp/dist/server';
+
+import { checkAuthenticated, validateRequestBody } from './middlewares';
+
 import WebHooks from './webhooks/index';
 
 import keycloak, { getGroupRegistrationRedirectParts } from './modules/keycloak';
 import { db, connected as dbConnected } from './modules/db';
 import redis, { DEFAULT_THROTTLE, rateLimitResource, redisProxy } from './modules/redis';
-import logger from './modules/logger';
-
-import { DecodedJWTToken, UserGroupRoles, StrategyUser, ApiErrorResponse, IGroup, AuthBody, siteApiRef, AuthProps, siteApiHandlerRef, ApiProps, EndpointType, validateRequestBody, IUserProfile } from 'awayto/core';
-
-import './modules/prompts';
-
-import { useAi } from '@keybittech/wizapp/dist/server';
-
 import { connectToTwitch, TWITCH_REDIRECT_URI } from './modules/twitch';
-import path from 'path';
+import { saveFile, getFile } from './modules/fs';
+import logger from './modules/logger';
+import './modules/prompts';
 
 const {
   SOCK_HOST,
@@ -203,13 +204,6 @@ async function go() {
       }
     });
 
-    var checkAuthenticated = (req: Request, res: Response, next: NextFunction) => {
-      if (req.isAuthenticated()) {
-        return next()
-      }
-      res.redirect('/api/auth/checkin');
-    }
-
     app.get('/api/auth/checkok', checkAuthenticated, (req, res, next) => {
       res.status(200).end();
     });
@@ -250,6 +244,7 @@ async function go() {
             logger,
             fetch,
             redisProxy,
+            fs: { saveFile, getFile },
             ai: { useAi },
             keycloak: keycloak as unknown
           } as AuthProps);
@@ -271,10 +266,21 @@ async function go() {
     });
 
     for (const apiRefId in siteApiRef) {
-      const { method, url, queryArg, resultType, kind, opts: { cache, throttle } } = siteApiRef[apiRefId as keyof typeof siteApiRef];
+      const { method, url, queryArg, resultType, kind, opts: { cache, throttle, contentType } } = siteApiRef[apiRefId as keyof typeof siteApiRef];
+
+      const requestHandlers: RequestHandler[] = [
+        checkAuthenticated
+      ];
+
+      if ('application/octet-stream' === contentType) {
+        requestHandlers.push(express.raw({ type: contentType }));
+      }
+
+      requestHandlers.push(validateRequestBody(queryArg, url));
+
 
       // Here we make use of the extra /api from the reverse proxy
-      app[method.toLowerCase() as keyof Express](`/api/${url.split('?')[0]}`, checkAuthenticated, validateRequestBody(queryArg, url), async (req: Request & { headers: { authorization: string } }, res: Response) => {
+      app[method.toLowerCase() as keyof Express](`/api/${url.split('?')[0]}`, requestHandlers, async (req: Request & { headers: { authorization: string } }, res: Response) => {
 
         const requestId = uuid();
         const user = req.user as StrategyUser;
@@ -321,6 +327,7 @@ async function go() {
               keycloak: keycloak as unknown,
               redisProxy,
               fetch,
+              fs: { saveFile, getFile },
               ai: { useAi },
               logger,
               event: {

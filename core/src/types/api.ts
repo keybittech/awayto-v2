@@ -6,10 +6,11 @@ import type ClientRepresentation from '@keycloak/keycloak-admin-client/lib/defs/
 import type { IDatabase, ITask } from 'pg-promise';
 import type { RedisClientType } from 'redis';
 import type { graylog } from 'graylog2';
+import type { Dayjs } from 'dayjs';
 
 import { UserGroupRoles } from './profile';
 import { IGroupRoleAuthActions } from './group';
-import { AnyRecord, Void } from '../util';
+import { AnyRecord, AnyRecordTypes, Void } from '../util';
 import { KcSiteOpts } from './auth';
 import fetch from 'node-fetch';
 
@@ -44,7 +45,7 @@ export enum EndpointType {
 /**
  * @category API
  */
-export type ApiEvent<T extends AnyRecord> = {
+export type ApiEvent<T extends AnyRecord | AnyRecordTypes> = {
   requestId: string;
   method: string;
   url: string;
@@ -66,18 +67,24 @@ export type ApiOptions = {
   readonly cache?: 'skip' | number | boolean | null | undefined;
   readonly load?: boolean | undefined;
   readonly throttle?: 'skip' | number | undefined;
+  readonly contentType?: string | undefined;
 }
 
 /**
  * @category API
  */
-export type ApiFunc<T> = T extends { queryArg: infer QA extends AnyRecord, resultType: infer RT } ? (props: ApiProps<QA>) => Promise<RT extends Void ? void : Partial<RT>> : never;
+export type ApiFunc<T> = T extends { queryArg: infer QA extends AnyRecord | AnyRecordTypes, resultType: infer RT } ? (props: ApiProps<QA>) => Promise<RT extends Void ? void : Partial<RT>> : never;
 
 /**
  * @category API
  */
 export type ApiHandler<T> = {
   [K in keyof T]: ApiFunc<T[K]>;
+}
+
+export type FsFunctionalities = {
+  saveFile: (contents: ArrayBuffer, expiration: Dayjs) => Promise<string | undefined>;
+  getFile: (id: string) => Promise<string>;
 }
 
 /**
@@ -90,7 +97,7 @@ export type AiFunctionalities = {
 /**
  * @category API
  */
-export type ApiProps<T extends AnyRecord> = {
+export type ApiProps<T extends AnyRecord | AnyRecordTypes> = {
   event: ApiEvent<T>;
   db: IDatabase<unknown>;
   fetch: typeof fetch;
@@ -98,6 +105,7 @@ export type ApiProps<T extends AnyRecord> = {
   redis: RedisClientType;
   redisProxy: RedisProxy;
   keycloak: KeycloakAdminClient & KcSiteOpts;
+  fs: FsFunctionalities;
   ai: AiFunctionalities;
   tx: ITask<unknown>;
 }
@@ -113,6 +121,7 @@ export type AuthProps = {
   redis: RedisClientType;
   redisProxy: RedisProxy;
   keycloak: KeycloakAdminClient & KcSiteOpts;
+  fs: FsFunctionalities;
   ai: AiFunctionalities;
   tx: ITask<unknown>;
 }

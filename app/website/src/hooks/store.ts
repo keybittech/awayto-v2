@@ -194,7 +194,16 @@ export const sh = createApi({
         if (kind === EndpointType.QUERY) {
           return processedUrl;
         }
-        return { url: processedUrl, method, body: args };
+
+        return {
+          url: processedUrl,
+          method,
+          headers: opts.contentType ? {
+            'Content-Type': opts.contentType,
+            'Content-Length': 'application/octet-stream' === opts.contentType ? (args as ArrayBuffer).byteLength.toString() : undefined
+          } : undefined,
+          body: args
+        };
       }),
       onQueryStarted: async (qa, { queryFulfilled }) => {
         if (opts.load || kind === EndpointType.MUTATION) {
