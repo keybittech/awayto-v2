@@ -1,26 +1,25 @@
 import React, { useMemo } from 'react';
 
 import Avatar from '@mui/material/Avatar';
-import Accordion from '@mui/material/Accordion';
-import AccordionSummary from '@mui/material/AccordionSummary';
-import AccordionDetails from '@mui/material/AccordionDetails';
-import Typography from '@mui/material/Typography';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckIcon from '@mui/icons-material/Check';
 
-import { IServiceTier } from 'awayto/core';
+import { IService, nid } from 'awayto/core';
 import { useGrid, useStyles } from 'awayto/hooks';
 
 declare global {
   interface IProps {
-    serviceTiers?: IServiceTier[];
+    service?: IService;
   }
 }
 
-export function ServiceTierAddons({ serviceTiers }: IProps): JSX.Element {
-  if (!serviceTiers) return <></>;
+export function ServiceTierAddons({ service }: IProps): JSX.Element {
+  if (!service) return <></>;
+
+  const serviceTiers = useMemo(() => Object.values(service.tiers), [service]);
+
+  if (!serviceTiers.length) return <></>;
 
   const classes = useStyles();
 
@@ -40,11 +39,13 @@ export function ServiceTierAddons({ serviceTiers }: IProps): JSX.Element {
   }, [serviceTiers]);
 
   const tierGridProps = useGrid({
-    rows: serviceTierAddons.map(name => ({ name })),
+    noPagination: true,
+    rows: serviceTierAddons.map(name => ({ id: nid(), name })),
     columns: [
-      { type: 'string', field: 'name', headerName: '' },
+      { type: 'string', field: 'name', headerName: '', flex: 1 },
       ...serviceTiers.reduce((memo, { name, addons }) => {
         memo.push({
+          flex: 1,
           headerName: name,
           field: '',
           renderCell: ({ row }) => {
@@ -56,18 +57,7 @@ export function ServiceTierAddons({ serviceTiers }: IProps): JSX.Element {
     ]
   });
 
-  return <Accordion defaultExpanded={true}>
-    <AccordionSummary
-      expandIcon={<ExpandMoreIcon />}
-      aria-controls="tiers-and-features-content"
-      id="tiers-and-features-header"
-    >
-      <Typography>Features</Typography>
-    </AccordionSummary>
-    <AccordionDetails>
-      <DataGrid {...tierGridProps} />
-    </AccordionDetails>
-  </Accordion>
+  return <DataGrid {...tierGridProps} />;
 }
 
 export default ServiceTierAddons;

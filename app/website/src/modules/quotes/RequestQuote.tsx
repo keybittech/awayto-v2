@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router';
 
 import Alert from '@mui/material/Alert';
@@ -17,8 +17,14 @@ export function RequestQuote(props: IProps): JSX.Element {
 
   const navigate = useNavigate();
   const { setSnack } = useUtil();
-  const { ScheduleDatePicker, ScheduleTimePicker } = useComponents();
+  const { ScheduleDatePicker, ScheduleTimePicker, ServiceTierAddons, AccordionWrap } = useComponents();
   const [postQuote] = sh.usePostQuoteMutation();
+  const [didSubmit, setDidSubmit] = useState(false);
+  const [expanded, setExpanded] = useState<string | false>(false);
+
+  const handleChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
+    setExpanded(isExpanded ? panel : false);
+  };
 
   const { 
     GroupContext,
@@ -43,12 +49,14 @@ export function RequestQuote(props: IProps): JSX.Element {
 
   const { form: serviceForm, comp: ServiceForm, valid: serviceFormValid } = useGroupForm(groupScheduleService?.formId);
   const { form: tierForm, comp: TierForm, valid: tierFormValid } = useGroupForm(groupScheduleServiceTier?.formId);
-
-  const SelectTimeAccordion = useAccordion('Select Time');
-  const GroupScheduleServiceAccordion = useAccordion((groupScheduleService?.name || '') + ' Questionnaire');
-  const GroupScheduleServiceTierAccordion = useAccordion((groupScheduleServiceTier?.name || '') + ' Questionnaire');
-
+  
   const { files, comp: FileManager } = useFiles();
+
+  const ServiceTierAddonsAccordion = useAccordion('Features', false, expanded === 'service_features', handleChange('service_features'));
+  const SelectTimeAccordion = useAccordion('Select Time', false, expanded === 'select_time', handleChange('select_time'));
+  const GroupScheduleServiceAccordion = useAccordion((groupScheduleService?.name || '') + ' Questionnaire', didSubmit && !serviceFormValid, expanded === 'service_questionnaire', handleChange('service_questionnaire'));
+  const GroupScheduleServiceTierAccordion = useAccordion((groupScheduleServiceTier?.name || '') + ' Questionnaire', didSubmit && !tierFormValid, expanded === 'tier_questionnaire', handleChange('tier_questionnaire'));
+  const FileManagerAccordion = useAccordion('Files', false, expanded === 'file_manager', handleChange('file_manager'))
 
   if (!groupSchedule || !groupScheduleService) return <Alert severity="info">
     There are no active schedules or operations are currently halted.
@@ -80,15 +88,19 @@ export function RequestQuote(props: IProps): JSX.Element {
           </CardContent>
         </Card>
 
-        {serviceForm && <GroupScheduleServiceAccordion>
+        {groupScheduleService && <AccordionWrap {...ServiceTierAddonsAccordion}>
+          <ServiceTierAddons service={groupScheduleService} />
+        </AccordionWrap>}
+
+        {serviceForm && <AccordionWrap {...GroupScheduleServiceAccordion}>
           <ServiceForm />
-        </GroupScheduleServiceAccordion>}
+        </AccordionWrap>}
 
-        {tierForm && <GroupScheduleServiceTierAccordion>
+        {tierForm && <AccordionWrap {...GroupScheduleServiceTierAccordion}>
           <TierForm />
-        </GroupScheduleServiceTierAccordion>}
+        </AccordionWrap>}
 
-        <SelectTimeAccordion>
+        <AccordionWrap {...SelectTimeAccordion}>
           <Grid container spacing={2}>
             <Grid item xs={4}>
               <ScheduleDatePicker key={groupSchedule.id} />
@@ -97,18 +109,23 @@ export function RequestQuote(props: IProps): JSX.Element {
               <ScheduleTimePicker key={groupSchedule.id} />
             </Grid>
           </Grid>
-        </SelectTimeAccordion>
+        </AccordionWrap>
 
-        <FileManager {...props} />
+        <AccordionWrap {...FileManagerAccordion}>
+          <FileManager {...props} />
+        </AccordionWrap>
       </Grid>
 
-      <Grid item xs={12}>
+      <Grid item xs={12} mb={2}>
         <Card>
           <CardActionArea onClick={() => {
             if (!serviceFormValid || !tierFormValid || !groupScheduleServiceTier) {
               setSnack({ snackType: 'error', snackOn: 'Please ensure all required fields are filled out.' });
+              setDidSubmit(true);
               return;
             }
+
+            setDidSubmit(false);
 
             postQuote({
               slotDate: quote.slotDate,

@@ -99,11 +99,7 @@ function FileManager({ files, setFiles }: Required<IProps>): JSX.Element {
   return <>
     <input type="file" multiple id="new-file" onChange={e => { handleFileChange(e).catch(console.error) } } ref={fileSelectRef} style={{ display: 'none' }} />
 
-    <Card>
-      <CardContent>
-        <DataGrid {...fileGridProps} />
-      </CardContent>
-    </Card>
+    <DataGrid {...fileGridProps} />
   </>
 }
 

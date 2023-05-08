@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { DataGrid, GridColDef, GridRowSelectionModel, GridValidRowModel } from '@mui/x-data-grid';
+import { GridColDef, GridRowSelectionModel, GridValidRowModel } from '@mui/x-data-grid';
 
 import Grid from '@mui/material/Grid';
 
@@ -24,6 +24,7 @@ export function useGrid<T extends GridValidRowModel>({ rows, columns, rowId, noP
       rowSelectionModel: selected,
       checkboxSelection: !!selected,
       onRowSelectionModelChange: onSelected,
+      hideFooterPagination: noPagination,
       pageSizeOptions: noPagination ? [] : [5, 10, 25],
       disableRowSelectionOnClick,
       getRowId: (row: T) => (rowId ? row[rowId] : row.id) as string,
