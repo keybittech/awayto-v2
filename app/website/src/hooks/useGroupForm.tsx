@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useState } from 'react';
+import React, { useContext, useMemo, useState, useEffect } from 'react';
 
 import { IForm, deepClone } from 'awayto/core';
 import { useComponents } from './useComponents';
@@ -14,18 +14,26 @@ type UseGroupFormResponse = {
 export function useGroupForm(id = ''): UseGroupFormResponse {
 
   const { group } = useContext(useContexts().GroupContext) as GroupContextType;
-
   const { FormDisplay } = useComponents();
 
-  const { data: formTemplate } = sh.useGetGroupFormByIdQuery({ groupName: group.name, formId: id }, { skip: !group.name || !id });
-  
   const [form, setForm] = useState<IForm | undefined>();
+  const [forms, setForms] = useState<Map<string, IForm>>(new Map());
 
-  const hasForm = Object.keys(form || {}).length;
+  const { data: formTemplate } = sh.useGetGroupFormByIdQuery({ groupName: group.name, formId: id }, { skip: !group.name || !id || forms.has(id) });
 
-  if (formTemplate && !hasForm) {
-    setForm(deepClone(formTemplate));
-  }
+  useEffect(() => {
+    if (formTemplate) {
+      setForms(new Map([ ...forms, [id, deepClone(formTemplate) ] ]));
+    }
+  }, [formTemplate]);
+
+  useEffect(() => {
+    if (!id || !forms.has(id)) {
+      setForm(undefined);
+    } else if (id && !form) {
+      setForm(forms.get(id));
+    }
+  }, [id, forms, form]);
 
   const valid = useMemo(() => {
     let v = true;
@@ -44,7 +52,7 @@ export function useGroupForm(id = ''): UseGroupFormResponse {
 
   return {
     form,
-    comp: !hasForm ? (() => <></>) : () => <FormDisplay form={form} setForm={setForm} />,
+    comp: !form ? (() => <></>) : () => <FormDisplay form={form} setForm={setForm} />,
     valid
   }
 }
