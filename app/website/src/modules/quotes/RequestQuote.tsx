@@ -1,6 +1,5 @@
 import React, { useContext } from 'react';
 import { useNavigate } from 'react-router';
-import dayjs from 'dayjs';
 
 import Alert from '@mui/material/Alert';
 import Grid from '@mui/material/Grid';
@@ -11,14 +10,14 @@ import CardHeader from '@mui/material/CardHeader';
 import CardContent from '@mui/material/CardContent';
 import CardActionArea from '@mui/material/CardActionArea';
 
-import { useComponents, useContexts, sh, useUtil, useGroupForm, useAccordion } from 'awayto/hooks';
+import { useComponents, useContexts, sh, useUtil, useGroupForm, useAccordion, useFiles } from 'awayto/hooks';
 import { IFormVersionSubmission, IQuote } from 'awayto/core';
 
 export function RequestQuote(props: IProps): JSX.Element {
 
   const navigate = useNavigate();
   const { setSnack } = useUtil();
-  const { FileManager, ScheduleDatePicker, ScheduleTimePicker } = useComponents();
+  const { ScheduleDatePicker, ScheduleTimePicker } = useComponents();
   const [postQuote] = sh.usePostQuoteMutation();
 
   const { 
@@ -48,6 +47,8 @@ export function RequestQuote(props: IProps): JSX.Element {
   const SelectTimeAccordion = useAccordion('Select Time');
   const GroupScheduleServiceAccordion = useAccordion((groupScheduleService?.name || '') + ' Questionnaire');
   const GroupScheduleServiceTierAccordion = useAccordion((groupScheduleServiceTier?.name || '') + ' Questionnaire');
+
+  const { files, comp: FileManager } = useFiles();
 
   if (!groupSchedule || !groupScheduleService) return <Alert severity="info">
     There are no active schedules or operations are currently halted.

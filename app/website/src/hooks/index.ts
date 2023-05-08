@@ -2,6 +2,7 @@ export * from './store';
 export * from './useDebounce';
 export * from './useComponents';
 export * from './useContexts';
+export * from './useFiles';
 export * from './useFileStore';
 export * from './useStyles';
 export * from './useSecure';

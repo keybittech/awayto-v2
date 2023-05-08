@@ -6,20 +6,21 @@ import CardContent from '@mui/material/CardContent';
 import { DataGrid } from '@mui/x-data-grid';
 
 import { sh, useGrid } from 'awayto/hooks';
+import { IFile } from 'awayto/core';
 
 declare global {
   interface IProps {
-    parentUuid?: string;
+    files?: IFile[];
+    setFiles?: (files: IFile[]) => void
   }
 }
 
-export function FileManager(): JSX.Element {
-
-  const { data: files } = sh.useGetFilesQuery();
+function FileManager({ files, setFiles }: Required<IProps>): JSX.Element {
   
+  const [postFileContents] = sh.usePostFileContentsMutation();
+
   const fileSelectRef = useRef<HTMLInputElement>(null);
 
-  const [toggle, setToggle] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
 
   const actions = useMemo(() => {
@@ -31,26 +32,54 @@ export function FileManager(): JSX.Element {
   const fileGridProps = useGrid({
     rows: files || [],
     columns: [
+      { flex: 1, headerName: 'Id', field: 'id' },
       { flex: 1, headerName: 'Name', field: 'name' },
     ],
     selected,
     onSelected: selection => setSelected(selection as string[]),
     toolbar: () => <>
-      <Button onClick={addFiles}>Add</Button>
+      <Button onClick={addFiles}>Add File</Button>
       {!!selected.length && <Box sx={{ flexGrow: 1, textAlign: 'right' }}>{actions}</Box>}
     </>
   })
 
+  const handleFileChange = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files.length > 0) {
+      const uploadPromises = Array.from(event.target.files).map(async (file) => {
+        const arrayBuffer = await file.arrayBuffer();
+        const response = await postFileContents(arrayBuffer).unwrap();
+  
+        if (response) {
+          return {
+            id: response.id,
+            fileTypeId: '', // Update this based on your implementation
+            fileTypeName: '', // Update this based on your implementation
+            name: file.name,
+            location: '', // Update this based on your implementation
+          };
+        }
+        return null;
+      });
+  
+      try {
+        const newFiles: IFile[] = (await Promise.all(uploadPromises)).filter(Boolean) as IFile[];
+        setFiles([ ...files, ...newFiles ]);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  }, [setFiles]);
+  
   function addFiles() {
     if (fileSelectRef.current) {
+      fileSelectRef.current.value = '';
       fileSelectRef.current.click();
     }
   }
 
   function deleteFiles() {
     if (selected.length) {
-      // void api(DELETE_FILE, true, selected);
-      setToggle(!toggle);
+      setFiles([ ...files.filter(f => !selected.includes(f.id)) ]);
     }
   }
 
@@ -70,7 +99,7 @@ export function FileManager(): JSX.Element {
   // }, [newFiles])
 
   return <>
-    {/* <input type="file" multiple id="new-file" onChange={e => e.target.files && setNewFiles(Array.from(e.target.files))} ref={fileSelectRef} style={{ display: 'none' }} /> */}
+    <input type="file" multiple id="new-file" onChange={e => { handleFileChange(e).catch(console.error) } } ref={fileSelectRef} style={{ display: 'none' }} />
 
     <Card>
       <CardContent>

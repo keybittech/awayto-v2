@@ -8,7 +8,10 @@ export function validateRequestBody<T extends AnyRecord | AnyRecordTypes>(queryA
       if (Buffer.byteLength(req.body) > 0) {
         next()
       } else {
-        res.status(400).json({ message: 'No stream content length.'  });
+        res.status(500).send({
+          reason: 'No file content length.'
+        });
+        return;
       }
     } else {
       const issue = hasRequiredArgs(queryArg as AnyRecord, Object.assign(req.body, extractParams(url, req.url.slice(5)), req.query));
