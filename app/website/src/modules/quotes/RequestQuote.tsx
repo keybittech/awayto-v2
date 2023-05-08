@@ -11,7 +11,7 @@ import CardContent from '@mui/material/CardContent';
 import CardActionArea from '@mui/material/CardActionArea';
 
 import { useComponents, useContexts, sh, useUtil, useGroupForm, useAccordion, useFiles } from 'awayto/hooks';
-import { IFormVersionSubmission, IQuote } from 'awayto/core';
+import { IFormVersionSubmission } from 'awayto/core';
 
 export function RequestQuote(props: IProps): JSX.Element {
 
