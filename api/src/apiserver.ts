@@ -28,13 +28,9 @@ import { v4 as uuid } from 'uuid';
 import passport from 'passport';
 import { IdTokenClaims, Strategy, StrategyVerifyCallbackUserInfo } from 'openid-client';
 
-import { DecodedJWTToken, UserGroupRoles, StrategyUser, ApiErrorResponse, IGroup, AuthBody, siteApiRef, AuthProps, siteApiHandlerRef, ApiProps, EndpointType } from 'awayto/core';
+import { DecodedJWTToken, UserGroupRoles, StrategyUser, ApiErrorResponse, IGroup, AuthBody, siteApiRef, AuthProps, ApiProps, EndpointType, ApiHandlers, AnyRecord, AnyRecordTypes } from 'awayto/core';
 
 import { useAi } from '@keybittech/wizapp/dist/server';
-
-import { checkAuthenticated, validateRequestBody } from './middlewares';
-
-import WebHooks from './webhooks/index';
 
 import keycloak, { getGroupRegistrationRedirectParts } from './modules/keycloak';
 import { db, connected as dbConnected } from './modules/db';
@@ -43,6 +39,10 @@ import { connectToTwitch, TWITCH_REDIRECT_URI } from './modules/twitch';
 import { saveFile, getFile } from './modules/fs';
 import logger from './modules/logger';
 import './modules/prompts';
+
+import { checkAuthenticated, validateRequestBody } from './middlewares';
+import { siteApiHandlerRef } from './handlers';
+import WebHooks from './webhooks/index';
 
 const {
   SOCK_HOST,
@@ -278,7 +278,6 @@ async function go() {
 
       requestHandlers.push(validateRequestBody(queryArg, url));
 
-
       // Here we make use of the extra /api from the reverse proxy
       app[method.toLowerCase() as keyof Express](`/api/${url.split('?')[0]}`, requestHandlers, async (req: Request & { headers: { authorization: string } }, res: Response) => {
 
@@ -346,24 +345,25 @@ async function go() {
               }
             } as ApiProps<typeof queryArg>;
 
-            const handler = siteApiHandlerRef[apiRefId as keyof typeof siteApiHandlerRef] as (params: ApiProps<typeof queryArg>) => Promise<typeof resultType>;
+            const handler = siteApiHandlerRef[apiRefId];
 
-            const txHandler = async (props: ApiProps<typeof queryArg>): Promise<typeof resultType> => {
+            const txHandler = async <T, Q extends AnyRecord | AnyRecordTypes>(props: ApiProps<Q>): Promise<T> => {
               const eventLength = JSON.stringify(requestParams.event).length;
               console.log('handling', method, url, user.sub, requestId, eventLength);
               if (EndpointType.MUTATION === kind) {
                 return await db.tx(async trx => {
                   requestParams.tx = trx;
                   logger.log('Handling api mutation with size ' + eventLength, requestParams.event);
-                  return await handler(props);
-                })
+                  return await (handler as (props: ApiProps<Q>) => Promise<T>)(props);
+                });
               }
 
               logger.log('Handling api query with size ' + eventLength, requestParams.event);
-              return await handler(props);
+              return await (handler as (props: ApiProps<Q>) => Promise<T>)(props);
             }
 
-            response = await txHandler(requestParams);
+            response = await txHandler<typeof resultType, typeof queryArg>(requestParams);
+
 
             /**
             * Cache settings:

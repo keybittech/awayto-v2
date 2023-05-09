@@ -1,5 +1,3 @@
-
-
 /**
  * @category Web Socket
  * @purpose the form of a socket response

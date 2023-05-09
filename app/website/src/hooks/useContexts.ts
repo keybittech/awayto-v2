@@ -1,4 +1,4 @@
-import { Context, createContext, useMemo, useState } from 'react';
+import { Context, createContext, useMemo } from 'react';
 
 import buildOutput from '../build.json';
 

@@ -6,10 +6,10 @@ import { fetchBaseQuery, SkipToken } from '@reduxjs/toolkit/dist/query';
 import { configureStore, AnyAction, createSlice, Middleware, Reducer, Store, ThunkDispatch } from '@reduxjs/toolkit';
 import { createApi, setupListeners } from '@reduxjs/toolkit/query/react';
 import { RootState as ApiRootState } from '@reduxjs/toolkit/dist/query/core/apiState';
-import { QueryArgFrom, ResultTypeFrom, EndpointDefinition, QueryDefinition, MutationDefinition, QueryLifecycleApi, EndpointDefinitions } from '@reduxjs/toolkit/dist/query/endpointDefinitions';
+import { QueryArgFrom, ResultTypeFrom, QueryDefinition, MutationDefinition, QueryLifecycleApi, EndpointDefinitions } from '@reduxjs/toolkit/dist/query/endpointDefinitions';
 import { MutationTrigger, LazyQueryTrigger, UseLazyQueryLastPromiseInfo, UseQuery, UseLazyQuery, UseMutation } from '@reduxjs/toolkit/dist/query/react/buildHooks';
 
-import { ConfirmActionProps, EndpointType, IUtil, RemoveNever, ReplaceVoid, siteApiRef, SiteApiRef, utilConfig } from 'awayto/core';
+import { ConfirmActionProps, EndpointType, IUtil, RemoveNever, ReplaceVoid, siteApiRef, utilConfig } from 'awayto/core';
 
 export const getQueryAuth = fetchBaseQuery({
   baseUrl: '/api',
@@ -172,10 +172,10 @@ let currentlyLoading = 0;
 export const sh = createApi({
   baseQuery: getQueryAuth,
   endpoints: builder => Object.keys(siteApiRef).reduce<EndpointDefinitions>((m, endpointName) => {
-    const endpointKey = endpointName as keyof SiteApiRef;
+    const endpointKey = endpointName as keyof typeof siteApiRef;
     type BuiltEndpoint = typeof siteApiRef[typeof endpointKey];
 
-    const ep = siteApiRef[endpointName as keyof SiteApiRef] as BuiltEndpoint;
+    const ep = siteApiRef[endpointName as keyof typeof siteApiRef] as BuiltEndpoint;
     const { method, queryArg, resultType, url, opts } = ep;
   
     const kind = ep.kind as EndpointType;
@@ -231,7 +231,7 @@ export const sh = createApi({
         builder.mutation<EPResultType, EPQueryArg>(builderPayload),
     };
   }, {} as EndpointDefinitions)
-}) as RemoveNever<EndpointInfo<SiteApiRef>> & ReturnType<typeof createApi>;
+}) as RemoveNever<EndpointInfo<typeof siteApiRef>> & ReturnType<typeof createApi>;
 
 console.log({ loadedup: Object.keys(sh) });
 

@@ -10,7 +10,7 @@ import CreateIcon from '@mui/icons-material/Create';
 
 import { DataGrid } from '@mui/x-data-grid';
 
-import { IGroupUser, IActionTypes, IGroupRole } from 'awayto/core';
+import { IGroupUser } from 'awayto/core';
 import { sh, useGrid } from 'awayto/hooks';
 
 import ManageUserModal from './ManageUserModal';

@@ -1,8 +1,8 @@
-import { useCallback } from "react";
+import { useCallback } from 'react';
 
-import { getContextFormattedDuration, getRelativeDuration, IScheduleBracketSlot, TimeUnit, timeUnitOrder } from "awayto/core";
-import dayjs from "dayjs";
-import { DurationUnitType } from "dayjs/plugin/duration";
+import { getContextFormattedDuration, getRelativeDuration, IScheduleBracketSlot, TimeUnit, timeUnitOrder } from 'awayto/core';
+import dayjs from 'dayjs';
+import { DurationUnitType } from 'dayjs/plugin/duration';
 
 type UseScheduleProps = {
   scheduleTimeUnitName: string;
@@ -33,7 +33,7 @@ type UseScheduleResult = {
 export function useSchedule(): (schedule: UseScheduleProps) => UseScheduleResult {
 
   const getScheduleData = useCallback(({ scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName, slotDuration, beginningOfMonth, bracketSlots = [] }: UseScheduleProps) => {
-    console.time("GENERATING_SCHEDULE");
+    console.time('GENERATING_SCHEDULE');
 
     let dayDiff = 0;
 
@@ -81,7 +81,7 @@ export function useSchedule(): (schedule: UseScheduleProps) => UseScheduleResult
         startDuration = startDuration.add(slotDuration, yAxisTypeName as DurationUnitType);
       }
     }
-    console.timeEnd("GENERATING_SCHEDULE");
+    console.timeEnd('GENERATING_SCHEDULE');
 
     return {
       xAxisTypeName,

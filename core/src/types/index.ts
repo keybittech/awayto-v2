@@ -1,76 +1,69 @@
-export type PaletteMode = 'light' | 'dark';
+import { ApiHandler } from './api';
+
+import assistApiRef from './assist';
+import bookingTranscriptApiRef from './booking_transcript';
+import bookingApiRef from './booking';
+import contactApiRef from './contact';
+import fileApiRef from './file';
+import formApiRef from './form';
+import groupFeedbackApiRef from './group_feedback';
+import groupFormApiRef from './group_form';
+import groupRoleApiRef from './group_role';
+import groupScheduleApiRef from './group_schedule';
+import groupServiceAddonApiRef from './group_service_addon';
+import groupServiceApiRef from './group_service';
+import groupUserScheduleApiRef from './group_user_schedule';
+import groupUserApiRef from './group_user';
+import groupApiRef from './group';
+import lookupApiRef from './lookup';
+import manageGroupApiRef from './manage_group';
+import manageRoleApiRef from './manage_role';
+import paymentApiRef from './payment';
+import profileApiRef from './profile';
+import quoteApiRef from './quote';
+import roleApiRef from './role';
+import scheduleApiRef from './schedule';
+import serviceAddonApiRef from './service_addon';
+import serviceTierApiRef from './service_tier';
+import serviceApiRef from './service';
+import uuidFilesApiRef from './uuid_files';
+import uuidNotesApiRef from './uuid_notes';
 
 /**
- * @category Build
- * @param {string} n A path name returned from glob.sync
- * @returns An object like `{ 'MyComponent': 'common/views/MyComponent' }`
+ * @category API
  */
-export declare function buildPathObject(path: string): string;
+export const siteApiRef = {
+  ...assistApiRef,
+  ...bookingTranscriptApiRef,
+  ...bookingApiRef,
+  ...contactApiRef,
+  ...fileApiRef,
+  ...formApiRef,
+  ...groupFeedbackApiRef,
+  ...groupFormApiRef,
+  ...groupRoleApiRef,
+  ...groupScheduleApiRef,
+  ...groupServiceAddonApiRef,
+  ...groupServiceApiRef,
+  ...groupUserScheduleApiRef,
+  ...groupUserApiRef,
+  ...groupApiRef,
+  ...lookupApiRef,
+  ...manageGroupApiRef,
+  ...manageRoleApiRef,
+  ...paymentApiRef,
+  ...profileApiRef,
+  ...quoteApiRef,
+  ...roleApiRef,
+  ...scheduleApiRef,
+  ...serviceAddonApiRef,
+  ...serviceTierApiRef,
+  ...serviceApiRef,
+  ...uuidFilesApiRef,
+  ...uuidNotesApiRef
+};
 
-/**
- * @category Build
- * @param {string} path A file path to a set of globbable files
- * @returns An object containing file names as keys and values as file paths.
- * @example
- * ```
- * {
- *   "views": {
- *     "Home": "common/views/Home",
- *     "Login": "common/views/Login",
- *     "Secure": "common/views/Secure",
- *   },
- *   "reducers": {
- *     "login": "common/reducers/login",
- *     "util": "common/reducers/util",
- *   }
- * }
- * ```
- */
-export declare function parseResource(path: string): Record<string, string>;
-
-/**
- * <p>This function runs on build and when webpack dev server receives a request.</p>
- * <p>Scan the file system for views and reducers and parse them into something we can use in the app.</p>
- * <p>Check against a hash of existing file structure to see if we need to update the build file. The build file is used later in the app to load the views and reducers.</p>
- * 
- * ```
- * // from config-overrides.js
- * 
- * function checkWriteBuildFile(next) {
- *   try {
- *     const files = JSON.stringify({
- *       views: parseResource('.' + REACT_APP_AWAYTO_WEBAPP_MODULES + '/**\/views/*.tsx'),
- *       reducers: parseResource('.' + REACT_APP_AWAYTO_WEBAPP_MODULES + '/**\/reducers/*.ts')
- *     });
- * 
- *     const newHash = crypto.createHash('sha1').update(Buffer.from(files)).digest('base64');
- * 
- *     if (oldHash != newHash) {
- *       oldHash = newHash;
- *       fs.writeFile(filePath, files, () => next && next())
- *     } else {
- *       next && next()
- *     }
- *   } catch (error) {
- *     console.log('error!', error)
- *   }
- * }
- * 
- * ```
- * @category Build
- * @param {app.next} next The next function from express app
- */
-export declare function checkWriteBuildFile(next: () => unknown): void;
-
-
-// temp
-declare global {
-  export interface IMergedState {}
-}
-export interface IActionTypes {}
-export const IActions: Record<string, IActionTypes> = {
-  test: 'what'
-}
+export type ApiHandlers = ApiHandler<typeof siteApiRef>;
 
 export * from './api';
 export * from './assist';

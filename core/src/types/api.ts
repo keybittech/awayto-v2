@@ -17,26 +17,6 @@ import fetch from 'node-fetch';
 /**
  * @category API
  */
-export interface SiteApiRef { }
-
-/**
- * @category API
- */
-export const siteApiRef = {} as SiteApiRef;
-
-/**
- * @category API
- */
-export interface SiteApiHandlerRef { }
-
-/**
- * @category API
- */
-export const siteApiHandlerRef = {} as SiteApiHandlerRef;
-
-/**
- * @category API
- */
 export enum EndpointType {
   QUERY = "query",
   MUTATION = "mutation"

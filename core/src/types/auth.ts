@@ -1,4 +1,4 @@
-import { UserGroupRoles } from "./profile";
+import { UserGroupRoles } from './profile';
 
 /**
  * @category Authorization
