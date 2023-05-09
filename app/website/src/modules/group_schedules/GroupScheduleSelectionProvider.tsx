@@ -10,7 +10,7 @@ export function GroupScheduleSelectionProvider({ children }: IProps): JSX.Elemen
 
   const { group } = useContext(GroupContext) as GroupContextType;
 
-  const { groupSchedule } = useContext(GroupScheduleContext) as GroupScheduleContextType;
+  const { selectGroupSchedule: { item: groupSchedule } } = useContext(GroupScheduleContext) as GroupScheduleContextType;
   
   const [firstAvailable, setFirstAvailable] = useState({ time: dayjs().startOf('day') } as IGroupScheduleDateSlots);
   const [startOfMonth, setStartOfMonth] = useState(dayjs().startOf(TimeUnit.MONTH));
@@ -56,7 +56,7 @@ export function GroupScheduleSelectionProvider({ children }: IProps): JSX.Elemen
       return s.startDate === date && duration.hours() === startTimeDuration.hours() && duration.minutes() === startTimeDuration.minutes();
     }) || [];
     if (slot) {
-      setQuote({ slotDate: date, scheduleBracketSlotId: slot.scheduleBracketSlotId } as IQuote);
+      setQuote({ slotDate: date, scheduleBracketSlotId: slot.scheduleBracketSlotId, startTime: slot.startTime } as IQuote);
     }
   }, [selectedDate, selectedTime]);
 

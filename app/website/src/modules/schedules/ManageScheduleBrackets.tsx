@@ -18,7 +18,7 @@ import { useGrid, useUtil, sh, useContexts, useComponents } from 'awayto/hooks';
 
 // This is how group users interact with the schedule
 
-export function ManageScheduleBrackets(props: IProps): JSX.Element {
+export function ManageScheduleBrackets(): JSX.Element {
 
   const { ManageScheduleBracketsModal } = useComponents();
   const { setSnack, openConfirm } = useUtil();

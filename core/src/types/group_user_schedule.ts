@@ -72,22 +72,22 @@ const groupUserSchedulesApi = {
     method: 'GET',
     opts: { cache: 'skip' } as ApiOptions,
     queryArg: { groupName: '' as string },
-    resultType: { stubs: [] as IGroupUserScheduleStub[] }
+    resultType: [] as IGroupUserScheduleStub[]
   },
   getGroupUserScheduleStubReplacement: {
     kind: EndpointType.QUERY,
-    url: 'group/:groupName/user_schedules/stub_replacement/:userScheduleId',
+    url: 'group/:groupName/user_schedules/stub_replacement/:userScheduleId/sd/:slotDate/st/:startTime/tn/:tierName',
     method: 'GET',
     opts: {} as ApiOptions,
     queryArg: { groupName: '' as string, userScheduleId: '' as string, slotDate: '' as string, startTime: '' as string, tierName: '' as string },
-    resultType: { stubs: [] as IGroupUserScheduleStub[] }
+    resultType: [] as IGroupUserScheduleStub[]
   },
   putGroupUserScheduleStubReplacement: {
     kind: EndpointType.MUTATION,
     url: 'group/:groupName/user_schedules/stub_replacement',
     method: 'PUT',
     opts: {} as ApiOptions,
-    queryArg: {} as IGroupUserSchedule & IGroupUserScheduleStubReplacement,
+    queryArg: { groupName: '' as string, quoteId: '' as string, scheduleBracketSlotId: '' as string, serviceTierId: '' as string, slotDate: '' as string, startTime: '' as string, userScheduleId: '' as string },
     resultType: { success: true as boolean }
   },
   deleteGroupUserScheduleByUserScheduleId: {
@@ -141,17 +141,16 @@ const groupUserSchedulesApiHandlers: ApiHandler<typeof groupUserSchedulesApi> = 
       WHERE eu.username = $1
     `, ['system_group_' + groupName]);
 
-    return { stubs: groupUserScheduleStubs };
+    return groupUserScheduleStubs;
   },
   getGroupUserScheduleStubReplacement: async (props) => {
-    const { userScheduleId } = props.event.pathParameters;
-    const { slotDate, startTime, tierName } = props.event.queryParameters;
+    const { userScheduleId, slotDate, startTime, tierName } = props.event.pathParameters;
 
     const stubs = await props.db.manyOrNone<IGroupUserScheduleStub>(`
       SELECT replacement FROM dbfunc_schema.get_peer_schedule_replacement($1::UUID[], $2::DATE, $3::INTERVAL, $4::TEXT)
     `, [[userScheduleId], slotDate, startTime, tierName]);
 
-    return { stubs };
+    return stubs;
   },
   putGroupUserScheduleStubReplacement: async (props) => {
     const { quoteId, slotDate,  scheduleBracketSlotId, serviceTierId } = props.event.body;

@@ -37,20 +37,38 @@ export function RequestQuote(props: IProps): JSX.Element {
   } = useContext(GroupContext) as GroupContextType;
 
   const {
-    groupSchedule,
-    groupScheduleService,
-    groupScheduleServiceTier,
-    GroupScheduleSelect,
-    GroupScheduleServiceSelect,
-    GroupScheduleServiceTierSelect
+    selectGroupSchedule: {
+      item: groupSchedule,
+      comp: GroupScheduleSelect
+    },
+    selectGroupScheduleService: {
+      item: groupScheduleService,
+      comp: GroupScheduleServiceSelect
+    },
+    selectGroupScheduleServiceTier: {
+      item: groupScheduleServiceTier,
+      comp: GroupScheduleServiceTierSelect
+    }
   } = useContext(GroupScheduleContext) as GroupScheduleContextType;
 
   const { quote } = useContext(GroupScheduleSelectionContext) as GroupScheduleSelectionContextType;
 
-  const { form: serviceForm, comp: ServiceForm, valid: serviceFormValid } = useGroupForm(groupScheduleService?.formId);
-  const { form: tierForm, comp: TierForm, valid: tierFormValid } = useGroupForm(groupScheduleServiceTier?.formId);
+  const {
+    form: serviceForm,
+    comp: ServiceForm,
+    valid: serviceFormValid
+  } = useGroupForm(groupScheduleService?.formId);
+
+  const {
+    form: tierForm,
+    comp: TierForm,
+    valid: tierFormValid
+  } = useGroupForm(groupScheduleServiceTier?.formId);
   
-  const { files, comp: FileManager } = useFiles();
+  const {
+    files,
+    comp: FileManager
+  } = useFiles();
 
   const ServiceTierAddonsAccordion = useAccordion('Features', false, expanded === 'service_features', handleChange('service_features'));
   const SelectTimeAccordion = useAccordion('Select Time', false, expanded === 'select_time', handleChange('select_time'));

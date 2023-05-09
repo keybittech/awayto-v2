@@ -1,5 +1,4 @@
-import React, { useEffect, useState, useMemo, Suspense } from 'react';
-import { useParams } from 'react-router';
+import React, { useState, useMemo, Suspense, useContext } from 'react';
 
 import IconButton from '@mui/material/IconButton';
 import Dialog from '@mui/material/Dialog';
@@ -12,18 +11,18 @@ import CreateIcon from '@mui/icons-material/Create';
 import { DataGrid } from '@mui/x-data-grid';
 
 import { IGroupUserScheduleStub, shortNSweet } from 'awayto/core';
-import { useGrid, sh } from 'awayto/hooks';
+import { useGrid, useComponents, useContexts } from 'awayto/hooks';
 
-import ManageScheduleStubModal from './ManageScheduleStubModal';
+export function ManageScheduleStubs(): JSX.Element {
+  
+  const { ManageScheduleStubModal } = useComponents();
 
-export function ManageSchedules(props: IProps): JSX.Element {
-
-  const { groupName } = useParams();
-  if (!groupName) return <></>;
-
-  const { data: schedules, refetch: getGroupUserScheduleStubs } = sh.useGetGroupUserScheduleStubsQuery({ groupName })
-
-  const { stubs } = schedules || {};
+  const {
+    getGroupUserScheduleStubs: {
+      data: groupUserScheduleStubs,
+      refetch: getGroupUserScheduleStubs
+    }
+  } = useContext(useContexts().GroupScheduleContext) as GroupScheduleContextType;
 
   const [stub, setStub] = useState<IGroupUserScheduleStub>();
   const [selected, setSelected] = useState<string[]>([]);
@@ -32,29 +31,27 @@ export function ManageSchedules(props: IProps): JSX.Element {
   const actions = useMemo(() => {
     const { length } = selected;
     return length == 1 ? [
-      <Tooltip key={'view_schedule_details'} title="View Details">
-        <IconButton key={'manage_schedule'} onClick={() => {
-          if (stubs?.length) {
-            setStub(stubs?.find(s => s.userScheduleId === selected[0]));
-            setDialog('manage_schedule');
-            setSelected([]);
-          }
+      <Tooltip key={'review_schedule_issue'} title="Review Issue">
+        <IconButton key={'manage_schedule_stub'} onClick={() => {
+          setStub(groupUserScheduleStubs?.find(s => s.quoteId === selected[0]));
+          setDialog('manage_schedule_stub');
+          setSelected([]);
         }}>
           <CreateIcon />
         </IconButton>
       </Tooltip>
     ] : []
-  }, [selected, groupName]);
+  }, [selected]);
 
   const scheduleStubGridProps = useGrid({
-    rows: stubs || [],
+    rows: groupUserScheduleStubs || [],
     columns: [
       { flex: 1, headerName: 'Date', field: 'slotDate', renderCell: ({ row }) => shortNSweet(row.slotDate, row.startTime) },
       { flex: 1, headerName: 'Service', field: 'serviceName' },
       { flex: 1, headerName: 'Tier', field: 'tierName' },
       { flex: 1, headerName: 'Created', field: 'replacement', renderCell: ({ row }) => Object.keys(row.replacement || {}).length ? 'Yes' : 'No' }
     ],
-    rowId: 'userScheduleId',
+    rowId: 'quoteId',
     selected,
     onSelected: selection => setSelected(selection as string[]),
     toolbar: () => <>
@@ -64,12 +61,12 @@ export function ManageSchedules(props: IProps): JSX.Element {
   })
 
   return <>
-    <Dialog open={dialog === 'manage_schedule'} fullWidth maxWidth="sm">
+    <Dialog open={dialog === 'manage_schedule_stub'} fullWidth maxWidth="sm">
       <Suspense>
-        <ManageScheduleStubModal {...props} editGroupUserScheduleStub={stub} closeModal={() => {
+        {stub ? <ManageScheduleStubModal editGroupUserScheduleStub={stub} closeModal={() => {
           setDialog('');
-          void getGroupUserScheduleStubs();
-        }} />
+          getGroupUserScheduleStubs().catch(console.error);
+        }} /> : <></>}
       </Suspense>
     </Dialog>
 
@@ -77,4 +74,4 @@ export function ManageSchedules(props: IProps): JSX.Element {
   </>
 }
 
-export default ManageSchedules;
+export default ManageScheduleStubs;

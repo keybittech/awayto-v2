@@ -12,7 +12,7 @@ export function ScheduleTimePicker(): JSX.Element {
 
   const { GroupScheduleContext, GroupScheduleSelectionContext } = useContexts();
 
-  const { groupSchedule } = useContext(GroupScheduleContext) as GroupScheduleContextType;
+  const { selectGroupSchedule: { item: groupSchedule } } = useContext(GroupScheduleContext) as GroupScheduleContextType;
 
   const {
     selectedDate,

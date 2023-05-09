@@ -9,7 +9,7 @@ import { SiteQuery } from './store';
 
 type UseSelectOneProps<T> = { data?: T[] } & Partial<ReturnType<UseQuery<SiteQuery<{ readonly [prop: string]: string }, T[]>>>>;
 
-type UseSelectOneResponse<T> = {
+export type UseSelectOneResponse<T> = {
   item?: T;
   setId: (id: string) => void;
   comp: (props?: IProps) => React.JSX.Element;

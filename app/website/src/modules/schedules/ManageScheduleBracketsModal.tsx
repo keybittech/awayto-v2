@@ -44,8 +44,10 @@ export function ManageScheduleBracketsModal({ editSchedule, closeModal }: IProps
   } = useContext(GroupContext) as GroupContextType;
 
   const {
-    groupSchedule,
-    GroupScheduleSelect
+    selectGroupSchedule: {
+      item: groupSchedule,
+      comp: GroupScheduleSelect
+    }
   } = useContext(GroupScheduleContext) as GroupScheduleContextType;
 
   const [schedule, setSchedule] = useState<ISchedule | undefined>(editSchedule || groupSchedule);

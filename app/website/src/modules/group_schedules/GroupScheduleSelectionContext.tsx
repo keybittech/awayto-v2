@@ -21,6 +21,6 @@ declare global {
   }
 }
 
-export const GroupScheduleContext = createContext<GroupScheduleSelectionContextType | null>(null);
+export const GroupScheduleSelectionContext = createContext<GroupScheduleSelectionContextType | null>(null);
 
-export default GroupScheduleContext;
+export default GroupScheduleSelectionContext;

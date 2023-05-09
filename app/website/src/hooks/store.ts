@@ -156,14 +156,12 @@ type EndpointInfo<T> = {
 
 type EndpointQuery<T> = (args: T) => string | { url: string; method: string; body: T };
 
-type SiteEndpointDefinitions<T> = {
-  [K in keyof T]: T[K] extends { queryArg: infer QA, resultType: infer RT } ? EndpointDefinition<
-    QA,
-    SiteBaseEndpoint,
-    string, // or T[K]['tagTypes'] if it exists in the original definition
-    RT,
-    string // or T[K]['reducerPath'] if it exists in the original definition
-  > : never;
+export type SiteEndpointDefinitions = {
+  [K in keyof typeof siteApiRef]: typeof siteApiRef[K] extends { queryArg: infer QA, resultType: infer RT } ? 
+    typeof siteApiRef[K] extends { kind: EndpointType.MUTATION } ? 
+      MutationDefinition< QA, SiteBaseEndpoint, string, RT, string> : 
+      QueryDefinition<QA, SiteBaseEndpoint, string, RT, string> : 
+    never;
 };
 
 export const utilSlice = createSlice(utilConfig);
@@ -303,7 +301,7 @@ export const useAppDispatch: () => AppDispatch = useDispatch;
 /**
 * @category Awayto Redux
 */
-export interface RootState extends ReturnType<typeof store.getState>, ApiRootState<SiteEndpointDefinitions<typeof siteApiRef>, 'Root', 'api'> { }
+export interface RootState extends ReturnType<typeof store.getState>, ApiRootState<SiteEndpointDefinitions, 'Root', 'api'> { }
 
 /**
 * @category Awayto Redux

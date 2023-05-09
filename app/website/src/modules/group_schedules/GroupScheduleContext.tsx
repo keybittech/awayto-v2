@@ -1,20 +1,16 @@
 import { createContext } from 'react';
-import { IGroupSchedule, IGroupUserSchedule, IService, IServiceTier } from 'awayto/core';
-import { IDefaultedComponent } from 'awayto/hooks';
+import { IGroupSchedule, IService, IServiceTier } from 'awayto/core';
+import { SiteEndpointDefinitions, UseSelectOneResponse } from 'awayto/hooks';
+import { UseQueryHookResult } from '@reduxjs/toolkit/dist/query/react/buildHooks';
 
 declare global {
   type GroupScheduleContextType = {
-    groupSchedules: IGroupSchedule[];
-    groupUserSchedules: IGroupUserSchedule[];
-    groupSchedule?: IGroupSchedule;
-    setGroupScheduleId: (id: string) => void;
-    groupScheduleService?: IService;
-    setGroupScheduleServiceId: (id: string) => void;
-    groupScheduleServiceTier?: IServiceTier;
-    setGroupScheduleServiceTierId: (id: string) => void;
-    GroupScheduleSelect: IDefaultedComponent;
-    GroupScheduleServiceSelect: IDefaultedComponent;
-    GroupScheduleServiceTierSelect: IDefaultedComponent;
+    getGroupSchedules: UseQueryHookResult<SiteEndpointDefinitions['getGroupSchedules']>;
+    getGroupUserScheduleStubs: UseQueryHookResult<SiteEndpointDefinitions['getGroupUserScheduleStubs']>;
+    getGroupUserSchedules: UseQueryHookResult<SiteEndpointDefinitions['getGroupUserSchedules']>;
+    selectGroupSchedule: UseSelectOneResponse<IGroupSchedule>;
+    selectGroupScheduleService: UseSelectOneResponse<IService>;
+    selectGroupScheduleServiceTier: UseSelectOneResponse<IServiceTier>;
   }
 }
 
