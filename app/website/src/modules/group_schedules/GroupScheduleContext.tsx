@@ -7,8 +7,11 @@ declare global {
     groupSchedules: IGroupSchedule[];
     groupUserSchedules: IGroupUserSchedule[];
     groupSchedule?: IGroupSchedule;
+    setGroupScheduleId: (id: string) => void;
     groupScheduleService?: IService;
+    setGroupScheduleServiceId: (id: string) => void;
     groupScheduleServiceTier?: IServiceTier;
+    setGroupScheduleServiceTierId: (id: string) => void;
     GroupScheduleSelect: IDefaultedComponent;
     GroupScheduleServiceSelect: IDefaultedComponent;
     GroupScheduleServiceTierSelect: IDefaultedComponent;

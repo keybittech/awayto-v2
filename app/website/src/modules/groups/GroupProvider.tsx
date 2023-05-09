@@ -9,7 +9,7 @@ export function GroupProvider({ children }: IProps): JSX.Element {
 
   const groups = useMemo(() => profile ? Object.values(profile.groups || {}) : [], [profile]);
 
-  const [group, GroupSelect] = useSelectOne('Groups', { data: groups });
+  const { item: group, comp: GroupSelect } = useSelectOne('Groups', { data: groups });
   const groupName = group?.name || '';
   const skip = { skip: !groupName };
 

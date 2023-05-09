@@ -1,9 +1,17 @@
-import { useState } from 'react';
+import { useMemo } from 'react';
 import { sh } from './store';
 
-export function useTimeName(id?: string) {
-  const [tn, setTn] = useState('');
-  const { data: lookups, isSuccess } = sh.useGetLookupsQuery();
-  if (isSuccess && !tn) setTn(lookups.timeUnits.find(tu => tu.id == id)?.name || '')
-  return tn;
+export function useTimeName(id?: string): string {
+  const { data: lookups } = sh.useGetLookupsQuery();
+  const timeName = useMemo(() => {
+    if (lookups) {
+      const tu = lookups.timeUnits.find(tu => tu.id == id);
+      if (tu) {
+        return tu.name;
+      }
+    }
+    return '';
+  } , [id, lookups])
+  
+  return timeName;
 }

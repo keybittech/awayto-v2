@@ -1,4 +1,4 @@
-import React, { useState, useMemo, Suspense } from 'react';
+import React, { useState, useMemo, Suspense, useContext } from 'react';
 import dayjs from 'dayjs';
 
 import IconButton from '@mui/material/IconButton';
@@ -7,50 +7,43 @@ import Dialog from '@mui/material/Dialog';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import TextField from '@mui/material/TextField';
-import MenuItem from '@mui/material/MenuItem';
 
 import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import { DataGrid } from '@mui/x-data-grid';
 
-import { ISchedule, IGroup, plural } from 'awayto/core';
-import { useGrid, useUtil, sh } from 'awayto/hooks';
-
-import ManageScheduleBracketsModal from './ManageScheduleBracketsModal';
+import { plural } from 'awayto/core';
+import { useGrid, useUtil, sh, useContexts, useComponents } from 'awayto/hooks';
 
 // This is how group users interact with the schedule
 
 export function ManageScheduleBrackets(props: IProps): JSX.Element {
 
+  const { ManageScheduleBracketsModal } = useComponents();
   const { setSnack, openConfirm } = useUtil();
+
+  const {
+    group,
+    GroupSelect,
+    groupSchedules,
+  } = useContext(useContexts().GroupContext) as GroupContextType;
 
   const [deleteGroupUserScheduleByUserScheduleId] = sh.useDeleteGroupUserScheduleByUserScheduleIdMutation();
   const [deleteSchedule] = sh.useDeleteScheduleMutation()
 
-  const [schedule, setSchedule] = useState<ISchedule>();
+  const [scheduleId, setScheduleId] = useState('');
   const [selected, setSelected] = useState<string[]>([]);
   const [dialog, setDialog] = useState('');
-  const [group, setGroup] = useState({ id: '' } as IGroup);
-
-  const { data: profile, isSuccess: profileLoaded } = sh.useGetUserProfileDetailsQuery();
-  if (!profileLoaded) return <></>;
-
-  const groupsValues = useMemo(() => Object.values(profile?.groups || {}), [profile]);
 
   const { data: schedules, refetch: getSchedules } = sh.useGetSchedulesQuery();
-  const { data: groupSchedules } = sh.useGetGroupSchedulesQuery({ groupName: groupsValues[0].name }, { skip: !groupsValues.length });
-
-  if (groupsValues.length && !group.id) {
-    setGroup(groupsValues[0]);
-  }
+  const { data: scheduleDetails, refetch: getScheduleById } = sh.useGetScheduleByIdQuery({ id: scheduleId }, { skip: !scheduleId });
 
   const actions = useMemo(() => {
     const { length } = selected;
     const acts = length == 1 ? [
       <IconButton key={'manage_schedule'} onClick={() => {
-        setSchedule(schedules?.find(s => s.id === selected[0]));
+        setScheduleId(selected[0]);
         setDialog('manage_schedule');
         setSelected([]);
       }}>
@@ -89,28 +82,15 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
     selected,
     onSelected: selection => setSelected(selection as string[]),
     toolbar: () => <>
-      <TextField
-        select
-        value={group.id}
-        label="Group"
-        variant="standard"
-        onChange={e => {
-          if (profile?.groups) {
-            const gr = profile?.groups[e.target.value];
-            if (gr) setGroup(gr);
-          }
-        }}
-      >
-        {groupsValues.map(group => <MenuItem key={`group-select${group.id}`} value={group.id}>{group.name}</MenuItem>)}
-      </TextField>
+      <GroupSelect />
       <Box pt={2} sx={{ width: '100%' }}>
         <Typography variant="button">Schedules:</Typography>
         <Button key={'create_schedule_button'} onClick={() => {
           if (groupSchedules?.length) {
-            setSchedule(undefined);
+            setScheduleId('');
             setDialog('manage_schedule');
           } else {
-            setSnack({ snackType: 'warning', snackOn: 'There are no active group schedules.' })
+            setSnack({ snackType: 'warning', snackOn: 'There are no available master schedules.' })
           }
         }}>Create</Button>
         {!!selected.length && <Box sx={{ flexGrow: 1, textAlign: 'right' }}>{actions}</Box>}
@@ -119,11 +99,14 @@ export function ManageScheduleBrackets(props: IProps): JSX.Element {
   })
 
   return <>
-    <Dialog fullScreen open={dialog === 'manage_schedule'} fullWidth maxWidth="sm">
+    <Dialog fullScreen open={dialog === 'manage_schedule' && (!scheduleId || scheduleDetails?.id === scheduleId)} fullWidth maxWidth="sm">
       <Suspense>
-        <ManageScheduleBracketsModal {...props} group={group} editSchedule={schedule} closeModal={(added: boolean) => {
+        <ManageScheduleBracketsModal editSchedule={scheduleId ? scheduleDetails : undefined} closeModal={(added: boolean) => {
           setDialog('');
-          added && getSchedules().catch(console.error);
+          if (added) {
+            getScheduleById().catch(console.error);
+            getSchedules().catch(console.error);
+          }
         }} />
       </Suspense>
     </Dialog>

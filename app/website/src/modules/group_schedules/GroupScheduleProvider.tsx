@@ -11,20 +11,23 @@ export function GroupScheduleProvider({ children }: IProps): JSX.Element {
 
   const { data: groupSchedules } = sh.useGetGroupSchedulesQuery({ groupName: group?.name || '' }, { skip: !group })
 
-  const [groupSchedule, GroupScheduleSelect] = useSelectOne('Schedule', { data: groupSchedules });
+  const { item: groupSchedule, comp: GroupScheduleSelect, setId: setGroupScheduleId } = useSelectOne('Schedule', { data: groupSchedules });
 
   const { data: groupUserSchedules } = sh.useGetGroupUserSchedulesQuery({ groupName: group?.name || '', groupScheduleId: groupSchedule?.id || '' }, { skip: !group || !groupSchedule });
 
-  const [groupScheduleService, GroupScheduleServiceSelect] = useSelectOne('Service', { data: groupUserSchedules?.flatMap(gus => Object.values(gus.brackets).flatMap(b => Object.values(b.services))) });
+  const { item: groupScheduleService, comp: GroupScheduleServiceSelect, setId: setGroupScheduleServiceId } = useSelectOne('Service', { data: groupUserSchedules?.flatMap(gus => Object.values(gus.brackets).flatMap(b => Object.values(b.services))) });
 
-  const [groupScheduleServiceTier, GroupScheduleServiceTierSelect] = useSelectOne('Tier', { data: Object.values(groupScheduleService?.tiers || {}).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime()) });
+  const { item :groupScheduleServiceTier, comp: GroupScheduleServiceTierSelect, setId: setGroupScheduleServiceTierId } = useSelectOne('Tier', { data: Object.values(groupScheduleService?.tiers || {}).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime()) });
 
   const groupScheduleContext = {
     groupSchedules,
     groupSchedule,
+    setGroupScheduleId,
     groupUserSchedules,
     groupScheduleService,
+    setGroupScheduleServiceId,
     groupScheduleServiceTier,
+    setGroupScheduleServiceTierId,
     GroupScheduleSelect,
     GroupScheduleServiceSelect,
     GroupScheduleServiceTierSelect

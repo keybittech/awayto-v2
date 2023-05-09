@@ -23,7 +23,7 @@ export type IBaseComponent = FunctionComponent<IProps> & ComponentType<any> & Re
 /**
  * @category Awayto React
  */
-export type IDefaultedComponent = LazyExoticComponent<IBaseComponent> | (() => JSX.Element);
+export type IDefaultedComponent = LazyExoticComponent<IBaseComponent> | ((props?: IProps) => JSX.Element);
 
 /**
  * @category Awayto React

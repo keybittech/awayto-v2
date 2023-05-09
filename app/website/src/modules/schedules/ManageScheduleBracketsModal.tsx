@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef, useCallback, Suspense } from 'react';
+import React, { useMemo, useState, useRef, useCallback, Suspense, useContext } from 'react';
 
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
@@ -14,10 +14,9 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 
-import { deepClone, getRelativeDuration, IGroup, ISchedule, IScheduleBracket, timeUnitOrder } from 'awayto/core';
-import { useComponents, sh, useUtil } from 'awayto/hooks';
+import { getRelativeDuration, ISchedule, IScheduleBracket, timeUnitOrder } from 'awayto/core';
+import { useComponents, sh, useUtil, useContexts } from 'awayto/hooks';
 
-import { scheduleSchema } from './ScheduleHome';
 import { useTimeName } from 'awayto/hooks';
 
 const bracketSchema = {
@@ -28,34 +27,35 @@ const bracketSchema = {
 
 declare global {
   interface IProps {
-    group?: IGroup;
     editSchedule?: ISchedule;
   }
 }
 
-export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, ...props }: IProps): JSX.Element {
-
-  if (!group?.name) return <></>;
+export function ManageScheduleBracketsModal({ editSchedule, closeModal }: IProps): JSX.Element {
 
   const { setSnack } = useUtil();
 
-  const { data: groupServices, isSuccess: groupServicesLoaded } = sh.useGetGroupServicesQuery({ groupName: group.name });
-  const { data: groupSchedules, isSuccess: groupSchedulesLoaded } = sh.useGetGroupSchedulesQuery({ groupName: group.name });
+  const { GroupContext, GroupScheduleContext } = useContexts();
 
-  const [schedule, setSchedule] = useState({ ...(groupSchedules?.length ? groupSchedules[0] : scheduleSchema), brackets: {} } as ISchedule);
+  const {
+    group,
+    groupServices,
+    groupSchedules
+  } = useContext(GroupContext) as GroupContextType;
 
-  const { data: scheduleDetails, refetch: getScheduleById } = sh.useGetScheduleByIdQuery({ id: editSchedule?.id || '' }, { skip: !editSchedule });
+  const {
+    groupSchedule,
+    GroupScheduleSelect
+  } = useContext(GroupScheduleContext) as GroupScheduleContextType;
 
-  if (scheduleDetails && !Object.keys(schedule.brackets).length) {
-    setSchedule(deepClone(scheduleDetails));
-  }
+  const [schedule, setSchedule] = useState<ISchedule | undefined>(editSchedule || groupSchedule);
 
-  const scheduleTimeUnitName = useTimeName(schedule.scheduleTimeUnitId);
-  const bracketTimeUnitName = useTimeName(schedule.bracketTimeUnitId);
+  const scheduleTimeUnitName = useTimeName(schedule?.scheduleTimeUnitId);
+  const bracketTimeUnitName = useTimeName(schedule?.bracketTimeUnitId);
 
   const firstLoad = useRef(true);
   const [viewStep, setViewStep] = useState(1);
-  if (Object.keys(schedule.brackets).length && viewStep === 1 && firstLoad.current) {
+  if (Object.keys(schedule?.brackets || {}).length && viewStep === 1 && firstLoad.current) {
     setViewStep(2);
   }
 
@@ -70,7 +70,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
   const scheduleParent = useRef<HTMLDivElement>(null);
   const [bracket, setBracket] = useState({ ...bracketSchema, services: {}, slots: {} } as IScheduleBracket);
 
-  const scheduleBracketsValues = useMemo(() => Object.values(schedule.brackets || {}), [schedule.brackets]);
+  const scheduleBracketsValues = useMemo(() => Object.values(schedule?.brackets || {}), [schedule?.brackets]);
   const bracketServicesValues = useMemo(() => Object.values(bracket.services || {}), [bracket.services]);
 
   const remainingBracketTime = useMemo(() => {
@@ -119,12 +119,13 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
             userScheduleId: userSchedule.id,
             groupScheduleId: schedule.id
           }).catch(console.error);
-        } else {
-          await getScheduleById().catch(console.error);
         }
 
         setSnack({ snackOn: 'Successfully added your schedule to group schedule: ' + schedule.name, snackType: 'info' });
-        if (closeModal) closeModal(!editSchedule);
+        if (closeModal) {
+          firstLoad.current = true;
+          closeModal(!editSchedule);
+        }
       } else {
         setSnack({ snackOn: 'A schedule should have a name, a duration, and at least 1 bracket.', snackType: 'info' });
       }
@@ -139,24 +140,9 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
       {1 === viewStep ? <>
         <Box mt={2} />
 
-        {groupSchedulesLoaded && <Box mb={4}>
-          <TextField
-            select
-            fullWidth
-            disabled={!!editSchedule?.id}
-            label="Group Schedules"
-            helperText="Select a group schedule to add to."
-            value={schedule.id}
-            onChange={e => {
-              if (!editSchedule) {
-                const sched = deepClone(groupSchedules?.find(gs => gs.id === e.target.value));
-                if (sched) {
-                  setSchedule({ ...sched, brackets: {} });
-                }
-              }
-            }}
-          >
-            {groupSchedules?.map(s => {
+        <Box mb={4}>
+          <GroupScheduleSelect>
+            {groupSchedules.map(s => {
               return <MenuItem
                 key={`schedule-select${s.id}`}
                 value={s.id}
@@ -166,8 +152,8 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
                 <Typography variant="caption" fontSize={10}>Timezone: {s.timezone}</Typography>
               </MenuItem>
             })}
-          </TextField>
-        </Box>}
+          </GroupScheduleSelect>
+        </Box>
 
         <Box mb={4}>
           <Typography variant="body1"></Typography>
@@ -196,7 +182,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
           <Switch color="primary" value={bracket.automatic} onChange={e => setBracket({ ...bracket, automatic: e.target.checked })} />
         </Box>
 
-        {groupServicesLoaded && <Box mb={4}>
+        {groupServices && <Box mb={4}>
           <TextField
             select
             fullWidth
@@ -211,7 +197,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
               }
             }}
           >
-            {groupServices?.filter(s => !Object.keys(bracket.services).includes(s.id)).map(service => <MenuItem key={`service-select${service.id}`} value={service.id}>{service.name}</MenuItem>)}
+            {groupServices.filter(s => !Object.keys(bracket.services).includes(s.id)).map(service => <MenuItem key={`service-select${service.id}`} value={service.id}>{service.name}</MenuItem>)}
           </TextField>
 
           <Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
@@ -225,13 +211,18 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
         </Box>}
       </> : <>
         <Suspense fallback={<CircularProgress />}>
-          <ScheduleDisplay {...props} parentRef={scheduleParent} schedule={schedule} setSchedule={setSchedule} />
+          <ScheduleDisplay parentRef={scheduleParent} schedule={schedule} setSchedule={setSchedule} />
         </Suspense>
       </>}
     </DialogContent>
     <DialogActions>
       <Grid container justifyContent="space-between">
-        <Button onClick={() => closeModal && closeModal(false)}>Cancel</Button>
+        <Button onClick={() => {
+          if (closeModal) {
+            firstLoad.current = true;
+            closeModal(false)
+          }
+        }}>Cancel</Button>
         {1 === viewStep ? <Grid item>
           {!!scheduleBracketsValues.length && <Button
             onClick={() => {
@@ -244,7 +235,7 @@ export function ManageScheduleBracketsModal({ group, editSchedule, closeModal, .
           <Button
             disabled={!bracket.duration || !bracketServicesValues.length}
             onClick={() => {
-              if (bracket.duration && Object.keys(bracket.services).length) {
+              if (schedule && bracket.duration && Object.keys(bracket.services).length) {
                 bracket.id = (new Date()).getTime().toString();
                 bracket.scheduleId = schedule.id;
                 schedule.brackets[bracket.id] = bracket;
