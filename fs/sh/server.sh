@@ -43,9 +43,9 @@ elif [ "$method" = "PUT" ]; then
   echo $request >> last_put
 
   file_id=$(echo $uri | awk -F / '{print $3}')
-  echo $file_id $expires_at >> last_put
+  echo "'$file_id', '$file_name', '$file_ext', '$content_type', '$expires_at'" >> last_put # LOGGING
 
-  sqlite3 "$SQLITE_DATA" "UPDATE files SET expires_at = '$expires_at' WHERE id = '$file_id';"
+  sqlite3 "$SQLITE_DATA" "UPDATE files SET name = '$file_name', ext = '$file_ext', mime_type = '$content_type', expires_at = '$expires_at' WHERE id = '$file_id';"
   echo -e "HTTP/1.1 200 OK"
 elif [ "$method" = "POST" ]; then
   rm -f last_post # LOGGING
@@ -55,9 +55,9 @@ elif [ "$method" = "POST" ]; then
 
   insert_id=$(uuidgen)
   
-  echo "'$insert_id', '$file_name', '$file_ext', '$content_type', '$file_contents', '$expires_at'" >> last_post # LOGGING
+  echo "'$insert_id', '$file_contents'" >> last_post # LOGGING
 
-  sqlite3 "$SQLITE_DATA" "INSERT INTO files (id, name, ext, mime_type, content, expires_at) VALUES ('$insert_id', '$file_name', '$file_ext', '$content_type', '$file_contents', '$expires_at');"
+  sqlite3 "$SQLITE_DATA" "INSERT INTO files (id, content) VALUES ('$insert_id', '$file_contents');"
 
   echo "Saved successfully." >> last_post # LOGGING
 

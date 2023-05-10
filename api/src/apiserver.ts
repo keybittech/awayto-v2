@@ -36,7 +36,7 @@ import keycloak, { getGroupRegistrationRedirectParts } from './modules/keycloak'
 import { db, connected as dbConnected } from './modules/db';
 import redis, { DEFAULT_THROTTLE, rateLimitResource, redisProxy } from './modules/redis';
 import { connectToTwitch, TWITCH_REDIRECT_URI } from './modules/twitch';
-import { saveFile, getFile } from './modules/fs';
+import { saveFile, putFile, getFile } from './modules/fs';
 import logger from './modules/logger';
 import './modules/prompts';
 
@@ -244,7 +244,7 @@ async function go() {
             logger,
             fetch,
             redisProxy,
-            fs: { saveFile, getFile },
+            fs: { saveFile, putFile, getFile },
             ai: { useAi },
             keycloak: keycloak as unknown
           } as AuthProps);
@@ -273,7 +273,7 @@ async function go() {
       ];
 
       if ('application/octet-stream' === contentType) {
-        requestHandlers.push(express.raw({ type: contentType }));
+        requestHandlers.push(express.raw({ type: contentType, limit: '4mb' }));
       }
 
       requestHandlers.push(validateRequestBody(queryArg, url));
@@ -326,7 +326,7 @@ async function go() {
               keycloak: keycloak as unknown,
               redisProxy,
               fetch,
-              fs: { saveFile, getFile },
+              fs: { saveFile, putFile, getFile },
               ai: { useAi },
               logger,
               event: {
@@ -349,21 +349,25 @@ async function go() {
 
             const txHandler = async <T, Q extends AnyRecord | AnyRecordTypes>(props: ApiProps<Q>): Promise<T> => {
               const eventLength = JSON.stringify(requestParams.event).length;
-              console.log('handling', method, url, user.sub, requestId, eventLength);
+              const handlerType = EndpointType.MUTATION === kind ? 'mutation': 'query';
+              const { body, ...logged } = requestParams.event;
+              logger.log(`Handling api ${handlerType} with size ` + eventLength, {
+                ...logged,
+                body: 'application/octet-stream' === contentType ? undefined : body
+              });
+              console.log('handling', handlerType, method, url, user.sub, requestId, eventLength);
+
               if (EndpointType.MUTATION === kind) {
                 return await db.tx(async trx => {
                   requestParams.tx = trx;
-                  logger.log('Handling api mutation with size ' + eventLength, requestParams.event);
                   return await (handler as (props: ApiProps<Q>) => Promise<T>)(props);
                 });
               }
 
-              logger.log('Handling api query with size ' + eventLength, requestParams.event);
               return await (handler as (props: ApiProps<Q>) => Promise<T>)(props);
             }
 
             response = await txHandler<typeof resultType, typeof queryArg>(requestParams);
-
 
             /**
             * Cache settings:

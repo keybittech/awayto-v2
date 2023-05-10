@@ -3,8 +3,15 @@ import { ApiHandlers, IFile, buildUpdate, utcNowString } from 'awayto/core';
 
 export default {
   postFileContents: async props => {
-    const fileId = await props.fs.saveFile(props.event.body, dayjs().add(dayjs.duration(30, 'day')))
-    return { id: fileId };
+    const id = await props.fs.saveFile(props.event.body);
+    return { id };
+  },
+  putFileContents: async props => {
+    const { id, name, mimeType } = props.event.body;
+    const expiration = dayjs().add(dayjs.duration(30, 'day'));
+
+    await props.fs.putFile({ id, name, mimeType, expiration });
+    return { success: true };
   },
   postFile: async props => {
     const { uuid, name, mimeType: mime_type } = props.event.body;
@@ -65,6 +72,7 @@ export default {
 } as Pick<
   ApiHandlers,
   'postFileContents' |
+  'putFileContents' |
   'postFile' |
   'putFile' |
   'getFiles' |

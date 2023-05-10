@@ -1,22 +1,20 @@
 import fetch from 'node-fetch';
-import dayjs from 'dayjs';
+import { FsFunctionalities } from 'awayto/core';
 
 const {
   FS_HOST,
   FS_PORT
 } = process.env;
 
-export async function saveFile(body: ArrayBuffer, expiration: dayjs.Dayjs): Promise<string | undefined> {
-
+export const saveFile: FsFunctionalities['saveFile'] = async function (buffer) {
   try {
     const response = await fetch(`http://${FS_HOST}:${FS_PORT}/file`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'text/plain',
-        'Content-Length': body.byteLength.toString(),
-        'Expires-At': expiration.format('YYYY-MM-DD HH:mm:ss')
+        'Content-Type': 'application/octet-stream',
+        'Content-Length': buffer.byteLength.toString()
       },
-      body: Buffer.from(body)
+      body: Buffer.from(buffer)
     });
   
     if (!response.ok) {
@@ -28,9 +26,28 @@ export async function saveFile(body: ArrayBuffer, expiration: dayjs.Dayjs): Prom
   } catch (error) {
     console.error('Error during saveFile:', error);
   }
+};
+
+export const putFile: FsFunctionalities['putFile'] = async function ({ id, expiration, mimeType, name }) {
+  try {
+    const response = await fetch(`http://${FS_HOST}:${FS_PORT}/file/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Disposition': `attachment; filename="${name}"`,
+        'Content-Type': mimeType,
+        'Expires-At': expiration.format('YYYY-MM-DD HH:mm:ss')
+      }
+    });
+  
+    if (!response.ok) {
+      throw new Error(`Request failed with status ${response.status}`);
+    }
+  } catch (error) {
+    console.error('Error during putFile:', error);
+  }
 }
 
-export async function getFile(id: string): Promise<string> {
+export const getFile: FsFunctionalities['getFile'] = async function (id) {
   const response = await fetch(`http://${FS_HOST}:${FS_PORT}/file/${id}`);
   const file = await response.text();
   return file;

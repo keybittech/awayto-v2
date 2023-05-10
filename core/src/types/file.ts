@@ -40,6 +40,14 @@ export default {
     queryArg: new ArrayBuffer(0),
     resultType: { id: '' as string }
   },
+  putFileContents: {
+    kind: EndpointType.MUTATION,
+    url: 'files/content',
+    method: 'PUT',
+    opts: {} as ApiOptions,
+    queryArg: { id: '' as string, name: '' as string, mimeType: '' as string },
+    resultType: { success: true as boolean }
+  },
   postFile: {
     kind: EndpointType.MUTATION,
     url: 'files',
