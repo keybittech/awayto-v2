@@ -101,8 +101,10 @@ services:
         ipv4_address: 172.20.0.14
 
   # docker run --rm --name curl-container --net site alpine sh -c "apk add --no-cache curl"
-  # FOREVER: docker exec curl-container /usr/bin/curl -H 'Content-Type: text/plain' -H 'Expires-At: 2099-12-31 23:59:59' -d 'expiration test' http://172.20.0.16:8000/file
-  # EXPIRED: docker exec curl-container /usr/bin/curl -H 'Content-Type: text/plain' -H 'Expires-At: 2020-12-31 23:59:59' -d 'expiration test' http://172.20.0.16:8000/file
+  # INJECTION: docker exec curl-container /usr/bin/curl -H 'Content-Type: text/plain' -H 'Content-Disposition: attachment; filename="; DROP TABLE files;"' -H 'Expires-At: 2099-12-31 23:59:59' -d 'expiration test' http://172.20.0.16:8000/file
+  # FOREVER: docker exec curl-container /usr/bin/curl -H 'Content-Type: text/plain' -H 'Content-Disposition: attachment; filename="forever_file.txt"' -H 'Expires-At: 2099-12-31 23:59:59' -d 'expiration test' http://172.20.0.16:8000/file
+  # EXPIRE_FOREVER: docker exec curl-container /usr/bin/curl -X PUT -H 'Expires-At: 2000-12-31 00:00:00' http://172.20.0.16:8000/file/5baa7d25-884d-436c-b12d-e1c0a2520560
+  # EXPIRED: docker exec curl-container /usr/bin/curl -H 'Content-Type: text/plain' -H 'Content-Disposition: attachment; filename="erased_within_60.txt"' -H 'Expires-At: 2020-12-31 23:59:59' -d 'expiration 3f3f3f' http://172.20.0.16:8000/file
   # docker exec curl-container /usr/bin/curl http://172.20.0.16:8000/file/2e397ef5-2241-47b6-ba95-7ccd138b4654
   fs: 
     image: wcfs

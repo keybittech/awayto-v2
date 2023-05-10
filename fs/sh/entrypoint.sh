@@ -1,5 +1,12 @@
 #!/bin/sh
-sqlite3 "$SQLITE_DATA" "CREATE TABLE IF NOT EXISTS files (id TEXT PRIMARY KEY, content BLOB NOT NULL, expires_at TEXT);"
+sqlite3 "$SQLITE_DATA" "CREATE TABLE IF NOT EXISTS files (
+  id TEXT PRIMARY KEY, 
+  name TEXT,
+  content BLOB NOT NULL, 
+  ext TEXT,
+  mime_type TEXT,
+  expires_at TEXT
+);"
 
 socat -d TCP4-LISTEN:8000,fork,reuseaddr SYSTEM:"/app/server.sh" &
 
