@@ -38,9 +38,9 @@ function FileManager({ files, setFiles }: Required<IProps>): JSX.Element {
         flex: 1,
         headerName: 'Name',
         field: 'name',
-        renderCell: ({ row: { name, uuid }}) => <Button onClick={() => {
-          getFileContents(uuid, true).catch(console.error);
-        }}>{name}</Button>
+        renderCell: ({ row: file }) => <Button onClick={() => {
+          getFileContents(file, true).catch(console.error);
+        }}>{file.name}</Button>
       },
     ],
     selected,
@@ -56,15 +56,17 @@ function FileManager({ files, setFiles }: Required<IProps>): JSX.Element {
       const uploadPromises = Array.from(event.target.files).map(async (file) => {
         const buffer = await file.arrayBuffer();
         const name = file.name;
+        const mimeType = file.type;
         const { id } = await postFileContents(buffer).unwrap();
-        const { success } = await putFileContents({ id, name }).unwrap();
+        const { success } = await putFileContents({ id, name, mimeType }).unwrap();
         
         if (success) {
           // Create object that will go into the table
           return {
             id: nid(),
             uuid: id,
-            name: file.name
+            name: file.name,
+            mimeType
           };
         }
         return null;

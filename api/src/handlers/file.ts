@@ -13,19 +13,18 @@ export default {
     await props.fs.putFile({ id, name, expiration });
     return { success: true };
   },
-
   getFileContents: async props => {
     const { fileId } = props.event.body;
     const file = await props.fs.getFile(fileId);
     return file;
   },
   postFile: async props => {
-    const { uuid, name } = props.event.body;
+    const { uuid, name, mimeType } = props.event.body;
     const file = await props.tx.one<{ id: string }>(`
-      INSERT INTO dbtable_schema.files (uuid, name, created_on, created_sub)
-      VALUES ($1, $2, $3, $4::uuid)
+      INSERT INTO dbtable_schema.files (uuid, name, mime_type, created_on, created_sub)
+      VALUES ($1, $2, $3, $4, $5::uuid)
       RETURNING id
-    `, [uuid, name, utcNowString(), props.event.userSub]);
+    `, [uuid, name, utcNowString(), mimeType, props.event.userSub]);
     return { id: file.id, uuid };
   },
   putFile: async props => {

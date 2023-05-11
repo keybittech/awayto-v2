@@ -1,5 +1,5 @@
 import { Void } from '../util';
-import { ApiOptions, EndpointType } from './api';
+import { ApiOptions, BufferResponse, EndpointType } from './api';
 
 /**
  * @category File
@@ -19,11 +19,10 @@ export type IFileType = {
 /**
  * @category File
  */
-export type IFile = {
+export type IFile = BufferResponse & {
   id: string;
   uuid: string;
-  name: string;
-  buffer: ArrayBuffer;
+  mimeType: string;
 }
 
 /**
@@ -45,7 +44,7 @@ export default {
     url: 'files/content',
     method: 'PUT',
     opts: {} as ApiOptions,
-    queryArg: { id: '' as string, name: '' as string },
+    queryArg: { id: '' as string, name: '' as string, mimeType: '' as string },
     resultType: { success: true as boolean }
   },
   getFileContents: {
@@ -63,7 +62,7 @@ export default {
     url: 'files',
     method: 'POST',
     opts: {} as ApiOptions,
-    queryArg: { uuid: '' as string, name: '' as string },
+    queryArg: { uuid: '' as string, name: '' as string, mimeType: '' as string },
     resultType: { id: '' as string, uuid: '' as string, name: '' as string }
   },
   putFile: {

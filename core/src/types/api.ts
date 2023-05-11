@@ -69,8 +69,9 @@ export type SaveFileProps = {
 };
 
 export type BufferResponse = {
-  name: string,
-  buffer: ArrayBuffer
+  url: string;
+  name: string;
+  buffer: ArrayBuffer;
 };
 
 export type FsFunctionalities = {

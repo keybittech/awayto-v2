@@ -2,7 +2,8 @@ import React, { useCallback, useEffect, useRef } from 'react';
 
 import Box from '@mui/material/Box';
 
-import { useWebSocketSubscribe } from 'awayto/hooks';
+import { useFileContents, useWebSocketSubscribe } from 'awayto/hooks';
+import { IFile } from 'awayto/core';
 
 interface Whiteboard {
   lines: { startPoint: { x: number; y: number }; endPoint: { x: number; y: number } }[];
@@ -15,10 +16,24 @@ function getRelativeCoordinates(event: MouseEvent | React.MouseEvent<HTMLCanvasE
   return { x, y };
 }
 
-export default function Whiteboard(): JSX.Element {
+declare global {
+  interface IProps {
+    fileRef?: Partial<IFile>;
+  }
+}
+
+export default function Whiteboard({ fileRef }: IProps): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null)
   const parentRef = useRef<HTMLDivElement>(null);
+
+  const { fileDetails, getFileContents } = useFileContents();
+
+  useEffect(() => {
+    if (fileRef) {
+      getFileContents(fileRef).catch(console.error);
+    }
+  }, [fileRef]);
 
   const { sendMessage: sendExchangeMessage } = useWebSocketSubscribe<Whiteboard>('exchange-id', ({ payload }) => {
     const newLines = payload.lines;
@@ -45,7 +60,7 @@ export default function Whiteboard(): JSX.Element {
   });
 
   const batch = useRef<Whiteboard>({ lines: [] });
-  
+
   const sendBatchedData = useCallback(() => {
     if (batch.current.lines.length > 0) {
       sendExchangeMessage('whiteboardUpdate', batch.current);
@@ -62,21 +77,21 @@ export default function Whiteboard(): JSX.Element {
     event.preventDefault();
     const canvas = canvasRef.current;
     if (!canvas) return;
-  
+
     const ctx = contextRef.current;
     if (!ctx) return;
 
     const startPoint = getRelativeCoordinates(event, canvas);
     let lastPoint = startPoint; // Use a local variable to store the last point
-  
+
     const onMouseMove = (e: MouseEvent) => {
       const endPoint = getRelativeCoordinates(e, canvas);
       batch.current = {
         lines: [
           ...batch.current.lines,
           {
-            startPoint: {...lastPoint},
-            endPoint: {...endPoint}
+            startPoint: { ...lastPoint },
+            endPoint: { ...endPoint }
           }
         ],
       }
@@ -85,16 +100,16 @@ export default function Whiteboard(): JSX.Element {
       ctx.moveTo(lastPoint.x, lastPoint.y);
       ctx.lineTo(endPoint.x, endPoint.y);
       ctx.stroke();
-  
+
       // Update lastPoint
       lastPoint = endPoint;
     };
-  
+
     const onMouseUp = () => {
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
     };
-  
+
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
   };
@@ -127,15 +142,44 @@ export default function Whiteboard(): JSX.Element {
     }
   }, [canvasRef, contextRef]);
 
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  useEffect(() => {
+    if (!fileDetails) return;
+    const xhr = new XMLHttpRequest();
+    xhr.open("GET", fileDetails.url, true);
+    xhr.responseType = "blob";
+    xhr.onload = function (this: { response: Blob, status: number }) {
+      if (this.status === 200) {
+        const file = window.URL.createObjectURL(this.response);
+        if (iframeRef.current) {
+          iframeRef.current.src = file;
+        }
+      }
+    };
+    xhr.send();
+  }, [fileDetails]);
+
   return <Box ref={parentRef} style={{ width: '100%', height: '100%', position: 'relative' }}>
-    <canvas
-      ref={canvasRef}
-      onMouseDown={handleMouseDown}
-      style={{
+    {fileDetails && <Box
+      sx={{
+        position: 'absolute',
+        width: '100%',
+        height: '100%'
+      }}
+      ref={iframeRef}
+      component='iframe'
+      src=''
+    />}
+    <Box
+      sx={{
         position: 'absolute',
         height: '100%',
-        width:'100%'
+        width: '100%'
       }}
+      component='canvas'
+      ref={canvasRef}
+      onMouseDown={handleMouseDown}
     />
   </Box>
 }
