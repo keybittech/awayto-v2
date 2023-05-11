@@ -117,7 +117,6 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     f.id,
     f.uuid,
     f.name,
-    f.mime_type as "mimeType",
     f.created_on as "createdOn",
     row_number() OVER () as row
   FROM

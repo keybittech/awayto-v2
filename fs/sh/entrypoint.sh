@@ -3,8 +3,6 @@ sqlite3 "$SQLITE_DATA" "CREATE TABLE IF NOT EXISTS files (
   id TEXT PRIMARY KEY, 
   name TEXT,
   content BLOB NOT NULL, 
-  ext TEXT,
-  mime_type TEXT,
   expires_at TEXT
 );"
 

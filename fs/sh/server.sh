@@ -7,7 +7,6 @@ content_length=0
 content_type=""
 expires_at=""
 file_name=""
-file_ext=""
 
 while read -r header; do
   header=$(echo "$header" | tr -d '\r')
@@ -20,44 +19,52 @@ while read -r header; do
 
   if [ "$(echo "$key" | tr '[:upper:]' '[:lower:]')" = "content-length" ]; then
     content_length=$value
-  elif [ "$(echo "$key" | tr '[:upper:]' '[:lower:]')" = "content-type" ]; then
-    content_type=$value
   elif [ "$(echo "$key" | tr '[:upper:]' '[:lower:]')" = "expires-at" ]; then
     expires_at=$value
   elif [ "$(echo "$key" | tr '[:upper:]' '[:lower:]')" = "content-disposition" ]; then
     file_name=$(echo "$value" | sed -n 's/^.*filename="\?\([^"]*\)".*$/\1/p')
-    file_ext=$(echo "$file_name" | sed -n 's/.*\.\([^\.]*\)$/\1/p')
   fi
 done
 
 if [ "$method" = "GET" ]; then
   rm -f last_get # LOGGING
-  file_id=$(echo $uri | awk -F / '{print $3}')
+  
+  file_id=$(echo $uri | awk -F / '{print $3}') # Parse the file id from /file/123
+  file_name=$(sqlite3 "$SQLITE_DATA" "SELECT name FROM files WHERE id = '$file_id';") # Use comma as a separator
+  
+  noop=$(sqlite3 "$SQLITE_DATA" "SELECT writefile('file_content.bin', content) FROM files WHERE id = '$file_id';") # Get file 
+  file_length=$(wc -c < file_content.bin)
 
-  read -r file_content file_type file_name < <(sqlite3 "$SQLITE_DATA" "SELECT content, mime_type, name || '.' || ext AS file_name FROM files WHERE id = '$file_id';")
-  echo "$(date '+%Y-%m-%d %H:%M:%S') $request $file_content" >> last_get # LOGGING
+  echo "GET ATTRS $request $file_name" >> last_get # LOGGING
 
-  echo -e "HTTP/1.1 200 OK\r\nContent-Disposition: attachment; filename=\"$file_name\"\r\nContent-Type: $file_type\r\nContent-Length: ${#file_content}\r\n\r\n$file_content"
+  echo -ne "HTTP/1.1 200 OK\r\nContent-Disposition: attachment; filename=\"$file_name\"\r\nContent-Type: application/octet-stream\r\nContent-Length: $file_length\r\n\r\n"
+
+  dd if=file_content.bin bs=65536 2>/dev/null
+
+  rm file_content.bin
 elif [ "$method" = "PUT" ]; then
   rm -f last_put #LOGGING
   echo $request >> last_put
 
   file_id=$(echo $uri | awk -F / '{print $3}')
-  echo "'$file_id', '$file_name', '$file_ext', '$content_type', '$expires_at'" >> last_put # LOGGING
+  echo "'$file_id', '$file_name', '$expires_at'" >> last_put # LOGGING
 
-  sqlite3 "$SQLITE_DATA" "UPDATE files SET name = '$file_name', ext = '$file_ext', mime_type = '$content_type', expires_at = '$expires_at' WHERE id = '$file_id';"
-  echo -e "HTTP/1.1 200 OK"
+  sqlite3 "$SQLITE_DATA" "UPDATE files SET name = '$file_name', expires_at = '$expires_at' WHERE id = '$file_id';"
+  echo -e "HTTP/1.1 200 OK\r\n\r\n"
 elif [ "$method" = "POST" ]; then
   rm -f last_post # LOGGING
   echo "$(date '+%Y-%m-%d %H:%M:%S') $request" >> last_post # LOGGING
 
-  read -n "$content_length" file_contents
+  insert_id=$(uuidgen) # Create a new id
+  temp_file=$(mktemp) # Create a temporary file to store the blob in
+  dd bs=1 count="$content_length" of="$temp_file" # Read the request and store it in temp_file
 
-  insert_id=$(uuidgen)
-  
-  echo "'$insert_id', '$file_contents'" >> last_post # LOGGING
+  original_size=$(stat -c%s "$temp_file") # LOGGING
+  echo "'$insert_id', '$temp_file' size: '$original_size'" >> last_post # LOGGING
 
-  sqlite3 "$SQLITE_DATA" "INSERT INTO files (id, content) VALUES ('$insert_id', '$file_contents');"
+  sqlite3 "$SQLITE_DATA" "INSERT INTO files (id, content) VALUES ('$insert_id', readfile('$temp_file'));"
+
+  rm "$temp_file"
 
   echo "Saved successfully." >> last_post # LOGGING
 

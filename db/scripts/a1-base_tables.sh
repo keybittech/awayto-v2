@@ -116,7 +116,6 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     uuid VARCHAR (50) NOT NULL,
     name VARCHAR (50) NOT NULL,
-    mime_type VARCHAR (50) NOT NULL,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
     created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,

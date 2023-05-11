@@ -23,7 +23,7 @@ export type IFile = {
   id: string;
   uuid: string;
   name: string;
-  mimeType: string;
+  buffer: ArrayBuffer;
 }
 
 /**
@@ -45,16 +45,26 @@ export default {
     url: 'files/content',
     method: 'PUT',
     opts: {} as ApiOptions,
-    queryArg: { id: '' as string, name: '' as string, mimeType: '' as string },
+    queryArg: { id: '' as string, name: '' as string },
     resultType: { success: true as boolean }
+  },
+  getFileContents: {
+    kind: EndpointType.QUERY,
+    url: 'files/content/:fileId',
+    method: 'GET',
+    opts: {
+      cache: 'skip'
+    } as ApiOptions,
+    queryArg: { fileId: '' as string },
+    resultType: { buffer: new ArrayBuffer(0), name: '' as string }
   },
   postFile: {
     kind: EndpointType.MUTATION,
     url: 'files',
     method: 'POST',
     opts: {} as ApiOptions,
-    queryArg: { uuid: '' as string, name: '' as string, mimeType: '' as string },
-    resultType: { id: '' as string, uuid: '' as string, name: '' as string, mimeType: '' as string }
+    queryArg: { uuid: '' as string, name: '' as string },
+    resultType: { id: '' as string, uuid: '' as string, name: '' as string }
   },
   putFile: {
     kind: EndpointType.MUTATION,

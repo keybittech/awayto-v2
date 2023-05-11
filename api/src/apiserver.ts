@@ -28,7 +28,7 @@ import { v4 as uuid } from 'uuid';
 import passport from 'passport';
 import { IdTokenClaims, Strategy, StrategyVerifyCallbackUserInfo } from 'openid-client';
 
-import { DecodedJWTToken, UserGroupRoles, StrategyUser, ApiErrorResponse, IGroup, AuthBody, siteApiRef, AuthProps, ApiProps, EndpointType, ApiHandlers, AnyRecord, AnyRecordTypes } from 'awayto/core';
+import { DecodedJWTToken, UserGroupRoles, StrategyUser, ApiErrorResponse, IGroup, AuthBody, siteApiRef, AuthProps, ApiProps, EndpointType, AnyRecord, AnyRecordTypes, BufferResponse } from 'awayto/core';
 
 import { useAi } from '@keybittech/wizapp/dist/server';
 
@@ -407,7 +407,12 @@ async function go() {
           }
         }
 
-        if (!!response || 'object' === typeof response && Object.keys(response).length) {
+        if (typeof response === 'object' && (response as BufferResponse).buffer instanceof ArrayBuffer) {
+          const { name, buffer } = response as BufferResponse;
+          res.setHeader('Content-Disposition', `attachment; filename="${name}"`);
+          res.setHeader('Content-Type', 'application/octet-stream');
+          res.send(Buffer.from(buffer));
+        } else if (!!response || 'object' === typeof response && Object.keys(response).length) {
           // Respond
           res.status(200).json(response);
         } else {

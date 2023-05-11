@@ -65,14 +65,18 @@ export type ApiHandler<T> = {
 export type SaveFileProps = {
   id: string;
   name: string;
-  mimeType: string;
   expiration: Dayjs;
+};
+
+export type BufferResponse = {
+  name: string,
+  buffer: ArrayBuffer
 };
 
 export type FsFunctionalities = {
   saveFile: (buffer: ArrayBuffer) => Promise<string | undefined>;
   putFile: (props: SaveFileProps) => Promise<void>;
-  getFile: (id: string) => Promise<string>;
+  getFile: (id: string) => Promise<BufferResponse>;
 }
 
 /**

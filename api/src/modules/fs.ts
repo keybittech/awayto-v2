@@ -6,7 +6,7 @@ const {
   FS_PORT
 } = process.env;
 
-export const saveFile: FsFunctionalities['saveFile'] = async function (buffer) {
+export const saveFile: FsFunctionalities['saveFile'] = async buffer => {
   try {
     const response = await fetch(`http://${FS_HOST}:${FS_PORT}/file`, {
       method: 'POST',
@@ -28,13 +28,12 @@ export const saveFile: FsFunctionalities['saveFile'] = async function (buffer) {
   }
 };
 
-export const putFile: FsFunctionalities['putFile'] = async function ({ id, expiration, mimeType, name }) {
+export const putFile: FsFunctionalities['putFile'] = async ({ id, expiration, name }) => {
   try {
     const response = await fetch(`http://${FS_HOST}:${FS_PORT}/file/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Disposition': `attachment; filename="${name}"`,
-        'Content-Type': mimeType,
         'Expires-At': expiration.format('YYYY-MM-DD HH:mm:ss')
       }
     });
@@ -47,31 +46,9 @@ export const putFile: FsFunctionalities['putFile'] = async function ({ id, expir
   }
 }
 
-export const getFile: FsFunctionalities['getFile'] = async function (id) {
+export const getFile: FsFunctionalities['getFile'] = async id => {
   const response = await fetch(`http://${FS_HOST}:${FS_PORT}/file/${id}`);
-  const file = await response.text();
-  return file;
+  const buffer = await response.arrayBuffer();
+  const contentDisposition = response.headers.get('Content-Disposition');
+  return { buffer, name: contentDisposition ? contentDisposition.split(';')[1].split('=')[1].replace(/"/g, '') : '' };
 }
-
-
-
-
-// console.log('saving file');
-// const fileId = await saveFile('this_file_is_deleted_30_seconds_later', dayjs().add(dayjs.duration({ seconds: 30 })))
-
-// console.log({ FILEID: fileId })
-
-// if (fileId) {
-//   const fileBody = await getFile(fileId);
-//   console.log({ FILEBODY: fileBody })
-
-//   setTimeout(() => {
-//     async function go() {
-//       if (fileId) {
-//         const newFileBody = await getFile(fileId);
-//         console.log({ LATERONFILE: newFileBody })
-//       }
-//     }
-//     void go();
-//   }, 90000)
-// }

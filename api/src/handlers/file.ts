@@ -7,19 +7,25 @@ export default {
     return { id };
   },
   putFileContents: async props => {
-    const { id, name, mimeType } = props.event.body;
+    const { id, name } = props.event.body;
     const expiration = dayjs().add(dayjs.duration(30, 'day'));
 
-    await props.fs.putFile({ id, name, mimeType, expiration });
+    await props.fs.putFile({ id, name, expiration });
     return { success: true };
   },
+
+  getFileContents: async props => {
+    const { fileId } = props.event.body;
+    const file = await props.fs.getFile(fileId);
+    return file;
+  },
   postFile: async props => {
-    const { uuid, name, mimeType: mime_type } = props.event.body;
+    const { uuid, name } = props.event.body;
     const file = await props.tx.one<{ id: string }>(`
-      INSERT INTO dbtable_schema.files (uuid, name, mime_type, created_on, created_sub)
-      VALUES ($1, $2, $3, $4, $5::uuid)
+      INSERT INTO dbtable_schema.files (uuid, name, created_on, created_sub)
+      VALUES ($1, $2, $3, $4::uuid)
       RETURNING id
-    `, [uuid, name, mime_type, utcNowString(), props.event.userSub]);
+    `, [uuid, name, utcNowString(), props.event.userSub]);
     return { id: file.id, uuid };
   },
   putFile: async props => {
@@ -73,6 +79,7 @@ export default {
   ApiHandlers,
   'postFileContents' |
   'putFileContents' |
+  'getFileContents' |
   'postFile' |
   'putFile' |
   'getFiles' |

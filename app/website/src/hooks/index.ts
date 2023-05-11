@@ -4,6 +4,7 @@ export * from './useComponents';
 export * from './useContexts';
 export * from './useFiles';
 export * from './useFileStore';
+export * from './useFileContents';
 export * from './useStyles';
 export * from './useSecure';
 export * from './useGroupSecure';
