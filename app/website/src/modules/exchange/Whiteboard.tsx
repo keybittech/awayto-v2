@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 
 import Box from '@mui/material/Box';
 
@@ -17,78 +17,84 @@ function getRelativeCoordinates(event: MouseEvent | React.MouseEvent<HTMLCanvasE
 
 export default function Whiteboard(): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const contextRef = useRef<CanvasRenderingContext2D | null>(null)
   const parentRef = useRef<HTMLDivElement>(null);
 
-  const [whiteboard, setWhiteboard] = useState({ lines: [] } as Whiteboard);
+  const { sendMessage: sendExchangeMessage } = useWebSocketSubscribe<Whiteboard>('exchange-id', ({ payload }) => {
+    const newLines = payload.lines;
+    if (newLines?.length) {
+      const draw = () => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = contextRef.current;
+        if (!ctx) return;
 
-  const { connected, sendMessage: sendExchangeMessage } = useWebSocketSubscribe<Whiteboard>('exchange-id', ({ sender, topic, type, payload }) => {
-    console.log('whiteboard event', { sender, topic, type, payload })
-    if (payload.lines?.length) {
-      const [{ startPoint, endPoint }] = payload.lines;
-      addLine(startPoint, endPoint);
+        newLines.forEach((line, i) => {
+          if (i === 0) {
+            ctx.beginPath();
+            ctx.moveTo(line.startPoint.x, line.startPoint.y);
+          }
+
+          ctx.lineTo(line.endPoint.x, line.endPoint.y);
+        });
+        ctx.stroke();
+      }
+
+      requestAnimationFrame(draw);
     }
   });
 
-  const addLine = useCallback((
-    startPoint: { x: number; y: number },
-    endPoint: { x: number; y: number }
-  ) => {
-    if (connected) {
-      const updatedWhiteboard = {
-        lines: [...whiteboard.lines, { startPoint, endPoint }],
-      };
+  const batch = useRef<Whiteboard>({ lines: [] });
   
-      setWhiteboard(updatedWhiteboard);
+  const sendBatchedData = useCallback(() => {
+    if (batch.current.lines.length > 0) {
+      sendExchangeMessage('whiteboardUpdate', batch.current);
+      batch.current = { lines: [] };
     }
-  }, [connected, whiteboard]);
+  }, [sendExchangeMessage]);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Draw lines
-    whiteboard.lines.forEach((line) => {
-      ctx.beginPath();
-      ctx.moveTo(line.startPoint.x, line.startPoint.y);
-      ctx.lineTo(line.endPoint.x, line.endPoint.y);
-      ctx.stroke();
-    });
-  }, [whiteboard]);
+    const interval = setInterval(sendBatchedData, 150);
+    return () => clearInterval(interval);
+  }, [sendBatchedData]);
 
   const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
     event.preventDefault();
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const startPoint = getRelativeCoordinates(event, canvas);
-
-    const ctx = canvas.getContext('2d');
+  
+    const ctx = contextRef.current;
     if (!ctx) return;
 
+    const startPoint = getRelativeCoordinates(event, canvas);
+    let lastPoint = startPoint; // Use a local variable to store the last point
+  
     const onMouseMove = (e: MouseEvent) => {
       const endPoint = getRelativeCoordinates(e, canvas);
-      sendExchangeMessage('whiteboardUpdate', { lines: [{ startPoint, endPoint }] });
-      
+      batch.current = {
+        lines: [
+          ...batch.current.lines,
+          {
+            startPoint: {...lastPoint},
+            endPoint: {...endPoint}
+          }
+        ],
+      }
       // Draw line segment
       ctx.beginPath();
-      ctx.moveTo(startPoint.x, startPoint.y);
+      ctx.moveTo(lastPoint.x, lastPoint.y);
       ctx.lineTo(endPoint.x, endPoint.y);
       ctx.stroke();
-
-      // Update startPoint
-      startPoint.x = endPoint.x;
-      startPoint.y = endPoint.y;
+  
+      // Update lastPoint
+      lastPoint = endPoint;
     };
-
+  
     const onMouseUp = () => {
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
     };
-
+  
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
   };
@@ -99,6 +105,8 @@ export default function Whiteboard(): JSX.Element {
 
     const setCanvasSize = () => {
       if (canvas && parent) {
+        canvas.style.width = `${parent.clientWidth}px`;
+        canvas.style.height = `${parent.clientHeight}px`;
         canvas.width = parent.clientWidth;
         canvas.height = parent.clientHeight;
       }
@@ -112,6 +120,12 @@ export default function Whiteboard(): JSX.Element {
       window.removeEventListener('resize', setCanvasSize);
     };
   }, []);
+
+  useEffect(() => {
+    if (null !== canvasRef.current && !contextRef.current) {
+      contextRef.current = canvasRef.current.getContext('2d');
+    }
+  }, [canvasRef, contextRef]);
 
   return <Box ref={parentRef} style={{ width: '100%', height: '100%', position: 'relative' }}>
     <canvas
