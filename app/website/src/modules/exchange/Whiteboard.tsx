@@ -1,8 +1,13 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import Box from '@mui/material/Box';
+import IconButton from '@mui/material/IconButton';
 
-import { useFileContents, useWebSocketSubscribe } from 'awayto/hooks';
+import GestureIcon from '@mui/icons-material/Gesture';
+import TouchAppIcon from '@mui/icons-material/TouchApp';
+import LayersClearIcon from '@mui/icons-material/LayersClear';
+
+import { useFileContents, useWebSocketSubscribe, useStyles } from 'awayto/hooks';
 import { IFile } from 'awayto/core';
 
 interface Whiteboard {
@@ -26,6 +31,10 @@ export default function Whiteboard({ fileRef }: IProps): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null)
   const parentRef = useRef<HTMLDivElement>(null);
+
+  const classes = useStyles();
+
+  const [canvasPointerEvents, setCanvasPointerEvents] = useState('none');
 
   const { fileDetails, getFileContents } = useFileContents();
 
@@ -162,24 +171,43 @@ export default function Whiteboard({ fileRef }: IProps): JSX.Element {
 
   return <Box ref={parentRef} style={{ width: '100%', height: '100%', position: 'relative' }}>
     {fileDetails && <Box
-      sx={{
-        position: 'absolute',
-        width: '100%',
-        height: '100%'
-      }}
+      className={classes.absoluteFullChild}
       ref={iframeRef}
       component='iframe'
       src=''
     />}
     <Box
+      className={classes.absoluteFullChild}
       sx={{
-        position: 'absolute',
-        height: '100%',
-        width: '100%'
+        pointerEvents: canvasPointerEvents
       }}
-      component='canvas'
       ref={canvasRef}
+      component='canvas'
       onMouseDown={handleMouseDown}
     />
+    <IconButton 
+      color="info"
+      className={classes.whiteboardActionButton}
+      sx={{ left: { sm: 10, md: -50 }, bottom: 50 }} 
+      onClick={() => setCanvasPointerEvents('none')}
+    >
+      <TouchAppIcon />
+    </IconButton>
+    <IconButton 
+      color="error" 
+      className={classes.whiteboardActionButton}
+      sx={{ left: { sm: 10, md: -50 }, bottom: 100 }} 
+      onClick={() => contextRef.current?.clearRect(0, 0, canvasRef.current?.width || 0, canvasRef.current?.height || 0)}
+    >
+      <LayersClearIcon />
+    </IconButton>
+    <IconButton 
+      color="warning" 
+      className={classes.whiteboardActionButton}
+      sx={{ left: { sm: 10, md: -50 }, bottom: 150 }} 
+      onClick={() => setCanvasPointerEvents('auto')}
+    >
+      <GestureIcon />
+    </IconButton>
   </Box>
 }

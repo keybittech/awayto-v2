@@ -58,7 +58,19 @@ export const useStyles = makeStyles((theme: Theme) => ({
   chipRoot: { margin: theme.spacing(1), height: '100%', display: 'flex', flexDirection: 'row' },
 
   chipLabel: { overflowWrap: 'break-word', whiteSpace: 'normal', textOverflow: 'clip' },
-  
+
+  absoluteFullChild: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%'
+  },
+
+  whiteboardActionButton: {
+    position: 'absolute',
+    zIndex: 11,
+    backgroundColor: '#aaa'
+  },
+
   variableButtonIcon: {
     [theme.breakpoints.down('sm')]: {
       fontSize: '24px',
