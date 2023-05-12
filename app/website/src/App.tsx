@@ -76,7 +76,7 @@ export default function App (props: IProps): JSX.Element {
   return <>
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <ThemeProvider theme={currentTheme}>
-        {onboarding && <Suspense>
+        {onboarding && <Suspense fallback={<CircularProgress color="inherit" />}>
           <Onboard {...props} />
         </Suspense>}
         {ready && <Layout {...props} />}
@@ -87,7 +87,7 @@ export default function App (props: IProps): JSX.Element {
           </Alert>
         </Snackbar>}
 
-        <Suspense fallback="">
+        <Suspense fallback={<CircularProgress color="inherit" />}>
           <ConfirmAction {...props} />
         </Suspense>
 

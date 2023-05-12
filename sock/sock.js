@@ -33,7 +33,6 @@ const authClient = jwksClient({
 
 function getKey(header, callback) {
   authClient.getSigningKey(header.kid, (err, key) => {
-    console.log({ err, key })
     if (err) {
       callback(err);
     } else {
@@ -54,9 +53,6 @@ server.on('request', function (req, res) {
     // Proxied from front end through api for kc auth check
     // Create a temporary ticket that the host can use to create a socket later
     try {
-
-      console.log('got a ticket creator', util.inspect(req), util.inspect(req.headers))
-
       if (req.url.includes('create_ticket')) {
         const host = req.headers['x-forwarded-for'].split(', ')[0];
         const authorization = req.headers['authorization'];
@@ -85,8 +81,6 @@ server.on('request', function (req, res) {
 
 // Proxy pass from nginx sets http upgrade request, caught here
 server.on('upgrade', async function (req, socket, head) {
-  console.log(' got an upgrade request', req.url, util.inspect(req.headers), util.inspect(pendingTickets));
-
   try {
     const host = req.headers['x-forwarded-for'].split(', ')[0];
 
@@ -110,7 +104,6 @@ server.on('upgrade', async function (req, socket, head) {
           wss.handleUpgrade(req, socket, head, function (ws) {
             ws.localId = localId;
             wss.emit('connection', ws, req);
-            console.log('activity', host, localId, 'started a socket connection', ws.id);
           });
         // } else {
         //   socket401(socket);
@@ -194,12 +187,11 @@ function cleanUp(ws) {
     // Remove from connection pool
     const pos = connections[ws.localId];
     if (-1 < pos) {
-      console.log('removing connection');
       connections.splice(pos);
     }
 
     // Notify
-    console.log('activity', ws.id, 'closed connection.');
+    // console.log('activity', ws.id, 'closed connection.');
   } catch (error) {
 
   }

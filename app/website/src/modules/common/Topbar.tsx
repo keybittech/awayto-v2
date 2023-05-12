@@ -33,6 +33,12 @@ import { useLocation, useNavigate } from 'react-router';
 import { SiteRoles, PaletteMode } from 'awayto/core';
 import { useSecure, useComponents, sh, useAppSelector, useUtil } from 'awayto/hooks';
 
+declare global {
+  interface IProps {
+    forceSiteMenu?: boolean;
+  }
+}
+
 export function Topbar(props: IProps): JSX.Element {
 
   const navigate = useNavigate();
@@ -76,7 +82,7 @@ export function Topbar(props: IProps): JSX.Element {
   };
 
   return <Grid xs={12} container>
-    <Grid sx={{ display:{ xs: 'flex', md: 'none' } }}>
+    <Grid sx={{ display: { xs: 'flex', md: !props.forceSiteMenu ? 'none' : 'flex' } }}>
       <Tooltip title="Menu">
         <Button
           aria-label="show mobile main menu"

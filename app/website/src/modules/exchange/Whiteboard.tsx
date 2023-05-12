@@ -165,21 +165,23 @@ export default function Whiteboard(): JSX.Element {
   }, []);
 
   return <Box ref={parentRef} sx={{ height: '100%', width: '100%', position: 'relative' }}>
-
-    <FileViewer
-      width={dimensions[0]}
-      height={dimensions[1]}
-      fileRef={{ mimeType: fileType,  uuid: fileId }}
-    />
     <Box
-      className={classes.absoluteFullChild}
+      className={classes.pdfViewerComps}
       sx={{
+        zIndex: 10,
         pointerEvents: canvasPointerEvents
       }}
       ref={canvasRef}
       component='canvas'
       onMouseDown={handleMouseDown}
     />
+
+    <FileViewer
+      width={dimensions[0]}
+      height={dimensions[1]}
+      fileRef={{ mimeType: fileType,  uuid: fileId }}
+    />
+
     <IconButton 
       color="info"
       className={classes.whiteboardActionButton}

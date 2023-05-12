@@ -1,11 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 import { Document, Page } from 'react-pdf/dist/esm/entry.webpack5';
 
 import { IFile } from 'awayto/core';
 import { useFileContents, useStyles } from 'awayto/hooks';
-import { TextLayerItemInternal } from 'react-pdf';
 
 declare global {
   interface IProps {
@@ -45,12 +44,13 @@ export function FileViewer({ fileRef, width, height }: IProps): React.JSX.Elemen
   );
 
   const PageComp = useCallback(() => {
-    return !height || !width ? <></> :
+    return !width ? <></> :
       <Page
         canvasRef={canvasRef}
         className={classes.pdfViewerComps}
-        customTextRenderer={textRenderer =>{
-          if (0 === textRenderer.itemIndex && canvasRef.current) {
+        width={width}
+        onRenderSuccess={() => {
+          if (canvasRef.current) {
             const [textLayer] = document.getElementsByClassName('textLayer');
             const ele = textLayer as HTMLElement;
             ele.style.display = 'flex';
@@ -59,15 +59,12 @@ export function FileViewer({ fileRef, width, height }: IProps): React.JSX.Elemen
             ele.style.height = `${canvasRef.current.clientHeight.toString()}px`;
             ele.style.width = `${canvasRef.current.clientWidth.toString()}px`;
           }
-          return textRenderer.str;
         }}
-        width={width}
-        height={height}
         renderAnnotationLayer={false}
         pageNumber={pageNumber}
       />
     },
-    [canvasRef, height, width]
+    [canvasRef, width]
   );
 
   return <DocumentComp>

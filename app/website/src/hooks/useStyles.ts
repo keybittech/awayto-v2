@@ -73,7 +73,11 @@ export const useStyles = makeStyles((theme: Theme) => {
       ...absoluteFullChild,
       display: 'flex',
       placeContent: 'center',
-      placeItems: 'center'
+      placeItems: 'center',
+      '& *': {
+        maxWidth: '100%',
+        maxHeight: '100%',
+      }
     },
 
     whiteboardActionButton: {
