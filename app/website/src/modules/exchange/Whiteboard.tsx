@@ -6,12 +6,16 @@ import IconButton from '@mui/material/IconButton';
 import GestureIcon from '@mui/icons-material/Gesture';
 import TouchAppIcon from '@mui/icons-material/TouchApp';
 import LayersClearIcon from '@mui/icons-material/LayersClear';
+import HighlightIcon from '@mui/icons-material/Highlight';
 
-import { useFileContents, useWebSocketSubscribe, useStyles } from 'awayto/hooks';
-import { IFile } from 'awayto/core';
+import { useWebSocketSubscribe, useStyles, useComponents } from 'awayto/hooks';
 
 interface Whiteboard {
   lines: { startPoint: { x: number; y: number }; endPoint: { x: number; y: number } }[];
+  hightlight: boolean;
+  doc: {
+    position: [number, number]
+  }
 }
 
 function getRelativeCoordinates(event: MouseEvent | React.MouseEvent<HTMLCanvasElement>, canvas: HTMLCanvasElement) {
@@ -21,28 +25,18 @@ function getRelativeCoordinates(event: MouseEvent | React.MouseEvent<HTMLCanvasE
   return { x, y };
 }
 
-declare global {
-  interface IProps {
-    fileRef?: Partial<IFile>;
-  }
-}
-
-export default function Whiteboard({ fileRef }: IProps): JSX.Element {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const contextRef = useRef<CanvasRenderingContext2D | null>(null)
+export default function Whiteboard(): JSX.Element {
   const parentRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const contextRef = useRef<CanvasRenderingContext2D | null>(null);
+
+  const { FileViewer } = useComponents();
 
   const classes = useStyles();
 
   const [canvasPointerEvents, setCanvasPointerEvents] = useState('none');
-
-  const { fileDetails, getFileContents } = useFileContents();
-
-  useEffect(() => {
-    if (fileRef) {
-      getFileContents(fileRef).catch(console.error);
-    }
-  }, [fileRef]);
+  const [dimensions, setDimensions] = useState([0, 0]);
+  const [highlight, setHightlight] = useState(false);
 
   const { sendMessage: sendExchangeMessage } = useWebSocketSubscribe<Whiteboard>('exchange-id', ({ payload }) => {
     const newLines = payload.lines;
@@ -68,19 +62,14 @@ export default function Whiteboard({ fileRef }: IProps): JSX.Element {
     }
   });
 
-  const batch = useRef<Whiteboard>({ lines: [] });
+  const whiteboard = useRef<Whiteboard>({ lines: [], hightlight: false, doc: { position: [0, 0] } });
 
   const sendBatchedData = useCallback(() => {
-    if (batch.current.lines.length > 0) {
-      sendExchangeMessage('whiteboardUpdate', batch.current);
-      batch.current = { lines: [] };
+    if (whiteboard.current.lines.length > 0) {
+      sendExchangeMessage('whiteboardUpdate', whiteboard.current);
+      whiteboard.current = { ...whiteboard.current, lines: [] };
     }
   }, [sendExchangeMessage]);
-
-  useEffect(() => {
-    const interval = setInterval(sendBatchedData, 150);
-    return () => clearInterval(interval);
-  }, [sendBatchedData]);
 
   const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
     event.preventDefault();
@@ -95,9 +84,10 @@ export default function Whiteboard({ fileRef }: IProps): JSX.Element {
 
     const onMouseMove = (e: MouseEvent) => {
       const endPoint = getRelativeCoordinates(e, canvas);
-      batch.current = {
+      whiteboard.current = {
+        ...whiteboard.current,
         lines: [
-          ...batch.current.lines,
+          ...whiteboard.current.lines,
           {
             startPoint: { ...lastPoint },
             endPoint: { ...endPoint }
@@ -108,6 +98,15 @@ export default function Whiteboard({ fileRef }: IProps): JSX.Element {
       ctx.beginPath();
       ctx.moveTo(lastPoint.x, lastPoint.y);
       ctx.lineTo(endPoint.x, endPoint.y);
+      if (highlight) {
+        ctx.strokeStyle = 'yellow';
+        ctx.lineWidth = 10;
+        ctx.globalAlpha = .33;
+      } else {
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = ctx.globalAlpha = 1;
+      }
+      
       ctx.stroke();
 
       // Update lastPoint
@@ -123,6 +122,25 @@ export default function Whiteboard({ fileRef }: IProps): JSX.Element {
     window.addEventListener('mouseup', onMouseUp);
   };
 
+  const setDrawStyle = (hl: boolean) => {
+    setHightlight(hl);
+    setCanvasPointerEvents('auto');
+  }
+
+  const fileId = 'b789e0dc-7d05-479d-9eef-0505a54a7659';
+  const fileType = 'application/pdf';
+
+  useEffect(() => {
+    if (null !== canvasRef.current && !contextRef.current) {
+      contextRef.current = canvasRef.current.getContext('2d');
+    }
+  }, [canvasRef, contextRef]);
+
+  useEffect(() => {
+    const interval = setInterval(sendBatchedData, 150);
+    return () => clearInterval(interval);
+  }, [sendBatchedData]);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     const parent = parentRef.current;
@@ -133,6 +151,7 @@ export default function Whiteboard({ fileRef }: IProps): JSX.Element {
         canvas.style.height = `${parent.clientHeight}px`;
         canvas.width = parent.clientWidth;
         canvas.height = parent.clientHeight;
+        setDimensions([parent.clientWidth, parent.clientHeight]);
       }
     };
 
@@ -145,37 +164,13 @@ export default function Whiteboard({ fileRef }: IProps): JSX.Element {
     };
   }, []);
 
-  useEffect(() => {
-    if (null !== canvasRef.current && !contextRef.current) {
-      contextRef.current = canvasRef.current.getContext('2d');
-    }
-  }, [canvasRef, contextRef]);
+  return <Box ref={parentRef} sx={{ height: '100%', width: '100%', position: 'relative' }}>
 
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-
-  useEffect(() => {
-    if (!fileDetails) return;
-    const xhr = new XMLHttpRequest();
-    xhr.open("GET", fileDetails.url, true);
-    xhr.responseType = "blob";
-    xhr.onload = function (this: { response: Blob, status: number }) {
-      if (this.status === 200) {
-        const file = window.URL.createObjectURL(this.response);
-        if (iframeRef.current) {
-          iframeRef.current.src = file;
-        }
-      }
-    };
-    xhr.send();
-  }, [fileDetails]);
-
-  return <Box ref={parentRef} style={{ width: '100%', height: '100%', position: 'relative' }}>
-    {fileDetails && <Box
-      className={classes.absoluteFullChild}
-      ref={iframeRef}
-      component='iframe'
-      src=''
-    />}
+    <FileViewer
+      width={dimensions[0]}
+      height={dimensions[1]}
+      fileRef={{ mimeType: fileType,  uuid: fileId }}
+    />
     <Box
       className={classes.absoluteFullChild}
       sx={{
@@ -202,12 +197,20 @@ export default function Whiteboard({ fileRef }: IProps): JSX.Element {
       <LayersClearIcon />
     </IconButton>
     <IconButton 
-      color="warning" 
+      color="primary" 
       className={classes.whiteboardActionButton}
       sx={{ left: { sm: 10, md: -50 }, bottom: 150 }} 
-      onClick={() => setCanvasPointerEvents('auto')}
+      onClick={() => setDrawStyle(false)}
     >
       <GestureIcon />
+    </IconButton>
+    <IconButton 
+      color="warning" 
+      className={classes.whiteboardActionButton}
+      sx={{ left: { sm: 10, md: -50 }, bottom: 200 }} 
+      onClick={() => setDrawStyle(true)}
+    >
+      <HighlightIcon />
     </IconButton>
   </Box>
 }

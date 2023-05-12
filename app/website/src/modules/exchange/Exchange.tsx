@@ -13,13 +13,12 @@ import ChatBubble from '@mui/icons-material/ChatBubble';
 import Videocam from '@mui/icons-material/Videocam';
 import Call from '@mui/icons-material/Call';
 
-import { ExchangeContext, ExchangeContextType } from './ExchangeContext';
-import Whiteboard from './Whiteboard';
+import { useComponents, useContexts } from 'awayto/hooks';
 
 export function Exchange(): JSX.Element {
 
-  const fileId = 'b789e0dc-7d05-479d-9eef-0505a54a7659'; // comes from ???
-  const fileType = 'application/pdf';
+  const { ExchangeContext } = useContexts();
+  const { Whiteboard } = useComponents();
 
   const {
     chatLog,
@@ -64,7 +63,7 @@ export function Exchange(): JSX.Element {
 
       <Grid container style={{ height: '100%' }} direction="row" justifyContent="space-evenly">
         <Grid item xs={12} md={5} style={{ height: '100%', backgroundColor: theme.palette.primary.dark }}>
-          <Whiteboard fileRef={{ mimeType: fileType,  uuid: fileId }} />
+          <Whiteboard />
         </Grid>
         <Grid item xs={12} md={5}>
           <Grid container direction="column" style={{ height: '100%', display: 'flex', flexWrap: 'nowrap' }}>

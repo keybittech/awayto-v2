@@ -11,8 +11,7 @@ import DoNotDisturbIcon from '@mui/icons-material/DoNotDisturb';
 import { DataGrid } from '@mui/x-data-grid';
 
 import { IQuote, utcDTLocal, shortNSweet } from 'awayto/core';
-import { useGrid } from 'awayto/hooks';
-import { PendingQuotesContext, PendingQuotesContextType } from './PendingQuotesContext';
+import { useContexts, useGrid } from 'awayto/hooks';
 
 function QuoteHome(): JSX.Element {
 
@@ -22,7 +21,7 @@ function QuoteHome(): JSX.Element {
     setSelectedPendingQuotes,
     approvePendingQuotes,
     denyPendingQuotes
-  } = useContext(PendingQuotesContext) as PendingQuotesContextType;
+  } = useContext(useContexts().PendingQuotesContext) as PendingQuotesContextType;
 
   const actions = useMemo(() => {
     const { length } = selectedPendingQuotes;

@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
 
 import { plural, shortNSweet, IBooking } from 'awayto/core';
-import { sh, useUtil } from 'awayto/hooks';
-
-import { PendingQuotesContext, PendingQuotesContextType } from './PendingQuotesContext';
+import { sh, useContexts, useUtil } from 'awayto/hooks';
 
 export function PendingQuotesProvider ({ children }: IProps): JSX.Element {
+
+  const { PendingQuotesContext } = useContexts();
 
   const { setSnack, openConfirm } = useUtil();
   const [disableQuote] = sh.useDisableQuoteMutation();
@@ -90,9 +90,12 @@ export function PendingQuotesProvider ({ children }: IProps): JSX.Element {
     }
   } as PendingQuotesContextType | null;
 
-  return <PendingQuotesContext.Provider value={pendingQuotesContext}>
-    {children}
-  </PendingQuotesContext.Provider>;
+  return useMemo(() => !PendingQuotesContext ? <></> : 
+    <PendingQuotesContext.Provider value={pendingQuotesContext}>
+      {children}
+    </PendingQuotesContext.Provider>,
+    [PendingQuotesContext, pendingQuotesContext]
+  );
 }
 
 export default PendingQuotesProvider;

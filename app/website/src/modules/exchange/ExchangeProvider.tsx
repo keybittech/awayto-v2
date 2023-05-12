@@ -8,9 +8,7 @@ import IconButton from '@mui/material/IconButton';
 import Send from '@mui/icons-material/Send';
 
 import { ExchangeSessionAttributes, SenderStreams } from 'awayto/core';
-import { sh, useComponents, useUtil, useWebSocketSubscribe } from 'awayto/hooks';
-
-import { ExchangeContext, ExchangeContextType } from './ExchangeContext';
+import { sh, useComponents, useContexts, useUtil, useWebSocketSubscribe } from 'awayto/hooks';
 
 const peerConnectionConfig = {
   'iceServers': [
@@ -20,6 +18,8 @@ const peerConnectionConfig = {
 };
 
 export function ExchangeProvider({ children }: IProps): JSX.Element {
+
+  const { ExchangeContext } = useContexts();
 
   const { data: profile } = sh.useGetUserProfileDetailsQuery();
 
@@ -225,7 +225,7 @@ export function ExchangeProvider({ children }: IProps): JSX.Element {
     setTextMessage('');
   }
 
-  const pendingQuotesContext = {
+  const exchangeContext = {
     canStartStop,
     messagesEndRef,
     chatLog: useMemo(() => messages.map((msg, i) => <Typography color="primary" style={{ overflowWrap: 'anywhere' }} key={i}>{msg}</Typography>), [messages]),
@@ -290,12 +290,12 @@ export function ExchangeProvider({ children }: IProps): JSX.Element {
     }, [textMessage])
   } as ExchangeContextType | null;
 
-  return <>
-    <ExchangeContext.Provider value={pendingQuotesContext}>
+  return useMemo(() => !ExchangeContext ? <></> :
+    <ExchangeContext.Provider value={exchangeContext}>
       {children}
-    </ExchangeContext.Provider>
-  </>;
-
+    </ExchangeContext.Provider>,
+    [ExchangeContext, exchangeContext]
+  );
 }
 
 export default ExchangeProvider;

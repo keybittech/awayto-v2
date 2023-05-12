@@ -16,7 +16,7 @@ import ApprovalIcon from '@mui/icons-material/Approval';
 import DoNotDisturbIcon from '@mui/icons-material/DoNotDisturb';
 
 import { shortNSweet } from 'awayto/core';
-import { PendingQuotesContext, PendingQuotesContextType } from './PendingQuotesContext';
+import { useContexts } from 'awayto/hooks';
 
 declare global {
   interface IProps {
@@ -36,7 +36,7 @@ export function PendingQuotesMenu({ handleMenuClose, pendingQuotesAnchorEl, pend
     handleSelectPendingQuoteAll,
     approvePendingQuotes,
     denyPendingQuotes
-  } = useContext(PendingQuotesContext) as PendingQuotesContextType;
+  } = useContext(useContexts().PendingQuotesContext) as PendingQuotesContextType;
 
   return <Menu
     anchorEl={pendingQuotesAnchorEl}

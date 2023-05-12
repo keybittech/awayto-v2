@@ -1,4 +1,4 @@
-import type {} from '@mui/x-date-pickers/themeAugmentation';
+import type { } from '@mui/x-date-pickers/themeAugmentation';
 import { Theme, ThemeOptions } from '@mui/material/styles/createTheme';
 
 import makeStyles from '@mui/styles/makeStyles';
@@ -6,6 +6,7 @@ import makeStyles from '@mui/styles/makeStyles';
 import green from '@mui/material/colors/green';
 import red from '@mui/material/colors/red';
 import { PaletteMode } from 'awayto/core';
+import { StyleRules } from '@mui/styles';
 
 
 const drawerWidth = 175;
@@ -13,75 +14,86 @@ const drawerWidth = 175;
 /**
  * @category Style
  */
-export const useStyles = makeStyles((theme: Theme) => ({
+export const useStyles = makeStyles((theme: Theme) => {
 
-  appLogo: { width: '64px' },
-  logo: { width: '64px' },
-
-  root: { display: 'flex' },
-
-  siteTitle: { fontSize: '1.5rem', textAlign: 'center' },
-
-  menuText: { fontSize: '.75rem' },
-
-  colorBox: { width: '30px', height: '30px', display: 'block', margin: '12px', border: '1px solid #333', cursor: 'pointer', '&:hover': { opacity: .5 } },
-
-  appBar: { width: `calc(100% - ${drawerWidth}px)`, marginLeft: drawerWidth, backgroundColor: '#666' },
-
-  menuIcon: { "&:hover svg": { color: 'rgb(39 109 129)' } },
-
-  loginWrap: { height: '75vh' },
-
-  link: {
-    textDecoration: 'none'
-  },
-
-  dropzone: { width: '400px', height: '150px' },
-
-  datatable: { borderRadius: '4px' },
-
-  //Common
-  infoHeader: { fontWeight: 500, fontSize: '1rem', textTransform: 'uppercase', color: '#aaa !important' },
-  infoLabel: { fontWeight: 500, fontSize: '1rem' },
-  infoCard: { height: '200px', overflowY: 'auto' },
-
-
-  green: { color: green[500] },
-  red: { color: red[500] },
-
-  audioButton: { cursor: 'pointer' },
-
-  overflowEllipsis: { textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' },
-
-  blueChecked: { '& .MuiSvgIcon-root': { color: 'lightblue' } },
-
-  chipRoot: { margin: theme.spacing(1), height: '100%', display: 'flex', flexDirection: 'row' },
-
-  chipLabel: { overflowWrap: 'break-word', whiteSpace: 'normal', textOverflow: 'clip' },
-
-  absoluteFullChild: {
+  const absoluteFullChild = {
     position: 'absolute',
     width: '100%',
     height: '100%'
-  },
+  };
 
-  whiteboardActionButton: {
-    position: 'absolute',
-    zIndex: 11,
-    backgroundColor: '#aaa'
-  },
+  return {
 
-  variableButtonIcon: {
-    [theme.breakpoints.down('sm')]: {
-      fontSize: '24px',
+    appLogo: { width: '64px' },
+    logo: { width: '64px' },
+
+    root: { display: 'flex' },
+
+    siteTitle: { fontSize: '1.5rem', textAlign: 'center' },
+
+    menuText: { fontSize: '.75rem' },
+
+    colorBox: { width: '30px', height: '30px', display: 'block', margin: '12px', border: '1px solid #333', cursor: 'pointer', '&:hover': { opacity: .5 } },
+
+    appBar: { width: `calc(100% - ${drawerWidth}px)`, marginLeft: drawerWidth, backgroundColor: '#666' },
+
+    menuIcon: { "&:hover svg": { color: 'rgb(39 109 129)' } },
+
+    loginWrap: { height: '75vh' },
+
+    link: {
+      textDecoration: 'none'
     },
-    [theme.breakpoints.up('md')]: {
-      marginTop: '-4px',
-      fontSize: '12px !important',
-    },
-  },
 
-}));
+    dropzone: { width: '400px', height: '150px' },
+
+    datatable: { borderRadius: '4px' },
+
+    //Common
+    infoHeader: { fontWeight: 500, fontSize: '1rem', textTransform: 'uppercase', color: '#aaa !important' },
+    infoLabel: { fontWeight: 500, fontSize: '1rem' },
+    infoCard: { height: '200px', overflowY: 'auto' },
+
+
+    green: { color: green[500] },
+    red: { color: red[500] },
+
+    audioButton: { cursor: 'pointer' },
+
+    overflowEllipsis: { textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' },
+
+    blueChecked: { '& .MuiSvgIcon-root': { color: 'lightblue' } },
+
+    chipRoot: { margin: theme.spacing(1), height: '100%', display: 'flex', flexDirection: 'row' },
+
+    chipLabel: { overflowWrap: 'break-word', whiteSpace: 'normal', textOverflow: 'clip' },
+
+
+    pdfViewerComps: {
+      ...absoluteFullChild,
+      display: 'flex',
+      placeContent: 'center',
+      placeItems: 'center'
+    },
+
+    whiteboardActionButton: {
+      position: 'absolute',
+      zIndex: 11,
+      backgroundColor: '#aaa'
+    },
+
+    variableButtonIcon: {
+      [theme.breakpoints.down('sm')]: {
+        fontSize: '24px',
+      },
+      [theme.breakpoints.up('md')]: {
+        marginTop: '-4px',
+        fontSize: '12px !important',
+      },
+    },
+
+  } as StyleRules;
+});
 
 export const getBaseComponents: () => ThemeOptions = () => ({
   components: {
@@ -202,26 +214,26 @@ export const getDesignTokens: (mode: PaletteMode) => ThemeOptions = (mode) => ({
         },
         secondary: { main: 'rgb(0 191 255)' }
       }
-      : mode === 'dark' ? {
-        // palette values for dark mode
-        primary: {
-          main: '#ddd',
-          contrastText: '#333',
-          dark: '#203040'
-        },
-        secondary: {
-          main: '#009cc8',
-          dark: '#1c1d1e'          
+        : mode === 'dark' ? {
+          // palette values for dark mode
+          primary: {
+            main: '#ddd',
+            contrastText: '#333',
+            dark: '#203040'
+          },
+          secondary: {
+            main: '#009cc8',
+            dark: '#1c1d1e'
+          }
         }
-      }
-      : {
-        // palette for blue
-        primary: {
-          main: '#000',
-          dark: '#121f31'
-        },
-        secondary: { main: 'rgb(0 191 255)' }
-      })
+          : {
+            // palette for blue
+            primary: {
+              main: '#000',
+              dark: '#121f31'
+            },
+            secondary: { main: 'rgb(0 191 255)' }
+          })
   },
 });
 
@@ -305,7 +317,7 @@ export const getThemedComponents: (mode: PaletteMode) => ThemeOptions = (mode) =
           }
         }
       }
-      
+
     )
   }
 })

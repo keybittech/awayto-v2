@@ -1,4 +1,4 @@
-import { useCallback,  useState } from 'react';
+import { useCallback,  useMemo,  useState } from 'react';
 import keycloak from '../keycloak';
 import { BufferResponse, IFile } from 'awayto/core';
 
@@ -41,5 +41,5 @@ export const useFileContents: UseFileContents = () => {
     return fileRef as IFile;
   }, []);
 
-  return { fileDetails, getFileContents };
+  return useMemo(() => ({ fileDetails, getFileContents }), [fileDetails, getFileContents]);
 }
