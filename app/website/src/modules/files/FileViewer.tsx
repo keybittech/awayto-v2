@@ -25,7 +25,7 @@ export function FileViewer({ fileRef, width, height }: IProps): React.JSX.Elemen
     if (fileRef && !fileDetails) {
       getFileContents(fileRef).catch(console.error);
     }
-  }, [fileRef, fileDetails]);
+  }, [fileDetails]);
 
   const [numPages, setNumPages] = useState(0);
   const [pageNumber, setPageNumber] = useState(1);
