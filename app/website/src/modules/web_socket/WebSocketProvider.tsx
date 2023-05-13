@@ -5,7 +5,7 @@ import { SocketResponse, SocketResponseHandler } from 'awayto/core';
 
 import keycloak from '../../keycloak';
 
-function WebSocketProvider({ children }: IProps): JSX.Element {
+function WebSocketProvider({ children }: IProps): React.JSX.Element {
 
   const { setSnack } = useUtil();
   const { WebSocketContext } = useContexts();

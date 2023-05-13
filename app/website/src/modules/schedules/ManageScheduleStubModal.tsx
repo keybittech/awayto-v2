@@ -20,7 +20,7 @@ declare global {
   }
 }
 
-export function ManageScheduleStubModal({ editGroupUserScheduleStub, closeModal }: Required<IProps>): JSX.Element {
+export function ManageScheduleStubModal({ editGroupUserScheduleStub, closeModal }: Required<IProps>): React.JSX.Element {
   
   const { GroupContext, GroupScheduleContext, GroupScheduleSelectionContext } = useContexts();
 

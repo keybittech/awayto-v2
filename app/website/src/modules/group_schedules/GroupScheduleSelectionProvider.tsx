@@ -4,7 +4,7 @@ import dayjs from 'dayjs';
 import { IGroupScheduleDateSlots, IQuote, TimeUnit, quotedDT, userTimezone } from 'awayto/core';
 import { sh, useContexts } from 'awayto/hooks';
 
-export function GroupScheduleSelectionProvider({ children }: IProps): JSX.Element {
+export function GroupScheduleSelectionProvider({ children }: IProps): React.JSX.Element {
 
   const { GroupContext, GroupScheduleContext, GroupScheduleSelectionContext } = useContexts();
 

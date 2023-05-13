@@ -18,7 +18,7 @@ import { sh, useGrid, useStyles } from 'awayto/hooks';
 
 import ManageRoleModal from './ManageRoleModal';
 
-export function ManageRoles(props: IProps): JSX.Element {
+export function ManageRoles(props: IProps): React.JSX.Element {
   const classes = useStyles();
 
   const { data: profile, refetch: getUserProfileDetails } = sh.useGetUserProfileDetailsQuery();

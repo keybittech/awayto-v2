@@ -25,7 +25,7 @@ declare global {
   }
 }
 
-export function ManageUserModal({ editUser, closeModal }: IProps): JSX.Element {
+export function ManageUserModal({ editUser, closeModal }: IProps): React.JSX.Element {
 
   const { groupName } = useParams();
   if (!groupName) return <></>;

@@ -12,7 +12,7 @@ declare global {
   interface IProps extends FieldProps {}
 }
 
-function Field ({ field, editable = false }: IProps): JSX.Element {
+function Field ({ field, editable = false }: IProps): React.JSX.Element {
   if (!field) return <></>;
   let FieldElement: (props: TextFieldProps) => JSX.Element;
 

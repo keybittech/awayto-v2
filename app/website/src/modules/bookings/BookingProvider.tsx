@@ -5,7 +5,7 @@ import { sh } from 'awayto/hooks';
 
 import { BookingContext, BookingContextType } from "./BookingContext";
 
-export function BookingProvider ({ children }: IProps): JSX.Element {
+export function BookingProvider ({ children }: IProps): React.JSX.Element {
 
   const [bookingValuesChanged, setBookingValuesChanged] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<IBooking[]>([]);

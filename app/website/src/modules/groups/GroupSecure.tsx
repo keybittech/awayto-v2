@@ -9,7 +9,7 @@ declare global {
   }
 }
 
-export function GroupSecure ({ contentGroupRoles = [SiteRoles.APP_GROUP_ADMIN], children }: IProps): JSX.Element {
+export function GroupSecure ({ contentGroupRoles = [SiteRoles.APP_GROUP_ADMIN], children }: IProps): React.JSX.Element {
 
   const hasGroupRole = useGroupSecure();
 

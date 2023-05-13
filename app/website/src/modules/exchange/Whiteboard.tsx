@@ -28,7 +28,7 @@ function getRelativeCoordinates(event: MouseEvent | React.MouseEvent<HTMLCanvasE
   return { x, y };
 }
 
-export default function Whiteboard(): JSX.Element {
+export default function Whiteboard(): React.JSX.Element {
   const parentRef = useRef<HTMLDivElement>(null);
   const whiteboardRef = useRef<HTMLCanvasElement>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);

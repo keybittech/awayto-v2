@@ -24,7 +24,7 @@ declare global {
   }
 }
 
-export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IProps): JSX.Element {
+export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IProps): React.JSX.Element {
 
   const { groupName } = useParams();
   if (!groupName) return <></>;

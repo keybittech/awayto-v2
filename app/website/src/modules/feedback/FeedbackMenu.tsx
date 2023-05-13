@@ -18,7 +18,7 @@ declare global {
   }
 }
 
-export function FeedbackMenu ({ handleMenuClose, feedbackAnchorEl, feedbackMenuId, isFeedbackOpen }: IProps): JSX.Element {
+export function FeedbackMenu ({ handleMenuClose, feedbackAnchorEl, feedbackMenuId, isFeedbackOpen }: IProps): React.JSX.Element {
 
   const [postFeedback] = sh.usePostGroupFeedbackMutation();
 

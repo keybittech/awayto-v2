@@ -14,7 +14,7 @@ declare global {
   }
 }
 
-function FileManager({ files, setFiles }: Required<IProps>): JSX.Element {
+function FileManager({ files, setFiles }: Required<IProps>): React.JSX.Element {
 
   const fileSelectRef = useRef<HTMLInputElement>(null);
 

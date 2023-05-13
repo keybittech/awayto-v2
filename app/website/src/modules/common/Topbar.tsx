@@ -39,7 +39,7 @@ declare global {
   }
 }
 
-export function Topbar(props: IProps): JSX.Element {
+export function Topbar(props: IProps): React.JSX.Element {
 
   const navigate = useNavigate();
   const hasRole = useSecure();

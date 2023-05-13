@@ -9,7 +9,7 @@ import CardActions from '@mui/material/CardActions';
 import { sh, useUtil } from 'awayto/hooks';
 import { TextField } from '@mui/material';
 
-export function JoinGroupModal ({ closeModal }: IProps): JSX.Element {
+export function JoinGroupModal ({ closeModal }: IProps): React.JSX.Element {
 
   const { setSnack } = useUtil();
   const [joinGroup] = sh.useJoinGroupMutation();

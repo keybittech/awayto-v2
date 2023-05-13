@@ -18,7 +18,7 @@ declare global {
   }
 }
 
-export function ManageRoleModal ({ editRole, closeModal }: IProps): JSX.Element {
+export function ManageRoleModal ({ editRole, closeModal }: IProps): React.JSX.Element {
 
   const { setSnack } = useUtil();
   const [putRole] = sh.usePutRoleMutation();

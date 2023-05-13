@@ -22,7 +22,7 @@ export function AccordionWrap({
   invalidSubmission?: boolean;
   expanded?: boolean;
   onChange?: (event: React.SyntheticEvent<Element, Event>, expanded: boolean) => void;
-}): JSX.Element {
+}): React.JSX.Element {
   const idRef = useRef(`${nid()}-${toSnakeCase(label)}`);
 
   return (

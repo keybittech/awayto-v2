@@ -34,7 +34,7 @@ const {
   REACT_APP_KC_CLIENT
 } = process.env as { [prop: string]: string };
 
-export default function App (props: IProps): JSX.Element {
+export default function App (props: IProps): React.JSX.Element {
   const { setSnack } = useUtil();
   const { Onboard, ConfirmAction } = useComponents();
   const { theme, snackOn, snackType, snackRequestId, isLoading, loadingMessage } = useAppSelector(state => state.util);

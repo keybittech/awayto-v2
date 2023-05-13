@@ -8,7 +8,7 @@ import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { getRelativeDuration, TimeUnit } from 'awayto/core';
 import { useContexts, useTimeName } from 'awayto/hooks';
 
-export function ScheduleTimePicker(): JSX.Element {
+export function ScheduleTimePicker(): React.JSX.Element {
 
   const { GroupScheduleContext, GroupScheduleSelectionContext } = useContexts();
 

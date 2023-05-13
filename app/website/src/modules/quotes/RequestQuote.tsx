@@ -13,7 +13,7 @@ import CardActionArea from '@mui/material/CardActionArea';
 import { useComponents, useContexts, sh, useUtil, useGroupForm, useAccordion, useFiles } from 'awayto/hooks';
 import { IFormVersionSubmission } from 'awayto/core';
 
-export function RequestQuote(props: IProps): JSX.Element {
+export function RequestQuote(props: IProps): React.JSX.Element {
 
   const navigate = useNavigate();
   const { setSnack } = useUtil();

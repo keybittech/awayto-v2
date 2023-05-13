@@ -99,7 +99,7 @@ declare global {
   interface IProps extends FormBuilderProps { }
 }
 
-export default function FormBuilder({ version, setVersion, editable = true }: IProps & Required<FormBuilderProps>): JSX.Element {
+export default function FormBuilder({ version, setVersion, editable = true }: IProps & Required<FormBuilderProps>): React.JSX.Element {
 
   const [rows, setRows] = useState({} as Record<string, IField[]>);
   const [cell, setCell] = useState({} as IField);

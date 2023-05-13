@@ -13,7 +13,7 @@ import { DataGrid } from '@mui/x-data-grid';
 import { IGroupUserScheduleStub, shortNSweet } from 'awayto/core';
 import { useGrid, useComponents, useContexts } from 'awayto/hooks';
 
-export function ManageScheduleStubs(): JSX.Element {
+export function ManageScheduleStubs(): React.JSX.Element {
   
   const { ManageScheduleStubModal } = useComponents();
 

@@ -14,7 +14,7 @@ declare global {
   }
 }
 
-export function ServiceTierAddons({ service }: IProps): JSX.Element {
+export function ServiceTierAddons({ service }: IProps): React.JSX.Element {
   if (!service) return <></>;
 
   const serviceTiers = useMemo(() => Object.values(service.tiers), [service]);

@@ -14,7 +14,7 @@ declare global {
 }
 
 
-export default function FormDisplay({ form, setForm }: IProps & Required<FormDisplayProps>): JSX.Element {
+export default function FormDisplay({ form, setForm }: IProps & Required<FormDisplayProps>): React.JSX.Element {
 
   useEffect(() => {
     if (!form.version.submission) {

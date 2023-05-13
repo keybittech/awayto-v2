@@ -20,7 +20,7 @@ import ManageSchedulesModal from './ManageSchedulesModal';
 import { useParams } from 'react-router';
 
 // This is how group owners interact with the schedule
-export function ManageSchedules(props: IProps): JSX.Element {
+export function ManageSchedules(props: IProps): React.JSX.Element {
   const classes = useStyles();
 
   const { groupName } = useParams();

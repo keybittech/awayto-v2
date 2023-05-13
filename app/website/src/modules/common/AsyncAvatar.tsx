@@ -8,7 +8,7 @@ declare global {
   }
 }
 
-export function AsyncAvatar ({ image }: IProps): JSX.Element {
+export function AsyncAvatar ({ image }: IProps): React.JSX.Element {
   const [url, setUrl] = useState('');
   const fileStore = useFileStore();
   

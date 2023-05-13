@@ -11,7 +11,7 @@ import Dialog from '@mui/material/Dialog';
 import { useAppSelector, useUtil, getUtilRegisteredAction } from 'awayto/hooks';
 import { CardHeader } from '@mui/material';
 
-export function ConfirmAction(): JSX.Element {
+export function ConfirmAction(): React.JSX.Element {
 
   const { closeConfirm } = useUtil();
   const util = useAppSelector(state => state.util);

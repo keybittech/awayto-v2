@@ -23,7 +23,7 @@ declare global {
   }
 }
 
-export function UpcomingBookingsMenu({ handleMenuClose, upcomingBookingsAnchorEl, upcomingBookingsMenuId, isUpcomingBookingsOpen }: IProps): JSX.Element {
+export function UpcomingBookingsMenu({ handleMenuClose, upcomingBookingsAnchorEl, upcomingBookingsMenuId, isUpcomingBookingsOpen }: IProps): React.JSX.Element {
 
   const { data: profile } = sh.useGetUserProfileDetailsQuery();
 

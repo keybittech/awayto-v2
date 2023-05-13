@@ -19,7 +19,7 @@ declare global {
   }
 }
 
-export function ManageFormModal({ editForm, closeModal, ...props }: IProps): JSX.Element {
+export function ManageFormModal({ editForm, closeModal, ...props }: IProps): React.JSX.Element {
 
   const { groupName } = useParams();
   if (!groupName) return <></>;

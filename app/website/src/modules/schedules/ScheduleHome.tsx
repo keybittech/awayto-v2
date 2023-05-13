@@ -23,7 +23,7 @@ export const bracketSchema = {
   multiplier: '1.00'
 };
 
-export function ScheduleHome(props: IProps): JSX.Element {
+export function ScheduleHome(props: IProps): React.JSX.Element {
   const { ManageScheduleBrackets } = useComponents();
   return <ManageScheduleBrackets {...props} />
 }

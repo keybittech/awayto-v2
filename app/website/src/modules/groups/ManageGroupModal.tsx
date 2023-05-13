@@ -31,7 +31,7 @@ declare global {
   }
 }
 
-export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): JSX.Element {
+export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): React.JSX.Element {
 
   const { setSnack } = useUtil();
 

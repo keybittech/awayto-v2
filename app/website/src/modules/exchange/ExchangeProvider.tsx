@@ -17,7 +17,7 @@ const peerConnectionConfig = {
   ]
 };
 
-export function ExchangeProvider({ children }: IProps): JSX.Element {
+export function ExchangeProvider({ children }: IProps): React.JSX.Element {
 
   const { ExchangeContext } = useContexts();
 

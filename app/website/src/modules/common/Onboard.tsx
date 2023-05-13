@@ -12,7 +12,7 @@ import Icon from '../../img/kbt-icon.png';
 import { useComponents, useUtil, sh } from 'awayto/hooks';
 import keycloak from '../../keycloak';
 
-export function Onboard(props: IProps): JSX.Element {
+export function Onboard(props: IProps): React.JSX.Element {
 
   const [joinGroup] = sh.useJoinGroupMutation();
 

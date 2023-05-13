@@ -39,7 +39,7 @@ function isStringArray(str?: string | string[]): str is string[] {
   return (str as string[]).forEach !== undefined;
 }
 
-export function SelectLookup({ lookupChange, disabled = false, invalidValues = [], attachAction, attachName, refetchAction, parentUuidName, parentUuid, lookups, lookupName, helperText, lookupValue, multiple = false, noEmptyValue = false, createAction, deleteAction, deleteActionIdentifier }: IProps): JSX.Element {
+export function SelectLookup({ lookupChange, disabled = false, invalidValues = [], attachAction, attachName, refetchAction, parentUuidName, parentUuid, lookups, lookupName, helperText, lookupValue, multiple = false, noEmptyValue = false, createAction, deleteAction, deleteActionIdentifier }: IProps): React.JSX.Element {
   
   const { setSnack } = useUtil();
 

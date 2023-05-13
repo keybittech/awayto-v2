@@ -19,7 +19,7 @@ import { useGrid, sh, useUtil, useStyles } from 'awayto/hooks';
 
 import ManageServiceModal from './ManageServiceModal';
 
-export function ManageServices(props: IProps): JSX.Element {
+export function ManageServices(props: IProps): React.JSX.Element {
   const classes = useStyles();
 
   const { groupName } = useParams();

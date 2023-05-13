@@ -10,7 +10,7 @@ import { useComponents } from 'awayto/hooks';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 
-const Layout = (props: IProps): JSX.Element => {
+const Layout = (props: IProps): React.JSX.Element => {
 
   const { Home, Exchange, ExchangeProvider, TopLevelProviders, Profile, GroupPaths, ServiceHome, ScheduleHome, RequestQuote } = useComponents();
 

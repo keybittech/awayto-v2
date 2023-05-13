@@ -7,7 +7,7 @@ declare global {
   }
 }
 
-export function Video({ srcObject, autoPlay = false }: VideoHTMLAttributes<HTMLVideoElement> & IProps): JSX.Element {
+export function Video({ srcObject, autoPlay = false }: VideoHTMLAttributes<HTMLVideoElement> & IProps): React.JSX.Element {
   const refVideo = useCallback((node: HTMLVideoElement) => {
     if (node && srcObject) node.srcObject = srcObject;
   }, [srcObject])

@@ -6,7 +6,7 @@ import { DataGrid } from '@mui/x-data-grid';
 import { useGrid, sh } from 'awayto/hooks';
 import { useParams } from 'react-router';
 
-export function ManageFeedbacks(): JSX.Element {
+export function ManageFeedbacks(): React.JSX.Element {
 
   const { groupName } = useParams();
   if (!groupName) return <></>;

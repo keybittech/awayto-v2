@@ -13,7 +13,7 @@ import { SiteRoles, IGroupRoleAuthActions } from 'awayto/core';
 import { useGrid, useAppSelector, sh, useUtil } from 'awayto/hooks';
 import { useParams } from 'react-router';
 
-export function ManageRoleActions(): JSX.Element {
+export function ManageRoleActions(): React.JSX.Element {
   const { groupName } = useParams();
   if (!groupName) return <></>;
 

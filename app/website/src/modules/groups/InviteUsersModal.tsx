@@ -10,7 +10,7 @@ import { IUserProfile } from 'awayto/core';
 import { sh, useUtil } from 'awayto/hooks';
 import { TextField } from '@mui/material';
 
-export function InviteUsersModal({ closeModal }: IProps): JSX.Element {
+export function InviteUsersModal({ closeModal }: IProps): React.JSX.Element {
 
   const { setSnack } = useUtil();
   const [inviteGroupUser] = sh.useInviteGroupUserMutation();

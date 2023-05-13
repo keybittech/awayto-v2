@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { plural, shortNSweet, IBooking } from 'awayto/core';
 import { sh, useContexts, useUtil } from 'awayto/hooks';
 
-export function PendingQuotesProvider ({ children }: IProps): JSX.Element {
+export function PendingQuotesProvider ({ children }: IProps): React.JSX.Element {
 
   const { PendingQuotesContext } = useContexts();
 

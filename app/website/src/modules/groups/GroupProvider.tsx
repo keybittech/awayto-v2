@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 
 import { sh, useContexts, useSelectOne } from 'awayto/hooks';
 
-export function GroupProvider({ children }: IProps): JSX.Element {
+export function GroupProvider({ children }: IProps): React.JSX.Element {
   const { GroupContext } = useContexts();
 
   const { data: profile } = sh.useGetUserProfileDetailsQuery();

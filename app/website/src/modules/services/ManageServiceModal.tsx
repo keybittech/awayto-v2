@@ -17,7 +17,7 @@ declare global {
   }
 }
 
-export function ManageServiceModal ({ editService, closeModal, ...props }: IProps): JSX.Element {
+export function ManageServiceModal ({ editService, closeModal, ...props }: IProps): React.JSX.Element {
 
   const { setSnack } = useUtil();
 

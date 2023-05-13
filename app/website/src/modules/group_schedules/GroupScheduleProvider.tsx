@@ -2,7 +2,7 @@ import React, { useContext, useMemo } from 'react';
 
 import { sh, useComponents, useContexts, useSelectOne } from 'awayto/hooks';
 
-export function GroupScheduleProvider({ children }: IProps): JSX.Element {
+export function GroupScheduleProvider({ children }: IProps): React.JSX.Element {
   const { GroupScheduleSelectionProvider } = useComponents();
 
   const { GroupContext, GroupScheduleContext } = useContexts();

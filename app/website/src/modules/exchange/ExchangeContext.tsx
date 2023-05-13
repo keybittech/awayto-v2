@@ -1,13 +1,13 @@
-import { createContext } from "react";
+import React, { createContext } from "react";
 
 declare global {
   type ExchangeContextType = {
-    chatLog: JSX.Element[];
+    chatLog: React.JSX.Element[];
     messagesEndRef: React.RefObject<HTMLDivElement>;
     canStartStop: string;
-    localStreamElement: JSX.Element;
-    senderStreamsElements: (JSX.Element | undefined)[];
-    submitMessageForm: JSX.Element;
+    localStreamElement: React.JSX.Element;
+    senderStreamsElements: (React.JSX.Element | undefined)[];
+    submitMessageForm: React.JSX.Element;
     setLocalStreamAndBroadcast: (prop: boolean) => void;
     leaveCall: () => void;
   }

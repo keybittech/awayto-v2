@@ -27,7 +27,7 @@ declare global {
   }
 }
 
-export function PendingQuotesMenu({ handleMenuClose, pendingQuotesAnchorEl, pendingQuotesMenuId, isPendingQuotesOpen }: IProps): JSX.Element {
+export function PendingQuotesMenu({ handleMenuClose, pendingQuotesAnchorEl, pendingQuotesMenuId, isPendingQuotesOpen }: IProps): React.JSX.Element {
 
   const {
     pendingQuotes,

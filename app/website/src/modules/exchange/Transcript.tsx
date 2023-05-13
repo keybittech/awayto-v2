@@ -18,7 +18,7 @@ declare global {
   }
 }
 
-function Transcript({ messages }: IProps): JSX.Element {
+function Transcript({ messages }: IProps): React.JSX.Element {
   // if (!messages) return <></>;
   // const sortedTranscript = useMemo(
   //   () =>

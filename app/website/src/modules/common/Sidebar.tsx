@@ -22,7 +22,7 @@ import keycloak from '../../keycloak';
 import { useSecure, useStyles } from 'awayto/hooks';
 import { SiteRoles } from 'awayto/core';
 
-export function Sidebar(): JSX.Element {
+export function Sidebar(): React.JSX.Element {
   const hasRole = useSecure();
   const navigate = useNavigate();
   const classes = useStyles();

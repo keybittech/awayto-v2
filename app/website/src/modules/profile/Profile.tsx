@@ -12,7 +12,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import { IUserProfile, IPreviewFile } from 'awayto/core';
 import { sh, useComponents, useFileStore, useStyles, useUtil } from 'awayto/hooks';
 
-export function Profile(props: IProps): JSX.Element {
+export function Profile(props: IProps): React.JSX.Element {
   const classes = useStyles();
 
   const { setSnack } = useUtil();

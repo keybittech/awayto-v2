@@ -35,7 +35,7 @@ const validCost = function (cost: string): boolean {
 
 // In theory there's no difference between theory and practice, but in practice there is.
 
-export function ServiceHome(props: IProps): JSX.Element {
+export function ServiceHome(props: IProps): React.JSX.Element {
   const classes = useStyles();
 
   const { setSnack } = useUtil();

@@ -2,7 +2,7 @@ import React from 'react';
 import { useComponents } from 'awayto/hooks';
 import { Route, Routes } from 'react-router';
 
-export function GroupPaths (props: IProps): JSX.Element {
+export function GroupPaths (props: IProps): React.JSX.Element {
   
   const { ManageGroupHome } = useComponents();
 

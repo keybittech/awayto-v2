@@ -26,7 +26,7 @@ import JoinGroupModal from './JoinGroupModal';
 
 import keycloak from '../../keycloak';
 
-export function ManageGroups(props: IProps): JSX.Element {
+export function ManageGroups(props: IProps): React.JSX.Element {
   const classes = useStyles();
 
   const [deleteGroup] = sh.useDeleteGroupMutation();

@@ -13,7 +13,7 @@ import { DataGrid } from '@mui/x-data-grid';
 import { IQuote, utcDTLocal, shortNSweet } from 'awayto/core';
 import { useContexts, useGrid } from 'awayto/hooks';
 
-function QuoteHome(): JSX.Element {
+function QuoteHome(): React.JSX.Element {
 
   const {
     pendingQuotes,

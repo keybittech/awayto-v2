@@ -19,7 +19,7 @@ import { sh, useGrid, useStyles } from 'awayto/hooks';
 
 import ManageFormModal from './ManageFormModal';
 
-export function ManageForms(props: IProps): JSX.Element {
+export function ManageForms(props: IProps): React.JSX.Element {
   const classes = useStyles();
 
   const { groupName } = useParams();

@@ -12,7 +12,7 @@ declare global {
   }
 }
 
-export function PickTheme (props: IProps): JSX.Element {
+export function PickTheme (props: IProps): React.JSX.Element {
 
   const { setTheme } = useUtil()
 

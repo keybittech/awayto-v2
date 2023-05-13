@@ -15,7 +15,7 @@ import Call from '@mui/icons-material/Call';
 
 import { useComponents, useContexts } from 'awayto/hooks';
 
-export function Exchange(): JSX.Element {
+export function Exchange(): React.JSX.Element {
 
   const { ExchangeContext } = useContexts();
   const { Whiteboard } = useComponents();

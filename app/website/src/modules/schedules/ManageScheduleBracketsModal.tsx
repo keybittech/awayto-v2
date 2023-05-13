@@ -31,7 +31,7 @@ declare global {
   }
 }
 
-export function ManageScheduleBracketsModal({ editSchedule, closeModal }: IProps): JSX.Element {
+export function ManageScheduleBracketsModal({ editSchedule, closeModal }: IProps): React.JSX.Element {
 
   const { setSnack } = useUtil();
 

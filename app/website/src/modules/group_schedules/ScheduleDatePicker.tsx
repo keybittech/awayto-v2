@@ -6,7 +6,7 @@ import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker';
 
 import { useContexts } from 'awayto/hooks';
 
-export function ScheduleDatePicker(): JSX.Element {
+export function ScheduleDatePicker(): React.JSX.Element {
 
   const {
     setStartOfMonth,

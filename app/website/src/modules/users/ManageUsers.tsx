@@ -16,7 +16,7 @@ import { sh, useGrid } from 'awayto/hooks';
 import ManageUserModal from './ManageUserModal';
 import { useParams } from 'react-router';
 
-export function ManageUsers(props: IProps): JSX.Element {
+export function ManageUsers(props: IProps): React.JSX.Element {
   
   const { groupName } = useParams();
   if (!groupName) return <></>;

@@ -64,12 +64,12 @@ export function useComponents(): IBaseComponents {
     return new Proxy(components, {
       get: function (target: IBaseComponents, prop: string): LazyExoticComponent<IBaseComponent> | (() => JSX.Element) {
         if (groupName && roles[views[prop]]?.length && !hasGroupRole(groupName, profile.availableUserGroupRoles, roles[views[prop]] )) {
-          components[prop] = ((): JSX.Element => createElement('div'));
+          components[prop] = ((): React.JSX.Element => createElement('div'));
         }
       
         if (!components[prop]) components[prop] = lazy<IBaseComponent>(() => import(`../${views[prop]}`) as Promise<{ default: IBaseComponent }>);
 
-        target[prop] = views[prop] ? components[prop] : ((): JSX.Element => createElement('div'));
+        target[prop] = views[prop] ? components[prop] : ((): React.JSX.Element => createElement('div'));
 
         return Reflect.get(target, prop);
       }

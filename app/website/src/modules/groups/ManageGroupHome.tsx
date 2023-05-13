@@ -10,7 +10,7 @@ import { useComponents } from 'awayto/hooks';
 
 const { APP_GROUP_ADMIN, APP_GROUP_ROLES, APP_GROUP_SCHEDULES, APP_GROUP_SERVICES, APP_GROUP_USERS } = SiteRoles;
 
-export function ManageGroupHome(props: IProps): JSX.Element {
+export function ManageGroupHome(props: IProps): React.JSX.Element {
   const { groupName, component } = useParams();
 
   if (!groupName || !component) return <></>;

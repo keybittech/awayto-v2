@@ -4,7 +4,7 @@ import Box from '@mui/material/Box';
 
 import { useComponents } from 'awayto/hooks';
 
-export function Home(props: IProps): JSX.Element {
+export function Home(props: IProps): React.JSX.Element {
   const { BookingHome, GroupHome, QuoteHome, PendingQuotesProvider } = useComponents();
   return (
     <>
