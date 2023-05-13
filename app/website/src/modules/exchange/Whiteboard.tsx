@@ -2,11 +2,14 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
+import useTheme from '@mui/material/styles/useTheme';
 
 import GestureIcon from '@mui/icons-material/Gesture';
 import TouchAppIcon from '@mui/icons-material/TouchApp';
 import LayersClearIcon from '@mui/icons-material/LayersClear';
 import HighlightIcon from '@mui/icons-material/Highlight';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
 
 import { useWebSocketSubscribe, useStyles, useComponents } from 'awayto/hooks';
 
@@ -27,22 +30,25 @@ function getRelativeCoordinates(event: MouseEvent | React.MouseEvent<HTMLCanvasE
 
 export default function Whiteboard(): JSX.Element {
   const parentRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const whiteboardRef = useRef<HTMLCanvasElement>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
+  const fileScroller = useRef<HTMLDivElement>(null);
+  const fileDisplayRef = useRef<HTMLDivElement>(null);
+  const whiteboard = useRef<Whiteboard>({ lines: [], hightlight: false, doc: { position: [0, 0] } });
 
-  const { FileViewer } = useComponents();
+  const { PDFViewer } = useComponents();
 
   const classes = useStyles();
 
   const [canvasPointerEvents, setCanvasPointerEvents] = useState('none');
-  const [dimensions, setDimensions] = useState([0, 0]);
+  const [zoom, setZoom] = useState(1);
   const [highlight, setHightlight] = useState(false);
 
   const { sendMessage: sendExchangeMessage } = useWebSocketSubscribe<Whiteboard>('exchange-id', ({ payload }) => {
     const newLines = payload.lines;
     if (newLines?.length) {
       const draw = () => {
-        const canvas = canvasRef.current;
+        const canvas = whiteboardRef.current;
         if (!canvas) return;
         const ctx = contextRef.current;
         if (!ctx) return;
@@ -62,8 +68,6 @@ export default function Whiteboard(): JSX.Element {
     }
   });
 
-  const whiteboard = useRef<Whiteboard>({ lines: [], hightlight: false, doc: { position: [0, 0] } });
-
   const sendBatchedData = useCallback(() => {
     if (whiteboard.current.lines.length > 0) {
       sendExchangeMessage('whiteboardUpdate', whiteboard.current);
@@ -73,7 +77,7 @@ export default function Whiteboard(): JSX.Element {
 
   const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
     event.preventDefault();
-    const canvas = canvasRef.current;
+    const canvas = whiteboardRef.current;
     if (!canvas) return;
 
     const ctx = contextRef.current;
@@ -106,7 +110,7 @@ export default function Whiteboard(): JSX.Element {
         ctx.strokeStyle = 'black';
         ctx.lineWidth = ctx.globalAlpha = 1;
       }
-      
+
       ctx.stroke();
 
       // Update lastPoint
@@ -130,89 +134,138 @@ export default function Whiteboard(): JSX.Element {
   const fileId = 'b789e0dc-7d05-479d-9eef-0505a54a7659';
   const fileType = 'application/pdf';
 
+  const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
-    if (null !== canvasRef.current && !contextRef.current) {
-      contextRef.current = canvasRef.current.getContext('2d');
+    const fv = fileScroller.current;
+
+    if (fv) {
+
+      const onScrollEnd = () => {
+        const target = fv;
+        whiteboard.current.doc.position = [target.scrollLeft, target.scrollTop];
+        sendExchangeMessage('updateWhiteboard', whiteboard.current);
+      };
+
+      const onFileScroll = (e: Event) => {
+        if (scrollTimeout.current) {
+          clearTimeout(scrollTimeout.current);
+        }
+        scrollTimeout.current = setTimeout(() => {
+          onScrollEnd();
+        }, 500);
+      };
+
+      fv.addEventListener('scroll', onFileScroll);
+
+      return () => {
+        if (scrollTimeout.current) {
+          clearTimeout(scrollTimeout.current);
+        }
+        fv.removeEventListener('scroll', onFileScroll);
+      };
     }
-  }, [canvasRef, contextRef]);
+  }, [fileScroller.current]);
+
+  useEffect(() => {
+    if (null !== whiteboardRef.current && !contextRef.current) {
+      contextRef.current = whiteboardRef.current.getContext('2d');
+    }
+  }, [whiteboardRef, contextRef]);
 
   useEffect(() => {
     const interval = setInterval(sendBatchedData, 150);
     return () => clearInterval(interval);
   }, [sendBatchedData]);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const parent = parentRef.current;
+  return <Box sx={{ height: '100%', width: '100%', position: 'relative' }}>
 
-    const setCanvasSize = () => {
-      if (canvas && parent) {
-        canvas.style.width = `${parent.clientWidth}px`;
-        canvas.style.height = `${parent.clientHeight}px`;
-        canvas.width = parent.clientWidth;
-        canvas.height = parent.clientHeight;
-        setDimensions([parent.clientWidth, parent.clientHeight]);
-      }
-    };
+    {/* General Canvas Background  */}
+    <Box ref={fileScroller} sx={{
+      backgroundColor: '#ccc',
+      height: '100%',
+      overflow: 'scroll',
+      display: 'flex',
+      position: 'relative',
+      padding: '16px'
+    }}>
+      {/* Drawing Canvas */}
+      <Box
+        sx={{
+          position: 'absolute',
+          zIndex: 10,
+          pointerEvents: canvasPointerEvents
+        }}
+        ref={whiteboardRef}
+        component='canvas'
+        onMouseDown={handleMouseDown}
+      />
 
-    setCanvasSize();
+      {/* File Viewer */}
+      <PDFViewer
+        canvasRef={fileDisplayRef}
+        file={{ mimeType: fileType, uuid: fileId }}
+        scale={zoom}
+        onRenderSuccess={() => {
+          if (fileDisplayRef.current && whiteboardRef.current) {
+            const { width, height } = fileDisplayRef.current.getBoundingClientRect();
+            whiteboardRef.current.width = width;
+            whiteboardRef.current.height = height;
+          }
+        }}
+      />
+    </Box>
 
-    window.addEventListener('resize', setCanvasSize);
-
-    return () => {
-      window.removeEventListener('resize', setCanvasSize);
-    };
-  }, []);
-
-  return <Box ref={parentRef} sx={{ height: '100%', width: '100%', position: 'relative' }}>
-    <Box
-      className={classes.pdfViewerComps}
-      sx={{
-        zIndex: 10,
-        pointerEvents: canvasPointerEvents
-      }}
-      ref={canvasRef}
-      component='canvas'
-      onMouseDown={handleMouseDown}
-    />
-
-    <FileViewer
-      width={dimensions[0]}
-      height={dimensions[1]}
-      fileRef={{ mimeType: fileType,  uuid: fileId }}
-    />
-
-    <IconButton 
-      color="info"
+    {/* Top Button */}
+    <IconButton
+      color="primary"
       className={classes.whiteboardActionButton}
-      sx={{ left: { sm: 10, md: -50 }, bottom: 50 }} 
-      onClick={() => setCanvasPointerEvents('none')}
+      sx={{ top: 25 }}
+      onClick={() => setZoom(pz => pz + .15)}
     >
-      <TouchAppIcon />
+      <AddIcon />
     </IconButton>
-    <IconButton 
-      color="error" 
+    <IconButton
+      color="primary"
       className={classes.whiteboardActionButton}
-      sx={{ left: { sm: 10, md: -50 }, bottom: 100 }} 
-      onClick={() => contextRef.current?.clearRect(0, 0, canvasRef.current?.width || 0, canvasRef.current?.height || 0)}
+      sx={{ top: 75 }}
+      onClick={() => setZoom(pz => pz - .15)}
     >
-      <LayersClearIcon />
+      <RemoveIcon />
     </IconButton>
-    <IconButton 
-      color="primary" 
+
+    {/* Bottom Buttons */}
+    <IconButton
+      color="warning"
       className={classes.whiteboardActionButton}
-      sx={{ left: { sm: 10, md: -50 }, bottom: 150 }} 
+      sx={{ bottom: 200 }}
+      onClick={() => setDrawStyle(true)}
+    >
+      <HighlightIcon />
+    </IconButton>
+    <IconButton
+      color="success"
+      className={classes.whiteboardActionButton}
+      sx={{ bottom: 150 }}
       onClick={() => setDrawStyle(false)}
     >
       <GestureIcon />
     </IconButton>
-    <IconButton 
-      color="warning" 
+    <IconButton
+      color="error"
       className={classes.whiteboardActionButton}
-      sx={{ left: { sm: 10, md: -50 }, bottom: 200 }} 
-      onClick={() => setDrawStyle(true)}
+      sx={{ bottom: 100 }}
+      onClick={() => contextRef.current?.clearRect(0, 0, whiteboardRef.current?.width || 0, whiteboardRef.current?.height || 0)}
     >
-      <HighlightIcon />
+      <LayersClearIcon />
+    </IconButton>
+    <IconButton
+      color="info"
+      className={classes.whiteboardActionButton}
+      sx={{ bottom: 50 }}
+      onClick={() => setCanvasPointerEvents('none')}
+    >
+      <TouchAppIcon />
     </IconButton>
   </Box>
 }

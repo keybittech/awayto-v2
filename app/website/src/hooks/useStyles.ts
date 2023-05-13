@@ -83,7 +83,14 @@ export const useStyles = makeStyles((theme: Theme) => {
     whiteboardActionButton: {
       position: 'absolute',
       zIndex: 11,
-      backgroundColor: '#aaa'
+      backgroundColor: '#eee',
+      right: 35
+      // [theme.breakpoints.down('sm')]: {
+      //   ,
+      // },
+      // [theme.breakpoints.up('md')]: {
+      //   right: -50
+      // },
     },
 
     variableButtonIcon: {

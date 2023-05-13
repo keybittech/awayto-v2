@@ -38,21 +38,21 @@ export function Exchange(): JSX.Element {
   return <>
     <Card sx={{ height: '100%' }}>
       <CardActions>
-        <Button onClick={() => setChatOpen(!chatOpen)} type="submit" color="primary"><ChatBubble /></Button>
+        <Button onClick={() => setChatOpen(!chatOpen)} type="submit" color="primary"><ChatBubble /> Toggle Chat</Button>
         {
           !localStreamElement ? (<>
             <form onSubmit={e => {
               e.preventDefault();
               setLocalStreamAndBroadcast(true);
             }}>
-              <Button disabled={'start' !== canStartStop} type="submit" color="primary"><Videocam color="primary" /></Button>
+              <Button disabled={'start' !== canStartStop} type="submit" color="primary"><Videocam color="primary" /> Start Video</Button>
             </form>
 
             <form onSubmit={e => {
               e.preventDefault();
               setLocalStreamAndBroadcast(false);
             }}>
-              <Button disabled={'start' !== canStartStop} type="submit" color="primary"><Call color="primary" /></Button>
+              <Button disabled={'start' !== canStartStop} type="submit" color="primary"><Call color="primary" /> Start Voice</Button>
             </form>
           </>
           ) : <form onSubmit={leaveCall}>
@@ -62,12 +62,10 @@ export function Exchange(): JSX.Element {
       </CardActions>
       <CardContent sx={{ height: 'calc(100% - 60px)' }}> {/* height minus action bar height estimate */}
 
-        <Grid container style={{ height: '100%' }} direction="row" justifyContent="space-evenly">
-          <Grid item xs={12} md={5} style={{ height: '100%', backgroundColor: theme.palette.primary.dark }}>
-            <Whiteboard />
-          </Grid>
-          <Grid item xs={12} md={5}>
-            <Grid container direction="column" style={{ height: '100%', display: 'flex', flexWrap: 'nowrap' }}>
+        <Grid container style={{ height: '100%', position: 'relative' }} direction="row">
+
+          <Grid item xs={8} md={4} hidden={!chatOpen} style={{ height: '100%' }}>
+            <Grid container direction="column" style={{ height: !!localStreamElement ? '50%' : 'unset', display: 'flex', flexWrap: 'nowrap' }}>
               {/* ---------- Video ---------- */}
               {localStreamElement && <Grid item xs={12} style={{ backgroundColor: 'black', position: 'relative', maxHeight: '390px', display: 'flex', flex: '1' }}>
                 <Grid container justifyContent="flex-end" style={{ position: 'absolute' }}>
@@ -75,27 +73,27 @@ export function Exchange(): JSX.Element {
                 </Grid>
                 {!!Object.keys(senderStreamsElements).length && senderStreamsElements}
               </Grid>}
-
-              {/* ---------- Chat ---------- */}
-              <Grid item xs={12} hidden={!chatOpen} style={{ height: '100%', flex: '1' }}>
-                <Grid container direction="column" style={{ height: '100%' }}>
-                  <Grid item style={{ flex: '1', overflow: 'auto', color: theme.palette.primary.contrastText, backgroundColor: theme.palette.primary.dark, padding: '0 25px' }}>
-                    <Grid container direction="column">
-                      {chatLog}
-                    </Grid>
-                    <Grid item ref={messagesEndRef} />
-                  </Grid>
-
-                  <Grid item style={{ backgroundColor: theme.palette.primary.dark, padding: '25px' }}>
-                    {submitMessageForm}
-                  </Grid>
+            </Grid>
+            
+            {/* ---------- Chat ---------- */}
+            <Grid container direction="column" style={{ height: !!localStreamElement ? '50%' : '100%' }}>
+              <Grid item style={{ flex: '1', overflow: 'auto', color: theme.palette.primary.contrastText, backgroundColor: theme.palette.primary.dark, padding: '0 25px' }}>
+                <Grid container direction="column">
+                  {chatLog}
                 </Grid>
+                <Grid item ref={messagesEndRef} />
               </Grid>
 
+              <Grid item style={{ backgroundColor: theme.palette.primary.dark, padding: '25px' }}>
+                {submitMessageForm}
+              </Grid>
             </Grid>
           </Grid>
-        </Grid>
 
+          <Grid item xs={12} md={chatOpen ? 8 : 12} sx={{ height: '100%' }}>
+            <Whiteboard />
+          </Grid>
+        </Grid>
       </CardContent>
     </Card>
   </>;
