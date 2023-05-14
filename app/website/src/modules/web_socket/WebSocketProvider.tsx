@@ -19,6 +19,7 @@ function WebSocketProvider({ children }: IProps): React.JSX.Element {
   const connect = () => {
 
     fetch(`https://${location.hostname}/api/sock/ticket/`, {
+      method: 'POST',
       headers: {
         Authorization: keycloak.token || ''
       }

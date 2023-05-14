@@ -1,13 +1,11 @@
 import { createServer } from 'http';
 import { WebSocket, WebSocketServer } from 'ws';
 import { v4 } from 'uuid';
-import util, { inspect } from 'util';
-import jwt from 'jsonwebtoken';
-import jwksClient from 'jwks-rsa';
 
 // Storage for connected members
 const pendingTickets = {};
 const connections = {};
+const allowances = {};
 
 // Start a generic http server
 const server = createServer().listen(8080);
@@ -15,58 +13,49 @@ const server = createServer().listen(8080);
 // Start a generic wss server without an internal server
 const wss = new WebSocketServer({ noServer: true });
 
-async function jwtVerify(token, secretOrPublicKey) {
-  return new Promise((resolve, reject) => {
-    jwt.verify(token, secretOrPublicKey, (err, decoded) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(decoded);
-      }
-    });
-  });
-}
-
-const authClient = jwksClient({
-  jwksUri: `https://127.0.0.1:8443/auth/realms/${process.env.KC_REALM}/protocol/openid-connect/certs`
-});
-
-function getKey(header, callback) {
-  authClient.getSigningKey(header.kid, (err, key) => {
-    if (err) {
-      callback(err);
-    } else {
-      const signingKey = key.publicKey || key.rsaPublicKey;
-      callback(null, signingKey);
-    }
-  })
-}
-
-
 // Catch any request coming into the http server for inter-socket connectivity
 // Define connection endpoints between containers where needed here
 server.on('request', function (req, res) {
 
-  if ('GET' === req.method) {
+  if ('POST' === req.method) {
 
     // User wants to get a ticket to open a socket
     // Proxied from front end through api for kc auth check
     // Create a temporary ticket that the host can use to create a socket later
     try {
-      if (req.url.includes('create_ticket')) {
-        const host = req.headers['x-forwarded-for'].split(', ')[0];
-        const authorization = req.headers['authorization'];
+      const host = req.headers['x-forwarded-for'].split(', ')[0];
+      const authorization = req.headers['authorization'];
 
-        if (!authorization) {
-          res.writeHead(401);
-        } else {
-          const hostTix = pendingTickets[host] = pendingTickets[host] || {};
-          hostTix.tickets = hostTix.tickets || [];
-          hostTix.tickets.push(authorization);
-          res.writeHead(200);
-          res.write(v4());
-        }
+      if (!authorization) {
+        res.writeHead(401);
+      } else {
 
+        let body = '';
+
+        req.on('data', chunk => {
+          body += chunk.toString();
+        });
+
+        req.on('end', () => {
+          if (req.url.includes('create_ticket')) {
+
+            try {
+              const id = v4();
+              const parsed = JSON.parse(body || '{}');
+
+              allowances[id] = { ...parsed };
+
+              const hostTix = pendingTickets[host] = pendingTickets[host] || {};
+              hostTix.tickets = hostTix.tickets || [];
+              hostTix.tickets.push(authorization);
+              res.writeHead(200);
+              res.write(id);
+              res.end();
+            } catch (error) {
+              console.error('issue handling ticket assignment')
+            }
+          }
+        })
       }
 
     } catch (error) {
@@ -77,7 +66,6 @@ server.on('request', function (req, res) {
   } else {
     res.writeHead(404);
   }
-  res.end();
 })
 
 // Proxy pass from nginx sets http upgrade request, caught here
@@ -93,27 +81,14 @@ server.on('upgrade', async function (req, socket, head) {
 
       // If handshake was successful
       if (ticket) {
-
-        // Verify the ticket and get its token
-        // const token = await jwtVerify(ticket, getKey);
-
-        // console.log('got a token', { token })
-
-        // if (token.realm_access) {
-          // Upgrade the socket request
-          const localId = req.url.slice(1);
-          wss.handleUpgrade(req, socket, head, function (ws) {
-            ws.localId = localId;
-            wss.emit('connection', ws, req);
-          });
-        // } else {
-        //   socket401(socket);
-        // }
+        const localId = req.url.slice(1);
+        wss.handleUpgrade(req, socket, head, function (ws) {
+          ws.localId = localId;
+          wss.emit('connection', ws, req);
+        });
       } else {
         socket401(socket);
       }
-
-
     }
   } catch (error) {
     socket500(socket);
@@ -162,11 +137,10 @@ wss.on('connection', function (ws, req) {
           if (ws.readyState === WebSocket.OPEN && ws.subscribedTopics && ws.subscribedTopics.has(parsed.topic)) {
             ws.send(message);
           }
-        })
+        });
       }
-
     } catch (error) {
-      console.log('Critical Error: couldn\'t process socket message', util.inspect(message), error);
+      console.log('Critical Error: couldn\'t process socket message', message.toString(), error);
     }
   });
 
@@ -176,23 +150,13 @@ wss.on('connection', function (ws, req) {
   })));
 });
 
-function dm(target, message) {
-  const ws = connections[target];
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(message);
-  }
-}
-
 function cleanUp(ws) {
   try {
-    // Remove from connection pool
-    const pos = connections[ws.localId];
-    if (-1 < pos) {
-      connections.splice(pos);
-    }
+    delete allowances[ws.localId];
+    delete connections[ws.localId];
 
     // Notify
-    // console.log('activity', ws.id, 'closed connection.');
+    console.log('activity', ws.id, 'closed connection.');
   } catch (error) {
 
   }
