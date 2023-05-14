@@ -13,6 +13,8 @@ import LayersClearIcon from '@mui/icons-material/LayersClear';
 import HighlightIcon from '@mui/icons-material/Highlight';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 
 import { useWebSocketSubscribe, useStyles, useFileContents } from 'awayto/hooks';
 
@@ -32,7 +34,7 @@ function getRelativeCoordinates(event: MouseEvent | React.MouseEvent<HTMLCanvasE
 }
 
 /**
- * need to capture the idea where a
+ * need to capture the idea where runons, etc. can be highlighted throughout a page after post processing
  */
 
 export default function Whiteboard(): React.JSX.Element {
@@ -253,6 +255,22 @@ export default function Whiteboard(): React.JSX.Element {
       onClick={() => setZoom(pz => pz - .15)}
     >
       <RemoveIcon />
+    </IconButton>
+    <IconButton
+      color="primary"
+      className={classes.whiteboardActionButton}
+      sx={{ top: 125 }}
+      onClick={() => setPageNumber(pn => pn-- && (pn || 1))}
+    >
+      <NavigateBeforeIcon />
+    </IconButton>
+    <IconButton
+      color="primary"
+      className={classes.whiteboardActionButton}
+      sx={{ top: 175 }}
+      onClick={() => setPageNumber(pn => pn++ && Math.min(pn, numPages))}
+    >
+      <NavigateNextIcon />
     </IconButton>
 
     {/* Bottom Buttons */}
