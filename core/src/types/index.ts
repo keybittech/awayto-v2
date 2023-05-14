@@ -7,6 +7,7 @@ import contactApiRef from './contact';
 import fileApiRef from './file';
 import formApiRef from './form';
 import groupFeedbackApiRef from './group_feedback';
+import groupFilesApiRef from './group_files';
 import groupFormApiRef from './group_form';
 import groupRoleApiRef from './group_role';
 import groupScheduleApiRef from './group_schedule';
@@ -26,7 +27,6 @@ import scheduleApiRef from './schedule';
 import serviceAddonApiRef from './service_addon';
 import serviceTierApiRef from './service_tier';
 import serviceApiRef from './service';
-import uuidFilesApiRef from './uuid_files';
 import uuidNotesApiRef from './uuid_notes';
 
 /**
@@ -40,6 +40,7 @@ export const siteApiRef = {
   ...fileApiRef,
   ...formApiRef,
   ...groupFeedbackApiRef,
+  ...groupFilesApiRef,
   ...groupFormApiRef,
   ...groupRoleApiRef,
   ...groupScheduleApiRef,
@@ -59,7 +60,6 @@ export const siteApiRef = {
   ...serviceAddonApiRef,
   ...serviceTierApiRef,
   ...serviceApiRef,
-  ...uuidFilesApiRef,
   ...uuidNotesApiRef
 };
 
@@ -77,6 +77,7 @@ export * from './file_store';
 export * from './file';
 export * from './form';
 export * from './group_feedback';
+export * from './group_files';
 export * from './group_form';
 export * from './group_role';
 export * from './group_schedule';
@@ -98,6 +99,5 @@ export * from './service_tier';
 export * from './service';
 export * from './time_unit';
 export * from './util';
-export * from './uuid_files';
 export * from './uuid_notes';
 export * from './web_socket';

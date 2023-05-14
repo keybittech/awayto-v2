@@ -126,17 +126,20 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     f.enabled = true;
 
   CREATE
-  OR REPLACE VIEW dbview_schema.enabled_uuid_files AS
+  OR REPLACE VIEW dbview_schema.enabled_group_files AS
   SELECT
-    uf.id,
-    uf.parent_uuid as "parentUuid",
-    uf.file_id as "fileId",
-    uf.created_on as "createdOn",
+    gf.id,
+    gf.file_id as "fileId",
+    f.name,
+    gf.group_id as "groupId",
+    gf.created_sub as "createdSub",
+    gf.created_on as "createdOn",
     row_number() OVER () as row
   FROM
-    dbtable_schema.uuid_files uf
+    dbtable_schema.group_files gf
+    JOIN dbview_schema.enabled_files f ON f.id = gf.file_id
   WHERE
-    uf.enabled = true;
+    gf.enabled = true;
 
   CREATE
   OR REPLACE VIEW dbview_schema.enabled_uuid_notes AS

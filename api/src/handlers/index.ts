@@ -5,6 +5,7 @@ import contactApiHandler from './contact';
 import fileApiHandler from './file';
 import formApiHandler from './form';
 import groupFeedbackApiHandler from './group_feedback';
+import groupFilesApiHandler from './group_files';
 import groupFormApiHandler from './group_form';
 import groupRoleApiHandler from './group_role';
 import groupScheduleApiHandler from './group_schedule';
@@ -24,7 +25,6 @@ import scheduleApiHandler from './schedule';
 import serviceAddonApiHandler from './service_addon';
 import serviceTierApiHandler from './service_tier';
 import serviceApiHandler from './service';
-import uuidFilesApiHandler from './uuid_files';
 import uuidNotesApiHandler from './uuid_notes';
 import { ApiHandlers } from 'awayto/core';
 
@@ -58,6 +58,6 @@ export const siteApiHandlerRef: Record<string, ApiHandlers[keyof ApiHandlers]> =
   ...serviceAddonApiHandler,
   ...serviceTierApiHandler,
   ...serviceApiHandler,
-  ...uuidFilesApiHandler,
+  ...groupFilesApiHandler,
   ...uuidNotesApiHandler
 };

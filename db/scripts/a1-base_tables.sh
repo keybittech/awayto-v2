@@ -52,6 +52,34 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     UNIQUE (role_id, user_id)
   );
 
+  CREATE TABLE dbtable_schema.file_types (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR (50) NOT NULL UNIQUE,
+    created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
+    created_sub uuid REFERENCES dbtable_schema.users (sub),
+    updated_on TIMESTAMP,
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
+    enabled BOOLEAN NOT NULL DEFAULT true
+  );
+
+  INSERT INTO
+    dbtable_schema.file_types (name)
+  VALUES
+    ('images'),
+    ('documents');
+
+  CREATE TABLE dbtable_schema.files (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    uuid VARCHAR (50) NOT NULL,
+    name VARCHAR (50) NOT NULL,
+    mime_type TEXT,
+    created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
+    updated_on TIMESTAMP,
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
+    enabled BOOLEAN NOT NULL DEFAULT true
+  );
+
   CREATE TABLE dbtable_schema.groups (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     external_id TEXT NOT NULL UNIQUE,
@@ -96,44 +124,16 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     UNIQUE (user_id, group_id)
   );
 
-  CREATE TABLE dbtable_schema.file_types (
+  CREATE TABLE dbtable_schema.group_files (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name VARCHAR (50) NOT NULL UNIQUE,
-    created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
-    created_sub uuid REFERENCES dbtable_schema.users (sub),
-    updated_on TIMESTAMP,
-    updated_sub uuid REFERENCES dbtable_schema.users (sub),
-    enabled BOOLEAN NOT NULL DEFAULT true
-  );
-
-  INSERT INTO
-    dbtable_schema.file_types (name)
-  VALUES
-    ('images'),
-    ('documents');
-
-  CREATE TABLE dbtable_schema.files (
-    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    uuid VARCHAR (50) NOT NULL,
-    name VARCHAR (50) NOT NULL,
-    mime_type TEXT,
-    created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
-    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
-    updated_on TIMESTAMP,
-    updated_sub uuid REFERENCES dbtable_schema.users (sub),
-    enabled BOOLEAN NOT NULL DEFAULT true
-  );
-
-  CREATE TABLE dbtable_schema.uuid_files (
-    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    parent_uuid VARCHAR (50) NOT NULL,
-    file_id uuid NOT NULL REFERENCES dbtable_schema.files (id),
+    group_id uuid NOT NULL REFERENCES dbtable_schema.groups (id) ON DELETE CASCADE,
+    file_id uuid NOT NULL REFERENCES dbtable_schema.files (id) ON DELETE CASCADE,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
     created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
     updated_sub uuid REFERENCES dbtable_schema.users (sub),
     enabled BOOLEAN NOT NULL DEFAULT true,
-    UNIQUE (parent_uuid, file_id)
+    UNIQUE (created_sub, file_id)
   );
 
   CREATE TABLE dbtable_schema.uuid_notes (
