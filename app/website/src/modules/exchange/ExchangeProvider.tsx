@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
@@ -27,13 +26,13 @@ export function ExchangeProvider({ children }: IProps): React.JSX.Element {
 
   const { setSnack } = useUtil();
 
-  const { Video } = useComponents();
+  const { Video, GroupedMessages } = useComponents();
 
   const speechRecognizer = useRef<SpeechRecognition>();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const [textMessage, setTextMessage] = useState('');
-  const [messages, setMessages] = useState<string[]>([]);
+  const [messages, setMessages] = useState<{sender: string, message: string}[]>([]);
 
   const trackStream = (mediaStream: MediaStream) => {
 
@@ -63,9 +62,9 @@ export function ExchangeProvider({ children }: IProps): React.JSX.Element {
     speechRecognizer.current.addEventListener('result', (event: SpeechRecognitionEvent) => {
       const lastResult = event.results[event.results.length - 1];
       const transcript = lastResult[0].transcript;
-    
+
       const isFinal = lastResult.isFinal;
-    
+
       // Check if the user is speaking or not
       if (isFinal) {
         sendExchangeMessage('text', { message: transcript });
@@ -81,98 +80,100 @@ export function ExchangeProvider({ children }: IProps): React.JSX.Element {
 
   const { connected, sendMessage: sendExchangeMessage } = useWebSocketSubscribe<ExchangeSessionAttributes>('exchange-id', ({ sender, topic, type, payload }) => {
     console.log('RECEIVED A NEW SOCKET MESSAGE', { localId, sender, topic, type }, JSON.stringify(payload));
-
+    
     const { formats, target, sdp, ice, message } = payload;
 
-    if (sender === localId || (target !== localId && !(sdp || ice || message))) {
+    if (target !== localId && !(sdp || ice || message)) {
       return;
     }
 
     if ('text' === type && message) {
-      setMessages([...messages, message]);
-    } else if (['join-call', 'peer-response'].includes(type)) {
-      // Parties to an incoming caller's 'join-call' will see this, and then notify the caller that they exist in return
-      // The caller gets a party member's 'peer-response', and sets them up in return
-      if (!localStream && formats) {
-        setMessages([...messages, `${sender} wants to start a ${formats.indexOf('video') > -1 ? 'video' : 'voice'} call.`]);
-      }
-
-      const senders = Object.keys(senderStreams).filter(sender => !senderStreams[sender].pc);
-      const startedSenders: SenderStreams = {};
-
-      for (const senderId of senders) {
-        const startedSender = senderStreams[senderId];
-
-        if (connected) {
-  
-          startedSender.pc = new RTCPeerConnection(peerConnectionConfig)
-  
-          startedSender.pc.onicecandidate = event => {
-            if (event.candidate !== null) {
-              sendExchangeMessage('rtc', { ice: event.candidate, target: senderId });
-            }
-          };
-  
-          startedSender.pc.ontrack = event => {
-            startedSender.mediaStream = startedSender.mediaStream ? startedSender.mediaStream : new MediaStream();
-            startedSender.mediaStream.addTrack(event.track);
-            setSenderStreams(Object.assign({}, senderStreams, { [senderId]: startedSender }));
-          };
-  
-          startedSender.pc.oniceconnectionstatechange = () => {
-            if (startedSender.pc && ['failed', 'closed', 'disconnected'].includes(startedSender.pc.iceConnectionState)) {
-              const streams = { ...senderStreams };
-              delete streams[senderId];
-              setSenderStreams(streams);
-            }
-          }
-  
-          if (localStream) {
-            const tracks = localStream.getTracks();
-            tracks.forEach(track => startedSender.pc?.addTrack(track));
-          }
-
-          if ('peer-response' === type) {
-            const { createOffer, setLocalDescription, localDescription } = startedSender.pc;
-            createOffer().then(description => {
-              setLocalDescription(description).then(() => {
-                sendExchangeMessage('rtc', {
-                  sdp: localDescription,
-                  target: senderId
-                });
-              }).catch(console.error);
-            }).catch(console.error);
-          } else {
-            sendExchangeMessage('peer-response', {
-              target: senderId
-            });
-          }
-  
-          startedSenders[senderId] = startedSender;
+      setMessages(msgs => [...msgs, { sender: sender.split('@')[0], message, timestamp: new Date() }]);
+    } else if (sender !== localId) {
+      if (['join-call', 'peer-response'].includes(type)) {
+        // Parties to an incoming caller's 'join-call' will see this, and then notify the caller that they exist in return
+        // The caller gets a party member's 'peer-response', and sets them up in return
+        if (!localStream && formats) {
+          setMessages([...messages, { sender, message: `Start a ${formats.indexOf('video') > -1 ? 'video' : 'voice'} call.`} ]);
         }
-      }
-    } else if (sdp) {
-      const senderStream = senderStreams[sender];
 
-      if (senderStream && senderStream.pc) {
-        const { createAnswer, setRemoteDescription, setLocalDescription, localDescription } = senderStream.pc;
-        setRemoteDescription(new RTCSessionDescription(sdp)).then(() => {
-          if ('offer' === sdp.type) {
-            createAnswer().then(description => {
-              setLocalDescription(description).then(() => {
-                sendExchangeMessage('rtc', {
-                  sdp: localDescription,
-                  target: sender
-                });
+        const senders = Object.keys(senderStreams).filter(sender => !senderStreams[sender].pc);
+        const startedSenders: SenderStreams = {};
+
+        for (const senderId of senders) {
+          const startedSender = senderStreams[senderId];
+
+          if (connected) {
+
+            startedSender.pc = new RTCPeerConnection(peerConnectionConfig)
+
+            startedSender.pc.onicecandidate = event => {
+              if (event.candidate !== null) {
+                sendExchangeMessage('rtc', { ice: event.candidate, target: senderId });
+              }
+            };
+
+            startedSender.pc.ontrack = event => {
+              startedSender.mediaStream = startedSender.mediaStream ? startedSender.mediaStream : new MediaStream();
+              startedSender.mediaStream.addTrack(event.track);
+              setSenderStreams(Object.assign({}, senderStreams, { [senderId]: startedSender }));
+            };
+
+            startedSender.pc.oniceconnectionstatechange = () => {
+              if (startedSender.pc && ['failed', 'closed', 'disconnected'].includes(startedSender.pc.iceConnectionState)) {
+                const streams = { ...senderStreams };
+                delete streams[senderId];
+                setSenderStreams(streams);
+              }
+            }
+
+            if (localStream) {
+              const tracks = localStream.getTracks();
+              tracks.forEach(track => startedSender.pc?.addTrack(track));
+            }
+
+            if ('peer-response' === type) {
+              const { createOffer, setLocalDescription, localDescription } = startedSender.pc;
+              createOffer().then(description => {
+                setLocalDescription(description).then(() => {
+                  sendExchangeMessage('rtc', {
+                    sdp: localDescription,
+                    target: senderId
+                  });
+                }).catch(console.error);
               }).catch(console.error);
-            }).catch(console.error);
+            } else {
+              sendExchangeMessage('peer-response', {
+                target: senderId
+              });
+            }
+
+            startedSenders[senderId] = startedSender;
           }
-        }).catch(console.error);
-      }
-    } else if (ice) {
-      const senderStream = senderStreams[sender];
-      if (senderStream && senderStream.pc && !['failed', 'closed', 'disconnected'].includes(senderStream.pc.iceConnectionState)) {
-        senderStream.pc.addIceCandidate(new RTCIceCandidate(ice)).catch(console.error);
+        }
+      } else if (sdp) {
+        const senderStream = senderStreams[sender];
+
+        if (senderStream && senderStream.pc) {
+          const { createAnswer, setRemoteDescription, setLocalDescription, localDescription } = senderStream.pc;
+          setRemoteDescription(new RTCSessionDescription(sdp)).then(() => {
+            if ('offer' === sdp.type) {
+              createAnswer().then(description => {
+                setLocalDescription(description).then(() => {
+                  sendExchangeMessage('rtc', {
+                    sdp: localDescription,
+                    target: sender
+                  });
+                }).catch(console.error);
+              }).catch(console.error);
+            }
+          }).catch(console.error);
+        }
+      } else if (ice) {
+        const senderStream = senderStreams[sender];
+        if (senderStream && senderStream.pc && !['failed', 'closed', 'disconnected'].includes(senderStream.pc.iceConnectionState)) {
+          senderStream.pc.addIceCandidate(new RTCIceCandidate(ice)).catch(console.error);
+        }
       }
     }
   });
@@ -219,7 +220,7 @@ export function ExchangeProvider({ children }: IProps): React.JSX.Element {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'auto', block: 'end', inline: 'nearest' })
   }, [messagesEndRef.current, messages]);
-  
+
   const sendTextMessage = () => {
     sendExchangeMessage('text', { message: textMessage });
     setTextMessage('');
@@ -228,7 +229,7 @@ export function ExchangeProvider({ children }: IProps): React.JSX.Element {
   const exchangeContext = {
     canStartStop,
     messagesEndRef,
-    chatLog: useMemo(() => messages.map((msg, i) => <Typography color="primary" style={{ overflowWrap: 'anywhere' }} key={i}>{msg}</Typography>), [messages]),
+    chatLog: useMemo(() => <GroupedMessages exchangeMessages={messages} />, [messages]),
     setLocalStreamAndBroadcast,
     leaveCall() {
       if (localStream) {
@@ -274,6 +275,7 @@ export function ExchangeProvider({ children }: IProps): React.JSX.Element {
           InputProps={{
             onKeyDown: e => {
               if ('Enter' === e.key && !e.shiftKey) {
+                e.preventDefault();
                 sendTextMessage();
               }
             },

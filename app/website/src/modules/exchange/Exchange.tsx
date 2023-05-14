@@ -77,7 +77,7 @@ export function Exchange(): React.JSX.Element {
             
             {/* ---------- Chat ---------- */}
             <Grid container direction="column" style={{ height: !!localStreamElement ? '50%' : '100%' }}>
-              <Grid item style={{ flex: '1', overflow: 'auto', color: theme.palette.primary.contrastText, backgroundColor: theme.palette.primary.dark, padding: '0 25px' }}>
+              <Grid item style={{ flex: '1', overflow: 'auto', color: theme.palette.primary.contrastText, backgroundColor: theme.palette.primary.dark, padding: '16px 25px' }}>
                 <Grid container direction="column">
                   {chatLog}
                 </Grid>

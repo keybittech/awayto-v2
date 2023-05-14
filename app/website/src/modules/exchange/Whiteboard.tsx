@@ -1,4 +1,7 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+import 'react-pdf/dist/esm/Page/TextLayer.css';
+import { Document, Page } from 'react-pdf/dist/esm/entry.webpack5';
 
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
@@ -11,7 +14,7 @@ import HighlightIcon from '@mui/icons-material/Highlight';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 
-import { useWebSocketSubscribe, useStyles, useComponents } from 'awayto/hooks';
+import { useWebSocketSubscribe, useStyles, useFileContents } from 'awayto/hooks';
 
 interface Whiteboard {
   lines: { startPoint: { x: number; y: number }; endPoint: { x: number; y: number } }[];
@@ -28,21 +31,36 @@ function getRelativeCoordinates(event: MouseEvent | React.MouseEvent<HTMLCanvasE
   return { x, y };
 }
 
+/**
+ * need to capture the idea where a
+ */
+
 export default function Whiteboard(): React.JSX.Element {
-  const parentRef = useRef<HTMLDivElement>(null);
+
+  const fileId = 'b789e0dc-7d05-479d-9eef-0505a54a7659';
+  const fileType = 'application/pdf';
+
   const whiteboardRef = useRef<HTMLCanvasElement>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
   const fileScroller = useRef<HTMLDivElement>(null);
-  const fileDisplayRef = useRef<HTMLDivElement>(null);
+  const fileDisplayRef = useRef<HTMLCanvasElement>(null);
   const whiteboard = useRef<Whiteboard>({ lines: [], hightlight: false, doc: { position: [0, 0] } });
-
-  const { PDFViewer } = useComponents();
 
   const classes = useStyles();
 
   const [canvasPointerEvents, setCanvasPointerEvents] = useState('none');
   const [zoom, setZoom] = useState(1);
   const [highlight, setHightlight] = useState(false);
+  const { fileDetails, getFileContents } = useFileContents();
+
+  const [numPages, setNumPages] = useState(0);
+  const [pageNumber, setPageNumber] = useState(1);
+
+  useEffect(() => {
+    if (!fileDetails) {
+      getFileContents({ mimeType: fileType, uuid: fileId }).catch(console.error);
+    }
+  }, [getFileContents, fileDetails]);
 
   const { sendMessage: sendExchangeMessage } = useWebSocketSubscribe<Whiteboard>('exchange-id', ({ payload }) => {
     const newLines = payload.lines;
@@ -131,9 +149,6 @@ export default function Whiteboard(): React.JSX.Element {
     setCanvasPointerEvents('auto');
   }
 
-  const fileId = 'b789e0dc-7d05-479d-9eef-0505a54a7659';
-  const fileType = 'application/pdf';
-
   const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -202,18 +217,24 @@ export default function Whiteboard(): React.JSX.Element {
       />
 
       {/* File Viewer */}
-      <PDFViewer
-        canvasRef={fileDisplayRef}
-        file={{ mimeType: fileType, uuid: fileId }}
-        scale={zoom}
-        onRenderSuccess={() => {
-          if (fileDisplayRef.current && whiteboardRef.current) {
-            const { width, height } = fileDisplayRef.current.getBoundingClientRect();
-            whiteboardRef.current.width = width;
-            whiteboardRef.current.height = height;
-          }
-        }}
-      />
+      {!fileDetails ? <></> : <Document 
+        file={fileDetails.url}
+        onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+      >
+        <Page
+          scale={zoom}
+          canvasRef={fileDisplayRef}
+          renderAnnotationLayer={false}
+          pageNumber={pageNumber}
+          onRenderSuccess={() => {
+            if (fileDisplayRef.current && whiteboardRef.current) {
+              const { width, height } = fileDisplayRef.current.getBoundingClientRect();
+              whiteboardRef.current.width = width;
+              whiteboardRef.current.height = height;
+            }
+          }}
+        />
+      </Document>}
     </Box>
 
     {/* Top Button */}

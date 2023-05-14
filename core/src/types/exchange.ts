@@ -1,5 +1,11 @@
 import { IBooking } from './booking';
 
+export type ExchangeMessage = {
+  sender: string;
+  message: string;
+  timestamp: string;
+};
+
 /**
  * @category Exchange
  * @purpose maps websocket responses which contain common WebRTC protocol objects

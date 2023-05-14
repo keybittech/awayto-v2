@@ -2,7 +2,7 @@ import React, { createContext } from "react";
 
 declare global {
   type ExchangeContextType = {
-    chatLog: React.JSX.Element[];
+    chatLog: React.JSX.Element;
     messagesEndRef: React.RefObject<HTMLDivElement>;
     canStartStop: string;
     localStreamElement: React.JSX.Element;
