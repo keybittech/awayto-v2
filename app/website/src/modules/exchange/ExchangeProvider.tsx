@@ -78,18 +78,18 @@ export function ExchangeProvider({ children }: IProps): React.JSX.Element {
   const [canStartStop, setCanStartStop] = useState('start');
   const [senderStreams, setSenderStreams] = useState<SenderStreams>({});
 
-  const { connected, sendMessage: sendExchangeMessage } = useWebSocketSubscribe<ExchangeSessionAttributes>('exchange-id', ({ sender, topic, type, payload }) => {
-    console.log('RECEIVED A NEW SOCKET MESSAGE', { localId, sender, topic, type }, JSON.stringify(payload));
+  const { connectionId, connected, sendMessage: sendExchangeMessage } = useWebSocketSubscribe<ExchangeSessionAttributes>('exchange-id', ({ sender, topic, type, payload }) => {
+    console.log('RECEIVED A NEW SOCKET MESSAGE', { connectionId, sender, topic, type }, JSON.stringify(payload));
     
     const { formats, target, sdp, ice, message } = payload;
 
-    if (target !== localId && !(sdp || ice || message)) {
+    if (target !== connectionId && !(sdp || ice || message)) {
       return;
     }
 
     if ('text' === type && message) {
       setMessages(msgs => [...msgs, { sender: sender.split('@')[0], message, timestamp: new Date() }]);
-    } else if (sender !== localId) {
+    } else if (sender !== connectionId) {
       if (['join-call', 'peer-response'].includes(type)) {
         // Parties to an incoming caller's 'join-call' will see this, and then notify the caller that they exist in return
         // The caller gets a party member's 'peer-response', and sets them up in return

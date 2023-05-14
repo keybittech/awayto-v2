@@ -12,17 +12,21 @@ function WebSocketProvider({ children }: IProps): React.JSX.Element {
   const { data: profile } = sh.useGetUserProfileDetailsQuery();
 
   const [socket, setSocket] = useState<WebSocket | undefined>();
+  const [connectionId, setConnectionId] = useState('');
+
   const messageListeners = useRef(new Map<string, Set<SocketResponseHandler<unknown>>>());
 
-  const connect = (username: string) => {
+  const connect = () => {
 
-    fetch(`https://${location.hostname}/api/ticket/`, {
+    fetch(`https://${location.hostname}/api/sock/ticket/`, {
       headers: {
         Authorization: keycloak.token || ''
       }
-    }).then(() => {
+    }).then(async res => {
+      const connId = await res.text()
+      setConnectionId(connId);
 
-      const ws = new WebSocket(`wss://${location.hostname}/sock/${username}`);
+      const ws = new WebSocket(`wss://${location.hostname}/sock/${connId}`);
 
       ws.onopen = () => {
         console.log('socket online');
@@ -47,7 +51,7 @@ function WebSocketProvider({ children }: IProps): React.JSX.Element {
       ws.onclose = () => {
         console.log("WebSocket closed. Reconnecting...");
         setTimeout(() => {
-          connect(username);
+          connect();
         }, 1000);
       };
   
@@ -63,16 +67,15 @@ function WebSocketProvider({ children }: IProps): React.JSX.Element {
   }
 
   useEffect(() => {
-    if (profile) {
-      connect(profile.username);
-    }
-  }, [profile]);
+    connect();
+  }, []);
 
   const webSocketContext = {
+    connectionId,
     connected: socket?.readyState === WebSocket.OPEN,
     sendMessage(type, topic, payload) {
       if (profile && socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({ sender: profile.username, type, topic, payload }));
+        socket.send(JSON.stringify({ sender: connectionId, type, topic, payload }));
       }
     },
     subscribe(topic, callback) {

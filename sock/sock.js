@@ -64,6 +64,7 @@ server.on('request', function (req, res) {
           hostTix.tickets = hostTix.tickets || [];
           hostTix.tickets.push(authorization);
           res.writeHead(200);
+          res.write(v4());
         }
 
       }

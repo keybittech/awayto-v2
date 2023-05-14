@@ -10,7 +10,7 @@ export function useWebSocketSend() {
 
 export function useWebSocketSubscribe <T>(topic: string, callback: SocketResponseHandler<T>) {
 
-  const { connected, sendMessage, subscribe } = useContext(useContexts().WebSocketContext) as WebSocketContextType;
+  const { connectionId, connected, sendMessage, subscribe } = useContext(useContexts().WebSocketContext) as WebSocketContextType;
   const subscribed = useRef(false);
   const callbackRef = useRef(callback);
 
@@ -38,6 +38,7 @@ export function useWebSocketSubscribe <T>(topic: string, callback: SocketRespons
   }, [connected, topic]);
 
   return useMemo(() => ({
+    connectionId,
     connected,
     sendMessage: (type: string, payload?: Partial<T>) => {
       if (connected) {
