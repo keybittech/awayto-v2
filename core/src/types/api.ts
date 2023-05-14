@@ -50,6 +50,8 @@ export type ApiOptions = {
   readonly contentType?: string | undefined;
 }
 
+export type HttpMethodsLC = 'get' | 'post' | 'put' | 'delete';
+
 /**
  * @category API
  */
