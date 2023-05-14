@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
 
 import { IBooking } from 'awayto/core';
-import { sh } from 'awayto/hooks';
-
-import { BookingContext, BookingContextType } from "./BookingContext";
+import { sh, useContexts } from 'awayto/hooks';
 
 export function BookingProvider ({ children }: IProps): React.JSX.Element {
+
+  const { BookingContext } = useContexts();
 
   const [bookingValuesChanged, setBookingValuesChanged] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<IBooking[]>([]);
@@ -14,7 +14,7 @@ export function BookingProvider ({ children }: IProps): React.JSX.Element {
 
   const bookingValues = useMemo(() => Object.values(profile?.bookings || {}), [profile]);
 
-  const bookingValuesContext = {
+  const bookingContext = {
     bookingValues,
     setBookingValuesChanged,
     bookingValuesChanged,
@@ -41,11 +41,12 @@ export function BookingProvider ({ children }: IProps): React.JSX.Element {
     }
   } as BookingContextType | null;
 
-  return <>
-    <BookingContext.Provider value={bookingValuesContext}>
+  return useMemo(() => !BookingContext ? <></> :
+    <BookingContext.Provider value={bookingContext}>
       {children}
-    </BookingContext.Provider>
-  </>;
+    </BookingContext.Provider>,
+    [BookingContext, bookingContext]
+  );
   
 }
 

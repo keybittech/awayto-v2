@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useContext } from 'react';
 import dayjs from 'dayjs';
 
 import Box from '@mui/material/Box';
@@ -12,7 +12,7 @@ import Tooltip from '@mui/material/Tooltip';
 import JoinFullIcon from '@mui/icons-material/JoinFull';
 
 import { bookingDT, shortNSweet } from 'awayto/core';
-import { sh } from 'awayto/hooks';
+import { useContexts } from 'awayto/hooks';
 
 declare global {
   interface IProps {
@@ -25,12 +25,10 @@ declare global {
 
 export function UpcomingBookingsMenu({ handleMenuClose, upcomingBookingsAnchorEl, upcomingBookingsMenuId, isUpcomingBookingsOpen }: IProps): React.JSX.Element {
 
-  const { data: profile } = sh.useGetUserProfileDetailsQuery();
-
   const minsAgo15 = dayjs.duration(-15, 'minutes');
   const startOfDay = dayjs().startOf('day');
 
-  const upcomingBookings = useMemo(() => Object.values(profile?.bookings || {}), [profile]);
+  const { bookingValues: upcomingBookings } = useContext(useContexts().BookingContext) as BookingContextType;
 
   const goToBooking = useCallback(() => {
     console.log('navigate here');
