@@ -20,10 +20,6 @@ export function ExchangeProvider({ children }: IProps): React.JSX.Element {
 
   const { ExchangeContext } = useContexts();
 
-  const { data: profile } = sh.useGetUserProfileDetailsQuery();
-
-  const localId = profile?.username;
-
   const { setSnack } = useUtil();
 
   const { Video, GroupedMessages } = useComponents();
@@ -181,7 +177,7 @@ export function ExchangeProvider({ children }: IProps): React.JSX.Element {
   const setLocalStreamAndBroadcast = useCallback((video: boolean): void => {
     async function go() {
       try {
-        if (connected && !localStream && localId && 'start' === canStartStop) {
+        if (connected && !localStream && 'start' === canStartStop) {
           setCanStartStop('');
 
           const callOptions: MediaStreamConstraints = {
@@ -208,7 +204,7 @@ export function ExchangeProvider({ children }: IProps): React.JSX.Element {
       }
     }
     void go();
-  }, [connected, localStream, canStartStop, localId]);
+  }, [connected, localStream, canStartStop]);
 
   const localStreamRef = useCallback((node: HTMLVideoElement) => {
     if (node && !node.srcObject && localStream) {

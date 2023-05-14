@@ -21,7 +21,6 @@ export type IQuote = {
   tierFormVersionSubmissionId: string;
   serviceForm?: IFormVersionSubmission;
   tierForm?: IFormVersionSubmission;
-  createdSub: string;
   createdOn: string;
 };
 

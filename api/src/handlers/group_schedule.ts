@@ -73,8 +73,9 @@ export default {
     const schedules = await props.db.one<ISchedule>(`
       SELECT ese.*
       FROM dbview_schema.enabled_schedules_ext ese
-      JOIN dbview_schema.enabled_users eu ON eu.sub = ese."createdSub"
-      WHERE ese.id = $1 AND eu.username = $2
+      JOIN dbtable_schema.schedules s ON s.id = ese.id
+      JOIN dbtable_schema.users u ON u.sub = s.created_sub
+      WHERE ese.id = $1 AND u.username = $2
     `, [scheduleId, 'system_group_' + groupName]);
 
     return schedules;

@@ -132,7 +132,7 @@ export default {
     });
 
     // Update the basic info about the group in the app DB
-    const group = await props.tx.one<IGroup>(`
+    const { externalId: groupExternalId, ...group } = await props.tx.one<IGroup>(`
       UPDATE dbtable_schema.groups
       SET ${updateProps.string}
       WHERE id = $1
@@ -153,7 +153,7 @@ export default {
     if (diffs.length) {
 
       // Delete keycloak subgroups under the parent group which are no longer present
-      const externalGroup = await props.keycloak.groups.findOne({ id: group.externalId });
+      const externalGroup = await props.keycloak.groups.findOne({ id: groupExternalId });
       if (externalGroup?.subGroups) {
         const roleNames = (await props.tx.manyOrNone<IRole>(`
           SELECT name 
@@ -178,7 +178,7 @@ export default {
     // Reestablish subgroup namespaces in keycloak, and group role associations in app db
     for (const roleId in Object.keys(roles)) {
       const role = roles[roleId];
-      const { id: kcSubgroupId } = await props.keycloak.groups.setOrCreateChild({ id: group.externalId }, { name: role.name });
+      const { id: kcSubgroupId } = await props.keycloak.groups.setOrCreateChild({ id: groupExternalId }, { name: role.name });
       await props.tx.none(`
         INSERT INTO dbtable_schema.group_roles (group_id, role_id, external_id, created_on, created_sub)
         VALUES ($1, $2, $3, $4, $5::uuid)
@@ -198,7 +198,7 @@ export default {
 
     // Get the group external ID for now by owner
     const { externalId: groupExternalId } = await props.tx.one<IGroup>(`
-      SELECT "externalId" FROM dbview_schema.enabled_groups WHERE "createdSub" = $1
+      SELECT external_id FROM dbtable_schema.groups WHERE created_sub = $1
     `, [props.event.userSub]);
 
     await asyncForEach(Object.keys(assignments), async subgroupPath => {
@@ -255,10 +255,11 @@ export default {
     // Assign APP_ROLE_CALL to group users
     const users = await props.tx.manyOrNone<IUserProfile>(`
       SELECT eu.sub
-      FROM dbview_schema.enabled_groups g
-      LEFT JOIN dbview_schema.enabled_group_users egu ON egu."groupId" = g.id
+      FROM dbview_schema.enabled_groups eg
+      JOIN dbtable_schema.groups g ON g.id = eg.id
+      LEFT JOIN dbview_schema.enabled_group_users egu ON egu."groupId" = eg.id
       LEFT JOIN dbview_schema.enabled_users eu ON eu.id = egu."userId"
-      WHERE g."externalId" = $1 AND eu.sub = ANY($2::uuid[])
+      WHERE g.external_id = $1 AND eu.sub = ANY($2::uuid[])
     `, [groupExternalId, sessions.map(u => u.userId)]);
 
 
@@ -279,35 +280,17 @@ export default {
 
     return { success: true };
   },
-  getGroups: async props => {
-    const groups = await props.db.manyOrNone<IGroup>(`
-      SELECT * FROM dbview_schema.enabled_groups_ext
-      WHERE "createdSub" = $1
-    `, [props.event.userSub]);
-
-    return groups;
-  },
   getGroupAssignments: async props => {
     const { groupRoleActions } = await props.redisProxy('groupRoleActions');
 
     // Get the group external ID for now by owner
     const { externalId } = await props.db.one<IGroup>(`
-      SELECT "externalId" FROM dbview_schema.enabled_groups WHERE "createdSub" = $1
+      SELECT external_id FROM dbtable_schema.groups WHERE created_sub = $1
     `, [props.event.userSub]);
 
     const assignments = (await props.keycloak.groups.findOne({ id: externalId }))?.subGroups?.reduce((m, sg) => ({ ...m, [sg.path as string]: groupRoleActions[sg.path as string] }), {}) as Record<string, IGroupRoleAuthActions>;
 
     return assignments;
-  },
-  getGroupById: async props => {
-    const { id } = props.event.pathParameters;
-
-    const group = await props.db.one<IGroup>(`
-      SELECT * FROM dbview_schema.enabled_groups_ext
-      WHERE id = $1
-    `, [id]);
-
-    return group;
   },
   deleteGroup: async props => {
     const { ids } = props.event.pathParameters;
@@ -403,11 +386,10 @@ export default {
 
       // Get the role's subgroup external id
       const { externalId: kcRoleSubgroupExternalId } = await props.tx.one<IGroupRole>(`
-        SELECT "externalId"
-        FROM dbview_schema.enabled_group_roles
-        WHERE "groupId" = $1 AND "roleId" = $2
+        SELECT external_id as "externalId"
+        FROM dbtable_schema.group_roles
+        WHERE group_id = $1 AND role_id = $2
       `, [groupId, defaultRoleId]);
-      console.log('11111111111')
 
       // Add the joining user to the group in the app db
       await props.tx.none(`
@@ -415,13 +397,11 @@ export default {
         VALUES ($1, $2, $3, $4::uuid);
       `, [userId, groupId, kcRoleSubgroupExternalId, props.event.userSub]);
 
-      console.log('222222222')
       // Attach the user to the role's subgroup in keycloak
       await props.keycloak.users.addToGroup({
         id: props.event.userSub,
         groupId: kcRoleSubgroupExternalId
       });
-      console.log('3333333')
 
       // Attach role call so the joining member's roles update
       const { appClient, roleCall } = await props.redisProxy('appClient', 'roleCall');
@@ -430,7 +410,6 @@ export default {
         clientUniqueId: appClient.id!,
         roles: roleCall
       });
-      console.log('4444444')
 
       // Refresh redis cache of group users/roles
       await props.keycloak.regroup(kcGroupExternalId);
@@ -490,9 +469,7 @@ export default {
   'postGroup' |
   'putGroup' |
   'putGroupAssignments' |
-  'getGroups' |
   'getGroupAssignments' |
-  'getGroupById' |
   'deleteGroup' |
   'checkGroupName' |
   'inviteGroupUser' |

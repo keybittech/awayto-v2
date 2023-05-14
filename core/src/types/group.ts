@@ -36,6 +36,7 @@ export type IGroup = {
   displayName: string;
   name: string;
   purpose: string;
+  ldr: boolean;
   code: string;
   usersCount: number;
   roles: Record<string, IRole>;
@@ -98,14 +99,6 @@ export default {
     },
     resultType: { success: true as boolean }
   },
-  getGroups: {
-    kind: EndpointType.QUERY,
-    url: 'group',
-    method: 'GET',
-    opts: {} as ApiOptions,
-    queryArg: {} as Void,
-    resultType: [] as IGroup[]
-  },
   getGroupAssignments: {
     kind: EndpointType.QUERY,
     url: 'group/:groupName/assignments',
@@ -113,14 +106,6 @@ export default {
     opts: {} as ApiOptions,
     queryArg: { groupName: '' as string },
     resultType: {} as Record<string, IGroupRoleAuthActions>
-  },
-  getGroupById: {
-    kind: EndpointType.QUERY,
-    url: 'group/:id',
-    method: 'GET',
-    opts: {} as ApiOptions,
-    queryArg: { id: '' as string },
-    resultType: {} as IGroup
   },
   deleteGroup: {
     kind: EndpointType.MUTATION,

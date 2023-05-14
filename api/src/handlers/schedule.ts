@@ -81,8 +81,10 @@ export default {
   },
   getSchedules: async props => {
     const schedules = await props.db.manyOrNone<ISchedule>(`
-      SELECT * FROM dbview_schema.enabled_schedules
-      WHERE "createdSub" = $1
+      SELECT es.* 
+      FROM dbview_schema.enabled_schedules es
+      JOIN dbtable_schema.schedules s ON s.id = es.id
+      WHERE s.created_sub = $1
     `, [props.event.userSub]);
 
     return schedules;

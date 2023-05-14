@@ -34,7 +34,6 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     id,
     name,
     created_on as "createdOn",
-    created_sub as "createdSub",
     row_number() OVER () as row
   FROM
     dbtable_schema.forms
@@ -48,7 +47,6 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     group_id as "groupId",
     form_id as "formId",
     created_on as "createdOn",
-    created_sub as "createdSub",
     row_number() OVER () as row
   FROM
     dbtable_schema.group_forms
@@ -62,7 +60,6 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     form,
     form_id as "formId",
     created_on as "createdOn",
-    created_sub as "createdSub",
     row_number() OVER () as row
   FROM
     dbtable_schema.form_versions
@@ -76,7 +73,6 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     submission,
     form_version_id as "formVersionId",
     created_on as "createdOn",
-    created_sub as "createdSub",
     row_number() OVER () as row
   FROM
     dbtable_schema.form_version_submissions
@@ -176,7 +172,6 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     bracket_time_unit_id as "bracketTimeUnitId",
     slot_time_unit_id as "slotTimeUnitId",
     slot_duration as "slotDuration",
-    created_sub as "createdSub",
     created_on as "createdOn",
     row_number() OVER () as row
   FROM
@@ -191,7 +186,6 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     group_id as "groupId",
     schedule_id as "scheduleId",
     created_on as "createdOn",
-    created_sub as "createdSub",
     row_number() OVER () as row
   FROM
     dbtable_schema.group_schedules
@@ -205,7 +199,6 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     group_schedule_id as "groupScheduleId",
     user_schedule_id as "userScheduleId",
     created_on as "createdOn",
-    created_sub as "createdSub",
     row_number() OVER () as row
   FROM
     dbtable_schema.group_user_schedules
@@ -221,7 +214,6 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     sb.multiplier,
     sb.automatic,
     sb.created_on as "createdOn",
-    sb.created_sub as "createdSub",
     row_number() OVER () as row
   FROM
     dbtable_schema.schedule_brackets sb
@@ -252,7 +244,6 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     es.name as "serviceName",
     q.service_form_version_submission_id as "serviceFormVersionSubmissionId",
     q.tier_form_version_submission_id as "tierFormVersionSubmissionId",
-    q.created_sub as "createdSub",
     q.created_on as "createdOn",
     row_number() OVER () as row
   FROM
@@ -270,7 +261,6 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     b.slot_date as "slotDate",
     esbs."startTime",
     b.quote_id as "quoteId",
-    q.created_sub as "quoteSub",
     b.schedule_bracket_slot_id as "scheduleBracketSlotId",
     q.service_tier_id as "serviceTierId",
     est.name as "serviceTierName",
@@ -278,7 +268,6 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     q.service_form_version_submission_id as "serviceFormVersionSubmissionId",
     q.tier_form_version_submission_id as "tierFormVersionSubmissionId",
     b.created_on as "createdOn",
-    b.created_sub as "createdSub",
     row_number() OVER () as row
   FROM
     dbtable_schema.bookings b
@@ -425,8 +414,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     row_to_json(est.*) as "serviceTier",
     row_to_json(sform.*) as "serviceFormVersionSubmission",
     row_to_json(tform.*) as "tierFormVersionSubmission",
-    eq."createdOn",
-    eq."createdSub"
+    eq."createdOn"
   FROM
     dbview_schema.enabled_quotes eq
     LEFT JOIN dbview_schema.enabled_schedule_bracket_slots esbs ON esbs.id = eq."scheduleBracketSlotId"
@@ -441,8 +429,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     eb."slotDate",
     row_to_json(eqe.*) as quote,
     row_to_json(esbs.*) as "scheduleBracketSlot",
-    eb."createdOn",
-    eb."createdSub"
+    eb."createdOn"
   FROM
     dbview_schema.enabled_bookings eb
     LEFT JOIN dbview_schema.enabled_quotes_ext eqe ON eqe.id = eb."quoteId"

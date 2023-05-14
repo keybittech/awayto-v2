@@ -58,12 +58,14 @@ router.get('/join/:groupCode', async (req, res) => {
 
 for (const apiRefId in siteApiRef) {
   const { method, url, queryArg, resultType, kind, opts: { cache, throttle, contentType } } = siteApiRef[apiRefId as keyof typeof siteApiRef];
+  const isFileContent = 'application/octet-stream' === contentType;
+
 
   const requestHandlers: RequestHandler[] = [
     checkAuthenticated
   ];
 
-  if ('application/octet-stream' === contentType) {
+  if (isFileContent) {
     requestHandlers.push(express.raw({ type: contentType, limit: '4mb' }));
   }
 
@@ -145,7 +147,7 @@ for (const apiRefId in siteApiRef) {
           const { body, ...logged } = requestParams.event;
           logger.log(`Handling api ${handlerType} with size ` + eventLength, {
             ...logged,
-            body: 'application/octet-stream' === contentType ? undefined : body
+            body: isFileContent ? undefined : body
           });
           console.log('handling', handlerType, method, url, user.sub, requestId, eventLength);
 

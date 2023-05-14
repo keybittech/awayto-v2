@@ -29,7 +29,8 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
             eq."createdOn",
             us.username
           FROM dbview_schema.enabled_quotes eq
-          JOIN dbtable_schema.users us ON us.sub = eq."createdSub"
+          JOIN dbtable_schema.quotes q ON q.id = eq.id
+          JOIN dbtable_schema.users us ON us.sub = q.created_sub
           JOIN dbtable_schema.schedule_bracket_slots sbs ON sbs.id = eq."scheduleBracketSlotId"
           JOIN dbview_schema.enabled_schedule_brackets esb ON esb.id = sbs.schedule_bracket_id
           JOIN dbview_schema.enabled_schedules schedule ON schedule.id = esb."scheduleId"
@@ -49,10 +50,12 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
             eb."serviceName",
             eb."createdOn"
           FROM dbview_schema.enabled_bookings eb
+          JOIN dbtable_schema.bookings b ON b.id = eb.id
+          JOIN dbtable_schema.quotes q ON q.id = b.quote_id 
           JOIN dbview_schema.enabled_schedule_bracket_slots esbs ON esbs.id = eb."scheduleBracketSlotId"
           JOIN dbview_schema.enabled_schedule_brackets esb ON esb.id = esbs."scheduleBracketId"
           JOIN dbview_schema.enabled_schedules schedule ON schedule.id = esb."scheduleId"
-          WHERE eb."createdSub" = u.sub OR eb."quoteSub" = u.sub
+          WHERE b.created_sub = u.sub OR q.created_sub = u.sub
         ) b
     ) as boks on true
     LEFT JOIN LATERAL (
@@ -71,14 +74,16 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     ) as rols ON true
     LEFT JOIN LATERAL (
       SELECT
-        JSONB_OBJECT_AGG(g.id, TO_JSONB(g)) as groups
+        JSONB_OBJECT_AGG(g.id, JSONB_STRIP_NULLS(TO_JSONB(g))) as groups
       FROM
         (
           SELECT
-            ege.*
+            eg.*,
+            CASE WHEN u.sub = g.created_sub THEN true ELSE null END ldr
           FROM
             dbview_schema.enabled_group_users egu
-            JOIN dbview_schema.enabled_groups_ext ege ON egu."groupId" = ege.id
+            JOIN dbview_schema.enabled_groups eg ON egu."groupId" = eg.id
+            JOIN dbtable_schema.groups g ON g.id = eg.id
           WHERE
             egu."userId" = u.id
         ) g

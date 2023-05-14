@@ -56,15 +56,13 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
   OR REPLACE VIEW dbview_schema.enabled_groups AS
   SELECT
     id,
-    external_id as "externalId",
-    default_role_id as "defaultRoleId",
-    display_name as "displayName",
-    name,
     purpose,
-    allowed_domains as "allowedDomains",
     code,
+    name,
+    display_name as "displayName",
+    default_role_id as "defaultRoleId",
+    allowed_domains as "allowedDomains",
     created_on as "createdOn",
-    created_sub as "createdSub",
     row_number() OVER () as row
   FROM
     dbtable_schema.groups
@@ -77,7 +75,6 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     id,
     user_id as "userId",
     group_id as "groupId",
-    external_id as "externalId",
     created_on as "createdOn",
     row_number() OVER () as row
   FROM
@@ -91,7 +88,6 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     id,
     role_id as "roleId",
     group_id as "groupId",
-    external_id as "externalId",
     created_on as "createdOn",
     row_number() OVER () as row
   FROM
@@ -132,7 +128,6 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     gf.file_id as "fileId",
     f.name,
     gf.group_id as "groupId",
-    gf.created_sub as "createdSub",
     gf.created_on as "createdOn",
     row_number() OVER () as row
   FROM
@@ -147,7 +142,6 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     un.id,
     un.parent_uuid as "parentUuid",
     un.note,
-    un.created_sub as "createdSub",
     un.created_on as "createdOn",
     row_number() OVER () as row
   FROM

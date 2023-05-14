@@ -21,8 +21,7 @@ export default {
         er.id,
         er.name,
         egr."roleId",
-        egr."groupId",
-        egr."externalId"
+        egr."groupId"
       FROM dbview_schema.enabled_group_roles egr
       JOIN dbview_schema.enabled_roles er ON er.id = egr."roleId"
       WHERE egr."groupId" = $1

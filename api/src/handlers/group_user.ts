@@ -56,11 +56,12 @@ export default {
     `, [groupName]);
 
     const groupUsers = await props.db.manyOrNone<IGroupUser>(`
-      SELECT eu.*, er.id as "roleId", er.name as "roleName"
+      SELECT eu.*, r.id as "roleId", r.name as "roleName"
       FROM dbview_schema.enabled_group_users egu
       LEFT JOIN dbview_schema.enabled_users eu ON eu.id = egu."userId"
-      JOIN dbview_schema.enabled_group_roles egr ON egr."externalId" = egu."externalId"
-      JOIN dbview_schema.enabled_roles er ON er.id = egr."roleId"
+      JOIN dbtable_schema.group_users gu ON gu.id = egu.id
+      JOIN dbtable_schema.group_roles gr ON gr.external_id = gu.external_id
+      JOIN dbtable_schema.roles r ON gr.role_id = r.id
       WHERE egu."groupId" = $1
     `, [groupId]);
 
@@ -81,7 +82,6 @@ export default {
         eu.id,
         egu."groupId",
         egu."userId",
-        egu."externalId",
         eu."firstName",
         eu."lastName",
         eu.username,
@@ -92,8 +92,9 @@ export default {
         er.name as "roleName"
       FROM dbview_schema.enabled_group_users egu
       JOIN dbview_schema.enabled_users eu ON eu.id = egu."userId"
-      JOIN dbview_schema.enabled_group_roles egr ON egr."externalId" = egu."externalId"
-      JOIN dbview_schema.enabled_roles er ON er.id = egr."roleId"
+      JOIN dbtable_schema.group_users gu ON gu.id = egu.id
+      JOIN dbtable_schema.group_roles gr ON gr.external_id = gu.external_id
+      JOIN dbview_schema.enabled_roles er ON er.id = gr.role_id
       WHERE egu."groupId" = $1 and egu."userId" = $2
     `, [groupId, userId]);
 
@@ -109,7 +110,7 @@ export default {
 
     const { id: groupId, externalId: kcGroupExternalId } = await props.tx.one<IGroup>(`
       SELECT id, external_id as "externalId"
-      FROM dbview_schema.enabled_groups
+      FROM dbtable_schema.groups
       WHERE name = $1
     `, [groupName]);
 

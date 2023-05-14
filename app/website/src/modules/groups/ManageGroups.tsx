@@ -50,9 +50,9 @@ export function ManageGroups(props: IProps): React.JSX.Element {
     if (!groups) return [];
     const { length } = selected;
     const gr = groups[selected[0]];
-    const isOwner = gr?.createdSub === profile?.sub;
+    const grldr = gr?.ldr;
     const acts = length == 1 ? [
-      gr && !isOwner && <Tooltip key={'leave_group'} title="Leave">
+      !grldr && <Tooltip key={'leave_group'} title="Leave">
         <Button onClick={() => {
           openConfirm({
             isConfirming: true,
@@ -66,7 +66,7 @@ export function ManageGroups(props: IProps): React.JSX.Element {
           <Logout className={classes.variableButtonIcon} />
         </Button>
       </Tooltip>,
-      gr && isOwner && hasRole([SiteRoles.APP_GROUP_ADMIN]) && <Tooltip key={'view_group_details'} title="Details">
+      grldr && hasRole([SiteRoles.APP_GROUP_ADMIN]) && <Tooltip key={'view_group_details'} title="Details">
         <Button onClick={() => {
           navigate(`/group/${gr.name}/manage/users`)
         }}>
@@ -74,7 +74,7 @@ export function ManageGroups(props: IProps): React.JSX.Element {
           <ManageAccountsIcon className={classes.variableButtonIcon} />
         </Button>
       </Tooltip>,
-      isOwner && <Tooltip key={'manage_group'} title="Edit">
+      grldr && <Tooltip key={'manage_group'} title="Edit">
         <Button onClick={() => {
           setGroup(groups[selected[0]]);
           setDialog('manage_group');
@@ -88,7 +88,7 @@ export function ManageGroups(props: IProps): React.JSX.Element {
 
     return [
       ...acts,
-      isOwner && <Tooltip key={'delete_group'} title="Delete">
+      grldr && <Tooltip key={'delete_group'} title="Delete">
         <Button onClick={() => {
           openConfirm({
             isConfirming: true,

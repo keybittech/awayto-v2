@@ -42,8 +42,9 @@ export default {
     const response = await props.db.manyOrNone<IBooking>(`
       SELECT eb.*
       FROM dbview_schema.enabled_bookings eb
+      JOIN dbtable_schema.bookings b ON b.id = eb.id
       JOIN dbtable_schema.schedule_bracket_slots sbs ON sbs.id = eb."scheduleBracketSlotId"
-      WHERE eb."createdSub" = $1 OR sbs.created_sub = $1
+      WHERE b.created_sub = $1 OR sbs.created_sub = $1
     `, [props.event.userSub]);
     return response;
   },
