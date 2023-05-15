@@ -44,7 +44,11 @@ export function ManageScheduleBracketsModal({ editSchedule, closeModal }: IProps
     }
   } = useContext(GroupScheduleContext) as GroupScheduleContextType;
 
-  const [schedule, setSchedule] = useState<ISchedule | undefined>(editSchedule || groupSchedule);
+  const [schedule, setSchedule] = useState<ISchedule | undefined>(editSchedule);
+
+  if (groupSchedule && (!schedule || groupSchedule.id !== schedule.id)) {
+    setSchedule({ ...groupSchedule, brackets: {} });
+  }
 
   const scheduleTimeUnitName = useTimeName(schedule?.scheduleTimeUnitId);
   const bracketTimeUnitName = useTimeName(schedule?.bracketTimeUnitId);

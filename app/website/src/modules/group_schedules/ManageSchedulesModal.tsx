@@ -14,7 +14,7 @@ import TextField from '@mui/material/TextField';
 import { Mark } from '@mui/base';
 
 import { ISchedule, ITimeUnit, TimeUnit, timeUnitOrder, getRelativeDuration, ITimeUnitNames, IGroupSchedule, scheduleSchema } from 'awayto/core';
-import { useComponents, useUtil, sh } from 'awayto/hooks';
+import { useComponents, useUtil, sh, useTimeName } from 'awayto/hooks';
 
 declare global {
   interface IProps {
@@ -39,12 +39,9 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
   
   const [schedule, setSchedule] = useState({ ...scheduleSchema, ...editSchedule } as ISchedule);
 
-  const attachScheduleUnits = useCallback((sched: ISchedule): ISchedule => {
-    sched.scheduleTimeUnitName = lookups?.timeUnits?.find(u => u.id === sched.scheduleTimeUnitId)?.name as ITimeUnitNames;
-    sched.bracketTimeUnitName = lookups?.timeUnits?.find(u => u.id === sched.bracketTimeUnitId)?.name as ITimeUnitNames;
-    sched.slotTimeUnitName = lookups?.timeUnits?.find(u => u.id === sched.slotTimeUnitId)?.name as ITimeUnitNames;
-    return sched;
-  }, [lookups]);
+  const scheduleTimeUnitName =  useTimeName(schedule?.scheduleTimeUnitId);
+  const bracketTimeUnitName =  useTimeName(schedule?.bracketTimeUnitId);
+  const slotTimeUnitName =  useTimeName(schedule?.slotTimeUnitId);
 
   const setDefault = useCallback((type: string) => {
     const weekId = lookups?.timeUnits?.find(s => s.name === TimeUnit.WEEK)?.id;
@@ -53,26 +50,25 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
     const minuteId = lookups?.timeUnits?.find(s => s.name === TimeUnit.MINUTE)?.id;
     const monthId = lookups?.timeUnits?.find(s => s.name === TimeUnit.MONTH)?.id;
     if ('40hoursweekly30minsessions' === type) {
-      setSchedule(attachScheduleUnits({
+      setSchedule({
         ...schedule,
         scheduleTimeUnitId: weekId as string,
         bracketTimeUnitId: hourId as string,
         slotTimeUnitId: minuteId as string,
         slotDuration: 30
-      }));
+      });
     } else if ('dailybookingpermonth') {
-      setSchedule(attachScheduleUnits({
+      setSchedule({
         ...schedule,
         scheduleTimeUnitId: monthId as string,
         bracketTimeUnitId: weekId as string,
         slotTimeUnitId: dayId as string,
         slotDuration: 1
-      }));
+      });
     }
   }, [lookups, schedule]);
 
   const slotDurationMarks = useMemo(() => {
-    const { scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName } = schedule;
     const factors = [] as Mark[];
     if (!bracketTimeUnitName || !slotTimeUnitName || !scheduleTimeUnitName) return factors;
     // const subdivided = bracketTimeUnitName !== slotTimeUnitName;
@@ -85,7 +81,7 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
       }
     }
     return factors;
-  }, [schedule]);
+  }, [bracketTimeUnitName, slotTimeUnitName, scheduleTimeUnitName]);
 
   const handleSubmit = useCallback(() => {
 
@@ -118,7 +114,6 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
       if (lookupsRetrieved) {
         if (groupName && editSchedule) {
           const masterSchedule = await getGroupScheduleMasterById({ groupName, scheduleId: editSchedule.id }).unwrap();
-          attachScheduleUnits(masterSchedule);
           setSchedule(masterSchedule);
         } else {
           setDefault('40hoursweekly30minsessions');
@@ -236,7 +231,7 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
           lookupName="Bracket Duration Type"
           helperText="How to measure blocks of time within the Schedule Duration. For example, in a 40 hour per week situation, blocks of time are divided in hours. Multiple brackets can be used on a single schedule, and all of them share the same Bracket Duration Type."
           lookupValue={schedule.bracketTimeUnitId}
-          lookups={lookups?.timeUnits?.filter(sc => sc.name !== schedule.scheduleTimeUnitName && timeUnitOrder.indexOf(sc.name) <= timeUnitOrder.indexOf(schedule.scheduleTimeUnitName))}
+          lookups={lookups?.timeUnits?.filter(sc => sc.name !== scheduleTimeUnitName && timeUnitOrder.indexOf(sc.name) <= timeUnitOrder.indexOf(scheduleTimeUnitName))}
           lookupChange={(val: string) => {
             const { name, id } = lookups?.timeUnits?.find(c => c.id === val) as ITimeUnit;
             setSchedule({ ...schedule, bracketTimeUnitName: name, bracketTimeUnitId: id, slotTimeUnitName: name, slotTimeUnitId: id, slotDuration: 1 });
@@ -250,9 +245,9 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
           noEmptyValue
           disabled={!!schedule.id}
           lookupName="Booking Slot Length"
-          helperText={`The # of ${schedule.slotTimeUnitName}s to deduct from the bracket upon accepting a booking. Alternatively, if you meet with clients, this is the length of time per session.`}
+          helperText={`The # of ${slotTimeUnitName}s to deduct from the bracket upon accepting a booking. Alternatively, if you meet with clients, this is the length of time per session.`}
           lookupValue={schedule.slotTimeUnitId}
-          lookups={lookups?.timeUnits?.filter(sc => [timeUnitOrder.indexOf(schedule.bracketTimeUnitName), Math.max(timeUnitOrder.indexOf(schedule.bracketTimeUnitName) - 1, 0)].includes(timeUnitOrder.indexOf(sc.name)))}
+          lookups={lookups?.timeUnits?.filter(sc => [timeUnitOrder.indexOf(bracketTimeUnitName), Math.max(timeUnitOrder.indexOf(bracketTimeUnitName) - 1, 0)].includes(timeUnitOrder.indexOf(sc.name)))}
           lookupChange={(val: string) => {
             const { name, id } = lookups?.timeUnits?.find(c => c.id === val) || {};
             if (!name || !id) return;
