@@ -10,7 +10,7 @@ import { performance } from 'perf_hooks';
 
 import fetch from 'node-fetch';
 
-import { IGroupRoleAuthActions, SiteRoles, asyncForEach, ApiErrorResponse, KcSiteOpts } from 'awayto/core';
+import { IGroupRoleAuthActions, SiteRoles, ApiErrorResponse, KcSiteOpts } from 'awayto/core';
 import redis, { clearLocalCache, redisProxy } from './redis';
 
 const { APP_ROLE_CALL } = SiteRoles;
@@ -46,7 +46,7 @@ let regrouping = false;
 
 keycloak.regroup = async function (groupId?: string): Promise<void> {
 
-  if (regrouping) return;
+  if (!groupId && regrouping) return;
   regrouping = true;
 
   try {
@@ -61,41 +61,50 @@ keycloak.regroup = async function (groupId?: string): Promise<void> {
       groups = group ? [group] : [];
     } else {
       performance.mark("regroupAllGroupsStart");
-      groups = groups.length ? groups : await keycloak.groups.find();
+      groups = await keycloak.groups.find();
     }
 
     const newGroupRoleActions: Record<string, IGroupRoleAuthActions> = {};
 
-    await asyncForEach(groups, async group => {
-      if (!group.subGroups) return;
-      await asyncForEach(group.subGroups, async ({ path, id: subgroupId }) => {
-        if (!path || !subgroupId) return;
-        if (!oldGroupRoleActions[path] || oldGroupRoleActions[path].fetch as boolean || groupId) {
-
-          const roleMappings = await keycloak.groups.listRoleMappings({ id: subgroupId }) as {
-            clientMappings: {
-              [prop: string]: {
-                mappings: {
-                  id: string;
-                  name: string
-                }[]
-              }
+    for (const group of groups) {
+      if (group.subGroups) {
+        for (const { path, id: subgroupId } of group.subGroups) {
+          if (path && subgroupId) {
+            if (!oldGroupRoleActions[path] || oldGroupRoleActions[path].fetch as boolean || groupId) {
+              const roleMappings = await keycloak.groups.listRoleMappings({ id: subgroupId }) as {
+                clientMappings: {
+                  [prop: string]: {
+                    mappings: {
+                      id: string;
+                      name: string
+                    }[]
+                  }
+                }
+              };
+    
+              newGroupRoleActions[path] = !roleMappings.clientMappings ? {
+                id: subgroupId,
+                fetch: false,
+                actions: []
+              } : roleMappings.clientMappings[KC_CLIENT].mappings.reduce((m, { id: actionId, name }) => ({
+                  ...m,
+                  id: subgroupId,
+                  fetch: false,
+                  actions: [...(m.actions || []), { id: actionId, name }]
+                }), {} as IGroupRoleAuthActions);    
+            } else {
+              console.log(' using cache for ', path);
+              newGroupRoleActions[path] = oldGroupRoleActions[path];
             }
-          };
-
-          if (roleMappings.clientMappings) {
-            newGroupRoleActions[path] = roleMappings.clientMappings[KC_CLIENT].mappings.reduce((m: Record<string, string | boolean | Record<string, string>[]>, { id: actionId, name }) => ({ ...m, id: subgroupId, fetch: false, actions: [...(m.actions || []) as Record<string, string>[], { id: actionId, name }] }), {}) as IGroupRoleAuthActions;
           }
-
-        } else {
-          console.log(' using cache for ', path);
-          newGroupRoleActions[path as string] = oldGroupRoleActions[path as string];
         }
-      });
-    });
+      }
+    }
 
-    await redis.set('groupRoleActions', JSON.stringify(newGroupRoleActions));
-    clearLocalCache('groupRoleActions');
+    if (Object.keys(newGroupRoleActions).length) {
+      await redis.set('groupRoleActions', JSON.stringify(newGroupRoleActions));
+      clearLocalCache('groupRoleActions');
+    }
 
     if (groupId) {
       performance.mark("regroupOneGroupEnd");

@@ -1,4 +1,4 @@
-import { IUserProfile, buildUpdate, utcNowString, createHandlers } from 'awayto/core';
+import { IUserProfile, buildUpdate, utcNowString, createHandlers, IGroup } from 'awayto/core';
 
 export default createHandlers({
   postUserProfile: async props => {
@@ -53,6 +53,18 @@ export default createHandlers({
       FROM dbview_schema.enabled_users_ext
       WHERE sub = $1
     `, [props.event.userSub]);
+
+    for (const group of Object.values(profile.groups)) {
+      if (group.ldr) {
+        const groupExt = await props.db.one<IGroup>(`
+          SELECT * 
+          FROM dbview_schema.enabled_groups_ext
+          WHERE id = $1
+        `, [group.id]);
+
+        Object.assign(group, groupExt);
+      }
+    }
 
     profile.availableUserGroupRoles = props.event.availableUserGroupRoles;
 

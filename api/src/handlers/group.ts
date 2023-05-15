@@ -283,9 +283,9 @@ export default createHandlers({
   getGroupAssignments: async props => {
     const { groupRoleActions } = await props.redisProxy('groupRoleActions');
 
-    // Get the group external ID for now by owner
+    // Get the group external ID for now by owner -- as opposed to other leaders
     const { externalId } = await props.db.one<IGroup>(`
-      SELECT external_id FROM dbtable_schema.groups WHERE created_sub = $1
+      SELECT external_id as "externalId" FROM dbtable_schema.groups WHERE created_sub = $1::uuid
     `, [props.event.userSub]);
 
     const assignments = (await props.keycloak.groups.findOne({ id: externalId }))?.subGroups?.reduce((m, sg) => ({ ...m, [sg.path as string]: groupRoleActions[sg.path as string] }), {}) as Record<string, IGroupRoleAuthActions>;

@@ -56,12 +56,8 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
   OR REPLACE VIEW dbview_schema.enabled_groups AS
   SELECT
     id,
-    purpose,
-    code,
     name,
     display_name as "displayName",
-    default_role_id as "defaultRoleId",
-    allowed_domains as "allowedDomains",
     created_on as "createdOn",
     row_number() OVER () as row
   FROM
@@ -153,10 +149,15 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
   OR REPLACE VIEW dbview_schema.enabled_groups_ext AS
   SELECT
     eg.*,
+    g.purpose,
+    g.code,
+    g.default_role_id as "defaultRoleId",
+    g.allowed_domains as "allowedDomains",
     ug."usersCount",
     rls.* as roles
   FROM
     dbview_schema.enabled_groups eg
+    JOIN dbtable_schema.groups g ON g.id = eg.id
     LEFT JOIN LATERAL (
       SELECT
         JSONB_OBJECT_AGG(r.id, TO_JSONB(r)) as roles
