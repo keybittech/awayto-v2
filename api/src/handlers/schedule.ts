@@ -1,6 +1,6 @@
-import { ApiHandlers, ApiProps, ISchedule, IScheduleBracket, ScheduledParts, buildUpdate, utcNowString, AnyRecord, asyncForEach } from 'awayto/core';
+import { ApiProps, ISchedule, IScheduleBracket, ScheduledParts, buildUpdate, utcNowString, AnyRecord, asyncForEach, createHandlers } from 'awayto/core';
 
-export default {
+export default createHandlers({
   postSchedule: async props => {
     const { schedule } = props.event.body;
 
@@ -142,16 +142,7 @@ export default {
 
     return { id };
   }
-} as Pick<
-  ApiHandlers,
-  'postSchedule' |
-  'postScheduleBrackets' |
-  'putSchedule' |
-  'getSchedules' |
-  'getScheduleById' |
-  'deleteSchedule' |
-  'disableSchedule'
->;
+});
 
 async function removeScheduleBrackets<Q extends AnyRecord>(scheduleId: string, props: ApiProps<Q>): Promise<void> {
 

@@ -1,6 +1,6 @@
-import { ApiHandlers, IServiceTier, buildUpdate, utcNowString } from 'awayto/core';
+import { IServiceTier, buildUpdate, createHandlers, utcNowString } from 'awayto/core';
 
-export default {
+export default createHandlers({
   postServiceTier: async props => {
     const { name, serviceId, multiplier } = props.event.body;
 
@@ -70,12 +70,4 @@ export default {
 
     return { id };
   },
-} as Pick<
-  ApiHandlers,
-  'postServiceTier' |
-  'putServiceTier' |
-  'getServiceTiers' |
-  'getServiceTierById' |
-  'deleteServiceTier' |
-  'disableServiceTier'
->;
+});

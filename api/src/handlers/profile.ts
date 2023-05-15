@@ -1,6 +1,6 @@
-import { ApiHandlers, IUserProfile, buildUpdate, utcNowString } from 'awayto/core';
+import { IUserProfile, buildUpdate, utcNowString, createHandlers } from 'awayto/core';
 
-export default {
+export default createHandlers({
   postUserProfile: async props => {
     const { firstName, lastName, username, email, image, sub } = props.event.body;
 
@@ -97,12 +97,4 @@ export default {
 
     return { id };
   }
-} as Pick<
-  ApiHandlers,
-  'postUserProfile' |
-  'putUserProfile' |
-  'getUserProfileDetails' |
-  'getUserProfileDetailsBySub' |
-  'getUserProfileDetailsById' |
-  'disableUserProfile'
->;
+});

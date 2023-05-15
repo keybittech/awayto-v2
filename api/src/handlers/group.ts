@@ -1,7 +1,7 @@
 import { IPrompts } from '@keybittech/wizapp/dist/lib';
-import { ApiHandlers, ApiInternalError, DbError, IGroup, IGroupRole, IGroupRoleAuthActions, IRole, IUserProfile, buildUpdate, utcNowString, asyncForEach, nid } from 'awayto/core';
+import { ApiInternalError, DbError, IGroup, IGroupRole, IGroupRoleAuthActions, IRole, IUserProfile, buildUpdate, utcNowString, asyncForEach, nid, createHandlers } from 'awayto/core';
 
-export default {
+export default createHandlers({
   postGroup: async props => {
     let kcGroupExternalId = '';
 
@@ -188,7 +188,7 @@ export default {
 
     await props.redis.del(props.event.userSub + 'profile/details');
 
-    return [{ ...group, roles }];
+    return [{ ...group, roles }] as IGroup[];
   },
   putGroupAssignments: async props => {
 
@@ -317,7 +317,7 @@ export default {
         DELETE FROM dbtable_schema.groups
         WHERE id = $1
       `, [id]);
-    })
+    });
 
     await props.redis.del(props.event.userSub + 'profile/details');
 
@@ -350,14 +350,14 @@ export default {
       const { email } = users[userId];
 
       try {
-        const { id: keycloakUserId } = await props.keycloak.users.create({
-          email,
-          username: email,
-          enabled: true,
-          requiredActions: ['UPDATE_PASSWORD', 'UPDATE_PROFILE', 'VERIFY_EMAIL']
-        });
+        // const { id: keycloakUserId } = await props.keycloak.users.create({
+        //   email,
+        //   username: email,
+        //   enabled: true,
+        //   requiredActions: ['UPDATE_PASSWORD', 'UPDATE_PROFILE', 'VERIFY_EMAIL']
+        // });
 
-        await props.keycloak.users.sendVerifyEmail({ id: keycloakUserId });
+        // await props.keycloak.users.sendVerifyEmail({ id: keycloakUserId });
       } catch (error) {
         console.log('Invite Failure', error);
       }
@@ -464,15 +464,4 @@ export default {
     return { success: true };
   }
 
-} as Pick<
-  ApiHandlers,
-  'postGroup' |
-  'putGroup' |
-  'putGroupAssignments' |
-  'getGroupAssignments' |
-  'deleteGroup' |
-  'checkGroupName' |
-  'inviteGroupUser' |
-  'joinGroup' |
-  'leaveGroup'
->;
+});

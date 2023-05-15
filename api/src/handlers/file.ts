@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
-import { ApiHandlers, IFile, buildUpdate, utcNowString } from 'awayto/core';
+import { IFile, buildUpdate, createHandlers, utcNowString } from 'awayto/core';
 
-export default {
+export default createHandlers({
   postFileContents: async props => {
     const id = await props.fs.saveFile(props.event.body);
     return { id };
@@ -74,15 +74,4 @@ export default {
     `, [id, utcNowString(), props.event.userSub]);
     return { id };
   },
-} as Pick<
-  ApiHandlers,
-  'postFileContents' |
-  'putFileContents' |
-  'getFileContents' |
-  'postFile' |
-  'putFile' |
-  'getFiles' |
-  'getFileById' |
-  'deleteFile' |
-  'disableFile'
->;
+});

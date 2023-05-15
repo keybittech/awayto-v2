@@ -1,3 +1,4 @@
+import fetch from 'node-fetch';
 import express from 'express';
 import passport from 'passport';
 import { v4 as uuid } from 'uuid';
@@ -14,7 +15,7 @@ import WebHooks from '../webhooks/index';
 
 import { useAi } from '@keybittech/wizapp/dist/server';
 
-import { AuthBody, AuthProps, IGroup } from 'awayto/core';
+import { AuthBody, IGroup } from 'awayto/core';
 
 const router = express.Router();
 
@@ -91,8 +92,8 @@ router.post('/webhook', checkBackchannel, async (req, res) => {
         redisProxy,
         fs: { saveFile, putFile, getFile },
         ai: { useAi },
-        keycloak: keycloak as unknown
-      } as AuthProps);
+        keycloak
+      });
     });
 
     res.status(200).send({});

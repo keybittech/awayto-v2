@@ -1,7 +1,7 @@
-import { ApiHandlers, IFormVersion, IGroup, IGroupForm, IUserProfile, asyncForEach } from 'awayto/core';
+import { IFormVersion, IGroup, IGroupForm, IUserProfile, asyncForEach, createHandlers } from 'awayto/core';
 import formApiHandler from './form';
 
-export default {
+export default createHandlers({
   postGroupForm: async props => {
     const { groupName } = props.event.pathParameters;
 
@@ -128,12 +128,4 @@ export default {
 
     return idsSplit.map(id => ({ id }));
   }
-} as Pick<
-  ApiHandlers,
-  'postGroupForm' |
-  'postGroupFormVersion' |
-  'putGroupForm' |
-  'getGroupForms' |
-  'getGroupFormById' |
-  'deleteGroupForm'
->;
+});

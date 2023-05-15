@@ -1,6 +1,6 @@
-import { ApiHandlers, ILookup, ITimeUnit } from 'awayto/core';
+import { ILookup, ITimeUnit, createHandlers } from 'awayto/core';
 
-export default {
+export default createHandlers({
   getLookups: async props => {
     const budgets = await props.db.many<ILookup>(`
       SELECT id, name FROM dbtable_schema.budgets
@@ -18,7 +18,4 @@ export default {
       timeUnits
     };
   },
-} as Pick<
-  ApiHandlers,
-  'getLookups'
->;
+});

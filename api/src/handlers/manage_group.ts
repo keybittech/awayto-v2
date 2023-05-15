@@ -1,6 +1,6 @@
-import { ApiHandlers, DbError, IGroup, IGroupRole, buildUpdate, utcNowString, asyncForEach } from 'awayto/core';
+import { DbError, IGroup, IGroupRole, buildUpdate, utcNowString, asyncForEach, createHandlers } from 'awayto/core';
 
-export default {
+export default createHandlers({
   postManageGroups: async props => {
     try {
 
@@ -88,10 +88,4 @@ export default {
 
     return idsSplit.map(id => ({ id }));
   }
-} as Pick<
-  ApiHandlers,
-  'postManageGroups' |
-  'putManageGroups' |
-  'getManageGroups' |
-  'deleteManageGroups'
->;
+});

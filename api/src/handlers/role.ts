@@ -1,6 +1,6 @@
-import { ApiHandlers, IRole, IUserProfile, buildUpdate, utcNowString, asyncForEach } from 'awayto/core';
+import { IRole, IUserProfile, buildUpdate, utcNowString, asyncForEach, createHandlers } from 'awayto/core';
 
-export default {
+export default createHandlers({
   postRole: async props => {
     const { name } = props.event.body;
     const { adminSub } = await props.redisProxy('adminSub');
@@ -96,11 +96,4 @@ export default {
 
     return idsSplit.map(id => ({ id }));
   }
-} as Pick<
-  ApiHandlers,
-  'postRole' |
-  'putRole' |
-  'getRoles' |
-  'getRoleById' |
-  'deleteRole'
->;
+});

@@ -1,6 +1,6 @@
-import { ApiHandlers, utcNowString, buildUpdate, IBooking } from 'awayto/core';
+import { utcNowString, buildUpdate, IBooking, createHandlers } from 'awayto/core';
 
-export default {
+export default createHandlers({
   postBooking: async props => {
     const { bookings } = props.event.body;
 
@@ -73,12 +73,4 @@ export default {
     `, [id, utcNowString(), props.event.userSub]);
     return { id };
   },
-} as Pick<
-  ApiHandlers,
-  'postBooking' |
-  'putBooking' |
-  'getBookings' |
-  'getBookingById' |
-  'deleteBooking' |
-  'disableBooking'
->;
+});

@@ -1,6 +1,6 @@
-import { IContact, utcNowString, buildUpdate, ApiHandlers } from 'awayto/core';
+import { IContact, utcNowString, buildUpdate, createHandlers } from 'awayto/core';
 
-export default {
+export default createHandlers({
   postContact: async props => {
     const { name, email, phone } = props.event.body;
 
@@ -66,12 +66,4 @@ export default {
     `, [id, utcNowString(), props.event.userSub]);
     return { id };
   },
-} as Pick<
-  ApiHandlers,
-  'postContact' |
-  'putContact' |
-  'getContacts' |
-  'getContactById' |
-  'deleteContact' |
-  'disableContact'
->;
+});

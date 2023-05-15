@@ -35,7 +35,7 @@ export default {
     method: 'GET',
     opts: {} as ApiOptions,
     queryArg: { groupId: '' as string },
-    resultType: { id: '' as string }
+    resultType: [] as IGroupFiles[]
   },
   getGroupFileById: {
     kind: EndpointType.QUERY,

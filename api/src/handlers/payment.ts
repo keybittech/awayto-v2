@@ -1,6 +1,6 @@
-import { ApiHandlers, IPayment, buildUpdate, utcNowString } from 'awayto/core';
+import { IPayment, buildUpdate, createHandlers, utcNowString } from 'awayto/core';
 
-export default {
+export default createHandlers({
   postPayment: async props => {
     const { contactId, details } = props.event.body;
 
@@ -70,12 +70,4 @@ export default {
 
     return { id };
   }
-} as Pick<
-  ApiHandlers,
-  'postPayment' |
-  'putPayment' |
-  'getPayments' |
-  'getPaymentById' |
-  'deletePayment' |
-  'disablePayment'
->;
+});

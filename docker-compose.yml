@@ -45,6 +45,7 @@ services:
     # ports:
     #   - 8083:9443
     environment:
+      - API_COOKIE=23hf923f2g3f9273gf923gf9273gf80
       - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
       - KC_REALM=devel
       - KC_CLIENT=devel-client

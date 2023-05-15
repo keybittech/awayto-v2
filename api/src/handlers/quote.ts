@@ -1,7 +1,7 @@
-import { ApiHandlers, IFormVersionSubmission, IQuote, buildUpdate, utcNowString, asyncForEach } from 'awayto/core';
+import { IFormVersionSubmission, IQuote, buildUpdate, utcNowString, asyncForEach, createHandlers } from 'awayto/core';
 import fileApiHandler from './file';
 
-export default {
+export default createHandlers({
   postQuote: async props => {
     const { roleCall, appClient } = await props.redisProxy('roleCall', 'appClient');
 
@@ -128,12 +128,4 @@ export default {
 
     return idsSplit.map(id => ({ id }));
   }
-} as Pick<
-  ApiHandlers,
-  'postQuote' |
-  'putQuote' |
-  'getQuotes' |
-  'getQuoteById' |
-  'deleteQuote' |
-  'disableQuote'
->;
+});

@@ -1,6 +1,6 @@
-import { ApiHandlers, IServiceAddon, buildUpdate, utcNowString } from 'awayto/core';
+import { IServiceAddon, buildUpdate, createHandlers, utcNowString } from 'awayto/core';
 
-export default {
+export default createHandlers({
   postServiceAddon: async props => {
     const { name } = props.event.body;
 
@@ -79,12 +79,4 @@ export default {
 
     return { id };
   }
-} as Pick<
-  ApiHandlers,
-  'postServiceAddon' |
-  'putServiceAddon' |
-  'getServiceAddons' |
-  'getServiceAddonById' |
-  'deleteServiceAddon' |
-  'disableServiceAddon'
->;
+});

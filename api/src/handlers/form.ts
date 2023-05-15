@@ -1,6 +1,6 @@
-import { ApiHandlers, IForm, buildUpdate, utcNowString } from 'awayto/core';
+import { IForm, buildUpdate, createHandlers, utcNowString } from 'awayto/core';
 
-export default {
+export default createHandlers({
   postForm: async props => {
     const form = props.event.body;
     const { id: formId } = await props.tx.one<{ id: string }>(`
@@ -101,13 +101,4 @@ export default {
       throw error;
     }
   }
-} as Pick<
-  ApiHandlers,
-  'postForm' |
-  'postFormVersion' |
-  'putForm' |
-  'getForms' |
-  'getFormById' |
-  'deleteForm' |
-  'disableForm'
->;
+});

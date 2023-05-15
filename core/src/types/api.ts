@@ -64,6 +64,17 @@ export type ApiHandler<T> = {
   [K in keyof T]: ApiFunc<T[K]>;
 }
 
+export type ApiDefinition = {
+  kind: EndpointType;
+  url: string;
+  method: string;
+  opts: ApiOptions;
+  queryArg: AnyRecord | Readonly<AnyRecordTypes>;
+  resultType: AnyRecord | Readonly<AnyRecordTypes>;
+};
+
+export type ApiMap = Record<string, ApiDefinition>;
+
 export type SaveFileProps = {
   id: string;
   name: string;
@@ -79,7 +90,7 @@ export type BufferResponse = {
 export type FsFunctionalities = {
   saveFile: (buffer: ArrayBuffer) => Promise<string | undefined>;
   putFile: (props: SaveFileProps) => Promise<void>;
-  getFile: (id: string) => Promise<BufferResponse>;
+  getFile: (id: string) => Promise<Partial<BufferResponse>>;
 }
 
 /**
@@ -108,24 +119,8 @@ export type ApiProps<T extends AnyRecord | AnyRecordTypes> = {
 /**
  * @category API
  */
-export type AuthProps = {
-  event: Omit<ApiEvent<AnyRecord>, 'body'> & { body: AuthBody };
-  db: IDatabase<unknown>;
-  fetch: typeof fetch;
-  logger: graylog;
-  redis: RedisClientType;
-  redisProxy: RedisProxy;
-  keycloak: KeycloakAdminClient & KcSiteOpts;
-  fs: FsFunctionalities;
-  ai: AiFunctionalities;
-  tx: ITask<unknown>;
-}
-
-/**
- * @category API
- */
 export type IWebhooks = {
-  [prop: string]: (event: AuthProps) => Promise<void>;
+  [prop: string]: (props: ApiProps<AuthBody>) => Promise<void>;
 };
 
 /**

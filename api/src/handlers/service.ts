@@ -1,6 +1,6 @@
-import { ApiHandlers, DbError, IService, IServiceTier, buildUpdate, utcNowString, asyncForEach } from 'awayto/core';
+import { DbError, IService, IServiceTier, buildUpdate, utcNowString, asyncForEach, createHandlers } from 'awayto/core';
 
-export default {
+export default createHandlers({
   postService: async props => {
     try {
 
@@ -120,12 +120,4 @@ export default {
     
     return idSplit.map(id => ({id}));
   },
-} as Pick<
-  ApiHandlers,
-  'postService' |
-  'putService' |
-  'getServices' |
-  'getServiceById' |
-  'deleteService' |
-  'disableService'
->;
+});

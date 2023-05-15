@@ -1,6 +1,6 @@
-import { ApiHandlers, IGroup, IGroupService, asyncForEach } from 'awayto/core';
+import { IGroup, IGroupService, asyncForEach, createHandlers } from 'awayto/core';
 
-export default {
+export default createHandlers({
   postGroupService: async props => {
     const { groupName, serviceId } = props.event.pathParameters;
 
@@ -59,9 +59,4 @@ export default {
 
     return idsSplit.map(id => ({ id }));
   }
-} as Pick<
-  ApiHandlers,
-  'postGroupService' |
-  'getGroupServices' |
-  'deleteGroupService'
->;
+});

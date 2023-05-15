@@ -1,7 +1,7 @@
-import { ApiHandlers, IGroup, IGroupSchedule, IGroupScheduleDateSlots, ISchedule, IUserProfile, asyncForEach } from 'awayto/core';
+import { IGroup, IGroupSchedule, IGroupScheduleDateSlots, ISchedule, IUserProfile, asyncForEach, createHandlers } from 'awayto/core';
 import scheduleApiHandler from './schedule';
 
-export default {
+export default createHandlers({
   postGroupSchedule: async props => {
     const { groupName } = props.event.pathParameters;
 
@@ -108,12 +108,4 @@ export default {
 
     return idsSplit.map(id => ({ id }));
   },
-} as Pick<
-  ApiHandlers,
-  'postGroupSchedule' |
-  'putGroupSchedule' |
-  'getGroupSchedules' |
-  'getGroupScheduleMasterById' |
-  'getGroupScheduleByDate' |
-  'deleteGroupSchedule'
->;
+});

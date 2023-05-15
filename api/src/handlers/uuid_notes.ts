@@ -1,6 +1,6 @@
-import { ApiHandlers, IUuidNotes, buildUpdate, utcNowString } from 'awayto/core';
+import { IUuidNotes, buildUpdate, createHandlers, utcNowString } from 'awayto/core';
 
-export default {
+export default createHandlers({
   postUuidNote: async props => {
     const { parentUuid: parent_uuid, note } = props.event.body;
 
@@ -59,11 +59,4 @@ export default {
     
     return { id };
   }
-} as Pick<
-  ApiHandlers,
-  'postUuidNote' |
-  'putUuidNote' |
-  'getUuidNotes' |
-  'getUuidNoteById' |
-  'deleteUuidNote'
->;
+});

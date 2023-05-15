@@ -1,6 +1,6 @@
-import { ApiHandlers, IGroupFiles, buildUpdate, utcNowString } from 'awayto/core';
+import { IGroupFiles, buildUpdate, createHandlers, utcNowString } from 'awayto/core';
 
-export default {
+export default createHandlers({
   postGroupFile: async props => {
     const { groupId: group_id, fileId: file_id } = props.event.body;
 
@@ -59,11 +59,4 @@ export default {
     
     return { id };
   },
-} as Pick<
-  ApiHandlers,
-  'postGroupFile' |
-  'putGroupFile' |
-  'getGroupFiles' |
-  'getGroupFileById' |
-  'deleteGroupFile'
->;
+});

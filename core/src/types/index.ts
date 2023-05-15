@@ -1,4 +1,4 @@
-import { ApiHandler } from './api';
+import { ApiHandler, ApiMap } from './api';
 
 import assistApiRef from './assist';
 import bookingTranscriptApiRef from './booking_transcript';
@@ -29,10 +29,14 @@ import serviceTierApiRef from './service_tier';
 import serviceApiRef from './service';
 import uuidNotesApiRef from './uuid_notes';
 
+export function createSiteApi<T extends ApiMap>(apis: T): T {
+  return apis;
+}
+
 /**
  * @category API
  */
-export const siteApiRef = {
+export const siteApiRef = createSiteApi({
   ...assistApiRef,
   ...bookingTranscriptApiRef,
   ...bookingApiRef,
@@ -61,9 +65,13 @@ export const siteApiRef = {
   ...serviceTierApiRef,
   ...serviceApiRef,
   ...uuidNotesApiRef
-};
+});
 
 export type ApiHandlers = ApiHandler<typeof siteApiRef>;
+
+export function createHandlers<T extends Partial<ApiHandlers>>(handlers: T): T {
+  return handlers;
+}
 
 export * from './api';
 export * from './assist';

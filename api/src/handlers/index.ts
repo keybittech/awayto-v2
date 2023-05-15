@@ -1,3 +1,5 @@
+import { createHandlers } from 'awayto/core';
+
 import assistApiHandler from './assist';
 import bookingTranscriptApiHandler from './booking_transcript';
 import bookingApiHandler from './booking';
@@ -26,12 +28,11 @@ import serviceAddonApiHandler from './service_addon';
 import serviceTierApiHandler from './service_tier';
 import serviceApiHandler from './service';
 import uuidNotesApiHandler from './uuid_notes';
-import { ApiHandlers } from 'awayto/core';
 
 /**
  * @category API
  */
-export const siteApiHandlerRef: Record<string, ApiHandlers[keyof ApiHandlers]> = {
+export const siteApiHandlerRef = createHandlers({
   ...assistApiHandler,
   ...bookingTranscriptApiHandler,
   ...bookingApiHandler,
@@ -60,4 +61,4 @@ export const siteApiHandlerRef: Record<string, ApiHandlers[keyof ApiHandlers]> =
   ...serviceApiHandler,
   ...groupFilesApiHandler,
   ...uuidNotesApiHandler
-};
+});

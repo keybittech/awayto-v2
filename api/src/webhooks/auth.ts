@@ -1,16 +1,28 @@
-import { IWebhooks, ApiProps, IUserProfile, siteApiHandlerRef } from 'awayto/core';
-// import profiles from '../apis/profiles';
+import { IWebhooks, ApiProps, IUserProfile } from 'awayto/core';
+
+import { siteApiHandlerRef } from '../handlers';
 
 export const AuthWebhooks: IWebhooks = {
   AUTH_REGISTER: async (props) => {
     if (!props.event) return;
 
     try {
-      const { userId: sub, ipAddress, details: { group_code: code, first_name: firstName, last_name: lastName, email, username } } = props.event.body;
+      const {
+        userId: sub,
+        ipAddress,
+        details: {
+          group_code: code,
+          first_name: firstName,
+          last_name: lastName,
+          email,
+          username
+        }
+      } = props.event.body;
 
       const requestParams = {
         ...props,
         event: {
+          ...props.event,
           body: {
             firstName,
             lastName,

@@ -1,9 +1,9 @@
-import { ApiHandlers, utcNowString } from 'awayto/core';
+import { createHandlers, utcNowString } from 'awayto/core';
 
 /**
  * @category Booking Transcript
  */
-export default {
+export default createHandlers({
   postBookingTranscript: async props => {
     return [];
   },
@@ -30,12 +30,4 @@ export default {
 
     return { id };
   },
-} as Pick<
-  ApiHandlers,
-  'postBookingTranscript' |
-  'putBookingTranscript' |
-  'getBookingTranscripts' |
-  'getBookingTranscriptById' |
-  'deleteBookingTranscript' |
-  'disableBookingTranscript'
->;
+});

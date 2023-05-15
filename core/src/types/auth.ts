@@ -36,13 +36,8 @@ export enum SiteRoles {
  * @category Authorization
  */
 export type StrategyUser = {
-  test?: string;
   username?: string;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
   sub: string;
-  groups?: string[];
 }
 
 /**

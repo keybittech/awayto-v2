@@ -1,6 +1,6 @@
-import { ApiHandlers, IGroup, IGroupServiceAddon } from 'awayto/core';
+import { IGroup, IGroupServiceAddon, createHandlers } from 'awayto/core';
 
-export default {
+export default createHandlers({
   postGroupServiceAddon: async props => {
     const { groupName, serviceAddonId } = props.event.pathParameters;
 
@@ -56,9 +56,4 @@ export default {
 
     return [{ id: serviceAddonId }];
   }
-} as Pick<
-  ApiHandlers,
-  'postGroupServiceAddon' |
-  'getGroupServiceAddons' |
-  'deleteGroupServiceAddon'
->;
+});

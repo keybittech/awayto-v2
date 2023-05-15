@@ -1,6 +1,6 @@
-import { ApiHandlers, IGroup, IGroupRole, asyncForEach } from 'awayto/core';
+import { IGroup, IGroupRole, asyncForEach, createHandlers } from 'awayto/core';
 
-export default {
+export default createHandlers({
   postGroupRole: async props => {
     return { success: true };
   },
@@ -44,10 +44,4 @@ export default {
 
     return idsSplit.map(id => ({ id }));
   }
-} as Pick<
-  ApiHandlers,
-  'postGroupRole' |
-  'putGroupRole' |
-  'getGroupRoles' |
-  'deleteGroupRole'
->;
+});

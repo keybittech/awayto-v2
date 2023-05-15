@@ -1,6 +1,6 @@
-import { ApiHandlers, IRole, buildUpdate, utcNowString } from 'awayto/core';
+import { IRole, buildUpdate, createHandlers, utcNowString } from 'awayto/core';
 
-export default {
+export default createHandlers({
   postManageRoles: async props => {
     const { name } = props.event.body;
 
@@ -48,10 +48,4 @@ export default {
 
     return { id };
   }
-} as Pick<
-  ApiHandlers,
-  'postManageRoles' |
-  'putManageRoles' |
-  'getManageRoles' |
-  'deleteManageRoles'
->;
+});

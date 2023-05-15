@@ -60,10 +60,7 @@ for (const apiRefId in siteApiRef) {
   const { method, url, queryArg, resultType, kind, opts: { cache, throttle, contentType } } = siteApiRef[apiRefId as keyof typeof siteApiRef];
   const isFileContent = 'application/octet-stream' === contentType;
 
-
-  const requestHandlers: RequestHandler[] = [
-    checkAuthenticated
-  ];
+  const requestHandlers: RequestHandler[] = [ checkAuthenticated ];
 
   if (isFileContent) {
     requestHandlers.push(express.raw({ type: contentType, limit: '4mb' }));
@@ -139,7 +136,7 @@ for (const apiRefId in siteApiRef) {
           }
         } as ApiProps<typeof queryArg>;
 
-        const handler = siteApiHandlerRef[apiRefId];
+        const handler = siteApiHandlerRef[apiRefId as keyof typeof siteApiRef];
 
         const txHandler = async <T, Q extends AnyRecord | AnyRecordTypes>(props: ApiProps<Q>): Promise<T> => {
           const eventLength = JSON.stringify(requestParams.event).length;

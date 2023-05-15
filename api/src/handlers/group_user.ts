@@ -1,6 +1,6 @@
-import { ApiHandlers, IGroup, IGroupRole, IGroupUser, asyncForEach } from 'awayto/core';
+import { ApiHandlers, IGroup, IGroupRole, IGroupUser, asyncForEach, createHandlers } from 'awayto/core';
 
-export default {
+export default createHandlers({
   putGroupUser: async props => {
     const { groupName } = props.event.pathParameters;
     const { userId, roleId, roleName } = props.event.body;
@@ -213,12 +213,4 @@ export default {
 
     return idsSplit.map(id => ({ id }));
   }
-} as Pick<
-  ApiHandlers,
-  'putGroupUser' |
-  'getGroupUsers' |
-  'getGroupUserById' |
-  'deleteGroupUser' |
-  'lockGroupUser' |
-  'unlockGroupUser'
->;
+});
