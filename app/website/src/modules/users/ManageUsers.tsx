@@ -42,11 +42,11 @@ export function ManageUsers(props: IProps): React.JSX.Element {
     return [
       ...actions,
       // <IconButton key={'lock_user'} onClick={() => {
-      //   api(lockUsersAction, { users: selected.map(u => ({ username: u.username })) }, { load: true });
+      //   api(lockUsersAction, { users: selected.map(u => ({ id: u.id })) }, { load: true });
       //   setToggle(!toggle);
       // }}><LockIcon /></IconButton>,
       // <IconButton key={'unlock_user'} onClick={() => {
-      //   api(unlockUsersAction, { users: selected.map(u => ({ username: u.username })) }, { load: true });
+      //   api(unlockUsersAction, { users: selected.map(u => ({ id: u.id })) }, { load: true });
       //   setToggle(!toggle);
       // }}><LockOpenIcon /></IconButton>,
     ];
@@ -55,9 +55,9 @@ export function ManageUsers(props: IProps): React.JSX.Element {
   const userGridProps = useGrid<IGroupUser>({
     rows: groupUsers || [],
     columns: [
-      { flex: 1, headerName: 'Username', field: 'username' },
       { flex: 1, headerName: 'First Name', field: 'firstName' },
       { flex: 1, headerName: 'Last Name', field: 'lastName' },
+      { flex: 1, headerName: 'Email', field: 'email' },
       { flex: 1, headerName: 'Role', field: 'roleName' },
       { field: 'createdOn', headerName: 'Created', flex: 1, renderCell: ({ row }) => dayjs().to(dayjs.utc(row.createdOn)) }
     ],

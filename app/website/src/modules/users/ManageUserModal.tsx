@@ -110,7 +110,7 @@ export function ManageUserModal({ editUser, closeModal }: IProps): React.JSX.Ele
   return <>
     <Card>
       <CardHeader
-        title={`Manage ${profile.username}`}
+        title={`Manage ${profile.email}`}
         subheader={`${profile.firstName} ${profile.lastName}`}
       />
       <CardContent>

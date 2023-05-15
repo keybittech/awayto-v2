@@ -52,15 +52,8 @@ export const setupMiddleware = (app: Express) => {
   app.use(passport.authenticate('session'));
 
   const strategyResponder: StrategyVerifyCallbackUserInfo<StrategyUser> = (tokenSet, userInfo, done) => {
-
-    const { preferred_username: username, sub } = tokenSet.claims();
-
-    const userProfileClaims: StrategyUser = {
-      username,
-      sub
-    };
-
-    return done(null, userProfileClaims);
+    const { sub } = tokenSet.claims();
+    return done(null, { sub });
   }
 
   passport.use('oidc', new Strategy<StrategyUser>({ client: keycloak.apiClient }, strategyResponder));

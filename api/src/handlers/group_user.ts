@@ -84,7 +84,6 @@ export default createHandlers({
         egu."userId",
         eu."firstName",
         eu."lastName",
-        eu.username,
         eu.locked,
         eu.image,
         eu.email,

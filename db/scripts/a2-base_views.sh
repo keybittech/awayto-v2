@@ -13,7 +13,6 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     u.id,
     u.first_name as "firstName",
     u.last_name as "lastName",
-    u.username,
     u.sub,
     u.image,
     u.email,

@@ -30,7 +30,6 @@ export type ApiEvent<T extends AnyRecord | AnyRecordTypes> = {
   method: string;
   url: string;
   public: boolean;
-  username?: string;
   userSub: string;
   sourceIp: string;
   groups?: string[];

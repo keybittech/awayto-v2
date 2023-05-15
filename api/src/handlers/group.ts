@@ -376,11 +376,11 @@ export default createHandlers({
       `, [code]);
 
       // Get joining user's id
-      const { id: userId, username } = await props.tx.one<IUserProfile>(`
-        SELECT id, username FROM dbtable_schema.users WHERE sub = $1
+      const { id: userId, email } = await props.tx.one<IUserProfile>(`
+        SELECT id, email FROM dbtable_schema.users WHERE sub = $1
       `, [props.event.userSub]);
 
-      if (allowedDomains && !allowedDomains.split(',').includes(username.split('@')[1])) {
+      if (allowedDomains && !allowedDomains.split(',').includes(email.split('@')[1])) {
         throw { reason: 'Group access is restricted.'}
       }
 

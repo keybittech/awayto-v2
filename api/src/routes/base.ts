@@ -100,7 +100,8 @@ for (const apiRefId in siteApiRef) {
       try {
         if (!req.headers.authorization) throw { reason: 'No auth.' };
 
-        const sourceIp = req.headers['x-forwarded-for'] as string;
+        const xfwd = (req.headers['x-forwarded-for'] as string).split('.');
+        const sourceIp = xfwd.filter((a, i) => i !== xfwd.length - 1).join('.') + '.000';
         const token = jwtDecode<DecodedJWTToken & IdTokenClaims>(req.headers.authorization);
         const tokenGroupRoles = {} as UserGroupRoles;
 
@@ -127,7 +128,6 @@ for (const apiRefId in siteApiRef) {
             public: false,
             groups: token.groups,
             availableUserGroupRoles: tokenGroupRoles,
-            username: user.username,
             userSub: user.sub,
             sourceIp,
             pathParameters: req.params as Record<string, string>,

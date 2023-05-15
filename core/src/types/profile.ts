@@ -44,7 +44,7 @@ export default {
     method: 'POST',
     opts: {} as ApiOptions,
     queryArg: { firstName: '' as string, lastName: '' as string, username: '' as string, email: '' as string, image: '' as string, sub: '' as string },
-    resultType: { id: '' as string, sub: '' as string, username: '' as string, firstName: '' as string, lastName: '' as string, email: '' as string, image: '' as string }
+    resultType: { success: true as boolean }
   },
   putUserProfile: {
     kind: EndpointType.MUTATION,
