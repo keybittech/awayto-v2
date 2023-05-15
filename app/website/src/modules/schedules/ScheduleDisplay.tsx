@@ -5,7 +5,7 @@ import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Typography from '@mui/material/Typography';
 
-import { getRelativeDuration, ISchedule, IScheduleBracket, IScheduleBracketSlot } from 'awayto/core';
+import { deepClone, getRelativeDuration, ISchedule, IScheduleBracket, IScheduleBracketSlot } from 'awayto/core';
 import { useSchedule, useTimeName } from 'awayto/hooks';
 
 export type ScheduleDisplayProps = {
@@ -25,6 +25,8 @@ const bracketColors = ['cadetblue', 'brown', 'chocolate', 'forestgreen', 'darksl
 
 export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Required<ScheduleDisplayProps>): React.JSX.Element {
 
+  const scheduleDisplay = useMemo(() => deepClone(schedule), [schedule]);
+  
   const columnWidth = 150;
   
   const getScheduleData = useSchedule();
@@ -34,19 +36,19 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
   const [buttonDown, setButtonDown] = useState(false);
   const [width, setWidth] = useState(1);
 
-  const scheduleTimeUnitName = useTimeName(schedule.scheduleTimeUnitId);
-  const bracketTimeUnitName = useTimeName(schedule.bracketTimeUnitId);
-  const slotTimeUnitName = useTimeName(schedule.slotTimeUnitId);
+  const scheduleTimeUnitName = useTimeName(scheduleDisplay.scheduleTimeUnitId);
+  const bracketTimeUnitName = useTimeName(scheduleDisplay.bracketTimeUnitId);
+  const slotTimeUnitName = useTimeName(scheduleDisplay.slotTimeUnitId);
   
   const { divisions, durations, selections, xAxisTypeName } = useMemo(() => {
-    return getScheduleData({ scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName, slotDuration: schedule.slotDuration });
-  }, [scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName, schedule.slotDuration])
+    return getScheduleData({ scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName, slotDuration: scheduleDisplay.slotDuration });
+  }, [scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName, scheduleDisplay.slotDuration])
 
-  const scheduleBracketsValues = useMemo(() => Object.values(schedule.brackets || {}), [schedule.brackets]);
+  const scheduleBracketsValues = useMemo(() => Object.values(scheduleDisplay.brackets || {}), [scheduleDisplay.brackets]);
 
   const setValue = useCallback((startTime: string) => {
     if (selectedBracket) {
-      const bracket = schedule.brackets[selectedBracket.id];
+      const bracket = scheduleDisplay.brackets[selectedBracket.id];
       if (bracket) {
         if (!bracket.slots) bracket.slots = {};
 
@@ -62,7 +64,7 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
         if (exists) {
           delete bracket.slots[exists.id];
           delete selected[target];
-        } else if (Object.keys(bracket.slots).length * schedule.slotDuration < getRelativeDuration(selectedBracket.duration, schedule.bracketTimeUnitName, schedule.slotTimeUnitName)) {
+        } else if (Object.keys(bracket.slots).length * scheduleDisplay.slotDuration < getRelativeDuration(selectedBracket.duration, scheduleDisplay.bracketTimeUnitName, scheduleDisplay.slotTimeUnitName)) {
           bracket.slots[slot.id] = slot;
           selected[target] = slot;
         } else {
@@ -71,7 +73,7 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
           return;
         }
   
-        setSchedule({ ...schedule, brackets: { ...schedule.brackets } });
+        setSchedule({ ...schedule, brackets: { ...scheduleDisplay.brackets } });
         setSelected({ ...selected });
       }
     }
@@ -141,11 +143,11 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
           if (!bracket.slots) bracket.slots = {};
           return <Box key={`bracket-chip${i + 1}new`} m={1}>
             <Chip
-              label={`#${i + 1} ${getRelativeDuration(bracket.duration, bracketTimeUnitName, slotTimeUnitName) - (Object.keys(bracket.slots).length * schedule.slotDuration)} ${slotTimeUnitName}s (${bracket.multiplier}x)`}
+              label={`#${i + 1} ${getRelativeDuration(bracket.duration, bracketTimeUnitName, slotTimeUnitName) - (Object.keys(bracket.slots).length * scheduleDisplay.slotDuration)} ${slotTimeUnitName}s (${bracket.multiplier}x)`}
               sx={{ '&:hover': { cursor: 'pointer' }, borderWidth: '1px', borderStyle: 'solid', borderColor: bracketColors[i], boxShadow: selectedBracket?.id === bracket.id ? 2 : undefined }}
               onDelete={() => {
-                delete schedule.brackets[bracket.id];
-                setSchedule({ ...schedule, brackets: { ...schedule.brackets } });
+                delete scheduleDisplay.brackets[bracket.id];
+                setSchedule({ ...schedule, brackets: { ...scheduleDisplay.brackets } });
               }}
               onClick={() => {
                 setSelectedBracket(bracket);
@@ -156,7 +158,7 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
       </Box>
 
       <Box onMouseLeave={() => setButtonDown(false)}>
-        <FixedSizeGrid
+        {!isNaN(selections) && !isNaN(divisions) && <FixedSizeGrid
           rowCount={selections}
           columnCount={divisions}
           rowHeight={30}
@@ -165,8 +167,9 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
           width={Math.min(width, columnWidth * divisions)}
         >
           {Cell}
-        </FixedSizeGrid>
+        </FixedSizeGrid>}
       </Box>
+      <Typography>This schedule is representing 1 {scheduleTimeUnitName} of {bracketTimeUnitName}s divided by {scheduleDisplay.slotDuration} {slotTimeUnitName} blocks.</Typography>
     </Box>
   </>;
 }

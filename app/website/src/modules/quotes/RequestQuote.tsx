@@ -26,7 +26,7 @@ export function RequestQuote(props: IProps): React.JSX.Element {
     setExpanded(isExpanded ? panel : false);
   };
 
-  const { 
+  const {
     GroupContext,
     GroupScheduleContext,
     GroupScheduleSelectionContext
@@ -37,6 +37,9 @@ export function RequestQuote(props: IProps): React.JSX.Element {
   } = useContext(GroupContext) as GroupContextType;
 
   const {
+    getGroupUserSchedules: {
+      data: groupUserSchedules
+    },
     selectGroupSchedule: {
       item: groupSchedule,
       comp: GroupScheduleSelect
@@ -64,7 +67,7 @@ export function RequestQuote(props: IProps): React.JSX.Element {
     comp: TierForm,
     valid: tierFormValid
   } = useGroupForm(groupScheduleServiceTier?.formId);
-  
+
   const {
     files,
     comp: FileManager
@@ -74,11 +77,7 @@ export function RequestQuote(props: IProps): React.JSX.Element {
   const SelectTimeAccordion = useAccordion('Select Time', false, expanded === 'select_time', handleChange('select_time'));
   const GroupScheduleServiceAccordion = useAccordion((groupScheduleService?.name || '') + ' Questionnaire', didSubmit && !serviceFormValid, expanded === 'service_questionnaire', handleChange('service_questionnaire'));
   const GroupScheduleServiceTierAccordion = useAccordion((groupScheduleServiceTier?.name || '') + ' Questionnaire', didSubmit && !tierFormValid, expanded === 'tier_questionnaire', handleChange('tier_questionnaire'));
-  const FileManagerAccordion = useAccordion('Files', false, expanded === 'file_manager', handleChange('file_manager'))
-
-  if (!groupSchedule || !groupScheduleService) return <Alert severity="info">
-    There are no active schedules or operations are currently halted.
-  </Alert>;
+  const FileManagerAccordion = useAccordion('Files', false, expanded === 'file_manager', handleChange('file_manager'));
 
   return <>
     <Grid container spacing={2}>
@@ -106,35 +105,40 @@ export function RequestQuote(props: IProps): React.JSX.Element {
           </CardContent>
         </Card>
 
-        {groupScheduleService && <AccordionWrap {...ServiceTierAddonsAccordion}>
-          <ServiceTierAddons service={groupScheduleService} />
-        </AccordionWrap>}
+        {!groupUserSchedules?.length ? <Alert sx={{ marginTop: '16px' }} severity="info">
+          There are no active schedules or operations are currently halted.
+        </Alert> : <>
 
-        {serviceForm && <AccordionWrap {...GroupScheduleServiceAccordion}>
-          <ServiceForm />
-        </AccordionWrap>}
+          {groupScheduleService && <AccordionWrap {...ServiceTierAddonsAccordion}>
+            <ServiceTierAddons service={groupScheduleService} />
+          </AccordionWrap>}
 
-        {tierForm && <AccordionWrap {...GroupScheduleServiceTierAccordion}>
-          <TierForm />
-        </AccordionWrap>}
+          {serviceForm && <AccordionWrap {...GroupScheduleServiceAccordion}>
+            <ServiceForm />
+          </AccordionWrap>}
 
-        <AccordionWrap {...SelectTimeAccordion}>
-          <Grid container spacing={2}>
-            <Grid item xs={4}>
-              <ScheduleDatePicker key={groupSchedule.id} />
+          {tierForm && <AccordionWrap {...GroupScheduleServiceTierAccordion}>
+            <TierForm />
+          </AccordionWrap>}
+
+          <AccordionWrap {...SelectTimeAccordion}>
+            <Grid container spacing={2}>
+              <Grid item xs={4}>
+                <ScheduleDatePicker key={groupSchedule?.id} />
+              </Grid>
+              <Grid item xs={4}>
+                <ScheduleTimePicker key={groupSchedule?.id} />
+              </Grid>
             </Grid>
-            <Grid item xs={4}>
-              <ScheduleTimePicker key={groupSchedule.id} />
-            </Grid>
-          </Grid>
-        </AccordionWrap>
+          </AccordionWrap>
 
-        <AccordionWrap {...FileManagerAccordion}>
-          <FileManager {...props} />
-        </AccordionWrap>
+          <AccordionWrap {...FileManagerAccordion}>
+            <FileManager {...props} />
+          </AccordionWrap>
+        </>}
       </Grid>
 
-      <Grid item xs={12} mb={2}>
+      {!!groupUserSchedules?.length && <Grid item xs={12} mb={2}>
         <Card>
           <CardActionArea onClick={() => {
             if (!serviceFormValid || !tierFormValid || !groupScheduleServiceTier) {
@@ -168,7 +172,7 @@ export function RequestQuote(props: IProps): React.JSX.Element {
             </Box>
           </CardActionArea>
         </Card>
-      </Grid>
+      </Grid>}
 
     </Grid>
   </>
