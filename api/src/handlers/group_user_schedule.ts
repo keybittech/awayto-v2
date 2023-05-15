@@ -35,7 +35,8 @@ export default createHandlers({
       JOIN dbtable_schema.group_user_schedules gus ON gus.user_schedule_id = guss."userScheduleId"
       JOIN dbtable_schema.schedules schedule ON schedule.id = gus.group_schedule_id
       JOIN dbview_schema.enabled_users eu ON eu.sub = schedule.created_sub
-      WHERE eu.username = $1
+      JOIN dbtable_schema.users u ON u.id = eu.id
+      WHERE u.username = $1
     `, ['system_group_' + groupName]);
 
     return groupUserScheduleStubs;

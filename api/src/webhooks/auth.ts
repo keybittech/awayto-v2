@@ -15,7 +15,6 @@ export const AuthWebhooks: IWebhooks = {
           first_name: firstName,
           last_name: lastName,
           email,
-          username
         }
       } = props.event.body;
 
@@ -27,7 +26,6 @@ export const AuthWebhooks: IWebhooks = {
             firstName,
             lastName,
             email,
-            username,
             sub,
             code
           },
