@@ -84,7 +84,7 @@ export function FeedbackMenu ({ handleMenuClose, feedbackAnchorEl, feedbackMenuI
           />
         </Grid>
         <Grid item xs={12}>
-          <Button fullWidth onClick={handleSubmit}>Submit Feedback</Button>
+          <Button fullWidth onClick={handleSubmit}>Submit Comment</Button>
         </Grid>
       </Grid>
     </Box>

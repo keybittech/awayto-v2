@@ -103,6 +103,25 @@ export const useStyles = makeStyles((theme: Theme) => {
       },
     },
 
+    mdHide: {
+      [theme.breakpoints.down('md')]: {
+        display: 'flex',
+      },
+      [theme.breakpoints.up('md')]: {
+        display: 'none'
+      },
+    },
+
+    mdShow: {
+      [theme.breakpoints.down('md')]: {
+        display: 'none',
+      },
+      [theme.breakpoints.up('md')]: {
+        display: 'flex'
+      },
+    }
+
+
   } as StyleRules;
 });
 

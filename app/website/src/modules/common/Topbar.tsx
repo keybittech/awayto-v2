@@ -29,9 +29,9 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import Icon from '../../img/kbt-icon.png';
 import keycloak from '../../keycloak';
 
-import { useLocation, useNavigate } from 'react-router';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { SiteRoles, PaletteMode } from 'awayto/core';
-import { useSecure, useComponents, sh, useAppSelector, useUtil } from 'awayto/hooks';
+import { useSecure, useComponents, sh, useAppSelector, useUtil, useStyles } from 'awayto/hooks';
 
 declare global {
   interface IProps {
@@ -41,6 +41,8 @@ declare global {
 
 export function Topbar(props: IProps): React.JSX.Element {
 
+  const { exchangeId } = useParams();
+  const classes = useStyles();
   const navigate = useNavigate();
   const hasRole = useSecure();
   const { FeedbackMenu, PendingQuotesMenu, PendingQuotesProvider, UpcomingBookingsMenu } = useComponents();
@@ -96,51 +98,79 @@ export function Topbar(props: IProps): React.JSX.Element {
     </Grid>
     <Grid container sx={{ flexGrow: 1, justifyContent: 'right', alignItems: 'center' }}>
       <Grid>
-        <Tooltip title="View Appointments">
+        <UpcomingBookingsMenu
+          {...props}
+          upcomingBookingsAnchorEl={upcomingBookingsAnchorEl}
+          upcomingBookingsMenuId={upcomingBookingsMenuId}
+          isUpcomingBookingsOpen={isUpcomingBookingsOpen}
+          handleMenuClose={handleMenuClose}
+        />
+
+        <Tooltip sx={{ display: !!exchangeId ? 'none' : 'flex' }} title="View Exchanges">
           <IconButton
             disableRipple
             color="primary"
-            aria-label={`show ${upcomingBookings.length} upcoming appointments`}
+            aria-label={`view ${upcomingBookings.length} exchanges`}
             aria-controls={upcomingBookingsMenuId}
             aria-haspopup="true"
             onClick={e => setUpcomingBookingsAnchorEl(e.currentTarget)}
           >
             <Badge badgeContent={upcomingBookings.length} color="error">
-              <ThreePIcon sx={{ display:{ xs: 'flex', md: 'none' } }} />
-              <Typography variant="overline" sx={{ display: { xs: 'none', md: 'flex' } }}>View Appointments</Typography>
+              <ThreePIcon className={classes.mdHide} />
+              <Typography className={classes.mdShow}>View</Typography>
             </Badge>
           </IconButton>
         </Tooltip>
       </Grid>
+      
+
       <Grid>
-        <Tooltip title="Approve Requests">
+        {/** PENDING REQUESTS MENU */}
+        <PendingQuotesProvider>
+          <PendingQuotesMenu
+            {...props}
+            pendingQuotesAnchorEl={pendingQuotesAnchorEl}
+            pendingQuotesMenuId={pendingQuotesMenuId}
+            isPendingQuotesOpen={isPendingQuotesOpen}
+            handleMenuClose={handleMenuClose}
+          />
+        </PendingQuotesProvider>
+
+        <Tooltip title="Approve Exchanges">
           <IconButton
             disableRipple
             color="primary"
-            aria-label={`show ${pendingQuotes.length} pending requests`}
+            aria-label={`show ${pendingQuotes.length} pending exchange requests`}
             aria-controls={pendingQuotesMenuId}
             aria-haspopup="true"
             onClick={e => setPendingQuotesAnchorEl(e.currentTarget)}
           >
             <Badge badgeContent={pendingQuotes.length} color="error">
-              <ApprovalIcon sx={{ display:{ xs: 'flex', md: 'none' } }} />
-              <Typography variant="overline" sx={{ display: { xs: 'none', md: 'flex' } }}>Approve Requests</Typography>
+              <ApprovalIcon className={classes.mdHide} />
+              <Typography className={classes.mdShow}>Approve</Typography>
             </Badge>
           </IconButton>
         </Tooltip>
       </Grid>
+
+      <FeedbackMenu
+        feedbackAnchorEl={feedbackAnchorEl}
+        feedbackMenuId={feedbackMenuId}
+        isFeedbackOpen={isFeedbackOpen}
+        handleMenuClose={handleMenuClose}
+      />
       <Grid>
-        <Tooltip title="Give Feedback">
+        <Tooltip title="Comment">
           <IconButton
             disableRipple
             color="primary"
-            aria-label={`give group feedback`}
+            aria-label={`submit a group or site comment`}
             aria-controls={feedbackMenuId}
             aria-haspopup="true"
             onClick={e => setFeedbackAnchorEl(e.currentTarget)}
           >
-            <CampaignIcon sx={{ display:{ xs: 'flex', md: 'none' } }} />
-            <Typography variant="overline" sx={{ display: { xs: 'none', md: 'flex' } }}>Give Feedback</Typography>
+            <CampaignIcon className={classes.mdHide} />
+            <Typography className={classes.mdShow}>Comment</Typography>
           </IconButton>
         </Tooltip>
       </Grid>
@@ -225,32 +255,6 @@ export function Topbar(props: IProps): React.JSX.Element {
         </MenuList>
       </Box>
     </Menu>
-
-    <UpcomingBookingsMenu
-      {...props}
-      upcomingBookingsAnchorEl={upcomingBookingsAnchorEl}
-      upcomingBookingsMenuId={upcomingBookingsMenuId}
-      isUpcomingBookingsOpen={isUpcomingBookingsOpen}
-      handleMenuClose={handleMenuClose}
-    />
-
-    {/** PENDING REQUESTS MENU */}
-    <PendingQuotesProvider>
-      <PendingQuotesMenu
-        {...props}
-        pendingQuotesAnchorEl={pendingQuotesAnchorEl}
-        pendingQuotesMenuId={pendingQuotesMenuId}
-        isPendingQuotesOpen={isPendingQuotesOpen}
-        handleMenuClose={handleMenuClose}
-      />
-    </PendingQuotesProvider>
-
-    <FeedbackMenu
-      feedbackAnchorEl={feedbackAnchorEl}
-      feedbackMenuId={feedbackMenuId}
-      isFeedbackOpen={isFeedbackOpen}
-      handleMenuClose={handleMenuClose}
-    />
   </Grid>;
 }
 

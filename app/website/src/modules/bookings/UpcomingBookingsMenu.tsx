@@ -1,4 +1,5 @@
-import React, { useCallback, useContext } from 'react';
+import React, { useContext } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import dayjs from 'dayjs';
 
 import Box from '@mui/material/Box';
@@ -10,10 +11,10 @@ import ListItemText from '@mui/material/ListItemText';
 import Tooltip from '@mui/material/Tooltip';
 
 import JoinFullIcon from '@mui/icons-material/JoinFull';
+import DoneIcon from '@mui/icons-material/Done';
 
 import { bookingDT, shortNSweet } from 'awayto/core';
 import { useContexts } from 'awayto/hooks';
-import { useNavigate } from 'react-router-dom';
 
 declare global {
   interface IProps {
@@ -25,7 +26,7 @@ declare global {
 }
 
 export function UpcomingBookingsMenu({ handleMenuClose, upcomingBookingsAnchorEl, upcomingBookingsMenuId, isUpcomingBookingsOpen }: IProps): React.JSX.Element {
-
+  const { exchangeId } = useParams();
   const navigate = useNavigate();
 
   const minsAgo15 = dayjs.duration(-15, 'years');
@@ -33,7 +34,21 @@ export function UpcomingBookingsMenu({ handleMenuClose, upcomingBookingsAnchorEl
 
   const { bookingValues: upcomingBookings } = useContext(useContexts().BookingContext) as BookingContextType;
 
-  return <Menu
+  return exchangeId ? 
+  <Tooltip title="Exit Exchange">
+    <Button
+      color="success"
+      aria-label={`exit exchange`}
+      onClick={() => {
+        navigate('/');
+      }}
+      variant="outlined"
+      startIcon={<DoneIcon />}
+    >
+      Done
+    </Button>
+  </Tooltip> :
+  <Menu
     anchorEl={upcomingBookingsAnchorEl}
     anchorOrigin={{
       vertical: 'bottom',
@@ -57,9 +72,9 @@ export function UpcomingBookingsMenu({ handleMenuClose, upcomingBookingsAnchorEl
           return <ListItem
             key={`upcoming_appt_ub_${i}`}
             secondaryAction={dayjs().isAfter(dt.add(minsAgo15)) && <>
-              <Tooltip title="Join Appointment">
+              <Tooltip title="Join Exchange">
                 <Button
-                  aria-label={`go to appointment for ${shortNSweet(slotDate, startTime)}`}
+                  aria-label={`go to exchange for ${shortNSweet(slotDate, startTime)}`}
                   onClick={() => {
                     navigate(`/exchange/${id}`);
                   }}
