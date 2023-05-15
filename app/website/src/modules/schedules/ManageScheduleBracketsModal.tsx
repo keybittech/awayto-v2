@@ -46,7 +46,7 @@ export function ManageScheduleBracketsModal({ editSchedule, closeModal }: IProps
 
   const [schedule, setSchedule] = useState<ISchedule | undefined>(editSchedule);
 
-  if (groupSchedule && (!schedule || groupSchedule.id !== schedule.id)) {
+  if (groupSchedule && !editSchedule && (!schedule || groupSchedule.id !== schedule.id)) {
     setSchedule({ ...groupSchedule, brackets: {} });
   }
 

@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 
-import { getContextFormattedDuration, getRelativeDuration, IScheduleBracketSlot, TimeUnit, timeUnitOrder } from 'awayto/core';
+import { getFormattedScheduleContext, getRelativeDuration, IScheduleBracketSlot, TimeUnit, timeUnitOrder } from 'awayto/core';
 import dayjs from 'dayjs';
 import { DurationUnitType } from 'dayjs/plugin/duration';
 
@@ -62,17 +62,18 @@ export function useSchedule(): (schedule: UseScheduleProps) => UseScheduleResult
       durations[x] = [] as CellDuration[];
 
       for (let y = 0; y < selections; y++) {
+        const startTime = startDuration.toISOString();
 
         let scheduleBracketSlotIds: string[] = [];
         if (beginningOfMonth) {
-          scheduleBracketSlotIds = bracketSlots.filter(b => b.startTime === startDuration.toISOString() ).map(b => b.id);
+          scheduleBracketSlotIds = bracketSlots.filter(b => b.startTime === startTime).map(b => b.id);
         }
         
         const cell = {
+          contextFormat: getFormattedScheduleContext(xAxisTypeName, startDuration.toISOString(), beginningOfMonth),
           scheduleBracketSlotIds,
-          startTime: startDuration.toISOString(),
+          startTime,
           active: !!scheduleBracketSlotIds.length,
-          contextFormat: getContextFormattedDuration(xAxisTypeName, startDuration.toISOString(), beginningOfMonth),
           x, y
         };
 

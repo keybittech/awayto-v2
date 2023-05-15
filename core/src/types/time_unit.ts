@@ -149,13 +149,19 @@ export const compactDateTimeFormat = 'ddd, hh:mm a';
 /**
  * @category Time Unit
  */
-export function getContextFormattedDuration(contextUnit: ITimeUnitNames | string, duration: string, relativeDate: dayjs.Dayjs = dayjs().startOf('year')): string {
-  let formatted = 'No format!';
+export function getFormattedScheduleContext(
+  contextName: string,
+  duration: string, // An ISO 8601 formatted Interval like PD3TH4M23 which represents Thursday at 4:23 AM
+  relativeDate: dayjs.Dayjs = dayjs().startOf('year') // could be the start of a week, day, month, etc
+): string {
+  let formatted = 'No format found.';
 
-  if (TimeUnit.DAY === contextUnit) {
+  if (['week', 'day'].includes(contextName)) {
     formatted = staticDT(relativeDate.startOf('day').startOf('week'), duration).format(compactDateTimeFormat);
-  } else if (TimeUnit.WEEK === contextUnit) {
-    formatted = staticDT(relativeDate.startOf('day').startOf('week'), duration).format(compactDateTimeFormat);
+  } else if (['month'].includes(contextName)) {
+    formatted = staticDT(relativeDate.startOf('month').startOf('year'), duration).format('MMM, hh:mm a');
+  } else if (['minute', 'hour'].includes(contextName)) {
+    formatted = staticDT(relativeDate, duration).format('hh:mm a');
   }
 
   return formatted;
