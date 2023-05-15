@@ -54,7 +54,7 @@ const Layout = (props: IProps): React.JSX.Element => {
             </Grid>
           </Grid>
         }>
-          <Route path="/exchange" element={
+          <Route path="/exchange/:exchangeId" element={
             <ExchangeProvider>
               <Exchange {...props} />
             </ExchangeProvider>

@@ -7,7 +7,8 @@ import IconButton from '@mui/material/IconButton';
 import Send from '@mui/icons-material/Send';
 
 import { ExchangeSessionAttributes, SenderStreams } from 'awayto/core';
-import { sh, useComponents, useContexts, useUtil, useWebSocketSubscribe } from 'awayto/hooks';
+import { useComponents, useContexts, useUtil, useWebSocketSubscribe } from 'awayto/hooks';
+import { useParams } from 'react-router';
 
 const peerConnectionConfig = {
   'iceServers': [
@@ -17,6 +18,9 @@ const peerConnectionConfig = {
 };
 
 export function ExchangeProvider({ children }: IProps): React.JSX.Element {
+
+  const { exchangeId } = useParams();
+  if (!exchangeId) return <></>;
 
   const { ExchangeContext } = useContexts();
 
@@ -74,7 +78,7 @@ export function ExchangeProvider({ children }: IProps): React.JSX.Element {
   const [canStartStop, setCanStartStop] = useState('start');
   const [senderStreams, setSenderStreams] = useState<SenderStreams>({});
 
-  const { connectionId, connected, sendMessage: sendExchangeMessage } = useWebSocketSubscribe<ExchangeSessionAttributes>('exchange-id', ({ sender, topic, type, payload }) => {
+  const { connectionId, connected, sendMessage: sendExchangeMessage } = useWebSocketSubscribe<ExchangeSessionAttributes>(exchangeId, ({ sender, topic, type, payload }) => {
     console.log('RECEIVED A NEW SOCKET MESSAGE', { connectionId, sender, topic, type }, JSON.stringify(payload));
     
     const { formats, target, sdp, ice, message } = payload;

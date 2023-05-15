@@ -40,10 +40,10 @@ export function Sidebar(): React.JSX.Element {
           <ListItemIcon><GroupIcon color={location.pathname === '/' ? "secondary" : "primary"} /></ListItemIcon>
           <ListItemText classes={{ primary: classes.menuText }}>Home</ListItemText>
         </ListItem>
-        <ListItem className={classes.menuIcon} onClick={() => navigate('/exchange')} button key={'exchange'}>
+        {/* <ListItem className={classes.menuIcon} onClick={() => navigate('/exchange')} button key={'exchange'}>
           <ListItemIcon><TtyIcon color={location.pathname === '/exchange' ? "secondary" : "primary"} /></ListItemIcon>
           <ListItemText classes={{ primary: classes.menuText }}>Exchange</ListItemText>
-        </ListItem>
+        </ListItem> */}
         {hasRole([SiteRoles.APP_GROUP_SERVICES]) && <ListItem className={classes.menuIcon} onClick={() => navigate('/service')} button key={'service'}>
           <ListItemIcon><BusinessIcon color={location.pathname === '/service' ? "secondary" : "primary"} /></ListItemIcon>
           <ListItemText classes={{ primary: classes.menuText }}>Service</ListItemText>

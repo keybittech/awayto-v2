@@ -18,8 +18,9 @@ router.post('/ticket', checkAuthenticated, async (req, res, next) => {
   const user = req.user as IUserProfile;
 
   const bookings = (await db.manyOrNone<IBooking>(`
-    SELECT id FROM dbtable_schema.bookings
-    WHERE created_sub = $1
+    SELECT b.id FROM dbtable_schema.bookings b
+    JOIN dbtable_schema.schedule_bracket_slots sbs ON sbs.id = b.schedule_bracket_slot_id
+    WHERE b.created_sub = $1 OR sbs.created_sub = $1
   `, [user.sub])).map(b => b.id);
 
   const proxyMiddleware = createProxyMiddleware({

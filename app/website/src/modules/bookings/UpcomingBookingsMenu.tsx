@@ -13,6 +13,7 @@ import JoinFullIcon from '@mui/icons-material/JoinFull';
 
 import { bookingDT, shortNSweet } from 'awayto/core';
 import { useContexts } from 'awayto/hooks';
+import { useNavigate } from 'react-router-dom';
 
 declare global {
   interface IProps {
@@ -25,14 +26,12 @@ declare global {
 
 export function UpcomingBookingsMenu({ handleMenuClose, upcomingBookingsAnchorEl, upcomingBookingsMenuId, isUpcomingBookingsOpen }: IProps): React.JSX.Element {
 
-  const minsAgo15 = dayjs.duration(-15, 'minutes');
+  const navigate = useNavigate();
+
+  const minsAgo15 = dayjs.duration(-15, 'years');
   const startOfDay = dayjs().startOf('day');
 
   const { bookingValues: upcomingBookings } = useContext(useContexts().BookingContext) as BookingContextType;
-
-  const goToBooking = useCallback(() => {
-    console.log('navigate here');
-  }, []);
 
   return <Menu
     anchorEl={upcomingBookingsAnchorEl}
@@ -51,17 +50,19 @@ export function UpcomingBookingsMenu({ handleMenuClose, upcomingBookingsAnchorEl
   >
     <List>
       {upcomingBookings.length ? <Box sx={{ width: 300 }}>
-        {upcomingBookings.map(({ slotDate, startTime, serviceName, serviceTierName }, i) => {
+        {upcomingBookings.map(({ id, slotDate, startTime, serviceName, serviceTierName }, i) => {
 
           const dt = bookingDT(slotDate, startTime);
 
           return <ListItem
             key={`upcoming_appt_ub_${i}`}
-            secondaryAction={dayjs().isAfter(dt.add(minsAgo15)) && dt.startOf('day').isSame(startOfDay) && <>
+            secondaryAction={dayjs().isAfter(dt.add(minsAgo15)) && <>
               <Tooltip title="Join Appointment">
                 <Button
                   aria-label={`go to appointment for ${shortNSweet(slotDate, startTime)}`}
-                  onClick={goToBooking}
+                  onClick={() => {
+                    navigate(`/exchange/${id}`);
+                  }}
                   variant="text"
                   startIcon={<JoinFullIcon />}
                 >
