@@ -20,23 +20,30 @@ export default createHandlers({
       }
     });
 
+    const { id: quoteId } = await props.tx.one<IQuote>(`
+      INSERT INTO dbtable_schema.quotes (slot_date, schedule_bracket_slot_id, service_tier_id, service_form_version_submission_id, tier_form_version_submission_id, created_sub)
+      VALUES ($1::date, $2::uuid, $3::uuid, $4::uuid, $5::uuid, $6::uuid)
+      RETURNING id
+    `, [slotDate, scheduleBracketSlotId, serviceTierId, serviceForm?.id, tierForm?.id, props.event.userSub]);
+
     if (files.length) {
-      await Promise.all(files.map(file => {
-        return fileApiHandler.postFile({
+      await Promise.all(files.map(async file => {
+
+        const { id: fileId } = await fileApiHandler.postFile({
           ...props,
           event: {
             ...props.event,
             body: file
           }
         });
+
+        await props.tx.none(`
+          INSERT INTO dbtable_schema.quote_files (quote_id, file_id, created_sub)
+          VALUES ($1::uuid, $2::uuid, $3::uuid)
+        `, [quoteId, fileId, props.event.userSub]);
+        
       }));
     }
-
-    const { id: quoteId } = await props.tx.one<IQuote>(`
-      INSERT INTO dbtable_schema.quotes (slot_date, schedule_bracket_slot_id, service_tier_id, service_form_version_submission_id, tier_form_version_submission_id, created_sub)
-      VALUES ($1::date, $2::uuid, $3::uuid, $4::uuid, $5::uuid, $6::uuid)
-      RETURNING id
-    `, [slotDate, scheduleBracketSlotId, serviceTierId, serviceForm?.id, tierForm?.id, props.event.userSub]);
 
     if (serviceForm?.id) {
       quote.serviceFormVersionSubmissionId = serviceForm.id;

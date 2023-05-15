@@ -20,12 +20,12 @@ export default createHandlers({
   },
   postFile: async props => {
     const { uuid, name, mimeType } = props.event.body;
-    const file = await props.tx.one<{ id: string }>(`
+    const { id } = await props.tx.one<{ id: string }>(`
       INSERT INTO dbtable_schema.files (uuid, name, mime_type, created_on, created_sub)
       VALUES ($1, $2, $3, $4, $5::uuid)
       RETURNING id
-    `, [uuid, name, utcNowString(), mimeType, props.event.userSub]);
-    return { id: file.id, uuid };
+    `, [uuid, name, mimeType, utcNowString(), props.event.userSub]);
+    return { id, uuid };
   },
   putFile: async props => {
     const { id, name } = props.event.body;

@@ -34,6 +34,7 @@ export default {
     url: 'files/content',
     method: 'POST',
     opts: {
+      throttle: 1,
       contentType: 'application/octet-stream'
     } as ApiOptions,
     queryArg: new ArrayBuffer(0),
@@ -43,7 +44,9 @@ export default {
     kind: EndpointType.MUTATION,
     url: 'files/content',
     method: 'PUT',
-    opts: {} as ApiOptions,
+    opts: {
+      throttle: 1
+    } as ApiOptions,
     queryArg: { id: '' as string, name: '' as string, mimeType: '' as string },
     resultType: { success: true as boolean }
   },

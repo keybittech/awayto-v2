@@ -278,6 +278,17 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     enabled BOOLEAN NOT NULL DEFAULT true
   );
 
+  CREATE TABLE dbtable_schema.quote_files (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    quote_id uuid NOT NULL REFERENCES dbtable_schema.quotes (id) ON DELETE CASCADE,
+    file_id uuid NOT NULL REFERENCES dbtable_schema.files (id) ON DELETE CASCADE,
+    created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
+    updated_on TIMESTAMP,
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
+    enabled BOOLEAN NOT NULL DEFAULT true
+  );
+
   CREATE TABLE dbtable_schema.bookings (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     quote_id uuid NOT NULL REFERENCES dbtable_schema.quotes (id),
