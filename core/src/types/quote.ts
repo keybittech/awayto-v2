@@ -11,7 +11,6 @@ export type IQuote = {
   id: string;
   slotDate: string;
   startTime: string;
-  username: string;
   serviceTierId: string;
   serviceTierName: string;
   serviceName: string;

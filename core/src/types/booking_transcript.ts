@@ -9,7 +9,6 @@ export type ITranscriptMessage = {
   words: string;
   duration: number;
   timestamp: string;
-  username: string;
 }
 
 /**
@@ -17,7 +16,6 @@ export type ITranscriptMessage = {
  * @purpose holds the log of the conversation between participants of an Exchange
  */
 export type IBookingTranscript = {
-  username: string;
   messages: ITranscriptMessage[];
 }
 

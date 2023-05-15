@@ -26,8 +26,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
             eq."scheduleBracketSlotId",
             eq."serviceTierName",
             eq."serviceName",
-            eq."createdOn",
-            us.username
+            eq."createdOn"
           FROM dbview_schema.enabled_quotes eq
           JOIN dbtable_schema.quotes q ON q.id = eq.id
           JOIN dbtable_schema.users us ON us.sub = q.created_sub

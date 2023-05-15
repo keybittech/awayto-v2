@@ -14,16 +14,10 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 
-import { getRelativeDuration, ISchedule, IScheduleBracket, timeUnitOrder } from 'awayto/core';
+import { bracketSchema, getRelativeDuration, ISchedule, IScheduleBracket, timeUnitOrder } from 'awayto/core';
 import { useComponents, sh, useUtil, useContexts } from 'awayto/hooks';
 
 import { useTimeName } from 'awayto/hooks';
-
-const bracketSchema = {
-  duration: 1,
-  automatic: false,
-  multiplier: '1.00'
-};
 
 declare global {
   interface IProps {

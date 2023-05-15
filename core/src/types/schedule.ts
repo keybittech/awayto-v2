@@ -48,6 +48,15 @@ export type IScheduleBracket = {
 
 /**
  * @category Schedule
+ */
+export const bracketSchema = {
+  duration: 1,
+  automatic: false,
+  multiplier: '1.00'
+};
+
+/**
+ * @category Schedule
  * @purpose contains the basic properties of a Schedule that may be attached directly to a User or a Group if it is a master schedule
  */
 export type ISchedule = {
@@ -65,6 +74,24 @@ export type ISchedule = {
   slotDuration: number;
   brackets: Record<string, IScheduleBracket>;
   createdOn: string;
+};
+
+/**
+ * @category Schedule
+ */
+export const scheduleSchema = {
+  id: '',
+  name: '',
+  startTime: '',
+  endTime: '',
+  timezone: '',
+  slotDuration: 30,
+  scheduleTimeUnitId: '',
+  scheduleTimeUnitName: '',
+  bracketTimeUnitId: '',
+  bracketTimeUnitName: '',
+  slotTimeUnitId: '',
+  slotTimeUnitName: ''
 };
 
 /**

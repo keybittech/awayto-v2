@@ -13,10 +13,8 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import { Mark } from '@mui/base';
 
-import { ISchedule, ITimeUnit, TimeUnit, timeUnitOrder, getRelativeDuration, ITimeUnitNames, IGroupSchedule } from 'awayto/core';
+import { ISchedule, ITimeUnit, TimeUnit, timeUnitOrder, getRelativeDuration, ITimeUnitNames, IGroupSchedule, scheduleSchema } from 'awayto/core';
 import { useComponents, useUtil, sh } from 'awayto/hooks';
-
-import { scheduleSchema } from './ScheduleHome';
 
 declare global {
   interface IProps {
@@ -33,7 +31,6 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
 
   const [postGroupSchedule] = sh.usePostGroupScheduleMutation();
   const [putGroupSchedule] = sh.usePutGroupScheduleMutation();
-  const [getGroupSchedules] = sh.useLazyGetGroupSchedulesQuery();
   const [getGroupScheduleMasterById] = sh.useLazyGetGroupScheduleMasterByIdQuery();
 
   const { data: lookups, isSuccess: lookupsRetrieved } = sh.useGetLookupsQuery();

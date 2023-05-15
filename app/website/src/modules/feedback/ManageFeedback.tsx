@@ -16,7 +16,6 @@ export function ManageFeedbacks(): React.JSX.Element {
   const feedbackGridProps  = useGrid({
     rows: feedbacks || [],
     columns: [
-      { flex: 1, headerName: 'User', field: 'username' },
       { flex: 1, headerName: 'Message', field: 'message' },
       { flex: 1, headerName: 'Created', field: 'createdOn', renderCell: ({ row }) => dayjs(row.createdOn).format("YYYY-MM-DD hh:mm a") }
     ]

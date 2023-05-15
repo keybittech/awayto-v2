@@ -56,7 +56,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): R
   const [viewStep, setViewStep] = useState(1);
   const [editedPurpose, setEditedPurpose] = useState(false);
   const [roleSuggestions, setRoleSuggestions] = useState([] as string[]);
-  const [allowedDomains, setAllowedDomains] = useState([profile?.username?.split('@')[1]] as string[]);
+  const [allowedDomains, setAllowedDomains] = useState([] as string[]);
   const [allowedDomain, setAllowedDomain] = useState('');
 
   const [{ checkedName, checkingName }, setChecker] = useState<Partial<{

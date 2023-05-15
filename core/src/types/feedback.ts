@@ -7,5 +7,4 @@ export type IFeedback = {
   message: string;
   groupName: string;
   createdOn: string;
-  username: string;
 }

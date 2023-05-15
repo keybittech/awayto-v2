@@ -114,7 +114,7 @@ export function PendingQuotesMenu({ handleMenuClose, pendingQuotesAnchorEl, pend
               <ListItemText
                 id={`checkbox-list-label-${i}`}
                 primary={`${shortNSweet(pq.slotDate, pq.startTime)}`}
-                secondary={`${pq.serviceName} ${pq.serviceTierName} with ${pq.username}`}
+                secondary={`${pq.serviceName} ${pq.serviceTierName}`}
               />
             </ListItemButton>
           </ListItem>

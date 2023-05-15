@@ -32,8 +32,6 @@ export function ManageUserModal({ editUser, closeModal }: IProps): React.JSX.Ele
 
   const { data: groupRoles } = sh.useGetGroupRolesQuery({ groupName });
 
-  const [getGroupUsers] = sh.useLazyGetGroupUsersQuery();
-  const [getGroupUserById] = sh.useLazyGetGroupUserByIdQuery();
   const [putGroupUser] = sh.usePutGroupUserMutation();
 
   const [password, setPassword] = useState('');
@@ -46,17 +44,7 @@ export function ManageUserModal({ editUser, closeModal }: IProps): React.JSX.Ele
     roleName: '',
     ...editUser
   } as IGroupUser);
-
-  useEffect(() => {
-    async function go() {
-      if (groupName && editUser?.id && !profile.roleId) {
-        const user = await getGroupUserById({ groupName, userId: editUser.id }).unwrap();
-        setProfile({ ...profile, ...user });
-      }
-    }
-    void go();
-  }, [editUser, profile, groupName]);
-
+  
   const handlePassword = useCallback(({ target: { value } }: React.ChangeEvent<HTMLTextAreaElement>) => setPassword(value), [])
   const handleProfile = useCallback(({ target: { name, value } }: React.ChangeEvent<HTMLTextAreaElement>) => setProfile({ ...profile, [name]: value }), [profile])
 
@@ -67,7 +55,6 @@ export function ManageUserModal({ editUser, closeModal }: IProps): React.JSX.Ele
         const { name } = groupRoles?.find(gr => gr.id === roleId) || {};
         if (name) {
           await putGroupUser({ groupName, userId: id, roleId, roleName: name }).unwrap();
-          await getGroupUsers({ groupName }).unwrap();
           if (closeModal)
             closeModal();
         }
