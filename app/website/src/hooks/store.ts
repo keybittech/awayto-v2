@@ -159,8 +159,8 @@ type EndpointQuery<T> = (args: T) => string | { url: string; method: string; bod
 export type SiteEndpointDefinitions = {
   [K in keyof typeof siteApiRef]: typeof siteApiRef[K] extends { queryArg: infer QA, resultType: infer RT } ? 
     typeof siteApiRef[K] extends { kind: EndpointType.MUTATION } ? 
-      MutationDefinition< QA, SiteBaseEndpoint, string, RT, string> : 
-      QueryDefinition<QA, SiteBaseEndpoint, string, RT, string> : 
+      MutationDefinition<QA, SiteBaseEndpoint, string, RT, string> : 
+      QueryDefinition<QA | void, SiteBaseEndpoint, string, RT, string> : 
     never;
 };
 
