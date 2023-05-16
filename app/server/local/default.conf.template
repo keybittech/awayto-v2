@@ -1,5 +1,5 @@
 upstream sock {
-  server 172.20.0.6:8080;
+  server 192.168.0.3:8080;
 }
 
 upstream auth {

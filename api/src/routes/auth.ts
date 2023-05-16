@@ -64,7 +64,7 @@ router.post('/webhook', checkBackchannel, async (req, res) => {
     const body = req.body as AuthBody;
     const { type, userId, ipAddress, details } = body;
 
-    console.log('/api/auth/webhook', JSON.stringify(body, null, 2));
+    // console.log('/api/auth/webhook', JSON.stringify(body, null, 2));
 
     // Create trace event
     const event = {

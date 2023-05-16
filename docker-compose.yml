@@ -61,6 +61,7 @@ services:
       - GRAYLOG_PORT=12201
       - SOCK_HOST=172.20.0.6
       - SOCK_PORT=8080
+      - SOCK_SECRET=320hf032h8f08239r23gf9327gf09237g
       - KEYCLOAK_HOST=172.20.0.7
       - KEYCLOAK_PORT=8443
       - REDIS_HOST=172.20.0.14
@@ -158,6 +159,9 @@ services:
     # ports:
     #   - 8081:8080
     environment:
+      - KC_API_HOST=172.20.0.4:9443/api #pointing to reverse proxy or use =172.20.0.4:9443/api for internal routing
+      - SOCK_SECRET=320hf032h8f08239r23gf9327gf09237g
+      - REDIS_HOST=172.20.0.14
       - NODE_TLS_REJECT_UNAUTHORIZED=0
       - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
       - KC_REALM=devel

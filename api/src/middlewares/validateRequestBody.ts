@@ -27,7 +27,7 @@ export function validateRequestBody<T extends AnyRecord | AnyRecordTypes>(queryA
 
 export function hasRequiredArgs<T extends AnyRecord>(targetType: T, sourceType: AnyRecord): boolean | string {
   
-  console.log({ targetType, sourceType })
+  // console.log({ targetType, sourceType })
   const targetTypeKeys = Object.keys(targetType).filter(key => key !== '_void').sort();
   const sourceTypeKeys = Object.keys(sourceType).sort();
 

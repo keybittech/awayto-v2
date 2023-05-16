@@ -21,7 +21,7 @@ declare global {
 export function FileSelectionModal({ closeModal, ...props }: IProps): React.JSX.Element {
 
   const handleSubmit = () => {
-    
+    console.log()
   }
 
   return <Card sx={{ display: 'flex', flex: 1, flexDirection: 'column' }}>

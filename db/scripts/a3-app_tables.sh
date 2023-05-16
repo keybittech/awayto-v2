@@ -301,10 +301,46 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     enabled BOOLEAN NOT NULL DEFAULT true
   );
 
-  CREATE TABLE dbtable_schema.booking_transcripts (
+  CREATE TABLE dbtable_schema.sock_connections (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    connection_id TEXT NOT NULL,
+    created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
+    updated_on TIMESTAMP,
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
+    enabled BOOLEAN NOT NULL DEFAULT true
+  );
+
+  CREATE TABLE dbtable_schema.exchange_subscribers (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     booking_id uuid NOT NULL REFERENCES dbtable_schema.bookings (id),
-    messages JSONB NOT NULL,
+    sock_connection_id uuid NOT NULL REFERENCES dbtable_schema.sock_connections (id) ON DELETE CASCADE,
+    created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
+    updated_on TIMESTAMP,
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
+    enabled BOOLEAN NOT NULL DEFAULT true
+  );
+
+  CREATE TABLE dbtable_schema.exchange_metrics (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    booking_id uuid NOT NULL REFERENCES dbtable_schema.bookings (id),
+    whiteboard JSONB, 
+    transcript JSONB, -- this denotes text based chat logs
+    created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
+    updated_on TIMESTAMP,
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
+    enabled BOOLEAN NOT NULL DEFAULT true
+  );
+
+  CREATE TABLE dbtable_schema.exchange_call_log (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    booking_id uuid NOT NULL REFERENCES dbtable_schema.bookings (id),
+    style TEXT NOT NULL,
+    connected TIMESTAMP NOT NULL,
+    disconnected TIMESTAMP,
+    transcript JSONB, -- this denotes audio based chat logs
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
     created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,

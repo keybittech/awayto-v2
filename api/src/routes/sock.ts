@@ -2,8 +2,9 @@ import express from 'express';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 
 import { db } from '../modules/db';
+import logger from '../modules/logger';
 
-import { checkAuthenticated } from '../middlewares';
+import { checkAuthenticated, checkBackchannel } from '../middlewares';
 import { IBooking, IUserProfile } from 'awayto/core';
 
 const {
@@ -15,25 +16,61 @@ const router = express.Router();
 
 // Websocket Ticket Proxy
 router.post('/ticket', checkAuthenticated, async (req, res, next) => {
-  const user = req.user as IUserProfile;
+  try {
+    const user = req.user as IUserProfile;
 
-  const bookings = (await db.manyOrNone<IBooking>(`
-    SELECT b.id FROM dbtable_schema.bookings b
-    JOIN dbtable_schema.schedule_bracket_slots sbs ON sbs.id = b.schedule_bracket_slot_id
-    WHERE b.created_sub = $1 OR sbs.created_sub = $1
-  `, [user.sub])).map(b => b.id);
+    const bookings = (await db.manyOrNone<IBooking>(`
+      SELECT b.id FROM dbtable_schema.bookings b
+      JOIN dbtable_schema.schedule_bracket_slots sbs ON sbs.id = b.schedule_bracket_slot_id
+      WHERE b.created_sub = $1 OR sbs.created_sub = $1
+    `, [user.sub])).map(b => b.id);
 
-  const proxyMiddleware = createProxyMiddleware({
-    target: `http://${SOCK_HOST}:${SOCK_PORT}/create_ticket`,
-    onProxyReq: proxyReq => {
-      const bodyData = JSON.stringify({ bookings });
-      proxyReq.setHeader('Content-Type', 'application/json');
-      proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
-      proxyReq.write(bodyData);
-    }
-  })
+    const proxyMiddleware = createProxyMiddleware({
+      target: `http://${SOCK_HOST}:${SOCK_PORT}/create_ticket/${user.sub}`,
+      onProxyReq: proxyReq => {
+        const bodyData = JSON.stringify({ bookings });
+        proxyReq.setHeader('Content-Type', 'application/json');
+        proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+        proxyReq.write(bodyData);
+      },
+      selfHandleResponse: true,
+      onProxyRes: (proxyRes, req, res) => {
+        var body = '';
+        proxyRes.on('data', function(data) {
+          body += data;
+        });
+        proxyRes.on('end', async function() {
+          await db.none(`
+            INSERT INTO dbtable_schema.sock_connections (created_sub, connection_id)
+            VALUES ($1::uuid, $2)
+          `, [user.sub, body.split(':')[1]]);
+          res.send(body);
+        });
+      }
+    })
 
-  proxyMiddleware(req, res, next);
+    proxyMiddleware(req, res, next);
+  } catch (error) {
+    const err = error as Error;
+    logger.log('sockProxy', err.message)
+  }
 });
+
+router.post('/disconnect', checkBackchannel, async (req, res) => {
+  const { sub, connectionId } = req.body as { [prop: string]: string };
+  await db.none(`
+    DELETE FROM dbtable_schema.sock_connections
+    WHERE created_sub = $1 AND connection_id = $2
+  `, [sub, connectionId]);
+  res.end();
+});
+
+router.post('/stale', checkBackchannel, async (req, res) => {
+  const { connections } = req.body as { connections: string[] };
+
+  console.log({ GOTSTALE_: connections })
+
+  res.end();
+})
 
 export default router;
