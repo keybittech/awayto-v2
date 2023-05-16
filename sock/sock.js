@@ -1,11 +1,48 @@
+import dotenv from 'dotenv';
+dotenv.config();
 import { createServer } from 'http';
 import { WebSocket, WebSocketServer } from 'ws';
 import { v4 } from 'uuid';
 
+import { handleSubscription, disconnect, stale } from './events/index.js';
+
+import { createClient } from 'redis';
+
+const redis = createClient({
+  socket: {
+    host: process.env.REDIS_HOST
+  }
+});
+
+await redis.connect();
+
+const serverUuid = v4();
+
+await redis.sAdd('socket_servers', serverUuid);
+
+const socketId = process.env.SERVER_ID || 'websocket.0';
+
+setInterval(async function() {
+  await redis.incr(`socket_servers:${serverUuid}:heartbeat`);
+  await redis.expire(`socket_servers:${serverUuid}:heartbeat`, 10);
+}, 5000);
+
+
+if ('websocket.0' === socketId) {
+  setInterval(async function() {
+    const servers = await redis.sMembers('socket_servers');
+    for (const servUuid of servers) {
+      const hbCount = await redis.get(`socket_servers:${servUuid}:heartbeat`);
+      if (!hbCount) {
+        await stale(await redis.sMembers(`socket_servers:${servUuid}:connections`));
+        await redis.sRem('socket_servers', servUuid);
+      }
+    }
+  }, 5 * 60 * 1000);
+}
+
 // Storage for connected members
-const pendingTickets = {};
-const connections = {};
-const allowances = {};
+const subscribers = [];
 
 // Start a generic http server
 const server = createServer().listen(8080);
@@ -23,40 +60,43 @@ server.on('request', function (req, res) {
     // Proxied from front end through api for kc auth check
     // Create a temporary ticket that the host can use to create a socket later
     try {
-      const host = req.headers['x-forwarded-for'].split(', ')[0];
-      const authorization = req.headers['authorization'];
+      
+      let body = '';
 
-      if (!authorization) {
-        res.writeHead(401);
-      } else {
+      req.on('data', chunk => {
+        body += chunk.toString();
+      });
 
-        let body = '';
+      req.on('end', () => {
+        if (req.url.includes('create_ticket')) {
 
-        req.on('data', chunk => {
-          body += chunk.toString();
-        });
+          try {
+            const sub = req.url.split('/')[2];
+            const subscriber = subscribers.find(s => s.sub === sub);
+            const ticket = `${v4()}:${v4()}`
+            const parsed = JSON.parse(body || '{}');
 
-        req.on('end', () => {
-          if (req.url.includes('create_ticket')) {
-
-            try {
-              const id = v4();
-              const parsed = JSON.parse(body || '{}');
-
-              allowances[id] = { ...parsed };
-
-              const hostTix = pendingTickets[host] = pendingTickets[host] || {};
-              hostTix.tickets = hostTix.tickets || [];
-              hostTix.tickets.push(authorization);
-              res.writeHead(200);
-              res.write(id);
-              res.end();
-            } catch (error) {
-              console.error('issue handling ticket assignment')
+            if (subscriber) {
+              subscriber.tickets.push(ticket);
+              subscriber.allowances = { ...parsed };
+            } else {
+              subscribers.push({
+                sub,
+                connectionIds: [],
+                allowances: { ...parsed },
+                tickets: [ticket],
+                subscribedTopics: new Set()
+              });
             }
+
+            res.writeHead(200);
+            res.write(ticket);
+            res.end();
+          } catch (error) {
+            console.error('issue handling ticket assignment', error)
           }
-        })
-      }
+        }
+      })
 
     } catch (error) {
       console.log('Critical Error', error);
@@ -71,26 +111,30 @@ server.on('request', function (req, res) {
 // Proxy pass from nginx sets http upgrade request, caught here
 server.on('upgrade', async function (req, socket, head) {
   try {
-    const host = req.headers['x-forwarded-for'].split(', ')[0];
+    const [auth, connectionId] = req.url.slice(1).split(':');
 
-    // Check if the host has any tickets and open a socket
-    if (pendingTickets[host]) {
+    let authIndex = -1;
+    
+    const subscriber = subscribers.find(s => {
+      authIndex = s.tickets.indexOf(`${auth}:${connectionId}`);
+      return authIndex > -1;
+    });
 
-      // request comes as /ndsjfs which is client generated id
-      const ticket = pendingTickets[host].tickets.shift();
+    if (authIndex > -1) {
+      subscriber.tickets.shift();
+      wss.handleUpgrade(req, socket, head, async ws => {
+        subscriber.connectionIds.push(connectionId);
+        ws.subscriber = subscriber;
+        ws.connectionId = connectionId;
+        await redis.sAdd(`socket_servers:${serverUuid}:connections`, `${subscriber.sub}:${connectionId}`);
+        wss.emit('connection', ws, req);
+      });
 
-      // If handshake was successful
-      if (ticket) {
-        const localId = req.url.slice(1);
-        wss.handleUpgrade(req, socket, head, function (ws) {
-          ws.localId = localId;
-          wss.emit('connection', ws, req);
-        });
-      } else {
-        socket401(socket);
-      }
+    } else {
+      socket401(socket);
     }
   } catch (error) {
+    console.log(error)
     socket500(socket);
   }
 });
@@ -107,14 +151,11 @@ function socket401(socket) {
 
 wss.on('connection', function (ws, req) {
   // Setup socket info and attach to server
-  ws.id = v4();
   ws.isAlive = true;
-  ws.subscribedTopics = new Set();
-  connections[ws.localId] = ws;
 
   // Remove any active processes and server refs on close
-  ws.on('close', function () {
-    cleanUp(ws);
+  ws.on('close', async function () {
+    await cleanUp(ws);
   });
 
   // When we receive a ping from client, this will flag it alive on the server for another 30 seconds
@@ -128,13 +169,11 @@ wss.on('connection', function (ws, req) {
       // Messages will have a sender and type, might have a message or other
       const parsed = JSON.parse(message.toString());
 
-      if ('subscribe' === parsed.type) {
-        ws.subscribedTopics.add(parsed.topic);
-      } else if ('unsubscribe' === parsed.type) {
-        ws.subscribedTopics.delete(parsed.topic);
-      } else if (parsed.topic) {
+      handleSubscription(ws, parsed);
+
+      if (parsed.topic) {
         wss.clients.forEach(ws => {
-          if (ws.readyState === WebSocket.OPEN && ws.subscribedTopics && ws.subscribedTopics.has(parsed.topic)) {
+          if (ws.readyState === WebSocket.OPEN && ws.subscriber.subscribedTopics.has(parsed.topic)) {
             ws.send(message);
           }
         });
@@ -143,30 +182,30 @@ wss.on('connection', function (ws, req) {
       console.log('Critical Error: couldn\'t process socket message', message.toString(), error);
     }
   });
-
-  // Notify
-  ws.send(Buffer.from(JSON.stringify({
-    status: 'connected'
-  })));
 });
 
-function cleanUp(ws) {
+async function cleanUp(ws) {
   try {
-    delete allowances[ws.localId];
-    delete connections[ws.localId];
+    await disconnect(ws);
+    await redis.sRem(`socket_servers:${serverUuid}:connections`, `${ws.subscriber.sub}:${ws.connectionId}`);
+    if (0 === ws.subscriber.connectionIds.length) {
+      const subIndex = subscribers.findIndex(s => s.sub === ws.subscriber.sub);
+      if (subIndex > -1) {
+        subscribers.splice(subIndex, 1);
+      }
+    }
 
-    // Notify
-    console.log('activity', ws.id, 'closed connection.');
+    console.log('activity', ws.connectionId, 'closed connection.');
   } catch (error) {
-
+    console.log('clean up error', error);
   }
 }
 
 // Every 30 secs, ping clients, or clean up
 const interval = setInterval(function ping() {
-  wss.clients.forEach(function (ws) {
+  wss.clients.forEach(async function (ws) {
     if (ws.isAlive === false) {
-      cleanUp(ws);
+      await cleanUp(ws);
       return ws.terminate();
     }
     ws.isAlive = false;

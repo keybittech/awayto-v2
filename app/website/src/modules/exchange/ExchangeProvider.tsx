@@ -83,7 +83,7 @@ export function ExchangeProvider({ children }: IProps): React.JSX.Element {
     connectionId,
     connected,
     sendMessage: sendExchangeMessage
-  } = useWebSocketSubscribe<ExchangeSessionAttributes>(exchangeId, ({ sender, topic, type, payload }) => {
+  } = useWebSocketSubscribe<ExchangeSessionAttributes>(`exchange:${exchangeId}`, ({ sender, topic, type, payload }) => {
     console.log('RECEIVED A NEW SOCKET MESSAGE', { connectionId, sender, topic, type }, JSON.stringify(payload));
     
     const { formats, target, sdp, ice, message, style } = payload;

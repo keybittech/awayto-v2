@@ -24,43 +24,43 @@ function WebSocketProvider({ children }: IProps): React.JSX.Element {
         Authorization: keycloak.token || ''
       }
     }).then(async res => {
-      const connId = await res.text()
-      setConnectionId(connId);
-
-      const ws = new WebSocket(`wss://${location.hostname}/sock/${connId}`);
-
-      ws.onopen = () => {
-        console.log('socket online');
-        setSocket(ws);
-      };
-
-      ws.onmessage = (event: MessageEvent<{ text(): Promise<string> }>) => {
-        async function go () {
-          const { sender, type, topic, payload } = JSON.parse(await event.data.text()) as SocketResponse<unknown>;
-
-          const listeners = messageListeners.current.get(topic);
-    
-          if (listeners) {
-            for (const listener of listeners) {
-              listener({ sender, type, topic, payload });
+      if (res.ok) {
+        const [ticket, connectionId] = (await res.text()).split(':');
+  
+        const ws = new WebSocket(`wss://${location.hostname}/sock/${ticket}:${connectionId}`);
+  
+        ws.onopen = () => {
+          setConnectionId(connectionId);
+          setSocket(ws);
+        };
+  
+        ws.onmessage = (event: MessageEvent<{ text(): Promise<string> }>) => {
+          async function go () {
+            const { sender, type, topic, payload } = JSON.parse(await event.data.text()) as SocketResponse<unknown>;
+  
+            const listeners = messageListeners.current.get(topic);
+      
+            if (listeners) {
+              for (const listener of listeners) {
+                listener({ sender, type, topic, payload });
+              }
             }
           }
-        }
-        void go();
-      };
-  
-      ws.onclose = () => {
-        console.log("WebSocket closed. Reconnecting...");
-        setTimeout(() => {
-          connect();
-        }, 1000);
-      };
-  
-      ws.onerror = (error) => {
-        console.error("WebSocket error:", error);
-        ws.close();
-      };
-
+          void go();
+        };
+    
+        ws.onclose = () => {
+          console.log("WebSocket closed. Reconnecting...");
+          setTimeout(() => {
+            connect();
+          }, 1000);
+        };
+    
+        ws.onerror = (error) => {
+          console.error("WebSocket error:", error);
+          ws.close();
+        };
+      }
     }).catch(error => {
       const err = error as Error;
       setSnack({ snackOn: err.message, snackType: 'error' });
