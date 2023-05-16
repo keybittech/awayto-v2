@@ -1,6 +1,17 @@
 import { Void } from '../util';
 import { ApiOptions, BufferResponse, EndpointType } from './api';
 
+
+
+
+/**
+ * @category File
+ */
+export type UseFileContents = () => {
+  fileDetails: IFile | undefined;
+  getFileContents: (fileRef: Partial<IFile>, download?: boolean) => Promise<BufferResponse | undefined>;
+}
+
 /**
  * @category File
  */

@@ -1,11 +1,6 @@
 import { useCallback,  useMemo,  useState } from 'react';
 import keycloak from '../keycloak';
-import { BufferResponse, IFile } from 'awayto/core';
-
-type UseFileContents = () => {
-  fileDetails: IFile | undefined;
-  getFileContents: (fileRef: Partial<IFile>, download?: boolean) => Promise<BufferResponse | undefined>;
-}
+import { IFile, UseFileContents } from 'awayto/core';
 
 export const useFileContents: UseFileContents = () => {
   const [fileDetails, setFileDetails] = useState<IFile | undefined>();
@@ -18,7 +13,7 @@ export const useFileContents: UseFileContents = () => {
         'Authorization': `Bearer ${keycloak.token as string}`
       }
     });
-      
+
     const buffer = await response.arrayBuffer();
     const contentDisposition = response.headers.get("Content-Disposition");
     const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
