@@ -14,24 +14,28 @@ const redis = createClient({
   }
 });
 
-await redis.connect();
-
+const socketId = process.env.SERVER_ID || 'websocket.0';
 const serverUuid = v4();
 
+await redis.connect();
+
+// When the server starts up, add its id to redis
 await redis.sAdd('socket_servers', serverUuid);
 
-const socketId = process.env.SERVER_ID || 'websocket.0';
-
+// Every 5 seconds, heartbeat id to redis
 setInterval(async function() {
   await redis.incr(`socket_servers:${serverUuid}:heartbeat`);
   await redis.expire(`socket_servers:${serverUuid}:heartbeat`, 10);
 }, 5000);
 
-
+// If this is the first socket server running
 if ('websocket.0' === socketId) {
   setInterval(async function() {
+    // Check all socket servers
     const servers = await redis.sMembers('socket_servers');
     for (const servUuid of servers) {
+
+      // If no heartbeat, remove stale connections
       const hbCount = await redis.get(`socket_servers:${servUuid}:heartbeat`);
       if (!hbCount) {
         const staleConnections = await redis.sMembers(`socket_servers:${servUuid}:connections`);
@@ -189,8 +193,13 @@ wss.on('connection', function (ws, req) {
 
 async function cleanUp(ws) {
   try {
+    // Remove connection from db
     await disconnect(ws);
+
+    // remove from socket server connection cache
     await redis.sRem(`socket_servers:${serverUuid}:connections`, `${ws.subscriber.sub}:${ws.connectionId}`);
+
+    // remove local references
     if (0 === ws.subscriber.connectionIds.length) {
       const subIndex = subscribers.findIndex(s => s.sub === ws.subscriber.sub);
       if (subIndex > -1) {

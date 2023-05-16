@@ -30,6 +30,7 @@ function WebSocketProvider({ children }: IProps): React.JSX.Element {
         const ws = new WebSocket(`wss://${location.hostname}/sock/${ticket}:${connectionId}`);
   
         ws.onopen = () => {
+          console.log('socket open');
           setConnectionId(connectionId);
           setSocket(ws);
         };
@@ -60,6 +61,10 @@ function WebSocketProvider({ children }: IProps): React.JSX.Element {
           console.error("WebSocket error:", error);
           ws.close();
         };
+      } else { 
+        setTimeout(() => {
+          connect();
+        }, 1000);
       }
     }).catch(error => {
       const err = error as Error;
