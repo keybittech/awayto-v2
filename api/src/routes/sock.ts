@@ -66,10 +66,11 @@ router.post('/disconnect', checkBackchannel, async (req, res) => {
 });
 
 router.post('/stale', checkBackchannel, async (req, res) => {
-  const { connections } = req.body as { connections: string[] };
-
-  console.log({ GOTSTALE_: connections })
-
+  const staleConnections = req.body as string[];
+  await db.none(`
+    DELETE FROM dbtable_schema.sock_connections
+    WHERE created_sub || ':' || connection_id = ANY($1::text[])
+  `, [staleConnections]);
   res.end();
 })
 

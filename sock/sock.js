@@ -34,7 +34,10 @@ if ('websocket.0' === socketId) {
     for (const servUuid of servers) {
       const hbCount = await redis.get(`socket_servers:${servUuid}:heartbeat`);
       if (!hbCount) {
-        await stale(await redis.sMembers(`socket_servers:${servUuid}:connections`));
+        const staleConnections = await redis.sMembers(`socket_servers:${servUuid}:connections`);
+        if (staleConnections.length) {
+          await stale(staleConnections);
+        }
         await redis.sRem('socket_servers', servUuid);
       }
     }
