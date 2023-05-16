@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import { createServer } from 'http';
-import { WebSocket, WebSocketServer } from 'ws';
+import { WebSocketServer } from 'ws';
 import { v4 } from 'uuid';
 
 import { handleSubscription, disconnect, stale } from './events/index.js';
@@ -173,18 +173,7 @@ wss.on('connection', function (ws, req) {
   // Handle incoming messages
   ws.on('message', function (message) {
     try {
-      // Messages will have a sender and type, might have a message or other
-      const parsed = JSON.parse(message.toString());
-
-      handleSubscription(ws, parsed);
-
-      if (parsed.topic) {
-        wss.clients.forEach(ws => {
-          if (ws.readyState === WebSocket.OPEN && ws.subscriber.subscribedTopics.has(parsed.topic)) {
-            ws.send(message);
-          }
-        });
-      }
+      handleSubscription(wss, ws, message);
     } catch (error) {
       console.log('Critical Error: couldn\'t process socket message', message.toString(), error);
     }

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
-import { sh, useContexts, useUtil } from 'awayto/hooks';
+import { useContexts, useUtil } from 'awayto/hooks';
 import { SocketResponse, SocketResponseHandler } from 'awayto/core';
 
 import keycloak from '../../keycloak';
@@ -9,10 +9,10 @@ function WebSocketProvider({ children }: IProps): React.JSX.Element {
 
   const { setSnack } = useUtil();
   const { WebSocketContext } = useContexts();
-  const { data: profile } = sh.useGetUserProfileDetailsQuery();
 
   const [socket, setSocket] = useState<WebSocket | undefined>();
   const [connectionId, setConnectionId] = useState('');
+  const reconnectSnackShown = useRef(false);
 
   const messageListeners = useRef(new Map<string, Set<SocketResponseHandler<unknown>>>());
 
@@ -25,14 +25,34 @@ function WebSocketProvider({ children }: IProps): React.JSX.Element {
       }
     }).then(async res => {
       if (res.ok) {
-        const [ticket, connectionId] = (await res.text()).split(':');
+        const [ticket, cid] = (await res.text()).split(':');
   
-        const ws = new WebSocket(`wss://${location.hostname}/sock/${ticket}:${connectionId}`);
+        const ws = new WebSocket(`wss://${location.hostname}/sock/${ticket}:${cid}`);
   
         ws.onopen = () => {
           console.log('socket open');
-          setConnectionId(connectionId);
+          if (reconnectSnackShown.current) {
+            setSnack({ snackOn: 'Connection reestablished', snackType: 'success' });
+            reconnectSnackShown.current = false;
+          }
+          setConnectionId(cid);
           setSocket(ws);
+        };
+    
+        ws.onclose = () => {
+          console.log('socket closed. reconnecting...');
+          if (!reconnectSnackShown.current) {
+            setSnack({ snackOn: 'Connection lost, trying to reconnect...', snackType: 'info' });
+            reconnectSnackShown.current = true;
+          }
+          setTimeout(() => {
+            connect();
+          }, 1000);
+        };
+    
+        ws.onerror = (error) => {
+          console.error("socket error:", error);
+          ws.close();
         };
   
         ws.onmessage = (event: MessageEvent<{ text(): Promise<string> }>) => {
@@ -48,18 +68,6 @@ function WebSocketProvider({ children }: IProps): React.JSX.Element {
             }
           }
           void go();
-        };
-    
-        ws.onclose = () => {
-          console.log("WebSocket closed. Reconnecting...");
-          setTimeout(() => {
-            connect();
-          }, 1000);
-        };
-    
-        ws.onerror = (error) => {
-          console.error("WebSocket error:", error);
-          ws.close();
         };
       } else { 
         setTimeout(() => {
@@ -80,7 +88,7 @@ function WebSocketProvider({ children }: IProps): React.JSX.Element {
     connectionId,
     connected: socket?.readyState === WebSocket.OPEN,
     sendMessage(type, topic, payload) {
-      if (profile && socket && socket.readyState === WebSocket.OPEN) {
+      if (socket && socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify({ sender: connectionId, type, topic, payload }));
       }
     },

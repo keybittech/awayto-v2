@@ -45,5 +45,5 @@ export function useWebSocketSubscribe <T>(topic: string, callback: SocketRespons
         sendMessage(type, topic, payload);
       }
     }
-  }), [connected]);
+  }), [connectionId, connected]);
 }
