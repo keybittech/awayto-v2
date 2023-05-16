@@ -12,7 +12,7 @@ import Topbar from './Topbar';
 
 const Layout = (props: IProps): React.JSX.Element => {
 
-  const { Home, Exchange, ExchangeProvider, TopLevelProviders, Profile, GroupPaths, ServiceHome, ScheduleHome, RequestQuote } = useComponents();
+  const { Home, Exchange, ExchangeSummary, ExchangeProvider, TopLevelProviders, Profile, GroupPaths, ServiceHome, ScheduleHome, RequestQuote } = useComponents();
 
   return <>
     <CssBaseline />
@@ -41,6 +41,7 @@ const Layout = (props: IProps): React.JSX.Element => {
           <Route path="/quote/request" element={<RequestQuote {...props} />} />
           <Route path="/schedule" element={<ScheduleHome {...props} />} />
           <Route path="/group/:groupName/*" element={<GroupPaths {...props} />} />
+          <Route path="/exchange/:summaryId/summary" element={<ExchangeSummary {...props} />} />
         </Route>
         <Route element={
           <Grid xs={12} container>
@@ -49,16 +50,14 @@ const Layout = (props: IProps): React.JSX.Element => {
             </Grid>
             <Grid p={2} sx={{ width: '100%', height: 'calc(100vh - 75px)' }}>
               <Suspense fallback={<CircularProgress color="inherit" />}>
-                <Outlet />
+                <ExchangeProvider>
+                  <Outlet />
+                </ExchangeProvider>
               </Suspense>
             </Grid>
           </Grid>
         }>
-          <Route path="/exchange/:exchangeId" element={
-            <ExchangeProvider>
-              <Exchange {...props} />
-            </ExchangeProvider>
-          } />
+          <Route path="/exchange/:exchangeId" element={<Exchange {...props} />} />
         </Route>
       </Routes >
     </TopLevelProviders >

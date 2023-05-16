@@ -35,7 +35,7 @@ export function ConfirmAction(): React.JSX.Element {
                     {util.confirmSideEffect && <Typography variant="button" fontSize={16}>{util.confirmSideEffect?.approvalAction}</Typography>}
                   </Grid>
                   <Grid item>
-                    <Typography variant="caption">{util.confirmSideEffect?.approvalEffect ? 'Click here to: ' + util.confirmSideEffect.approvalEffect : 'Click here to confirm approval.'}</Typography>
+                    <Typography variant="caption">{util.confirmSideEffect?.approvalEffect ? 'Click here to: ' + util.confirmSideEffect.approvalEffect : 'Click here to confirm.'}</Typography>
                   </Grid>
                 </Grid>
               </CardActionArea>

@@ -14,7 +14,7 @@ import JoinFullIcon from '@mui/icons-material/JoinFull';
 import DoneIcon from '@mui/icons-material/Done';
 
 import { bookingDT, shortNSweet } from 'awayto/core';
-import { useContexts } from 'awayto/hooks';
+import { useContexts, useUtil } from 'awayto/hooks';
 
 declare global {
   interface IProps {
@@ -28,6 +28,7 @@ declare global {
 export function UpcomingBookingsMenu({ handleMenuClose, upcomingBookingsAnchorEl, upcomingBookingsMenuId, isUpcomingBookingsOpen }: IProps): React.JSX.Element {
   const { exchangeId } = useParams();
   const navigate = useNavigate();
+  const { openConfirm } = useUtil();
 
   const minsAgo15 = dayjs.duration(-15, 'years');
   const startOfDay = dayjs().startOf('day');
@@ -35,17 +36,31 @@ export function UpcomingBookingsMenu({ handleMenuClose, upcomingBookingsAnchorEl
   const { bookingValues: upcomingBookings } = useContext(useContexts().BookingContext) as BookingContextType;
 
   return exchangeId ? 
-  <Tooltip title="Exit Exchange">
+  <Tooltip title="Go to Exchange Summary">
     <Button
       color="success"
-      aria-label={`exit exchange`}
+      aria-label={`go to exchange summary`}
       onClick={() => {
-        navigate('/');
+        openConfirm({
+          isConfirming: true,
+          confirmEffect: `Continue to the Exchange summary.`,
+          confirmSideEffect: {
+            approvalAction: 'All Done',
+            approvalEffect: 'Continue to the Exchange summary.',
+            rejectionAction: 'Keep Chatting',
+            rejectionEffect: 'Return to the chat.',
+          },
+          confirmAction: approval => {
+            if (approval) {
+              navigate(`/exchange/${exchangeId}/summary`);
+            }
+          }
+        });
       }}
       variant="outlined"
       startIcon={<DoneIcon />}
     >
-      Done
+      Go to Summary
     </Button>
   </Tooltip> :
   <Menu
