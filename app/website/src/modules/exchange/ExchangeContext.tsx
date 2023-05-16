@@ -3,7 +3,7 @@ import React, { createContext } from "react";
 declare global {
   type ExchangeContextType = {
     chatLog: React.JSX.Element;
-    messagesEndRef: React.RefObject<HTMLDivElement>;
+    messagesEnd: React.JSX.Element;
     canStartStop: string;
     localStreamElement: React.JSX.Element;
     senderStreamsElements: (React.JSX.Element | undefined)[];

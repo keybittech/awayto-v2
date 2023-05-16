@@ -1,6 +1,7 @@
 import { IBooking } from './booking';
 
 export type ExchangeMessage = {
+  style: 'utterance' | 'written';
   sender: string;
   message: string;
   timestamp: string;
@@ -15,6 +16,7 @@ export type ExchangeSessionAttributes = {
   ice: RTCIceCandidateInit;
   formats: string[];
   message: string;
+  style: ExchangeMessage['style'];
   target: string;
 };
 

@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
 
 import Send from '@mui/icons-material/Send';
 
-import { ExchangeSessionAttributes, SenderStreams } from 'awayto/core';
+import { ExchangeMessage, ExchangeSessionAttributes, SenderStreams } from 'awayto/core';
 import { useComponents, useContexts, useUtil, useWebSocketSubscribe } from 'awayto/hooks';
 import { useParams } from 'react-router';
 
@@ -32,7 +33,7 @@ export function ExchangeProvider({ children }: IProps): React.JSX.Element {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const [textMessage, setTextMessage] = useState('');
-  const [messages, setMessages] = useState<{sender: string, message: string}[]>([]);
+  const [messages, setMessages] = useState<ExchangeMessage[]>([]);
 
   const trackStream = (mediaStream: MediaStream) => {
 
@@ -67,7 +68,7 @@ export function ExchangeProvider({ children }: IProps): React.JSX.Element {
 
       // Check if the user is speaking or not
       if (isFinal) {
-        sendExchangeMessage('text', { message: transcript });
+        sendExchangeMessage('text', { style: 'utterance', message: transcript });
       }
     });
 
@@ -78,23 +79,27 @@ export function ExchangeProvider({ children }: IProps): React.JSX.Element {
   const [canStartStop, setCanStartStop] = useState('start');
   const [senderStreams, setSenderStreams] = useState<SenderStreams>({});
 
-  const { connectionId, connected, sendMessage: sendExchangeMessage } = useWebSocketSubscribe<ExchangeSessionAttributes>(exchangeId, ({ sender, topic, type, payload }) => {
+  const {
+    connectionId,
+    connected,
+    sendMessage: sendExchangeMessage
+  } = useWebSocketSubscribe<ExchangeSessionAttributes>(exchangeId, ({ sender, topic, type, payload }) => {
     console.log('RECEIVED A NEW SOCKET MESSAGE', { connectionId, sender, topic, type }, JSON.stringify(payload));
     
-    const { formats, target, sdp, ice, message } = payload;
+    const { formats, target, sdp, ice, message, style } = payload;
 
-    if (target !== connectionId && !(sdp || ice || message)) {
+    if (target !== connectionId && !(formats || sdp || ice || message)) {
       return;
     }
 
-    if ('text' === type && message) {
-      setMessages(msgs => [...msgs, { sender: sender.split('@')[0], message, timestamp: new Date() }]);
+    if ('text' === type && message && style) {
+      setMessages(msgs => [...msgs, { style, sender: sender.split('@')[0], message, timestamp: (new Date()).toString() }]);
     } else if (sender !== connectionId) {
       if (['join-call', 'peer-response'].includes(type)) {
         // Parties to an incoming caller's 'join-call' will see this, and then notify the caller that they exist in return
         // The caller gets a party member's 'peer-response', and sets them up in return
         if (!localStream && formats) {
-          setMessages([...messages, { sender, message: `Start a ${formats.indexOf('video') > -1 ? 'video' : 'voice'} call.`} ]);
+          setMessages([...messages, { style: 'utterance', sender, message: `Start a ${formats.indexOf('video') > -1 ? 'video' : 'voice'} call.`, timestamp: (new Date()).toString() } ]);
         }
 
         const senders = Object.keys(senderStreams).filter(sender => !senderStreams[sender].pc);
@@ -222,13 +227,13 @@ export function ExchangeProvider({ children }: IProps): React.JSX.Element {
   }, [messagesEndRef.current, messages]);
 
   const sendTextMessage = () => {
-    sendExchangeMessage('text', { message: textMessage });
+    sendExchangeMessage('text', { style: 'written', message: textMessage });
     setTextMessage('');
   }
 
   const exchangeContext = {
     canStartStop,
-    messagesEndRef,
+    messagesEnd: useMemo(() => <Box ref={messagesEndRef} />, []),
     chatLog: useMemo(() => <GroupedMessages exchangeMessages={messages} />, [messages]),
     setLocalStreamAndBroadcast,
     leaveCall() {

@@ -22,7 +22,7 @@ export function Exchange(): React.JSX.Element {
 
   const {
     chatLog,
-    messagesEndRef,
+    messagesEnd,
     canStartStop,
     localStreamElement,
     senderStreamsElements,
@@ -36,7 +36,7 @@ export function Exchange(): React.JSX.Element {
   const [chatOpen, setChatOpen] = useState(true);
 
   return <>
-    <Card sx={{ height: '100%' }}>
+    <Card sx={{ height: '100%', backgroundColor: theme.palette.primary.dark }}>
       <CardActions>
         <Button onClick={() => setChatOpen(!chatOpen)} type="submit" color="primary"><ChatBubble /> Toggle Chat</Button>
         {
@@ -62,7 +62,7 @@ export function Exchange(): React.JSX.Element {
       </CardActions>
       <CardContent sx={{ height: 'calc(100% - 60px)' }}> {/* height minus action bar height estimate */}
 
-        <Grid container style={{ height: '100%', position: 'relative' }} direction="row">
+        <Grid container spacing={1} style={{ height: '100%', position: 'relative' }} direction="row">
 
           <Grid item xs={8} md={4} hidden={!chatOpen} style={{ height: '100%' }}>
             <Grid container direction="column" style={{ height: !!localStreamElement ? '50%' : 'unset', display: 'flex', flexWrap: 'nowrap' }}>
@@ -77,14 +77,12 @@ export function Exchange(): React.JSX.Element {
             
             {/* ---------- Chat ---------- */}
             <Grid container direction="column" style={{ height: !!localStreamElement ? '50%' : '100%' }}>
-              <Grid item style={{ flex: '1', overflow: 'auto', color: theme.palette.primary.contrastText, backgroundColor: theme.palette.primary.dark, padding: '16px 25px' }}>
-                <Grid container direction="column">
-                  {chatLog}
-                </Grid>
-                <Grid item ref={messagesEndRef} />
+              <Grid item pr={1} style={{ flex: '1', overflow: 'auto' }}>
+                {chatLog}
+                {messagesEnd}
               </Grid>
 
-              <Grid item style={{ backgroundColor: theme.palette.primary.dark, padding: '25px' }}>
+              <Grid item pt={1}>
                 {submitMessageForm}
               </Grid>
             </Grid>
