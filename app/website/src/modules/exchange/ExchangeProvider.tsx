@@ -85,7 +85,7 @@ export function ExchangeProvider({ children }: IProps): React.JSX.Element {
     sendMessage: sendExchangeMessage
   } = useWebSocketSubscribe<ExchangeSessionAttributes>(`exchange:${exchangeId}`, ({ sender, topic, type, payload }) => {
     console.log('RECEIVED A NEW SOCKET MESSAGE', { connectionId, sender, topic, type }, JSON.stringify(payload));
-    
+    const timestamp = (new Date()).toString();
     const { formats, target, sdp, ice, message, style } = payload;
 
     if (target !== connectionId && !(formats || sdp || ice || message)) {
@@ -93,13 +93,23 @@ export function ExchangeProvider({ children }: IProps): React.JSX.Element {
     }
 
     if ('text' === type && message && style) {
-      setMessages(msgs => [...msgs, { style, sender: sender.split('@')[0], message, timestamp: (new Date()).toString() }]);
+      setMessages(msgs => [...msgs, {
+        style,
+        sender,
+        message,
+        timestamp
+      }]);
     } else if (sender !== connectionId) {
       if (['join-call', 'peer-response'].includes(type)) {
         // Parties to an incoming caller's 'join-call' will see this, and then notify the caller that they exist in return
         // The caller gets a party member's 'peer-response', and sets them up in return
         if (!localStream && formats) {
-          setMessages([...messages, { style: 'utterance', sender, message: `Start a ${formats.indexOf('video') > -1 ? 'video' : 'voice'} call.`, timestamp: (new Date()).toString() } ]);
+          setMessages(msgs => [...msgs, {
+            style: 'utterance',
+            sender,
+            message: `Start a ${formats.indexOf('video') > -1 ? 'video' : 'voice'} call.`,
+            timestamp
+          }]);
         }
 
         const senders = Object.keys(senderStreams).filter(sender => !senderStreams[sender].pc);

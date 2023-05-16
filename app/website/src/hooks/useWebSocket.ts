@@ -1,7 +1,8 @@
 // useWebSocket.js
-import { useContext, useEffect, useMemo, useRef } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { SocketResponseHandler } from 'awayto/core';
 import { useContexts } from './useContexts';
+import { sh } from './store';
 
 export function useWebSocketSend() {
   const context = useContext(useContexts().WebSocketContext) as WebSocketContextType;
@@ -11,7 +12,8 @@ export function useWebSocketSend() {
 export function useWebSocketSubscribe <T>(topic: string, callback: SocketResponseHandler<T>) {
 
   const { connectionId, connected, sendMessage, subscribe } = useContext(useContexts().WebSocketContext) as WebSocketContextType;
-  const subscribed = useRef(false);
+
+  const [participants, setParticipants] = useState<Map<string, string>>(new Map());
   const callbackRef = useRef(callback);
 
   useEffect(() => {
@@ -19,13 +21,16 @@ export function useWebSocketSubscribe <T>(topic: string, callback: SocketRespons
   }, [callback]);
 
   useEffect(() => {
-    if (connected && !subscribed.current) {
-      subscribed.current = true;
+    if (connected) {
       // Subscribe to the topic
       sendMessage('subscribe', topic);
 
       const unsubscribe = subscribe(topic, payload => {
-        callbackRef.current(payload);        
+        if ('join-topic' === payload.type) {
+          console.log('caught');
+        } else {
+          callbackRef.current(payload);        
+        }
       });
 
       return () => {
@@ -35,7 +40,7 @@ export function useWebSocketSubscribe <T>(topic: string, callback: SocketRespons
         unsubscribe();
       };
     }
-  }, [connected, topic]);
+  }, [sendMessage, connected, topic]);
 
   return useMemo(() => ({
     connectionId,

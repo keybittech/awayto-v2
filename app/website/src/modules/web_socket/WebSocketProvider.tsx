@@ -32,7 +32,7 @@ function WebSocketProvider({ children }: IProps): React.JSX.Element {
         ws.onopen = () => {
           console.log('socket open');
           if (reconnectSnackShown.current) {
-            setSnack({ snackOn: 'Connection reestablished', snackType: 'success' });
+            setSnack({ snackOn: 'Reconnected!', snackType: 'success' });
             reconnectSnackShown.current = false;
           }
           setConnectionId(cid);
@@ -42,7 +42,7 @@ function WebSocketProvider({ children }: IProps): React.JSX.Element {
         ws.onclose = () => {
           console.log('socket closed. reconnecting...');
           if (!reconnectSnackShown.current) {
-            setSnack({ snackOn: 'Connection lost, trying to reconnect...', snackType: 'info' });
+            setSnack({ snackOn: 'Connection lost, please wait...', snackType: 'warning' });
             reconnectSnackShown.current = true;
           }
           setTimeout(() => {
@@ -63,7 +63,7 @@ function WebSocketProvider({ children }: IProps): React.JSX.Element {
       
             if (listeners) {
               for (const listener of listeners) {
-                listener({ sender, type, topic, payload });
+                listener({ sender, type, topic, payload: payload || {} });
               }
             }
           }

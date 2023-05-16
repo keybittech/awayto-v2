@@ -2,6 +2,7 @@ import { IBooking } from './booking';
 
 export type ExchangeMessage = {
   style: 'utterance' | 'written';
+  action?: () => React.JSX.Element;
   sender: string;
   message: string;
   timestamp: string;

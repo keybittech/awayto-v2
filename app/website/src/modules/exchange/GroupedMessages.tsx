@@ -15,6 +15,7 @@ import capitalize from '@mui/material/utils/capitalize';
 
 interface IProps {
   exchangeMessages?: ExchangeMessage[];
+  action?: () => void;
 }
 
 interface GroupedMessage extends Omit<ExchangeMessage, 'message'> {
@@ -31,6 +32,7 @@ function GroupedMessages({ exchangeMessages: messages }: IProps): React.JSX.Elem
       currentGroup = {
         sender: msg.sender,
         style: msg.style,
+        action: msg.action,
         messages: [msg.message],
         timestamp: msg.timestamp
       };
@@ -47,8 +49,9 @@ function GroupedMessages({ exchangeMessages: messages }: IProps): React.JSX.Elem
         <Typography variant="body2">Messages will appear here...</Typography>
       </CardContent>
     </Card>
-    {groupedMessages.map((group, i) => (
-      <Card sx={{ marginBottom: '8px' }} key={`${group.sender}_group_${i}`}>
+    {groupedMessages.map((group, i) => {
+      const Action = group.action;
+      return <Card sx={{ marginBottom: '8px' }} key={`${group.sender}_group_${i}`}>
         <CardContent>
           <Grid container>
             <Grid item sx={{ flex: 1 }}>
@@ -69,9 +72,10 @@ function GroupedMessages({ exchangeMessages: messages }: IProps): React.JSX.Elem
               {message}
             </Typography>
           ))}
+          {Action && <Action />}
         </CardContent>
       </Card>
-    ))}
+    })}
   </>
 }
 
