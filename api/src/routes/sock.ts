@@ -56,15 +56,6 @@ router.post('/ticket', checkAuthenticated, async (req, res, next) => {
   }
 });
 
-router.post('/disconnect', checkBackchannel, async (req, res) => {
-  const { sub, connectionId } = req.body as { [prop: string]: string };
-  await db.none(`
-    DELETE FROM dbtable_schema.sock_connections
-    WHERE created_sub = $1 AND connection_id = $2
-  `, [sub, connectionId]);
-  res.end();
-});
-
 router.post('/stale', checkBackchannel, async (req, res) => {
   const staleConnections = req.body as string[];
   await db.none(`
