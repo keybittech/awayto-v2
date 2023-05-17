@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo } from 'react';
 
 import Grid from '@mui/material/Grid';
 import Tooltip from '@mui/material/Tooltip';
@@ -12,19 +12,19 @@ import Typography from '@mui/material/Typography';
 import RecordVoiceOverIcon from '@mui/icons-material/RecordVoiceOver';
 import TextFieldsIcon from '@mui/icons-material/TextFields';
 
-import { ExchangeMessage, utcDTLocal } from 'awayto/core';
+import { SocketMessage, utcDTLocal } from 'awayto/core';
 import capitalize from '@mui/material/utils/capitalize';
 
 interface IProps {
-  exchangeMessages?: ExchangeMessage[];
+  topicMessages?: SocketMessage[];
   action?: () => void;
 }
 
-interface GroupedMessage extends Omit<ExchangeMessage, 'message'> {
+interface GroupedMessage extends Omit<SocketMessage, 'message'> {
   messages: string[];
 }
 
-function GroupedMessages({ exchangeMessages: messages }: IProps): React.JSX.Element {
+function GroupedMessages({ topicMessages: messages }: IProps): React.JSX.Element {
   if (!messages) return <></>;
 
   const groupedMessages: GroupedMessage[] = [];
@@ -41,7 +41,7 @@ function GroupedMessages({ exchangeMessages: messages }: IProps): React.JSX.Elem
     }
   });
 
-  return <>
+  return useMemo(() => <>
     <Card sx={{ marginBottom: '8px' }}>
       <CardContent>
         <Typography variant="body2">Messages will appear here...</Typography>
@@ -79,7 +79,7 @@ function GroupedMessages({ exchangeMessages: messages }: IProps): React.JSX.Elem
         </CardContent>
       </Card>
     })}
-  </>
+  </>, [messages]);
 }
 
 export default GroupedMessages;

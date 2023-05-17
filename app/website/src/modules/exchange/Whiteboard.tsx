@@ -33,11 +33,18 @@ function getRelativeCoordinates(event: MouseEvent | React.MouseEvent<HTMLCanvasE
   return { x, y };
 }
 
+declare global {
+  interface IProps {
+    topicId?: string;
+  }
+}
+
 /**
  * need to capture the idea where runons, etc. can be highlighted throughout a page after post processing
  */
 
-export default function Whiteboard(): React.JSX.Element {
+export default function Whiteboard({ topicId }: IProps): React.JSX.Element {
+  if (!topicId) return <></>;
 
   const fileId = 'b789e0dc-7d05-479d-9eef-0505a54a7659';
   const fileType = 'application/pdf';
@@ -64,7 +71,7 @@ export default function Whiteboard(): React.JSX.Element {
     }
   }, [getFileContents, fileDetails]);
 
-  const { sendMessage: sendExchangeMessage } = useWebSocketSubscribe<Whiteboard>('exchange-id', ({ payload }) => {
+  const { sendMessage: sendExchangeMessage } = useWebSocketSubscribe<Whiteboard>(topicId, ({ payload }) => {
     const newLines = payload.lines;
     if (newLines?.length) {
       const draw = () => {

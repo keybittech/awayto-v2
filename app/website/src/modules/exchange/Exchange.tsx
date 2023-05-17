@@ -17,19 +17,26 @@ import { useComponents, useContexts } from 'awayto/hooks';
 
 export function Exchange(): React.JSX.Element {
 
-  const { ExchangeContext } = useContexts();
+  const { ExchangeContext, WSTextContext, WSCallContext } = useContexts();
   const { Whiteboard } = useComponents();
+
+  const {
+    exchangeId,
+  } = useContext(ExchangeContext) as ExchangeContextType;
 
   const {
     chatLog,
     messagesEnd,
+    submitMessageForm,
+  } = useContext(WSTextContext) as WSTextContextType;
+
+  const {
     canStartStop,
     localStreamElement,
     senderStreamsElements,
-    submitMessageForm,
     setLocalStreamAndBroadcast,
     leaveCall
-  } = useContext(ExchangeContext) as ExchangeContextType;
+  } = useContext(WSCallContext) as WSCallContextType;
 
   const theme = useTheme();
 
@@ -89,7 +96,7 @@ export function Exchange(): React.JSX.Element {
           </Grid>
 
           <Grid item xs={12} md={chatOpen ? 8 : 12} sx={{ height: '100%' }}>
-            <Whiteboard />
+            <Whiteboard topicId={`exchange/whiteboard:${exchangeId}`} />
           </Grid>
         </Grid>
       </CardContent>
