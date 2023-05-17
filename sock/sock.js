@@ -3,6 +3,7 @@ import { v4 } from 'uuid';
 
 import redis, { serverUuid } from './redis.js';
 import wss, { subscribers } from './wss.js';
+import { connect } from './events/connect.js';
 
 // Start a generic http server
 const server = createServer().listen(8080);
@@ -68,22 +69,32 @@ server.on('request', function (req, res) {
 // Proxy pass from nginx sets http upgrade request, caught here
 server.on('upgrade', async function (req, socket, head) {
   try {
-    const [auth, connectionId] = req.url.slice(1).split(':');
+    const ticket = req.url.slice(1); // <auth>:<connectionID>
+    const connectionId = ticket.split(':')[1];
 
-    let authIndex = -1;
+    let ticketIndex = -1;
     
     const subscriber = subscribers.find(s => {
-      authIndex = s.tickets.indexOf(`${auth}:${connectionId}`);
-      return authIndex > -1;
+      ticketIndex = s.tickets.indexOf(ticket);
+      return ticketIndex > -1;
     });
 
-    if (authIndex > -1) {
-      subscriber.tickets.shift();
+    if (ticketIndex > -1) {
+      subscriber.tickets.splice(ticketIndex, 1);
       wss.handleUpgrade(req, socket, head, async ws => {
-        subscriber.connectionIds.push(connectionId);
+        // subscriber holds all the user's allowed topics for the connected context
         ws.subscriber = subscriber;
+        // a connection id is the primary point of contact for a user's event stream
+        // could be multiple browser tabs, etc, all tied to the same sub
         ws.connectionId = connectionId;
+        subscriber.connectionIds.push(connectionId);
+
+        // send a request to the db to establish a sock_connection
+        await connect(subscriber.sub, connectionId);
+
+        // assign this connection id to this server's connections
         await redis.sAdd(`socket_servers:${serverUuid}:connections`, `${subscriber.sub}:${connectionId}`);
+
         wss.emit('connection', ws, req);
       });
 

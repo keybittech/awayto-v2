@@ -34,19 +34,21 @@ wss.on('connection', function (ws, req) {
 
 async function cleanUp(ws) {
   try {
-    // remove connection from all references
-    await handleUnsubRedis([`${ws.subscriber.sub}:${ws.connectionId}`]);
+    const sub = ws.subscriber.sub;
+    const connectionId = ws.connectionId;
 
-    ws.subscriber.connectionIds.splice(ws.subscriber.connectionIds.indexOf(ws.connectionId));
+    ws.subscriber.connectionIds.splice(ws.subscriber.connectionIds.indexOf(connectionId));
 
     // remove local references
     if (!ws.subscriber.connectionIds.length) {
-      const subIndex = subscribers.findIndex(s => s.sub === ws.subscriber.sub);
+      const subIndex = subscribers.findIndex(s => s.sub === sub);
       if (subIndex > -1) {
         subscribers.splice(subIndex, 1);
       }
     }
 
+    // remove connection from all references
+    await handleUnsubRedis([`${sub}:${connectionId}`]);
     console.log('activity', ws.connectionId, 'closed connection.');
   } catch (error) {
     console.log('clean up error', error);
