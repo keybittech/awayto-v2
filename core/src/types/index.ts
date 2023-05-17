@@ -4,6 +4,7 @@ import assistApiRef from './assist';
 import bookingTranscriptApiRef from './booking_transcript';
 import bookingApiRef from './booking';
 import contactApiRef from './contact';
+import exchangeApiRef from './exchange';
 import fileApiRef from './file';
 import formApiRef from './form';
 import groupFeedbackApiRef from './group_feedback';
@@ -41,6 +42,7 @@ export const siteApiRef = createSiteApi({
   ...bookingTranscriptApiRef,
   ...bookingApiRef,
   ...contactApiRef,
+  ...exchangeApiRef,
   ...fileApiRef,
   ...formApiRef,
   ...groupFeedbackApiRef,

@@ -4,6 +4,7 @@ import assistApiHandler from './assist';
 import bookingTranscriptApiHandler from './booking_transcript';
 import bookingApiHandler from './booking';
 import contactApiHandler from './contact';
+import exchangeApiHandler from './exchange'
 import fileApiHandler from './file';
 import formApiHandler from './form';
 import groupFeedbackApiHandler from './group_feedback';
@@ -37,6 +38,7 @@ export const siteApiHandlerRef = createHandlers({
   ...bookingTranscriptApiHandler,
   ...bookingApiHandler,
   ...contactApiHandler,
+  ...exchangeApiHandler,
   ...fileApiHandler,
   ...formApiHandler,
   ...groupFeedbackApiHandler,
