@@ -5,7 +5,6 @@ export const exchangeHandler = (ws, parsed) => {
   switch(topic) {
     case 'exchange':
       if (ws.subscriber.allowances.bookings.includes(handle)) {
-        ws.subscriber.subscribedTopics.add(parsed.topic);
         return true;
       }
       return false;

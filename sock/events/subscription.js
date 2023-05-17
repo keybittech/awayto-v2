@@ -19,6 +19,7 @@ export function handleSubscription(wss, ws, message) {
     }
 
     if (subbed) {
+      ws.subscriber.subscribedTopics.add(parsed.topic);
       // Notify all other subscribers that a new user has joined the topic
       const notificationMessage = Buffer.from(JSON.stringify({
         sender: ws.connectionId,
