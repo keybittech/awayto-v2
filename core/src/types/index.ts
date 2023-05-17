@@ -4,7 +4,6 @@ import assistApiRef from './assist';
 import bookingTranscriptApiRef from './booking_transcript';
 import bookingApiRef from './booking';
 import contactApiRef from './contact';
-import exchangeApiRef from './exchange';
 import fileApiRef from './file';
 import formApiRef from './form';
 import groupFeedbackApiRef from './group_feedback';
@@ -28,6 +27,7 @@ import scheduleApiRef from './schedule';
 import serviceAddonApiRef from './service_addon';
 import serviceTierApiRef from './service_tier';
 import serviceApiRef from './service';
+import socketApiRef from './web_socket';
 import uuidNotesApiRef from './uuid_notes';
 
 export function createSiteApi<T extends ApiMap>(apis: T): T {
@@ -42,7 +42,6 @@ export const siteApiRef = createSiteApi({
   ...bookingTranscriptApiRef,
   ...bookingApiRef,
   ...contactApiRef,
-  ...exchangeApiRef,
   ...fileApiRef,
   ...formApiRef,
   ...groupFeedbackApiRef,
@@ -66,6 +65,7 @@ export const siteApiRef = createSiteApi({
   ...serviceAddonApiRef,
   ...serviceTierApiRef,
   ...serviceApiRef,
+  ...socketApiRef,
   ...uuidNotesApiRef
 });
 

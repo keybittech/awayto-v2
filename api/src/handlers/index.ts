@@ -4,7 +4,6 @@ import assistApiHandler from './assist';
 import bookingTranscriptApiHandler from './booking_transcript';
 import bookingApiHandler from './booking';
 import contactApiHandler from './contact';
-import exchangeApiHandler from './exchange'
 import fileApiHandler from './file';
 import formApiHandler from './form';
 import groupFeedbackApiHandler from './group_feedback';
@@ -28,6 +27,7 @@ import scheduleApiHandler from './schedule';
 import serviceAddonApiHandler from './service_addon';
 import serviceTierApiHandler from './service_tier';
 import serviceApiHandler from './service';
+import socketApiHandler from './web_socket'
 import uuidNotesApiHandler from './uuid_notes';
 
 /**
@@ -38,7 +38,6 @@ export const siteApiHandlerRef = createHandlers({
   ...bookingTranscriptApiHandler,
   ...bookingApiHandler,
   ...contactApiHandler,
-  ...exchangeApiHandler,
   ...fileApiHandler,
   ...formApiHandler,
   ...groupFeedbackApiHandler,
@@ -61,6 +60,7 @@ export const siteApiHandlerRef = createHandlers({
   ...serviceAddonApiHandler,
   ...serviceTierApiHandler,
   ...serviceApiHandler,
+  ...socketApiHandler,
   ...groupFilesApiHandler,
   ...uuidNotesApiHandler
 });

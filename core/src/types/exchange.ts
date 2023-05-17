@@ -1,28 +1,6 @@
 import { ApiOptions, EndpointType } from './api';
 import { IBooking } from './booking';
-
-
-/**
- * @category Exchange
- * @purpose participant object for exchanges
- */
-export type ExchangeParticipant = {
-  name: string;
-  role: string;
-  color: string;
-}
-
-/**
- * @category Exchange
- * @purpose provides structure to chat messages during exchange conversation
- */
-export type ExchangeMessage = ExchangeParticipant & {
-  style: 'utterance' | 'written';
-  action?: () => React.JSX.Element;
-  sender: string;
-  message: string;
-  timestamp: string;
-};
+import { SocketMessage } from './web_socket';
 
 /**
  * @category Exchange
@@ -33,7 +11,7 @@ export type ExchangeSessionAttributes = {
   ice: RTCIceCandidateInit;
   formats: string[];
   message: string;
-  style: ExchangeMessage['style'];
+  style: SocketMessage['style'];
   target: string;
 };
 
@@ -62,14 +40,3 @@ export type SenderStreams = {
 export type IExchange = {
   booking: IBooking;  
 };
-
-export default {
-  getExchangeParticipant: {
-    kind: EndpointType.QUERY,
-    url: 'exchange/participant/:connectionId',
-    method: 'GET',
-    opts: {} as ApiOptions,
-    queryArg: { connectionId: '' as string },
-    resultType: {} as ExchangeParticipant
-  }
-} as const;

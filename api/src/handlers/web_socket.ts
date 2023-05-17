@@ -1,7 +1,7 @@
 import { createHandlers } from 'awayto/core';
 
 export default createHandlers({
-  getExchangeParticipant: async props => {
+  getSocketParticipant: async props => {
     const { connectionId } = props.event.pathParameters;
     const { initials, role } = await props.db.one<{ initials: string, role: string }>(`
       SELECT LEFT(u.first_name, 1) || LEFT(u.last_name, 1) as initials --, r.name as role
