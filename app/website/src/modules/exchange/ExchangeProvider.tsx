@@ -80,6 +80,7 @@ export function ExchangeProvider({ children }: IProps): React.JSX.Element {
   const [senderStreams, setSenderStreams] = useState<SenderStreams>({});
 
   const {
+    participants,
     connectionId,
     connected,
     sendMessage: sendExchangeMessage
@@ -91,11 +92,12 @@ export function ExchangeProvider({ children }: IProps): React.JSX.Element {
     if (target !== connectionId && !(formats || sdp || ice || message)) {
       return;
     }
-
-    if ('text' === type && message && style) {
+    const messageParticipant = participants.get(sender);
+    if ('text' === type && message && style && messageParticipant) {
       setMessages(msgs => [...msgs, {
-        style,
+        ...messageParticipant,
         sender,
+        style,
         message,
         timestamp
       }]);
@@ -103,10 +105,11 @@ export function ExchangeProvider({ children }: IProps): React.JSX.Element {
       if (['join-call', 'peer-response'].includes(type)) {
         // Parties to an incoming caller's 'join-call' will see this, and then notify the caller that they exist in return
         // The caller gets a party member's 'peer-response', and sets them up in return
-        if (!localStream && formats) {
+        if (!localStream && formats && messageParticipant) {
           setMessages(msgs => [...msgs, {
-            style: 'utterance',
+            ...messageParticipant,
             sender,
+            style: 'utterance',
             message: `Start a ${formats.indexOf('video') > -1 ? 'video' : 'voice'} call.`,
             timestamp
           }]);

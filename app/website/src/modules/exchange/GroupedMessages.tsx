@@ -4,6 +4,8 @@ import Grid from '@mui/material/Grid';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import Card from '@mui/material/Card';
+import Chip from '@mui/material/Chip';
+import Avatar from '@mui/material/Avatar';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 
@@ -30,18 +32,14 @@ function GroupedMessages({ exchangeMessages: messages }: IProps): React.JSX.Elem
   messages.forEach((msg, i) => {
     if (i === 0 || messages[i - 1].sender !== msg.sender || messages[i -1].style !== msg.style) {
       currentGroup = {
-        sender: msg.sender,
-        style: msg.style,
-        action: msg.action,
-        messages: [msg.message],
-        timestamp: msg.timestamp
+        ...msg,
+        messages: [msg.message]
       };
       groupedMessages.push(currentGroup);
     } else if (currentGroup) {
       currentGroup.messages.push(msg.message);
     }
   });
-  
 
   return <>
     <Card sx={{ marginBottom: '8px' }}>
@@ -53,9 +51,15 @@ function GroupedMessages({ exchangeMessages: messages }: IProps): React.JSX.Elem
       const Action = group.action;
       return <Card sx={{ marginBottom: '8px' }} key={`${group.sender}_group_${i}`}>
         <CardContent>
-          <Grid container>
+          <Grid container spacing={1}>
+            <Grid item>
+              <Avatar sx={{ backgroundColor: group.color, fontStyle: 'bold' }}>{group.name}</Avatar>
+            </Grid>
             <Grid item sx={{ flex: 1 }}>
-              <strong>{group.sender}</strong>
+              <Chip size="small" variant="outlined" label={group.role} />
+              <Grid>
+                <Typography variant="caption">{utcDTLocal(group.timestamp || '')}</Typography>
+              </Grid>
             </Grid>
             <Grid item>
               <Tooltip title={capitalize(group.style)}>
@@ -66,7 +70,6 @@ function GroupedMessages({ exchangeMessages: messages }: IProps): React.JSX.Elem
               </Tooltip>
             </Grid>
           </Grid>
-          <Typography variant="body2">{utcDTLocal(group.timestamp || '')}</Typography>
           {group.messages.map((message, j) => (
             <Typography color="primary" style={{ overflowWrap: 'anywhere', whiteSpace: 'pre-wrap' }} key={`${group.sender}_msg_${j}`}>
               {message}
