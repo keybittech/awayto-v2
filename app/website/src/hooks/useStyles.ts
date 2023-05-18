@@ -54,7 +54,7 @@ export const useStyles = makeStyles((theme: Theme) => {
     infoLabel: { fontWeight: 500, fontSize: '1rem' },
     infoCard: { height: '200px', overflowY: 'auto' },
 
-
+    darkRounded: { borderRadius: '16px', backgroundColor: '#203040' },
     green: { color: green[500] },
     red: { color: red[500] },
 
@@ -224,7 +224,7 @@ export const lightTheme: ThemeOptions = {
  */
 export const darkTheme: ThemeOptions = {
   palette: {
-    mode: 'dark',
+    mode: 'dark'
   }
 };
 

@@ -29,13 +29,14 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
   const speechRecognizer = useRef<SpeechRecognition>();
   
   const [localStream, setLocalStream] = useState<MediaStream>();
+  const [connected, setConnected] = useState(false);
+  const [audioOnly, setAudioOnly] = useState(false);
   const [canStartStop, setCanStartStop] = useState('start');
   const [senderStreams, setSenderStreams] = useState<SenderStreams>({});
 
   const {
     userList,
     connectionId,
-    connected,
     sendMessage
   } = useWebSocketSubscribe<ExchangeSessionAttributes>(topicId, ({ sender, topic, type, payload }) => {
     console.log('RECEIVED A NEW CALL MESSAGE', { connectionId, sender, topic, type }, JSON.stringify(payload));
@@ -62,53 +63,51 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
       for (const senderId of senders) {
         const startedSender = senderStreams[senderId];
 
-        if (connected) {
 
-          startedSender.pc = new RTCPeerConnection(peerConnectionConfig)
+        startedSender.pc = new RTCPeerConnection(peerConnectionConfig)
 
-          startedSender.pc.onicecandidate = event => {
-            if (event.candidate !== null) {
-              sendMessage('rtc', { ice: event.candidate, target: senderId });
-            }
-          };
-
-          startedSender.pc.ontrack = event => {
-            startedSender.mediaStream = startedSender.mediaStream ? startedSender.mediaStream : new MediaStream();
-            startedSender.mediaStream.addTrack(event.track);
-            setSenderStreams(Object.assign({}, senderStreams, { [senderId]: startedSender }));
-          };
-
-          startedSender.pc.oniceconnectionstatechange = () => {
-            if (startedSender.pc && ['failed', 'closed', 'disconnected'].includes(startedSender.pc.iceConnectionState)) {
-              const streams = { ...senderStreams };
-              delete streams[senderId];
-              setSenderStreams(streams);
-            }
+        startedSender.pc.onicecandidate = event => {
+          if (event.candidate !== null) {
+            sendMessage('rtc', { ice: event.candidate, target: senderId });
           }
+        };
 
-          if (localStream) {
-            const tracks = localStream.getTracks();
-            tracks.forEach(track => startedSender.pc?.addTrack(track));
+        startedSender.pc.ontrack = event => {
+          startedSender.mediaStream = startedSender.mediaStream ? startedSender.mediaStream : new MediaStream();
+          startedSender.mediaStream.addTrack(event.track);
+          setSenderStreams(Object.assign({}, senderStreams, { [senderId]: startedSender }));
+        };
+
+        startedSender.pc.oniceconnectionstatechange = () => {
+          if (startedSender.pc && ['failed', 'closed', 'disconnected'].includes(startedSender.pc.iceConnectionState)) {
+            const streams = { ...senderStreams };
+            delete streams[senderId];
+            setSenderStreams(streams);
           }
-
-          if ('peer-response' === type) {
-            const { createOffer, setLocalDescription, localDescription } = startedSender.pc;
-            createOffer().then(description => {
-              setLocalDescription(description).then(() => {
-                sendMessage('rtc', {
-                  sdp: localDescription,
-                  target: senderId
-                });
-              }).catch(console.error);
-            }).catch(console.error);
-          } else {
-            sendMessage('peer-response', {
-              target: senderId
-            });
-          }
-
-          startedSenders[senderId] = startedSender;
         }
+
+        if (localStream) {
+          const tracks = localStream.getTracks();
+          tracks.forEach(track => startedSender.pc?.addTrack(track));
+        }
+
+        if ('peer-response' === type) {
+          const { createOffer, setLocalDescription, localDescription } = startedSender.pc;
+          createOffer().then(description => {
+            setLocalDescription(description).then(() => {
+              sendMessage('rtc', {
+                sdp: localDescription,
+                target: senderId
+              });
+            }).catch(console.error);
+          }).catch(console.error);
+        } else {
+          sendMessage('peer-response', {
+            target: senderId
+          });
+        }
+
+        startedSenders[senderId] = startedSender;
       }
     } else if (sdp) {
       const senderStream = senderStreams[sender];
@@ -179,8 +178,9 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
   const setLocalStreamAndBroadcast = useCallback((video: boolean): void => {
     async function go() {
       try {
-        if (connected && !localStream && 'start' === canStartStop) {
+        if (!localStream && 'start' === canStartStop) {
           setCanStartStop('');
+          setAudioOnly(!video);
 
           const callOptions: MediaStreamConstraints = {
             audio: {
@@ -200,13 +200,15 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
           setLocalStream(mediaStream);
           sendMessage('join-call', { formats: Object.keys(callOptions) });
           setCanStartStop('stop');
+          setConnected(true);
         }
       } catch (error) {
+        setCanStartStop('start');
         setSnack({ snackOn: (error as DOMException).message, snackType: 'error' });
       }
     }
     void go();
-  }, [connected, localStream, canStartStop]);
+  }, [localStream, canStartStop]);
 
   const localStreamRef = useCallback((node: HTMLVideoElement) => {
     if (node && !node.srcObject && localStream) {
@@ -215,6 +217,8 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
   }, [localStream]);
 
   const wsTextContext = {
+    audioOnly,
+    connected,
     canStartStop,
     setLocalStreamAndBroadcast,
     leaveCall() {
@@ -234,6 +238,7 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
         setSenderStreams(streams);
         setLocalStream(undefined);
         setCanStartStop('start');
+        setConnected(false);
         speechRecognizer.current?.stop();
         speechRecognizer.current = undefined;
       }
