@@ -1,3 +1,7 @@
+
+/**
+ * need to capture the idea where runons, etc. can be highlighted throughout a page after post processing
+ */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import 'react-pdf/dist/esm/Page/TextLayer.css';
@@ -5,7 +9,6 @@ import { Document, Page } from 'react-pdf/dist/esm/entry.webpack5';
 
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
-import useTheme from '@mui/material/styles/useTheme';
 
 import GestureIcon from '@mui/icons-material/Gesture';
 import TouchAppIcon from '@mui/icons-material/TouchApp';
@@ -17,14 +20,6 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 
 import { useWebSocketSubscribe, useStyles, useFileContents } from 'awayto/hooks';
-
-interface Whiteboard {
-  lines: { startPoint: { x: number; y: number }; endPoint: { x: number; y: number } }[];
-  hightlight: boolean;
-  doc: {
-    position: [number, number]
-  }
-}
 
 function getRelativeCoordinates(event: MouseEvent | React.MouseEvent<HTMLCanvasElement>, canvas: HTMLCanvasElement) {
   const rect = canvas.getBoundingClientRect();
@@ -39,9 +34,25 @@ declare global {
   }
 }
 
-/**
- * need to capture the idea where runons, etc. can be highlighted throughout a page after post processing
- */
+
+interface Whiteboard {
+  lines: {
+    startPoint: {
+      x: number;
+      y: number;
+    };
+    endPoint: {
+      x: number;
+      y: number;
+    };
+  }[];
+  settings: Partial<{
+    page: number;
+    scale: number;
+    highlight: boolean;
+    position: [number, number];
+  }>
+}
 
 export default function Whiteboard({ topicId }: IProps): React.JSX.Element {
   if (!topicId) return <></>;
@@ -51,85 +62,61 @@ export default function Whiteboard({ topicId }: IProps): React.JSX.Element {
 
   const whiteboardRef = useRef<HTMLCanvasElement>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
-  const fileScroller = useRef<HTMLDivElement>(null);
   const fileDisplayRef = useRef<HTMLCanvasElement>(null);
-  const whiteboard = useRef<Whiteboard>({ lines: [], hightlight: false, doc: { position: [0, 0] } });
+  const fileScroller = useRef<HTMLDivElement>(null);
+  const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  const whiteboard = useRef<Whiteboard>({ lines: [], settings: { highlight: false, position: [0, 0] } });
 
   const classes = useStyles();
 
   const [canvasPointerEvents, setCanvasPointerEvents] = useState('none');
   const [zoom, setZoom] = useState(1);
-  const [highlight, setHightlight] = useState(false);
   const { fileDetails, getFileContents } = useFileContents();
 
   const [numPages, setNumPages] = useState(0);
   const [pageNumber, setPageNumber] = useState(1);
+  const [boards, setBoards] = useState<Record<string, Partial<Whiteboard>>>({});
 
-  useEffect(() => {
-    if (!fileDetails) {
-      getFileContents({ mimeType: fileType, uuid: fileId }).catch(console.error);
-    }
-  }, [getFileContents, fileDetails]);
-
-  const { sendMessage: sendExchangeMessage } = useWebSocketSubscribe<Whiteboard>(topicId, ({ payload }) => {
-    const newLines = payload.lines;
-    if (newLines?.length) {
-      const draw = () => {
-        const canvas = whiteboardRef.current;
-        if (!canvas) return;
-        const ctx = contextRef.current;
-        if (!ctx) return;
-
-        newLines.forEach((line, i) => {
-          if (i === 0) {
-            ctx.beginPath();
-            ctx.moveTo(line.startPoint.x, line.startPoint.y);
-          }
-
-          ctx.lineTo(line.endPoint.x, line.endPoint.y);
-        });
-        ctx.stroke();
+  const {
+    sendMessage: sendWhiteboardMessage
+  } = useWebSocketSubscribe<Whiteboard>(topicId, ({ sender, type, payload }) => {
+    setBoards(b => {
+      const board = {  ...b[sender], ...payload };
+      if ('set-position' === type) {
+        const [left, top] = board.settings?.position || [];
+        fileScroller.current?.scrollTo({ left, top });
+      } else if ('set-scale' === type) {
+        whiteboard.current.settings.scale = board.settings?.scale || 1;
+        setZoom(whiteboard.current.settings.scale);
+      } else if ('set-page' === type) {
+        whiteboard.current.settings.page = board.settings?.page || 1;
+        setPageNumber(whiteboard.current.settings.page);
+      } else if ('draw-lines' === type) {
+        handleLines(payload.lines, board.settings);
+      } else if ('change-setting' === type) {
       }
-
-      requestAnimationFrame(draw);
-    }
+      return { ...b, [sender]: board };
+    });
   });
 
-  const sendBatchedData = useCallback(() => {
-    if (whiteboard.current.lines.length > 0) {
-      sendExchangeMessage('whiteboardUpdate', whiteboard.current);
-      whiteboard.current = { ...whiteboard.current, lines: [] };
-    }
-  }, [sendExchangeMessage]);
-
-  const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    event.preventDefault();
-    const canvas = whiteboardRef.current;
-    if (!canvas) return;
-
-    const ctx = contextRef.current;
-    if (!ctx) return;
-
-    const startPoint = getRelativeCoordinates(event, canvas);
-    let lastPoint = startPoint; // Use a local variable to store the last point
-
-    const onMouseMove = (e: MouseEvent) => {
-      const endPoint = getRelativeCoordinates(e, canvas);
-      whiteboard.current = {
-        ...whiteboard.current,
-        lines: [
-          ...whiteboard.current.lines,
-          {
-            startPoint: { ...lastPoint },
-            endPoint: { ...endPoint }
-          }
-        ],
-      }
-      // Draw line segment
-      ctx.beginPath();
-      ctx.moveTo(lastPoint.x, lastPoint.y);
-      ctx.lineTo(endPoint.x, endPoint.y);
-      if (highlight) {
+  const handleLines = (lines?: Whiteboard['lines'], settings?: Whiteboard['settings']) => {
+    const draw = () => {
+      const canvas = whiteboardRef.current;
+      if (!canvas) return;
+      const ctx = contextRef.current;
+      if (!ctx) return;
+  
+      lines?.forEach((line, i) => {
+        if (i === 0) {
+          ctx.beginPath();
+          ctx.moveTo(line.startPoint.x, line.startPoint.y);
+        }
+  
+        ctx.lineTo(line.endPoint.x, line.endPoint.y);
+      });
+  
+      if (settings?.highlight) {
         ctx.strokeStyle = 'yellow';
         ctx.lineWidth = 10;
         ctx.globalAlpha = .33;
@@ -137,8 +124,36 @@ export default function Whiteboard({ topicId }: IProps): React.JSX.Element {
         ctx.strokeStyle = 'black';
         ctx.lineWidth = ctx.globalAlpha = 1;
       }
-
+  
       ctx.stroke();
+    }
+
+    requestAnimationFrame(draw);
+  };
+
+  const handleMouseDown = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
+    event.preventDefault();
+    const canvas = whiteboardRef.current;
+    if (!canvas) return;
+
+    const startPoint = getRelativeCoordinates(event, canvas);
+    let lastPoint = startPoint;
+
+    const onMouseMove = (e: MouseEvent) => {
+      const endPoint = getRelativeCoordinates(e, canvas);
+      const newLine = {
+        startPoint: { ...lastPoint },
+        endPoint: { ...endPoint }
+      };
+      whiteboard.current = {
+        ...whiteboard.current,
+        lines: [
+          ...whiteboard.current.lines,
+          newLine
+        ],
+      }
+
+      handleLines([newLine], whiteboard.current.settings);
 
       // Update lastPoint
       lastPoint = endPoint;
@@ -151,42 +166,64 @@ export default function Whiteboard({ topicId }: IProps): React.JSX.Element {
 
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
-  };
+  }, []);
 
   const setDrawStyle = (hl: boolean) => {
-    setHightlight(hl);
+    whiteboard.current.settings.highlight = hl;
+    sendWhiteboardMessage('change-setting', { settings: { highlight: hl } });
     setCanvasPointerEvents('auto');
-  }
+  };
 
-  const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
+  const setScale = (inc: boolean) => {
+    const scale = whiteboard.current.settings.scale || 1;
+    sendWhiteboardMessage('set-scale', { settings: { scale: inc ? scale + .15 : scale - .15 } });
+  };
+
+  const setPage = (next: boolean) => {
+    let page = whiteboard.current.settings.page || 1;
+    next ? page++ : page--;
+    sendWhiteboardMessage('set-page', { settings: { page: next ? Math.min(page, numPages) : (page || 1) } });
+  };
+
+  const sendBatchedData = () => {
+    if (whiteboard.current.lines.length > 0) {
+      sendWhiteboardMessage('draw-lines', { lines: whiteboard.current.lines });
+      whiteboard.current = { ...whiteboard.current, lines: [] };
+    }
+  };
 
   useEffect(() => {
-    const fv = fileScroller.current;
+    const interval = setInterval(sendBatchedData, 150);
+    return () => clearInterval(interval);
+  }, []);
 
-    if (fv) {
+  useEffect(() => {
+    if (!fileDetails) {
+      getFileContents({ mimeType: fileType, uuid: fileId }).catch(console.error);
+    }
+  }, [fileDetails]);
 
-      const onScrollEnd = () => {
-        const target = fv;
-        whiteboard.current.doc.position = [target.scrollLeft, target.scrollTop];
-        sendExchangeMessage('updateWhiteboard', whiteboard.current);
-      };
+  useEffect(() => {
+    const scrollDiv = fileScroller.current;
+    if (scrollDiv) {
 
       const onFileScroll = (e: Event) => {
         if (scrollTimeout.current) {
           clearTimeout(scrollTimeout.current);
         }
         scrollTimeout.current = setTimeout(() => {
-          onScrollEnd();
-        }, 500);
+          whiteboard.current.settings.position = [scrollDiv.scrollLeft, scrollDiv.scrollTop];
+          sendWhiteboardMessage('set-position', whiteboard.current);
+        }, 150);
       };
 
-      fv.addEventListener('scroll', onFileScroll);
+      scrollDiv.addEventListener('scroll', onFileScroll);
 
       return () => {
         if (scrollTimeout.current) {
           clearTimeout(scrollTimeout.current);
         }
-        fv.removeEventListener('scroll', onFileScroll);
+        scrollDiv.removeEventListener('scroll', onFileScroll);
       };
     }
   }, [fileScroller.current]);
@@ -196,11 +233,6 @@ export default function Whiteboard({ topicId }: IProps): React.JSX.Element {
       contextRef.current = whiteboardRef.current.getContext('2d');
     }
   }, [whiteboardRef, contextRef]);
-
-  useEffect(() => {
-    const interval = setInterval(sendBatchedData, 150);
-    return () => clearInterval(interval);
-  }, [sendBatchedData]);
 
   return <Box sx={{ height: '100%', width: '100%', position: 'relative' }}>
 
@@ -251,7 +283,7 @@ export default function Whiteboard({ topicId }: IProps): React.JSX.Element {
       color="primary"
       className={classes.whiteboardActionButton}
       sx={{ top: 25 }}
-      onClick={() => setZoom(pz => pz + .15)}
+      onClick={() => setScale(true)}
     >
       <AddIcon />
     </IconButton>
@@ -259,7 +291,7 @@ export default function Whiteboard({ topicId }: IProps): React.JSX.Element {
       color="primary"
       className={classes.whiteboardActionButton}
       sx={{ top: 75 }}
-      onClick={() => setZoom(pz => pz - .15)}
+      onClick={() => setScale(false)}
     >
       <RemoveIcon />
     </IconButton>
@@ -267,7 +299,7 @@ export default function Whiteboard({ topicId }: IProps): React.JSX.Element {
       color="primary"
       className={classes.whiteboardActionButton}
       sx={{ top: 125 }}
-      onClick={() => setPageNumber(pn => pn-- && (pn || 1))}
+      onClick={() => setPage(false)}
     >
       <NavigateBeforeIcon />
     </IconButton>
@@ -275,7 +307,7 @@ export default function Whiteboard({ topicId }: IProps): React.JSX.Element {
       color="primary"
       className={classes.whiteboardActionButton}
       sx={{ top: 175 }}
-      onClick={() => setPageNumber(pn => pn++ && Math.min(pn, numPages))}
+      onClick={() => setPage(true)}
     >
       <NavigateNextIcon />
     </IconButton>

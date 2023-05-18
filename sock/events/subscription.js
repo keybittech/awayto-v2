@@ -23,7 +23,7 @@ export async function handleSubscription(wss, ws, message) {
     if (subbed) {
       ws.subscriber.subscribedTopics.add(parsed.topic);
 
-      const existingUsers = await redis.sMembers(`exchanges:${parsed.topic}`); // get existing topic connectionss
+      const existingUsers = await redis.sMembers(`exchanges:${parsed.topic}`); // get existing topic connections
 
       // send the existing user list to the joining connections
       if (existingUsers.length) {

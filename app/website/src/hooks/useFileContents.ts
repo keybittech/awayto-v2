@@ -36,5 +36,5 @@ export const useFileContents: UseFileContents = () => {
     return fileRef as IFile;
   }, []);
 
-  return useMemo(() => ({ fileDetails, getFileContents }), [fileDetails, getFileContents]);
+  return useMemo(() => ({ fileDetails, getFileContents }), [fileDetails]);
 }
