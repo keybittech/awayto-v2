@@ -27,6 +27,8 @@ export function WSTextProvider({ children, topicId, topicMessages, setTopicMessa
     userList,
     connectionId,
     connected,
+    subscriber,
+    unsubscriber,
     sendMessage: sendTextMessage
   } = useWebSocketSubscribe<{ message: string, style: SocketMessage['style'] }>(topicId, ({ sender, topic, type, payload }) => {
     console.log('RECEIVED A NEW SOCKET TEXT', { userList, connectionId, sender, topic, type }, JSON.stringify(payload));
@@ -51,6 +53,30 @@ export function WSTextProvider({ children, topicId, topicMessages, setTopicMessa
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'auto', block: 'end', inline: 'nearest' })
   }, [messagesEndRef.current, topicMessages]);
+
+  useEffect(() => {
+    if (setTopicMessages && subscriber) {
+      setTopicMessages(m => [...m, {
+        ...subscriber,
+        sender: subscriber.cids[subscriber.cids.length - 1],
+        style: 'written',
+        message: `${subscriber.name} entered chat.`,
+        timestamp: (new Date()).toString()
+      }]);
+    }
+  }, [subscriber, setTopicMessages]);
+
+  useEffect(() => {
+    if (setTopicMessages && unsubscriber) {
+      setTopicMessages(m => [...m, {
+        ...unsubscriber,
+        sender: unsubscriber.cids[unsubscriber.cids.length - 1],
+        style: 'written',
+        message: `${unsubscriber.name} left chat.`,
+        timestamp: (new Date()).toString()
+      }]);
+    }
+  }, [unsubscriber, setTopicMessages]);
 
   const wsTextContext = {
     wsTextConnectionId: connectionId,

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useComponents, useContexts, useUtil, useWebSocketSubscribe } from 'awayto/hooks';
 import { ExchangeSessionAttributes, SenderStreams, SocketMessage } from 'awayto/core';
@@ -41,18 +41,27 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
   } = useWebSocketSubscribe<ExchangeSessionAttributes>(topicId, ({ sender, topic, type, payload }) => {
     console.log('RECEIVED A NEW CALL MESSAGE', { connectionId, sender, topic, type }, JSON.stringify(payload));
     const timestamp = (new Date()).toString();
-    const { formats, sdp, ice } = payload;
+    const { formats, sdp, ice, message, style } = payload;
 
-    if (['join-call', 'peer-response'].includes(type)) {
+    const user = Object.values(userList).find(p => p.cids.includes(sender));
+
+    if ('text' === type && setTopicMessages && user && message && style) {
+      setTopicMessages(m => [...m, {
+        ...user,
+        sender,
+        style,
+        message,
+        timestamp
+      }]);
+    } else if (['join-call', 'peer-response'].includes(type)) {
       // Parties to an incoming caller's 'join-call' will see this, and then notify the caller that they exist in return
       // The caller gets a party member's 'peer-response', and sets them up in return
-      const user = Object.values(userList).find(p => p.cids.includes(sender));
-      if (!localStream && formats && user && setTopicMessages) {
+      if (formats && setTopicMessages && user) {
         setTopicMessages(m => [...m, {
           ...user,
           sender,
           style: 'utterance',
-          message: `Start a ${formats.indexOf('video') > -1 ? 'video' : 'voice'} call.`,
+          message: `Joined call with ${formats.indexOf('video') > -1 ? 'video' : 'voice'}.`,
           timestamp
         }]);
       }
