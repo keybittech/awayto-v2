@@ -1,11 +1,12 @@
 /// <reference lib="WebWorker" />
 
-import React, { useContext, useState } from 'react';
+import React, { Suspense, useContext, useState } from 'react';
 
 import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
 import Tooltip from '@mui/material/Tooltip';
+import Dialog from '@mui/material/Dialog';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -23,7 +24,8 @@ export function Exchange(): React.JSX.Element {
   const classes = useStyles();
 
   const { ExchangeContext, WSTextContext, WSCallContext } = useContexts();
-  const { Whiteboard } = useComponents();
+  const { Whiteboard, FileSelectionModal } = useComponents();
+  const [dialog, setDialog] = useState('');
 
   const {
     exchangeId,
@@ -50,20 +52,29 @@ export function Exchange(): React.JSX.Element {
   const [chatOpen, setChatOpen] = useState(true);
 
   return <>
+
+    <Dialog fullScreen open={dialog === 'file_selection'} fullWidth maxWidth="sm">
+      <Suspense>
+        <FileSelectionModal closeModal={() => {
+          setDialog('')
+        }} />
+      </Suspense>
+    </Dialog>
+
     <Card sx={{ height: '100%', backgroundColor: theme.palette.primary.dark }}>
       <CardActions>
         <Box className={classes.darkRounded} mr={1}>
-          {connected && <Button sx={{ color: 'white' }} onClick={() => leaveCall()}>
+          {connected && <Button onClick={() => leaveCall()}>
             Leave Call
           </Button>}
           {(!connected || audioOnly) && <Tooltip title="Start Video" children={
             <IconButton disabled={'start' !== canStartStop} onClick={() => setLocalStreamAndBroadcast(true)}>
-              <Videocam sx={{ color: 'white' }} />
+              <Videocam />
             </IconButton>
           } />}
           {!connected && <Tooltip title="Start Audio" children={
             <IconButton disabled={'start' !== canStartStop} onClick={() => setLocalStreamAndBroadcast(false)}>
-              <Call sx={{ color: 'white' }} />
+              <Call />
             </IconButton>
           } />}
         </Box>
@@ -72,9 +83,12 @@ export function Exchange(): React.JSX.Element {
             <ChatBubble />
           </IconButton>
         } />
-        <Button onClick={() => setChatOpen(!chatOpen)}>
-          <FileCopy /> Load File
-        </Button>
+        <Tooltip title="Share File" children={
+          <IconButton size="small" onClick={() => setDialog('file_selection')} sx={{ color: 'beige', backgroundColor: 'burlywood' }}>
+            <FileCopy />
+          </IconButton>
+        } />
+
       </CardActions>
       <CardContent sx={{ height: 'calc(100% - 60px)' }}> {/* height minus action bar height estimate */}
 
