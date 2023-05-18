@@ -78,7 +78,7 @@ for (const apiRefId in siteApiRef) {
       return res.status(429).send({ reason: 'You must wait ' + (throttle || DEFAULT_THROTTLE) + ' seconds.', requestId });
     }
 
-    if (await rateLimitResource(user.sub, 'api', 100, 1)) { // limit n general api requests per second
+    if (await rateLimitResource(user.sub, 'api', 30, 1)) { // limit n general api requests per second
       return res.status(429).send({ reason: 'Rate limit exceeded.', requestId });
     }
 

@@ -63,7 +63,7 @@ function WebSocketProvider({ children }: IProps): React.JSX.Element {
       
             if (listeners) {
               for (const listener of listeners) {
-                listener({ sender, type, topic, payload: payload || {} });
+                void listener({ sender, type, topic, payload: payload || {} });
               }
             }
           }

@@ -1,6 +1,7 @@
 import { WebSocket } from 'ws';
 import { exchangeHandler } from './exchange.js';
 import redis from '../redis.js';
+import { unsubscribe } from './unsubscribe.js';
 
 const handlers = [
   exchangeHandler
@@ -23,13 +24,16 @@ export async function handleSubscription(wss, ws, message) {
       ws.subscriber.subscribedTopics.add(parsed.topic);
 
       const existingUsers = await redis.sMembers(`exchanges:${parsed.topic}`); // get existing topic connectionss
+
       // send the existing user list to the joining connections
-      ws.send(Buffer.from(JSON.stringify({
-        sender: ws.connectionId,
-        type: 'join-topic',
-        topic: parsed.topic,
-        payload: existingUsers
-      })));
+      if (existingUsers.length) {
+        ws.send(Buffer.from(JSON.stringify({
+          sender: ws.connectionId,
+          type: 'existing-subscribers',
+          topic: parsed.topic,
+          payload: existingUsers.join(',')
+        })));
+      }
 
       await redis.sAdd(`connection_id:${ws.connectionId}:topics`, `exchanges:${parsed.topic}`); // track connection's overall topics
       await redis.sAdd(`exchanges:${parsed.topic}`, ws.connectionId); // track connection to just this topic
@@ -38,7 +42,7 @@ export async function handleSubscription(wss, ws, message) {
       // Notify all other subscribers that a new user has joined the topic
       const notificationMessage = Buffer.from(JSON.stringify({
         sender: ws.connectionId,
-        type: 'join-topic',
+        type: 'subscribe-topic',
         topic: parsed.topic,
         payload: ws.connectionId
       }));
@@ -49,8 +53,7 @@ export async function handleSubscription(wss, ws, message) {
       });
     }
   } else if ('unsubscribe' === parsed.type) {
-    await redis.sRem(`exchanges:${parsed.topic}`, ws.connectionId); // remove this connection from just this topic
-    await redis.sRem(`connection_id:${ws.connectionId}:topics`, `exchanges:${parsed.topic}`); // remove the topic from the connection's topic list
+    await unsubscribe(wss, ws.connectionId, parsed.topic);
     ws.subscriber.subscribedTopics.delete(parsed.topic);
   } else if (parsed.topic) {
     // send messages as normal to topic-subscribed connections
@@ -60,5 +63,4 @@ export async function handleSubscription(wss, ws, message) {
       }
     });
   }
-  
 }

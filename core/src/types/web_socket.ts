@@ -15,7 +15,7 @@ export type SocketResponse<T> = {
  * @category Web Socket
  * @purpose handles topic listener results
  */
-export type SocketResponseHandler<T> = (response: SocketResponse<T>) => void;
+export type SocketResponseHandler<T> = (response: SocketResponse<T>) => void | Promise<void>;
 
 
 /**
@@ -23,9 +23,12 @@ export type SocketResponseHandler<T> = (response: SocketResponse<T>) => void;
  * @purpose participant object based off anon socket connections
  */
 export type SocketParticipant = {
+  scid: string; // sock_connection id
+  cids: string[]; // connection_id
   name: string;
   role: string;
   color: string;
+  exists: boolean;
 }
 
 /**

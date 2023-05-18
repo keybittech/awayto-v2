@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 
 import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
 
-import { SocketMessage } from 'awayto/core';
+import { SocketMessage, plural } from 'awayto/core';
 import { useComponents, useContexts, useWebSocketSubscribe } from 'awayto/hooks';
 
 declare global {
@@ -23,29 +24,30 @@ export function WSTextProvider({ children, topicId, topicMessages, setTopicMessa
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const {
-    participants,
+    userList,
     connectionId,
     connected,
     sendMessage: sendTextMessage
   } = useWebSocketSubscribe<{ message: string, style: SocketMessage['style'] }>(topicId, ({ sender, topic, type, payload }) => {
-    console.log('RECEIVED A NEW SOCKET TEXT', { participants, connectionId, sender, topic, type }, JSON.stringify(payload));
-    const timestamp = (new Date()).toString();
+    console.log('RECEIVED A NEW SOCKET TEXT', { userList, connectionId, sender, topic, type }, JSON.stringify(payload));
+
     const { message, style } = payload;
 
-    const messageParticipant = participants.get(sender);
+    const user = Object.values(userList).find(p => p.cids.includes(sender));
     
-    if (message && style && messageParticipant && setTopicMessages) {
+    if (message && style && user && setTopicMessages) {
       setTopicMessages(m => [...m, {
-        ...messageParticipant,
+        ...user,
         sender,
         style,
         message,
-        timestamp
+        timestamp: (new Date()).toString()
       }]);
     }
   });
-  
-  // Chat auto scroll to bottom on new messages
+
+  const userListValues = useMemo(() => Object.values(userList || {}), [userList]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'auto', block: 'end', inline: 'nearest' })
   }, [messagesEndRef.current, topicMessages]);
@@ -55,11 +57,16 @@ export function WSTextProvider({ children, topicId, topicMessages, setTopicMessa
     wsTextConnected: connected,
     messagesEnd: useMemo(() => <Box ref={messagesEndRef} />, []),
     chatLog: useMemo(() => <GroupedMessages topicMessages={topicMessages} />, [topicMessages]),
-    submitMessageForm: <SubmitMessageForm
-      sendTextMessage={(message: string) => {
-        sendTextMessage('text', { style: 'written', message });
-      }}
-    />
+    submitMessageForm: <>
+      <SubmitMessageForm
+        sendTextMessage={(message: string) => {
+          sendTextMessage('text', { style: 'written', message });
+        }}
+      />
+      <Typography variant="caption">
+        {!!userListValues.length && `${plural(userListValues.length, 'participant', 'participants')}: ${userListValues.map(p => p.name).join(', ')}`}
+      </Typography>
+    </>
   } as WSTextContextType | null;
 
   return useMemo(() => !WSTextContext ? <></> :

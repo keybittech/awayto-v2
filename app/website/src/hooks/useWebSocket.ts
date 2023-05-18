@@ -1,6 +1,6 @@
 // useWebSocket.js
 import { useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { SocketParticipant, SocketResponse, SocketResponseHandler, generateLightBgColor } from 'awayto/core';
+import { SocketParticipant, SocketResponseHandler, generateLightBgColor } from 'awayto/core';
 import { useContexts } from './useContexts';
 import { sh } from './store';
 
@@ -11,59 +11,73 @@ export function useWebSocketSend() {
 
 export function useWebSocketSubscribe <T>(topic: string, callback: SocketResponseHandler<T>) {
 
-  const { connectionId, connected, sendMessage, subscribe } = useContext(useContexts().WebSocketContext) as WebSocketContextType;
+  const {
+    connectionId,
+    connected,
+    sendMessage,
+    subscribe
+  } = useContext(useContexts().WebSocketContext) as WebSocketContextType;
 
-  const [participantPayload, setParticipantPayload] = useState<SocketResponse<unknown> | undefined>();
-  const [participants, setParticipants] = useState<Map<string, SocketParticipant>>(new Map());
+  const [subscriber, setSubscriber] = useState<SocketParticipant | undefined>();
+  const [unsubscriber, setUnsubscriber] = useState<SocketParticipant | undefined>();
+  const [userList, setUserList] = useState<Record<string, SocketParticipant>>({});
   const callbackRef = useRef(callback);
 
-  const { data: participant } = sh.useGetSocketParticipantQuery({ connectionId: participantPayload?.sender || '' }, { skip: !participantPayload });
+  const [getSocketParticipant] = sh.useLazyGetSocketParticipantQuery();
 
   useEffect(() => {
     callbackRef.current = callback;
-  }, [callback, participants]);
+  }, [callback]);
 
   useEffect(() => {
     if (connected) {
-      // Subscribe to the topic
       sendMessage('subscribe', topic);
 
-      const unsubscribe = subscribe(topic, payload => {
-        if ('join-topic' === payload.type) {
-          setParticipantPayload(payload);
+      const unsubscribe = subscribe(topic, async message => {
+        if (['existing-subscribers', 'subscribe-topic'].includes(message.type)) {
+          const cids = (message.payload as string).split(',');
+          for (const cid of cids) {
+            const details = await getSocketParticipant({ connectionId: cid }).unwrap().catch(console.error);
+            if (details) {
+              const sub = {
+                ...details,
+                cids: [cid],
+                color: generateLightBgColor()
+              };
+              setUserList(ul => {
+                ul[sub.scid] = sub;
+                return { ...ul };
+              });
+              setSubscriber(sub);
+            }
+          }
+        } else if ('unsubscribe-topic' === message.type) {
+          const unsub = Object.values(userList).find(c => c.cids.includes(message.payload as string))
+          if (unsub) {
+            delete userList[unsub.scid];
+            setUserList(ul => {
+              delete ul[unsub.scid];
+              return { ...ul };
+            });
+          }
+          setUnsubscriber(unsub);
         } else {
-          callbackRef.current(payload);        
+          void callbackRef.current(message);        
         }
       });
 
       return () => {
-        // Unsubscribe from the topic
         sendMessage('unsubscribe', topic);
 
         unsubscribe();
       };
     }
   }, [sendMessage, connected, topic]);
-  
-  useEffect(() => {
-    if (participant && participantPayload) {
-      const existingParticipant = participants.get(participantPayload.sender);
-      setParticipants(p => {
-        p.set(participantPayload.sender, existingParticipant ? {
-          ...existingParticipant,
-          ...participant,
-          ...participantPayload
-        } : {
-          ...participant,
-          color: generateLightBgColor()
-        });
-        return p;
-      })
-    }
-  }, [participant, participantPayload, participants]);
 
   return useMemo(() => ({
-    participants,
+    userList,
+    subscriber,
+    unsubscriber,
     connectionId,
     connected,
     sendMessage: (type: string, payload?: Partial<T>) => {
@@ -71,5 +85,5 @@ export function useWebSocketSubscribe <T>(topic: string, callback: SocketRespons
         sendMessage(type, topic, payload);
       }
     }
-  }), [connectionId, connected, participants, participantPayload]);
+  }), [connectionId, connected, userList, subscriber, unsubscriber]);
 }

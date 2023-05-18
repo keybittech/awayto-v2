@@ -45,12 +45,14 @@ if ('websocket.0' === socketId) {
 }
 
 export async function handleUnsubRedis(connectionStrings) {
+  const deadTopics = [];
   for (const connectionString of connectionStrings) {
     const connectionId = connectionString.split(':')[1];
     await redis.sRem(`socket_servers:${serverUuid}:connections`, connectionString); // remove from socket server connection cache
     const topics = await redis.sMembers(`connection_id:${connectionId}:topics`); 
     for (const topic of topics) {
       await redis.sRem(topic, connectionId); // remove connection from each topic
+      deadTopics.push(topic);
     }
     await redis.del(`connection_id:${connectionId}:topics`); // remove connection's topics
   }
@@ -59,6 +61,7 @@ export async function handleUnsubRedis(connectionStrings) {
   } catch (error) {
     console.log('error with stale', error);
   }
+  return deadTopics;
 }
 
 export default redis;

@@ -1,5 +1,5 @@
 import { WebSocketServer } from 'ws';
-import { handleSubscription } from './events/index.js';
+import { handleSubscription, unsubscribe } from './events/index.js';
 import { handleUnsubRedis } from './redis.js';
 
 // Storage for connected members
@@ -34,21 +34,20 @@ wss.on('connection', function (ws, req) {
 
 async function cleanUp(ws) {
   try {
-    const sub = ws.subscriber.sub;
-    const connectionId = ws.connectionId;
-
-    ws.subscriber.connectionIds.splice(ws.subscriber.connectionIds.indexOf(connectionId));
+    ws.subscriber.connectionIds.splice(ws.subscriber.connectionIds.indexOf(ws.connectionId));
 
     // remove local references
     if (!ws.subscriber.connectionIds.length) {
-      const subIndex = subscribers.findIndex(s => s.sub === sub);
+      const subIndex = subscribers.findIndex(s => s.sub === ws.subscriber.sub);
       if (subIndex > -1) {
         subscribers.splice(subIndex, 1);
       }
     }
 
-    // remove connection from all references
-    await handleUnsubRedis([`${sub}:${connectionId}`]);
+    for (const topic of await handleUnsubRedis([`${ws.subscriber.sub}:${ws.connectionId}`])) {
+      await unsubscribe(wss, ws.connectionId, topic);
+    }
+
     console.log('activity', ws.connectionId, 'closed connection.');
   } catch (error) {
     console.log('clean up error', error);

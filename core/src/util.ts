@@ -19,6 +19,14 @@ export async function asyncForEach<T>(array: T[], callback: (item: T, idx: numbe
   }
 }
 
+export function charCount(chars: string): number {
+  let count = 0;
+  for (let i = 0; i < chars.length; i++) {
+    count += chars.charCodeAt(i);
+  }
+  return count;
+}
+
 const sets = [
   'abcdefghijklmnopqrstuvwxyz',
   'ABCDEFGHIJKLMNOPQRSTUVWXYZ',

@@ -10,7 +10,7 @@ upstream api {
   server ${CUST_HOST_IP}:9443;
 }
 
-limit_req_zone $binary_remote_addr zone=app:10m rate=10r/s;
+limit_req_zone $binary_remote_addr zone=app:10m rate=30r/s;
 limit_req_zone $binary_remote_addr zone=primary:10m rate=10r/s;
 
 server {

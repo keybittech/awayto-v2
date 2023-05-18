@@ -18,7 +18,7 @@ declare global {
   }
 }
 
-export function WSCallProvider({ children, topicId, topicMessages, setTopicMessages }: IProps): React.JSX.Element {
+export function WSCallProvider({ children, topicId, setTopicMessages }: IProps): React.JSX.Element {
   if (!topicId) return <>{children}</>;
 
   const { WSCallContext } = useContexts();
@@ -33,7 +33,7 @@ export function WSCallProvider({ children, topicId, topicMessages, setTopicMessa
   const [senderStreams, setSenderStreams] = useState<SenderStreams>({});
 
   const {
-    participants,
+    userList,
     connectionId,
     connected,
     sendMessage
@@ -45,10 +45,10 @@ export function WSCallProvider({ children, topicId, topicMessages, setTopicMessa
     if (['join-call', 'peer-response'].includes(type)) {
       // Parties to an incoming caller's 'join-call' will see this, and then notify the caller that they exist in return
       // The caller gets a party member's 'peer-response', and sets them up in return
-      const messageParticipant = participants.get(sender);
-      if (!localStream && formats && messageParticipant && topicMessages && setTopicMessages) {
+      const user = Object.values(userList).find(p => p.cids.includes(sender));
+      if (!localStream && formats && user && setTopicMessages) {
         setTopicMessages(m => [...m, {
-          ...messageParticipant,
+          ...user,
           sender,
           style: 'utterance',
           message: `Start a ${formats.indexOf('video') > -1 ? 'video' : 'voice'} call.`,

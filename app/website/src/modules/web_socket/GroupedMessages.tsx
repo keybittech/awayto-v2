@@ -53,7 +53,7 @@ function GroupedMessages({ topicMessages: messages }: IProps): React.JSX.Element
         <CardContent>
           <Grid container spacing={1}>
             <Grid item>
-              <Avatar sx={{ backgroundColor: group.color, fontStyle: 'bold' }}>{group.name}</Avatar>
+              <Avatar sx={{ color: 'black', backgroundColor: group.color, fontStyle: 'bold' }}>{group.name}</Avatar>
             </Grid>
             <Grid item sx={{ flex: 1 }}>
               <Chip size="small" variant="outlined" label={group.role} />
