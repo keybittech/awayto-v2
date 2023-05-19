@@ -60,7 +60,7 @@ export function FileSelectionModal({ closeModal, fileGroups }: IProps): React.JS
     </CardContent>
     <CardActions>
       <Grid container justifyContent="space-between">
-        <Button onClick={closeModal}>Cancel</Button>
+        <Button onClick={() => closeModal && closeModal()}>Cancel</Button>
       </Grid>
     </CardActions>
   </Card>
