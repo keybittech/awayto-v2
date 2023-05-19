@@ -81,6 +81,7 @@ export default function Whiteboard({ sharedFile, topicId }: IProps): React.JSX.E
   const [boards, setBoards] = useState<Record<string, Partial<Whiteboard>>>({});
 
   const {
+    connectionId,
     userList,
     sendMessage: sendWhiteboardMessage
   } = useWebSocketSubscribe<Whiteboard>(topicId, ({ sender, type, payload }) => {
@@ -99,14 +100,21 @@ export default function Whiteboard({ sharedFile, topicId }: IProps): React.JSX.E
       } else if ('draw-lines' === type) {
         handleLines(payload.lines, board.settings);
       } else if ('share-file' === type) {
-        getFileContents({ mimeType: board.sharedFile?.mimeType, uuid: board.sharedFile?.uuid }).catch(console.error);
-        // console.log({ userList, sender, type, payload });
-        openConfirm({
-          isConfirming: true,
-          confirmEffect: 'person wants to share a file',
-          // confirmAction: () => {
-          // }
-        });
+        const fileDetails = { mimeType: board.sharedFile?.mimeType, uuid: board.sharedFile?.uuid };
+        if (connectionId !== sender) {
+          const user = Object.values(userList).find(u => u.cids.includes(sender));
+          if (user) {
+            openConfirm({
+              isConfirming: true,
+              confirmEffect: `${user.name} wants to share a file`,
+              confirmAction: () => {
+                getFileContents(fileDetails).catch(console.error);
+              }
+            });
+          }
+        } else {
+          getFileContents(fileDetails).catch(console.error);
+        }
       } else if ('change-setting' === type) {
       }
       return { ...b, [sender]: board };
