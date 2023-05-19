@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useMemo } from 'react';
 import { Route, Outlet, Routes } from 'react-router-dom';
 
 import Grid from '@mui/material/Unstable_Grid2';
@@ -14,7 +14,7 @@ const Layout = (props: IProps): React.JSX.Element => {
 
   const { Home, Exchange, ExchangeSummary, ExchangeProvider, TopLevelProviders, Profile, GroupPaths, ServiceHome, ScheduleHome, RequestQuote } = useComponents();
 
-  return <>
+  return useMemo(() => <>
     <CssBaseline />
     <TopLevelProviders>
       <Routes>
@@ -61,7 +61,7 @@ const Layout = (props: IProps): React.JSX.Element => {
         </Route>
       </Routes >
     </TopLevelProviders >
-  </>
+  </>, []);
 }
 
 export default Layout;
