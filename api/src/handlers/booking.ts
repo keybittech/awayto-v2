@@ -1,4 +1,4 @@
-import { utcNowString, buildUpdate, IBooking, createHandlers } from 'awayto/core';
+import { utcNowString, buildUpdate, IBooking, createHandlers, IFile } from 'awayto/core';
 
 export default createHandlers({
   postBooking: async props => {
@@ -55,6 +55,17 @@ export default createHandlers({
       WHERE id = $1
     `, [id]);
     return booking;
+  },
+  getBookingFiles: async props => {
+    const { id } = props.event.pathParameters;
+    const files = await props.db.manyOrNone<IFile>(`
+      SELECT f.name, f.uuid, f."mimeType" 
+      FROM dbview_schema.enabled_files f
+      JOIN dbtable_schema.quote_files qf ON qf.file_id = f.id
+      JOIN dbtable_schema.bookings b ON b.quote_id = qf.quote_id
+      WHERE b.id = $1
+    `, [id]);
+    return files;
   },
   deleteBooking: async props => {
     const { id } = props.event.pathParameters;

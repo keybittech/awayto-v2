@@ -19,7 +19,8 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 
-import { useWebSocketSubscribe, useStyles, useFileContents } from 'awayto/hooks';
+import { useWebSocketSubscribe, useStyles, useFileContents, useUtil } from 'awayto/hooks';
+import { IFile } from 'awayto/core';
 
 function getRelativeCoordinates(event: MouseEvent | React.MouseEvent<HTMLCanvasElement>, canvas: HTMLCanvasElement) {
   const rect = canvas.getBoundingClientRect();
@@ -28,14 +29,10 @@ function getRelativeCoordinates(event: MouseEvent | React.MouseEvent<HTMLCanvasE
   return { x, y };
 }
 
-declare global {
-  interface IProps {
-    topicId?: string;
-  }
-}
-
+// onwhiteboard load use effect check fileDetails from modal close then do a confirm action to getFileContents ?
 
 interface Whiteboard {
+  sharedFile?: IFile;
   lines: {
     startPoint: {
       x: number;
@@ -54,11 +51,15 @@ interface Whiteboard {
   }>
 }
 
-export default function Whiteboard({ topicId }: IProps): React.JSX.Element {
-  if (!topicId) return <></>;
+declare global {
+  interface IProps {
+    sharedFile?: IFile;
+    topicId?: string;
+  }
+}
 
-  const fileId = 'b789e0dc-7d05-479d-9eef-0505a54a7659';
-  const fileType = 'application/pdf';
+export default function Whiteboard({ sharedFile, topicId }: IProps): React.JSX.Element {
+  if (!topicId) return <></>;
 
   const whiteboardRef = useRef<HTMLCanvasElement>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
@@ -69,6 +70,7 @@ export default function Whiteboard({ topicId }: IProps): React.JSX.Element {
   const whiteboard = useRef<Whiteboard>({ lines: [], settings: { highlight: false, position: [0, 0] } });
 
   const classes = useStyles();
+  const { openConfirm } = useUtil();
 
   const [canvasPointerEvents, setCanvasPointerEvents] = useState('none');
   const [zoom, setZoom] = useState(1);
@@ -79,8 +81,10 @@ export default function Whiteboard({ topicId }: IProps): React.JSX.Element {
   const [boards, setBoards] = useState<Record<string, Partial<Whiteboard>>>({});
 
   const {
+    userList,
     sendMessage: sendWhiteboardMessage
   } = useWebSocketSubscribe<Whiteboard>(topicId, ({ sender, type, payload }) => {
+    console.log({ sender, type, payload })
     setBoards(b => {
       const board = {  ...b[sender], ...payload };
       if ('set-position' === type) {
@@ -94,6 +98,15 @@ export default function Whiteboard({ topicId }: IProps): React.JSX.Element {
         setPageNumber(whiteboard.current.settings.page);
       } else if ('draw-lines' === type) {
         handleLines(payload.lines, board.settings);
+      } else if ('share-file' === type) {
+        getFileContents({ mimeType: board.sharedFile?.mimeType, uuid: board.sharedFile?.uuid }).catch(console.error);
+        // console.log({ userList, sender, type, payload });
+        openConfirm({
+          isConfirming: true,
+          confirmEffect: 'person wants to share a file',
+          // confirmAction: () => {
+          // }
+        });
       } else if ('change-setting' === type) {
       }
       return { ...b, [sender]: board };
@@ -198,10 +211,11 @@ export default function Whiteboard({ topicId }: IProps): React.JSX.Element {
   }, []);
 
   useEffect(() => {
-    if (!fileDetails) {
-      getFileContents({ mimeType: fileType, uuid: fileId }).catch(console.error);
+    if (sharedFile && sharedFile.uuid !== fileDetails?.uuid) {
+      console.log({ SHARING: sharedFile });
+      sendWhiteboardMessage('share-file', { sharedFile });
     }
-  }, [fileDetails]);
+  }, [fileDetails, sharedFile]);
 
   useEffect(() => {
     const scrollDiv = fileScroller.current;

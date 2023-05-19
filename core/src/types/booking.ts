@@ -2,6 +2,7 @@ import { Void } from '../util';
 import { IQuote } from './quote';
 import { EndpointType, ApiOptions } from './api';
 import { IBookingTranscript } from './booking_transcript';
+import { IFile } from './file';
 
 /**
  * @category Booking
@@ -48,6 +49,14 @@ export default {
     opts: {} as ApiOptions,
     queryArg: { id: '' as string },
     resultType: {} as IBooking
+  },
+  getBookingFiles: {
+    kind: EndpointType.QUERY,
+    url: 'bookings/:id/files',
+    method: 'GET',
+    opts: {} as ApiOptions,
+    queryArg: { id: '' as string },
+    resultType: [] as IFile[]
   },
   deleteBooking: {
     kind: EndpointType.MUTATION,

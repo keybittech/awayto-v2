@@ -41,15 +41,12 @@ export const useStyles = makeStyles((theme: Theme) => {
 
     loginWrap: { height: '75vh' },
 
-    link: {
-      textDecoration: 'none'
-    },
+    link: { textDecoration: 'none' },
 
     dropzone: { width: '400px', height: '150px' },
 
     datatable: { borderRadius: '4px' },
 
-    //Common
     infoHeader: { fontWeight: 500, fontSize: '1rem', textTransform: 'uppercase', color: '#aaa !important' },
     infoLabel: { fontWeight: 500, fontSize: '1rem' },
     infoCard: { height: '200px', overflowY: 'auto' },

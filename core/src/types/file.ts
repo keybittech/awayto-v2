@@ -2,7 +2,10 @@ import { Void } from '../util';
 import { ApiOptions, BufferResponse, EndpointType } from './api';
 
 
-
+export enum MimeTypes {
+  PLAIN_TEXT = 'text/plain',
+  PDF = 'application/pdf'
+}
 
 /**
  * @category File
@@ -17,6 +20,12 @@ export type UseFileContents = () => {
  */
 export interface IPreviewFile extends File {
   preview?: string;
+}
+
+export interface OrderedFiles {
+  name: string;
+  order: number;
+  files: IFile[];
 }
 
 /**

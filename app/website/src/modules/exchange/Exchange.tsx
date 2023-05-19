@@ -1,6 +1,6 @@
 /// <reference lib="WebWorker" />
 
-import React, { Suspense, useContext, useState } from 'react';
+import React, { Suspense, useContext, useEffect, useState } from 'react';
 
 import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
@@ -19,6 +19,7 @@ import Call from '@mui/icons-material/Call';
 import FileCopy from '@mui/icons-material/FileCopy';
 
 import { useComponents, useContexts, useStyles } from 'awayto/hooks';
+import { IFile, OrderedFiles } from 'awayto/core';
 
 export function Exchange(): React.JSX.Element {
   const classes = useStyles();
@@ -26,9 +27,17 @@ export function Exchange(): React.JSX.Element {
   const { ExchangeContext, WSTextContext, WSCallContext } = useContexts();
   const { Whiteboard, FileSelectionModal } = useComponents();
   const [dialog, setDialog] = useState('');
+  const [chatOpen, setChatOpen] = useState(true);
+  const [fileGroups, setFileGroups] = useState<OrderedFiles[]>([])
+  const [sharedFile, setSharedFile] = useState<IFile | undefined>();
+
+  const theme = useTheme();
 
   const {
     exchangeId,
+    getBookingFiles: {
+      data: bookingFiles
+    }
   } = useContext(ExchangeContext) as ExchangeContextType;
 
   const {
@@ -47,45 +56,50 @@ export function Exchange(): React.JSX.Element {
     leaveCall
   } = useContext(WSCallContext) as WSCallContextType;
 
-  const theme = useTheme();
-
-  const [chatOpen, setChatOpen] = useState(true);
+  useEffect(() => {
+    setFileGroups(f => [
+      { name: 'Exchange', order: 1, files: bookingFiles || [] }
+    ]);
+  }, [bookingFiles]);
 
   return <>
 
     <Dialog fullScreen open={dialog === 'file_selection'} fullWidth maxWidth="sm">
       <Suspense>
-        <FileSelectionModal closeModal={() => {
-          setDialog('')
+        <FileSelectionModal fileGroups={fileGroups} closeModal={(selectedFile?: IFile) => {
+          if (selectedFile) {
+            setSharedFile(selectedFile);
+          }
+          setDialog('');
         }} />
       </Suspense>
     </Dialog>
 
     <Card sx={{ height: '100%', backgroundColor: theme.palette.primary.dark }}>
       <CardActions>
-        <Box className={classes.darkRounded} mr={1}>
+        <Box className={classes.darkRounded} mt={1} mx={2}>
           {connected && <Button onClick={() => leaveCall()}>
             Leave Call
           </Button>}
           {(!connected || audioOnly) && <Tooltip title="Start Video" children={
             <IconButton disabled={'start' !== canStartStop} onClick={() => setLocalStreamAndBroadcast(true)}>
-              <Videocam />
+              <Videocam fontSize="small" />
             </IconButton>
           } />}
           {!connected && <Tooltip title="Start Audio" children={
             <IconButton disabled={'start' !== canStartStop} onClick={() => setLocalStreamAndBroadcast(false)}>
-              <Call />
+              <Call fontSize="small" />
             </IconButton>
           } />}
         </Box>
         <Tooltip title="Hide/Show Messages" children={
-          <IconButton size="small" onClick={() => setChatOpen(!chatOpen)} sx={{ color: 'beige', backgroundColor: 'burlywood' }}>
-            <ChatBubble />
+          <IconButton color="primary" onClick={() => setChatOpen(!chatOpen)}>
+            <ChatBubble fontSize="small" />
           </IconButton>
         } />
         <Tooltip title="Share File" children={
-          <IconButton size="small" onClick={() => setDialog('file_selection')} sx={{ color: 'beige', backgroundColor: 'burlywood' }}>
-            <FileCopy />
+          <IconButton color="primary" onClick={() => setDialog('file_selection')}>
+            <FileCopy fontSize="small" />
           </IconButton>
         } />
 
@@ -119,7 +133,7 @@ export function Exchange(): React.JSX.Element {
           </Grid>
 
           <Grid item xs={12} md={chatOpen ? 8 : 12} sx={{ height: '100%' }}>
-            <Whiteboard topicId={`exchange/whiteboard:${exchangeId}`} />
+            <Whiteboard sharedFile={sharedFile} topicId={`exchange/whiteboard:${exchangeId}`} />
           </Grid>
         </Grid>
       </CardContent>

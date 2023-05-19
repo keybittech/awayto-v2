@@ -1,8 +1,8 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useParams } from 'react-router';
 
 import { SocketMessage } from 'awayto/core';
-import { useComponents, useContexts } from 'awayto/hooks';
+import { sh, useComponents, useContexts } from 'awayto/hooks';
 
 export function ExchangeProvider({ children }: IProps): React.JSX.Element {
 
@@ -12,11 +12,13 @@ export function ExchangeProvider({ children }: IProps): React.JSX.Element {
   const { ExchangeContext } = useContexts();
   const { WSTextProvider, WSCallProvider } = useComponents();
 
-  const [topicMessages, setTopicMessages] = useState<SocketMessage[]>([])
+  const [topicMessages, setTopicMessages] = useState<SocketMessage[]>([]);
 
   const exchangeContext = {
     exchangeId,
-    topicMessages
+    topicMessages,
+    setTopicMessages,
+    getBookingFiles: sh.useGetBookingFilesQuery({ id: exchangeId })
   } as ExchangeContextType | null;
 
   return useMemo(() => !ExchangeContext || !WSTextProvider || !WSCallProvider || !exchangeContext ? <></> :
