@@ -6,7 +6,8 @@
     "build": "webpack --config api.webpack.js",
     "start": "npm-run-all --parallel start-nodemon start-webpack",
     "start-webpack": "NODE_ENV=development webpack --watch --config api.webpack.js",
-    "start-nodemon": "nodemon --inspect -r dotenv/config build/api.js --watch build",
+    "start-nodemon": "nodemon -r dotenv/config build/api.js --watch build",
+    "prestart": "npx kill-port 9443",
     "debug": "npm run start-webpack & npm run start-nodemon"
   },
   "author": "",

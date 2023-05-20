@@ -29,6 +29,7 @@ import redis from './modules/redis';
 import { connectToTwitch } from './modules/twitch';
 import logger from './modules/logger';
 import './modules/prompts';
+import './modules/sock';
 
 import { setupMiddleware } from './middlewares';
 
@@ -81,7 +82,9 @@ async function go() {
       console.log('Server listening on port 9443');
     });
 
-    connectToTwitch(httpsServer);
+    setTimeout(async () => {
+      await connectToTwitch(httpsServer);
+    }, 5000);
 
   } catch (error) {
 

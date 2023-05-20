@@ -13,20 +13,19 @@ export const TWITCH_REDIRECT_URI = 'https://wcapp.site.com/api/twitch/webhook';
 
 export async function connectToTwitch(httpsServer: https.Server) {
 
-  const localSocketServer = new WebSocket.WebSocketServer({ server: httpsServer });
-
-  localSocketServer.on('connection', (localSocket) => {
-    console.log('Client connected');
-    localSocket.send(JSON.stringify({ message: '¨' }))
-
-    localSocket.on('message', message => {
-      const msg = JSON.parse(message.toString()) as { action: string, command: string, message: string };
-      console.log(msg)
-
-    });
-  });
-
   try {
+    const localSocketServer = new WebSocket.WebSocketServer({ server: httpsServer });
+
+    localSocketServer.on('connection', (localSocket) => {
+      console.log('Client connected');
+      localSocket.send(JSON.stringify({ message: '¨' }))
+
+      localSocket.on('message', message => {
+        const msg = JSON.parse(message.toString()) as { action: string, command: string, message: string };
+        console.log(msg)
+
+      });
+    });
 
     let server_access_token = await redis.get('twitch_token');
 
