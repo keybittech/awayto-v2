@@ -47,7 +47,7 @@ function WebSocketProvider({ children }: IProps): React.JSX.Element {
           }
           setTimeout(() => {
             connect();
-          }, 1000);
+          }, 5000);
         };
     
         ws.onerror = (error) => {
@@ -69,10 +69,14 @@ function WebSocketProvider({ children }: IProps): React.JSX.Element {
           }
           void go();
         };
-      } else { 
+      } else {
+        if (!reconnectSnackShown.current) {
+          setSnack({ snackOn: 'Could not connect to socket, please wait...', snackType: 'warning' });
+          reconnectSnackShown.current = true;
+        }
         setTimeout(() => {
           connect();
-        }, 1000);
+        }, 5000);
       }
     }).catch(error => {
       const err = error as Error;

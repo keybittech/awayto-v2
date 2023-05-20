@@ -1,5 +1,5 @@
-import { sendBackChannel } from './backchannel.js';
+import { sendBackchannel } from './backchannel.js';
 
 export async function stale(connections) {
-  await sendBackChannel('stale', connections);
+  await sendBackchannel('stale', connections);
 }

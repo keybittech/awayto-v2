@@ -4,6 +4,7 @@ import { v4 } from 'uuid';
 import redis, { serverUuid } from './redis.js';
 import wss, { subscribers } from './wss.js';
 import { connect } from './events/connect.js';
+import { checkBackchannel } from './events/backchannel.js';
 
 // Start a generic http server
 const server = createServer().listen(8080);
@@ -98,6 +99,11 @@ server.on('upgrade', async function (req, socket, head) {
         wss.emit('connection', ws, req);
       });
 
+    } else if (checkBackchannel(req.headers['authorization'])) {
+      wss.handleUpgrade(req, socket, head, async ws => {
+        ws.backchannel = true;
+        wss.emit('connection', ws, req);
+      });
     } else {
       socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
       socket.destroy();

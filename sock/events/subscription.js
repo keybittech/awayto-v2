@@ -23,7 +23,7 @@ export async function handleSubscription(wss, ws, message) {
     if (subbed) {
       ws.subscriber.subscribedTopics.add(parsed.topic);
 
-      const existingUsers = await redis.sMembers(`exchanges:${parsed.topic}`); // get existing topic connections
+      const existingUsers = await redis.sMembers(`member_topics:${parsed.topic}`); // get existing topic connections
 
       // send the existing user list to the joining connections
       if (existingUsers.length) {
@@ -35,9 +35,9 @@ export async function handleSubscription(wss, ws, message) {
         })));
       }
 
-      await redis.sAdd(`connection_id:${ws.connectionId}:topics`, `exchanges:${parsed.topic}`); // track connection's overall topics
-      await redis.sAdd(`exchanges:${parsed.topic}`, ws.connectionId); // track connection to just this topic
-      await redis.expire(`exchanges:${parsed.topic}`, 86400); // Set expiration to 24 hours
+      await redis.sAdd(`connection_id:${ws.connectionId}:topics`, `member_topics:${parsed.topic}`); // track connection's overall topics
+      await redis.sAdd(`member_topics:${parsed.topic}`, ws.connectionId); // track connection to just this topic
+      await redis.expire(`member_topics:${parsed.topic}`, 86400); // Set expiration to 24 hours
 
       // Notify all other subscribers that a new user has joined the topic
       const notificationMessage = Buffer.from(JSON.stringify({
@@ -47,7 +47,7 @@ export async function handleSubscription(wss, ws, message) {
         payload: ws.connectionId
       }));
       wss.clients.forEach(client => {
-        if (client.readyState === WebSocket.OPEN && client.subscriber.subscribedTopics.has(parsed.topic)) {
+        if (client.readyState === WebSocket.OPEN && (client.backchannel || client.subscriber.subscribedTopics.has(parsed.topic))) {
           client.send(notificationMessage);
         }
       });
@@ -57,9 +57,9 @@ export async function handleSubscription(wss, ws, message) {
     ws.subscriber.subscribedTopics.delete(parsed.topic);
   } else if (parsed.topic) {
     // send messages as normal to topic-subscribed connections
-    wss.clients.forEach(ws => {
-      if (ws.readyState === WebSocket.OPEN && ws.subscriber.subscribedTopics.has(parsed.topic)) {
-        ws.send(message);
+    wss.clients.forEach(client => {
+      if (client.readyState === WebSocket.OPEN && (client.backchannel || client.subscriber.subscribedTopics.has(parsed.topic))) {
+        client.send(message);
       }
     });
   }

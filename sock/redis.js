@@ -41,7 +41,7 @@ if ('websocket.0' === socketId) {
         await redis.sRem('socket_servers', servUuid);
       }
     }
-  }, 5 * 60 * 1000);
+  }, 15 * 1000);
 }
 
 export async function handleUnsubRedis(connectionStrings) {
