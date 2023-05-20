@@ -2,25 +2,16 @@
 /**
  * need to capture the idea where runons, etc. can be highlighted throughout a page after post processing
  */
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 import { Document, Page } from 'react-pdf/dist/esm/entry.webpack5';
 
 import Box from '@mui/material/Box';
-import IconButton from '@mui/material/IconButton';
+import Alert from '@mui/material/Alert';
 
-import GestureIcon from '@mui/icons-material/Gesture';
-import TouchAppIcon from '@mui/icons-material/TouchApp';
-import LayersClearIcon from '@mui/icons-material/LayersClear';
-import HighlightIcon from '@mui/icons-material/Highlight';
-import AddIcon from '@mui/icons-material/Add';
-import RemoveIcon from '@mui/icons-material/Remove';
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
-
-import { useWebSocketSubscribe, useStyles, useFileContents, useUtil } from 'awayto/hooks';
-import { IFile } from 'awayto/core';
+import { useWebSocketSubscribe, useFileContents, useComponents, useUtil } from 'awayto/hooks';
+import { IFile, Whiteboard } from 'awayto/core';
 
 function getRelativeCoordinates(event: MouseEvent | React.MouseEvent<HTMLCanvasElement>, canvas: HTMLCanvasElement) {
   const rect = canvas.getBoundingClientRect();
@@ -31,34 +22,16 @@ function getRelativeCoordinates(event: MouseEvent | React.MouseEvent<HTMLCanvasE
 
 // onwhiteboard load use effect check fileDetails from modal close then do a confirm action to getFileContents ?
 
-interface Whiteboard {
-  sharedFile?: IFile;
-  lines: {
-    startPoint: {
-      x: number;
-      y: number;
-    };
-    endPoint: {
-      x: number;
-      y: number;
-    };
-  }[];
-  settings: Partial<{
-    page: number;
-    scale: number;
-    highlight: boolean;
-    position: [number, number];
-  }>
-}
-
 declare global {
   interface IProps {
+    optionsMenu?: JSX.Element;
     sharedFile?: IFile;
     topicId?: string;
+    openFileSelect?: () => void;
   }
 }
 
-export default function Whiteboard({ sharedFile, topicId }: IProps): React.JSX.Element {
+export default function Whiteboard({ optionsMenu, sharedFile, openFileSelect, topicId }: IProps): React.JSX.Element {
   if (!topicId) return <></>;
 
   const whiteboardRef = useRef<HTMLCanvasElement>(null);
@@ -69,15 +42,17 @@ export default function Whiteboard({ sharedFile, topicId }: IProps): React.JSX.E
 
   const whiteboard = useRef<Whiteboard>({ lines: [], settings: { highlight: false, position: [0, 0] } });
 
-  const classes = useStyles();
   const { openConfirm } = useUtil();
+  const { WhiteboardOptionsMenu } = useComponents();
 
   const [canvasPointerEvents, setCanvasPointerEvents] = useState('none');
   const [zoom, setZoom] = useState(1);
   const { fileDetails, getFileContents } = useFileContents();
 
+  const [active, setActive] =useState(false);
   const [numPages, setNumPages] = useState(0);
   const [pageNumber, setPageNumber] = useState(1);
+  const [strokeColor, setStrokeColor] = useState('#aaaaaa');
   const [boards, setBoards] = useState<Record<string, Partial<Whiteboard>>>({});
 
   const {
@@ -98,7 +73,9 @@ export default function Whiteboard({ sharedFile, topicId }: IProps): React.JSX.E
         whiteboard.current.settings.page = board.settings?.page || 1;
         setPageNumber(whiteboard.current.settings.page);
       } else if ('draw-lines' === type) {
-        handleLines(payload.lines, board.settings);
+        if (connectionId !== sender) {
+          handleLines(payload.lines, board.settings);
+        }
       } else if ('share-file' === type) {
         const fileDetails = { mimeType: board.sharedFile?.mimeType, uuid: board.sharedFile?.uuid };
         if (connectionId !== sender) {
@@ -137,12 +114,11 @@ export default function Whiteboard({ sharedFile, topicId }: IProps): React.JSX.E
         ctx.lineTo(line.endPoint.x, line.endPoint.y);
       });
   
+      ctx.strokeStyle = settings?.stroke || 'black';
       if (settings?.highlight) {
-        ctx.strokeStyle = 'yellow';
         ctx.lineWidth = 10;
         ctx.globalAlpha = .33;
       } else {
-        ctx.strokeStyle = 'black';
         ctx.lineWidth = ctx.globalAlpha = 1;
       }
   
@@ -188,23 +164,6 @@ export default function Whiteboard({ sharedFile, topicId }: IProps): React.JSX.E
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
   }, []);
-
-  const setDrawStyle = (hl: boolean) => {
-    whiteboard.current.settings.highlight = hl;
-    sendWhiteboardMessage('change-setting', { settings: { highlight: hl } });
-    setCanvasPointerEvents('auto');
-  };
-
-  const setScale = (inc: boolean) => {
-    const scale = whiteboard.current.settings.scale || 1;
-    sendWhiteboardMessage('set-scale', { settings: { scale: inc ? scale + .15 : scale - .15 } });
-  };
-
-  const setPage = (next: boolean) => {
-    let page = whiteboard.current.settings.page || 1;
-    next ? page++ : page--;
-    sendWhiteboardMessage('set-page', { settings: { page: next ? Math.min(page, numPages) : (page || 1) } });
-  };
 
   const sendBatchedData = () => {
     if (whiteboard.current.lines.length > 0) {
@@ -252,21 +211,34 @@ export default function Whiteboard({ sharedFile, topicId }: IProps): React.JSX.E
 
   useEffect(() => {
     if (null !== whiteboardRef.current && !contextRef.current) {
+      whiteboardRef.current.width = window.screen.width;
+      whiteboardRef.current.height = window.screen.height;
       contextRef.current = whiteboardRef.current.getContext('2d');
     }
   }, [whiteboardRef, contextRef]);
 
-  return <Box sx={{ height: '100%', width: '100%', position: 'relative' }}>
+  return <Box
+    onClick={() => !active && setActive(true)}
+    sx={{
+      height: '100%',
+      width: '100%',
+      position: 'relative'
+    }}
+  >
 
     {/* General Canvas Background  */}
-    <Box ref={fileScroller} sx={{
-      backgroundColor: '#ccc',
-      height: '100%',
-      overflow: 'scroll',
-      display: 'flex',
-      position: 'relative',
-      padding: '16px'
-    }}>
+    <Box
+      ref={fileScroller}
+      sx={{
+        backgroundColor: fileDetails ? '#ccc' : 'white',
+        height: '100%',
+        width: '100%',
+        overflow: 'scroll',
+        display: 'flex',
+        position: 'relative',
+        padding: '16px'
+      }}
+    >
       {/* Drawing Canvas */}
       <Box
         sx={{
@@ -278,6 +250,10 @@ export default function Whiteboard({ sharedFile, topicId }: IProps): React.JSX.E
         component='canvas'
         onMouseDown={handleMouseDown}
       />
+
+      {!active && <Box ml={12} mt={1}>
+        <Alert severity="info">Select an option to get started</Alert>
+      </Box>}
 
       {/* File Viewer */}
       {!fileDetails ? <></> : <Document 
@@ -300,72 +276,23 @@ export default function Whiteboard({ sharedFile, topicId }: IProps): React.JSX.E
       </Document>}
     </Box>
 
-    {/* Top Button */}
-    <IconButton
-      color="primary"
-      className={classes.whiteboardActionButton}
-      sx={{ top: 25 }}
-      onClick={() => setScale(true)}
+    <WhiteboardOptionsMenu
+      {...{
+        whiteboard: whiteboard.current,
+        strokeColor,
+        setStrokeColor,
+        pageNumber,
+        numPages,
+        setNumPages,
+        scale: zoom,
+        canvasPointerEvents,
+        setCanvasPointerEvents,
+        contextRef: contextRef.current,
+        whiteboardRef: whiteboardRef.current,
+        sendWhiteboardMessage
+      }}
     >
-      <AddIcon />
-    </IconButton>
-    <IconButton
-      color="primary"
-      className={classes.whiteboardActionButton}
-      sx={{ top: 75 }}
-      onClick={() => setScale(false)}
-    >
-      <RemoveIcon />
-    </IconButton>
-    <IconButton
-      color="primary"
-      className={classes.whiteboardActionButton}
-      sx={{ top: 125 }}
-      onClick={() => setPage(false)}
-    >
-      <NavigateBeforeIcon />
-    </IconButton>
-    <IconButton
-      color="primary"
-      className={classes.whiteboardActionButton}
-      sx={{ top: 175 }}
-      onClick={() => setPage(true)}
-    >
-      <NavigateNextIcon />
-    </IconButton>
-
-    {/* Bottom Buttons */}
-    <IconButton
-      color="warning"
-      className={classes.whiteboardActionButton}
-      sx={{ bottom: 200 }}
-      onClick={() => setDrawStyle(true)}
-    >
-      <HighlightIcon />
-    </IconButton>
-    <IconButton
-      color="success"
-      className={classes.whiteboardActionButton}
-      sx={{ bottom: 150 }}
-      onClick={() => setDrawStyle(false)}
-    >
-      <GestureIcon />
-    </IconButton>
-    <IconButton
-      color="error"
-      className={classes.whiteboardActionButton}
-      sx={{ bottom: 100 }}
-      onClick={() => contextRef.current?.clearRect(0, 0, whiteboardRef.current?.width || 0, whiteboardRef.current?.height || 0)}
-    >
-      <LayersClearIcon />
-    </IconButton>
-    <IconButton
-      color="info"
-      className={classes.whiteboardActionButton}
-      sx={{ bottom: 50 }}
-      onClick={() => setCanvasPointerEvents('none')}
-    >
-      <TouchAppIcon />
-    </IconButton>
+      {optionsMenu}
+    </WhiteboardOptionsMenu>
   </Box>
 }

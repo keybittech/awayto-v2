@@ -8,15 +8,16 @@ import Grid from '@mui/material/Grid';
 import Tooltip from '@mui/material/Tooltip';
 import Dialog from '@mui/material/Dialog';
 import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import CardActions from '@mui/material/CardActions';
+import Stack from '@mui/material/Stack';
+import List from '@mui/material/List';
+import ListSubheader from '@mui/material/ListSubheader';
+import ListItem from '@mui/material/ListItem';
 import useTheme from '@mui/material/styles/useTheme';
 
-import ChatBubble from '@mui/icons-material/ChatBubble';
-import Videocam from '@mui/icons-material/Videocam';
-import Call from '@mui/icons-material/Call';
-import FileCopy from '@mui/icons-material/FileCopy';
+import ChatBubbleIcon from '@mui/icons-material/ChatBubble';
+import VideocamIcon from '@mui/icons-material/Videocam';
+import CallIcon from '@mui/icons-material/Call';
+import FileCopyIcon from '@mui/icons-material/FileCopy';
 
 import { useComponents, useContexts, useStyles } from 'awayto/hooks';
 import { IFile, OrderedFiles } from 'awayto/core';
@@ -64,7 +65,7 @@ export function Exchange(): React.JSX.Element {
 
   return <>
 
-    <Dialog fullScreen open={dialog === 'file_selection'} fullWidth maxWidth="sm">
+    <Dialog fullScreen fullWidth open={dialog === 'file_selection'}>
       <Suspense>
         <FileSelectionModal fileGroups={fileGroups} closeModal={(selectedFile?: IFile) => {
           if (selectedFile) {
@@ -75,69 +76,81 @@ export function Exchange(): React.JSX.Element {
       </Suspense>
     </Dialog>
 
-    <Card sx={{ height: '100%', backgroundColor: theme.palette.primary.dark }}>
-      <CardActions>
-        <Box className={classes.darkRounded} mt={1} mx={2}>
-          {connected && <Button onClick={() => leaveCall()}>
-            Leave Call
-          </Button>}
-          {(!connected || audioOnly) && <Tooltip title="Start Video" children={
-            <IconButton disabled={'start' !== canStartStop} onClick={() => setLocalStreamAndBroadcast(true)}>
-              <Videocam fontSize="small" />
-            </IconButton>
-          } />}
-          {!connected && <Tooltip title="Start Audio" children={
-            <IconButton disabled={'start' !== canStartStop} onClick={() => setLocalStreamAndBroadcast(false)}>
-              <Call fontSize="small" />
-            </IconButton>
-          } />}
-        </Box>
-        <Tooltip title="Hide/Show Messages" children={
-          <IconButton color="primary" onClick={() => setChatOpen(!chatOpen)}>
-            <ChatBubble fontSize="small" />
-          </IconButton>
-        } />
-        <Tooltip title="Share File" children={
-          <IconButton color="primary" onClick={() => setDialog('file_selection')}>
-            <FileCopy fontSize="small" />
-          </IconButton>
-        } />
-
-      </CardActions>
-      <CardContent sx={{ height: 'calc(100% - 60px)' }}> {/* height minus action bar height estimate */}
-
-        <Grid container spacing={1} style={{ height: '100%', position: 'relative' }} direction="row">
-
-          <Grid item xs={8} md={4} sx={{ display: chatOpen ? 'flex' : 'none', height: '100%' }}>
-            <Grid container direction="column" style={{ flex: 1, flexWrap: 'nowrap' }}>
-              {/* ---------- Video ---------- */}
-              {localStreamElement && <Grid item xs={12} style={{ backgroundColor: 'black', position: 'relative', maxHeight: '390px', display: 'flex', flex: '1' }}>
-                <Grid container justifyContent="flex-end" style={{ position: 'absolute' }}>
-                  {localStreamElement}
-                </Grid>
-                {!!Object.keys(senderStreamsElements).length && senderStreamsElements}
-              </Grid>}
+    <Stack sx={{ height: '100%' }} direction="row">
+      <Box sx={{
+        backgroundColor: theme.palette.primary.dark,
+        padding: 1,
+        display: chatOpen ? 'flex' : 'none',
+        height: '100%', width: chatOpen ? '30%' : '100%'
+      }}>
+        <Grid container direction="column" sx={{ flex: 1, flexWrap: 'nowrap' }}>
+          {/* ---------- Video ---------- */}
+          {localStreamElement && <Grid item xs={12} sx={{ backgroundColor: 'black', position: 'relative', maxHeight: '390px', display: 'flex', flex: '1' }}>
+            <Grid container justifyContent="flex-end" sx={{ position: 'absolute' }}>
+              {localStreamElement}
             </Grid>
+            {!!Object.keys(senderStreamsElements).length && senderStreamsElements}
+          </Grid>}
+        </Grid>
 
-            {/* ---------- Chat ---------- */}
-            <Grid container direction="column">
-              <Grid item pr={1} style={{ flex: '1', overflow: 'auto' }}>
-                {chatLog}
-                {messagesEnd}
-              </Grid>
-
-              <Grid item pt={1}>
-                {submitMessageForm}
-              </Grid>
-            </Grid>
+        {/* ---------- Chat ---------- */}
+        <Grid container direction="column">
+          <Grid item pr={1} sx={{ flex: '1', overflow: 'auto' }}>
+            {chatLog}
+            {messagesEnd}
           </Grid>
 
-          <Grid item xs={12} md={chatOpen ? 8 : 12} sx={{ height: '100%' }}>
-            <Whiteboard sharedFile={sharedFile} topicId={`exchange/whiteboard:${exchangeId}`} />
+          <Grid item pt={1}>
+            {submitMessageForm}
           </Grid>
         </Grid>
-      </CardContent>
-    </Card>
+      </Box>
+
+      <Box sx={{ height: '100%', width: chatOpen ? '70%' : '100%' }}>
+        <Whiteboard
+          topicId={`exchange/whiteboard:${exchangeId}`}
+          sharedFile={sharedFile}
+          openFileSelect={() => {
+            setDialog('file_selection');
+          }}
+          optionsMenu={
+            <List disablePadding
+              subheader={
+                <ListSubheader>Call</ListSubheader>
+              }
+            >
+              <ListItem>
+                <Box className={classes.darkRounded} mr={1}>
+                  {connected && <Button onClick={() => leaveCall()}>
+                    Leave Call
+                  </Button>}
+                  {(!connected || audioOnly) && <Tooltip title="Start Video" children={
+                    <IconButton disabled={'start' !== canStartStop} onClick={() => setLocalStreamAndBroadcast(true)}>
+                      <VideocamIcon fontSize="small" />
+                    </IconButton>
+                  } />}
+                  {!connected && <Tooltip title="Start Audio" children={
+                    <IconButton disabled={'start' !== canStartStop} onClick={() => setLocalStreamAndBroadcast(false)}>
+                      <CallIcon fontSize="small" />
+                    </IconButton>
+                  } />}
+                </Box>
+                <Tooltip title="Hide/Show Messages" children={
+                  <IconButton color="primary" onClick={() => setChatOpen(!chatOpen)}>
+                    <ChatBubbleIcon fontSize="small" />
+                  </IconButton>
+                } />
+                <Tooltip title="Share File" children={
+                  <IconButton color="primary" onClick={() => setDialog('file_selection')}>
+                    <FileCopyIcon fontSize="small" />
+                  </IconButton>
+                } />
+              </ListItem>
+            </List>
+          }
+        />
+      </Box>
+    </Stack>
   </>;
 }
 

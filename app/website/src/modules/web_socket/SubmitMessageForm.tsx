@@ -26,7 +26,7 @@ export function SubmitMessageForm({ sendTextMessage }: IProps): React.JSX.Elemen
         fullWidth
         multiline
         id="message"
-        label="Message"
+        label="Type here then press enter..."
         value={textMessage}
         name="message"
         onChange={e => setTextMessage(e.target.value)}

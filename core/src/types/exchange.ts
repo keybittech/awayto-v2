@@ -1,6 +1,33 @@
-import { ApiOptions, EndpointType } from './api';
 import { IBooking } from './booking';
+import { IFile } from './file';
 import { SocketMessage } from './web_socket';
+
+
+
+/**
+ * @category Exchange
+ * @purpose tracks essential props between participants during whiteboard interactions
+ */
+export interface Whiteboard {
+  sharedFile?: IFile;
+  lines: {
+    startPoint: {
+      x: number;
+      y: number;
+    };
+    endPoint: {
+      x: number;
+      y: number;
+    };
+  }[];
+  settings: Partial<{
+    stroke: string;
+    page: number;
+    scale: number;
+    highlight: boolean;
+    position: [number, number];
+  }>
+}
 
 /**
  * @category Exchange

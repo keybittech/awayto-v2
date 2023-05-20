@@ -4,6 +4,7 @@ import Grid from '@mui/material/Grid';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import Card from '@mui/material/Card';
+import CardHeader from '@mui/material/CardHeader';
 import Chip from '@mui/material/Chip';
 import Avatar from '@mui/material/Avatar';
 import CardContent from '@mui/material/CardContent';
@@ -43,9 +44,7 @@ function GroupedMessages({ topicMessages: messages }: IProps): React.JSX.Element
 
   return useMemo(() => <>
     <Card sx={{ marginBottom: '8px' }}>
-      <CardContent>
-        <Typography variant="body2">Messages will appear here...</Typography>
-      </CardContent>
+      <CardHeader subheader="Welcome to the chat! Messages will appear below..." />
     </Card>
     {groupedMessages.map((group, i) => {
       const Action = group.action;
