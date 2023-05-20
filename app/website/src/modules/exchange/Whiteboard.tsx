@@ -8,7 +8,9 @@ import 'react-pdf/dist/esm/Page/TextLayer.css';
 import { Document, Page } from 'react-pdf/dist/esm/entry.webpack5';
 
 import Box from '@mui/material/Box';
-import Alert from '@mui/material/Alert';
+import Typography from '@mui/material/Typography';
+
+import SettingsIcon from '@mui/icons-material/Settings';
 
 import { useWebSocketSubscribe, useFileContents, useComponents, useUtil } from 'awayto/hooks';
 import { IFile, Whiteboard } from 'awayto/core';
@@ -252,7 +254,11 @@ export default function Whiteboard({ optionsMenu, sharedFile, openFileSelect, to
       />
 
       {!active && <Box ml={12} mt={1}>
-        <Alert severity="info">Select an option to get started</Alert>
+        <Box sx={{ backgroundColor: 'beige', borderRadius: '16px', p: 2 }}>
+          <Typography variant="h6">Whiteboard</Typography>
+          <Typography variant="body1">Select an option to get started</Typography>
+          <Typography>Reposition the options with <SettingsIcon sx={{ alignSelf: 'flex-end' }} /></Typography>
+        </Box>
       </Box>}
 
       {/* File Viewer */}
