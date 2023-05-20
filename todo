@@ -549,3 +549,34 @@ const promise3 = new Promise<string>((resolve, reject) => {
 
 // expected to be `Promise<[number, 42, string]>`
 const p = PromiseAll([promise1, promise2, promise3] as const)
+
+
+
+Let's create a simple shell script utility that will run my program and give me an interactive menu to restart a service or stop or start one. Use a debian based utility for all needs, and try to do it natively in all cases.
+
+Each service should be parsed from a configuration object we define at the top, which contains the service name and a start command, like
+
+app=npm run start --target /app/website
+db=pg_connect ...
+
+Then our cli starts up, and we see:
+
+Press # of services to start, then press Enter to start.
+1. api x
+2. app x
+3. db
+4. etc
+
+An "x" appears to each service if it has been selected. 
+When we press Enter, each service starts by running its associated command. 
+All logging for all started services is output to local.log.
+After starting, we are given a menu that looks like:
+
+Select an action.
+1. Stop
+2. Start
+3. Restart
+4. Shutdown
+
+Actions 1-3 allow us to once again select from all the different services, denoted with an x, and perform the desired action.
+The Shutdown action safely shuts down all services immediately.
