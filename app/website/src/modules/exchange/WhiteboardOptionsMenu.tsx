@@ -19,6 +19,7 @@ import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
+import RectangleIcon from '@mui/icons-material/Rectangle';
 import SettingsIcon from '@mui/icons-material/Settings';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
@@ -142,37 +143,15 @@ export function WhiteboardOptionsMenu({
   }, [debouncedStroke]);
 
   return <Box sx={{ position: 'absolute', zIndex: 100, ...directions[dir].position }}>
-
-    <Button
-      className={classes.darkRounded}
-      endIcon={<Tooltip title="Board Options" children={<ArrowDropDownIcon fontSize="small" />} />}
-      onClick={e => setWhiteboardOptionsAnchorEl(e.currentTarget)}
-    >
-      <Tooltip title="Reposition" children={
-        <IconButton
-          component="div"
-          ref={repositoningRef}
-          sx={{ background: directions[dir].background }}
-          onMouseDown={e => {
-            if (repositoningRef.current) {
-              const repositoningHalfHeight = Math.ceil(repositoningRef.current.offsetHeight / 2);
-              const repositoningHalfWidth = Math.ceil(repositoningRef.current.offsetWidth / 2);
-              setDir(() => {
-                if ((e.nativeEvent.offsetX + 8) <= repositoningHalfWidth) {
-                  return (e.nativeEvent.offsetY + 8) <= repositoningHalfHeight ? 'tl' : 'bl';
-                } else {
-                  return (e.nativeEvent.offsetY + 8) <= repositoningHalfHeight ? 'tr' : 'br';
-                }
-              })
-            }
-          }}
-        >
-          <SettingsIcon fontSize="small" />
-        </IconButton>
-      } />
-
-    </Button>
-
+    <Tooltip title="Board Options" children={
+      <Button
+        className={classes.darkRounded}
+        endIcon={<ArrowDropDownIcon fontSize="small" />}
+        onClick={e => setWhiteboardOptionsAnchorEl(e.currentTarget)}
+      >
+        <SettingsIcon />
+      </Button>
+    } />
     <Menu
       keepMounted
       id={whiteboardOptionsMenuId}
@@ -183,6 +162,8 @@ export function WhiteboardOptionsMenu({
       onClose={handleMenuClose}
     >
       <Box sx={{ width: 320 }}>
+
+        {children}
 
         {numPages > 0 && <List
           disablePadding
@@ -324,11 +305,31 @@ export function WhiteboardOptionsMenu({
               </IconButton>
             </Tooltip>
 
+            <Tooltip title="Reposition" children={
+              <IconButton
+                component="div"
+                ref={repositoningRef}
+                sx={{ background: directions[dir].background }}
+                onMouseDown={e => {
+                  if (repositoningRef.current) {
+                    const repositoningHalfHeight = Math.ceil(repositoningRef.current.offsetHeight / 2);
+                    const repositoningHalfWidth = Math.ceil(repositoningRef.current.offsetWidth / 2);
+                    setDir(() => {
+                      if ((e.nativeEvent.offsetX + 8) <= repositoningHalfWidth) {
+                        return (e.nativeEvent.offsetY + 8) <= repositoningHalfHeight ? 'tl' : 'bl';
+                      } else {
+                        return (e.nativeEvent.offsetY + 8) <= repositoningHalfHeight ? 'tr' : 'br';
+                      }
+                    })
+                  }
+                }}
+              >
+                <RectangleIcon />
+              </IconButton>
+            } />
           </ListItem>
 
         </List>
-
-        {children}
       </Box>
     </Menu>
   </Box>;

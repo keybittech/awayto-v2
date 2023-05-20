@@ -253,14 +253,6 @@ export default function Whiteboard({ optionsMenu, sharedFile, openFileSelect, to
         onMouseDown={handleMouseDown}
       />
 
-      {!active && <Box ml={12} mt={1}>
-        <Box sx={{ backgroundColor: 'beige', borderRadius: '16px', p: 2 }}>
-          <Typography variant="h6">Whiteboard</Typography>
-          <Typography variant="body1">Select an option to get started</Typography>
-          <Typography>Reposition the options with <SettingsIcon sx={{ alignSelf: 'flex-end' }} /></Typography>
-        </Box>
-      </Box>}
-
       {/* File Viewer */}
       {!fileDetails ? <></> : <Document 
         file={fileDetails.url}
