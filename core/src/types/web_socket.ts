@@ -45,12 +45,12 @@ export type SocketMessage = SocketParticipant & {
 };
 
 export default {
-  getSocketParticipant: {
+  getSocketParticipants: {
     kind: EndpointType.QUERY,
-    url: 'ws/participant/:connectionId',
+    url: 'ws/ps/:cids',
     method: 'GET',
     opts: {} as ApiOptions,
-    queryArg: { connectionId: '' as string },
-    resultType: {} as SocketParticipant
+    queryArg: { cids: '' as string },
+    resultType: [] as SocketParticipant[]
   }
 } as const;

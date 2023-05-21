@@ -313,6 +313,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
 
   CREATE TABLE dbtable_schema.topic_messages (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    connection_id TEXT NOT NULL,
     topic TEXT NOT NULL,
     message JSONB NOT NULL,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),

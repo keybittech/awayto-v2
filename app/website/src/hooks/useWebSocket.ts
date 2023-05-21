@@ -1,6 +1,6 @@
 // useWebSocket.js
 import { useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { SocketParticipant, SocketResponseHandler, generateLightBgColor } from 'awayto/core';
+import { SocketParticipant, SocketResponseHandler, deepClone, generateLightBgColor } from 'awayto/core';
 import { useContexts } from './useContexts';
 import { sh } from './store';
 
@@ -23,7 +23,7 @@ export function useWebSocketSubscribe <T>(topic: string, callback: SocketRespons
   const [userList, setUserList] = useState<Record<string, SocketParticipant>>({});
   const callbackRef = useRef(callback);
 
-  const [getSocketParticipant] = sh.useLazyGetSocketParticipantQuery();
+  const [getSocketParticipants] = sh.useLazyGetSocketParticipantsQuery();
 
   useEffect(() => {
     callbackRef.current = callback;
@@ -35,19 +35,11 @@ export function useWebSocketSubscribe <T>(topic: string, callback: SocketRespons
 
       const unsubscribe = subscribe(topic, async message => {
         if (['existing-subscribers', 'subscribe-topic'].includes(message.type)) {
-          const cids = (message.payload as string).split(',');
-          for (const cid of cids) {
-            const details = await getSocketParticipant({ connectionId: cid }).unwrap().catch(console.error);
-            if (details) {
-              const sub = {
-                ...details,
-                cids: [cid],
-                color: generateLightBgColor()
-              };
-              setUserList(ul => {
-                ul[sub.scid] = sub;
-                return { ...ul };
-              });
+          const subs = await getSocketParticipants({ cids: message.payload as string }).unwrap().catch(console.error);
+          if (subs) {
+            for (const sub of deepClone(subs)) {
+              sub.color = generateLightBgColor();
+              setUserList(ul => ({ ...ul, [sub.scid]: sub }));
               setSubscriber(sub);
             }
           }

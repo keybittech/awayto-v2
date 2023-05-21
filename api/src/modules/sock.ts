@@ -39,13 +39,13 @@ async function go() {
   
             console.log({ OLD_MESSAGES: messages });
           }
-          
+
           await db.none(`
-            INSERT INTO dbtable_schema.topic_messages (created_sub, topic, message)
-            SELECT created_sub, $2, $3
+            INSERT INTO dbtable_schema.topic_messages (created_sub, topic, message, connection_id)
+            SELECT created_sub, $2, $3, $4
             FROM dbtable_schema.sock_connections
             WHERE connection_id = $1 
-          `, [message.sender, message.topic, message]);
+          `, [message.sender, message.topic, message, message.sender]);
         }
       };
   
