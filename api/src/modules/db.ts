@@ -11,8 +11,6 @@ const {
   PG_DATABASE
 } = process.env as { [prop: string]: string } & { PG_PORT: number };
 
-export let connected: boolean = false;
-
 const pgp = pgPromise();
 
 const pgTypes = pgp.pg.types;
@@ -28,7 +26,7 @@ export const db = pgp({
 })
 // export let db: Client = new postgres.Client();
 
-async function go() {
+export async function connect() {
 
   try {
 
@@ -58,13 +56,9 @@ async function go() {
       await redis.set('adminSub', sub);
     }
 
-    connected = true;
-
   } catch (error) {
 
     console.log({ PGCONNECTERROR: error })
 
   }
 }
-
-void go();

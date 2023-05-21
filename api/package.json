@@ -5,9 +5,9 @@
   "scripts": {
     "build": "webpack --config api.webpack.js",
     "start": "npm-run-all --parallel start-nodemon start-webpack",
-    "start-webpack": "NODE_ENV=development webpack --watch --config api.webpack.js",
+    "start-webpack": "NODE_ENV=development webpack --config api.webpack.js",
     "start-nodemon": "nodemon -r dotenv/config build/api.js --watch build",
-    "prestart": "npx kill-port 9443",
+    "prestart": "kill $(lsof -t -i:9443) &2>1",
     "debug": "npm run start-webpack & npm run start-nodemon"
   },
   "author": "",

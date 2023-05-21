@@ -53,7 +53,6 @@ export async function rateLimitResource(resource: string, context: string, limit
 
   const rateLimitExceeded = await redis.incr(key);
   
-
   if (rateLimitExceeded === 1) {
     await redis.expire(key, duration);
   }
@@ -64,16 +63,5 @@ export async function rateLimitResource(resource: string, context: string, limit
 
   return false;
 }
-
-async function go() {
-  try {
-    await redis.connect();
-    console.log('redis connected');
-  } catch (error) {
-    console.log('caught redis connect error', error);
-  }
-}
-
-void go();
 
 export default redis;

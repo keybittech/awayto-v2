@@ -31,10 +31,7 @@ const keycloak = new KcAdminClient({
   realmName: KC_REALM,
 }) as KeycloakAdminClient & KcSiteOpts & {
   apiClient: BaseClient;
-  ready: boolean;
 };
-
-keycloak.ready = false;
 
 const credentials: Credentials = {
   clientId: KC_API_CLIENT_ID,
@@ -120,7 +117,7 @@ keycloak.regroup = async function (groupId?: string): Promise<void> {
   regrouping = false;
 }
 
-async function go() {
+export async function connect() {
 
   try {
 
@@ -139,10 +136,8 @@ async function go() {
       try {
         await keycloak.auth(credentials);
         await keycloak.regroup();
-        keycloak.ready = true;
       } catch (error) {
         console.log('Could not auth with keycloak and regroup. Will try again in 1 minute.');
-        keycloak.ready = false;
       }
     }, 58 * 1000); // 58 seconds
 
@@ -182,13 +177,11 @@ async function go() {
       await new Promise(res => setTimeout(res, 5000));
     }
 
-    keycloak.ready = true;
-
   } catch (error) {
     const err = error as ApiErrorResponse;
     await new Promise<void>(res => setTimeout(() => res(), 1000));
     console.log('Could not connect to keycloak ', err.message, err.stack);
-    await go();
+    await connect();
   }
 }
 
@@ -211,7 +204,5 @@ export async function getGroupRegistrationRedirectParts(groupCode: string): Prom
     throw { reason: 'Unexpected error, try again later.' };
   }
 }
-
-void go();
 
 export default keycloak;
