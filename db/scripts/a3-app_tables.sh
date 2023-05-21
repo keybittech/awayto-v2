@@ -311,10 +311,10 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     enabled BOOLEAN NOT NULL DEFAULT true
   );
 
-  CREATE TABLE dbtable_schema.exchange_subscribers (
+  CREATE TABLE dbtable_schema.topic_messages (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    booking_id uuid NOT NULL REFERENCES dbtable_schema.bookings (id),
-    sock_connection_id uuid NOT NULL REFERENCES dbtable_schema.sock_connections (id) ON DELETE CASCADE,
+    topic TEXT NOT NULL,
+    message JSONB NOT NULL,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
     created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,
@@ -322,17 +322,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     enabled BOOLEAN NOT NULL DEFAULT true
   );
 
-  CREATE TABLE dbtable_schema.exchange_metrics (
-    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    booking_id uuid NOT NULL REFERENCES dbtable_schema.bookings (id),
-    whiteboard JSONB, 
-    transcript JSONB, -- this denotes text based chat logs
-    created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
-    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
-    updated_on TIMESTAMP,
-    updated_sub uuid REFERENCES dbtable_schema.users (sub),
-    enabled BOOLEAN NOT NULL DEFAULT true
-  );
+  CREATE INDEX topic_index ON dbtable_schema.topic_messages (topic);
 
   CREATE TABLE dbtable_schema.exchange_call_log (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),

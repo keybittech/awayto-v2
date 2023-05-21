@@ -5,6 +5,7 @@ import { ApiOptions, EndpointType } from './api';
  * @purpose the form of a socket response
  */
 export type SocketResponse<T> = {
+  store?: boolean;
   sender: string;
   type: string;
   topic: string;

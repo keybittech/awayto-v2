@@ -30,27 +30,32 @@ server.on('request', function (req, res) {
         if (req.url.includes('create_ticket')) {
 
           try {
-            const sub = req.url.split('/')[2];
-            const subscriber = subscribers.find(s => s.sub === sub);
             const ticket = `${v4()}:${v4()}`
             const parsed = JSON.parse(body || '{}');
-
+            const sub = req.url.split('/')[2];
+            let subscriber = subscribers.find(s => s.sub === sub);
+            
             if (subscriber) {
               subscriber.tickets.push(ticket);
               subscriber.allowances = { ...parsed };
             } else {
-              subscribers.push({
+              subscriber = {
                 sub,
                 connectionIds: [],
                 allowances: { ...parsed },
                 tickets: [ticket],
                 subscribedTopics: new Set()
-              });
+              };
+              subscribers.push(subscriber);
             }
 
             res.writeHead(200);
             res.write(ticket);
             res.end();
+
+            setTimeout(() => {
+              subscriber.tickets.splice(subscriber.tickets.indexOf(ticket), 1);
+            }, 2000);
           } catch (error) {
             console.error('issue handling ticket assignment', error)
           }

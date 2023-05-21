@@ -29,7 +29,7 @@ export function WSTextProvider({ children, topicId, topicMessages, setTopicMessa
     connected,
     subscriber,
     unsubscriber,
-    sendMessage: sendTextMessage
+    storeMessage
   } = useWebSocketSubscribe<{ message: string, style: SocketMessage['style'] }>(topicId, ({ sender, topic, type, payload }) => {
     console.log('RECEIVED A NEW SOCKET TEXT', { userList, connectionId, sender, topic, type }, JSON.stringify(payload));
 
@@ -86,7 +86,7 @@ export function WSTextProvider({ children, topicId, topicMessages, setTopicMessa
     submitMessageForm: <>
       <SubmitMessageForm
         sendTextMessage={(message: string) => {
-          sendTextMessage('text', { style: 'written', message });
+          storeMessage('text', { style: 'written', message });
         }}
       />
       <Typography variant="caption">

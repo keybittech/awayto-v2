@@ -1,6 +1,7 @@
 import { WebSocket } from 'ws';
 
-import { charCount } from 'awayto/core';
+import { SocketResponse, charCount } from 'awayto/core';
+import { db } from './db';
 
 const {
   SOCK_HOST,
@@ -19,10 +20,34 @@ async function go() {
         console.log('socket open');
       };
 
-      ws.onmessage = event => {
-        console.log({ event: event.data.toString() })
-        const message = JSON.parse(event.data.toString())
-      }
+      ws.onmessage = async ({ data }) => {
+        const { store, ...message } = JSON.parse(data.toString()) as SocketResponse<unknown>;
+        console.log({ message });
+        if (store) {
+
+          if ('subscribe-topic' === message.type) {
+            const messages = await db.manyOrNone<{ message: SocketResponse<unknown> }>(`
+              SELECT message
+              FROM dbtable_schema.topic_messages
+              WHERE topic = $1
+            `, [message.topic]);
+  
+            for (const { message: existingMessage } of messages) {
+              console.log('eeeeeeeeee', existingMessage)
+              ws.send(JSON.stringify(existingMessage));
+            }
+  
+            console.log({ OLD_MESSAGES: messages });
+          }
+          
+          await db.none(`
+            INSERT INTO dbtable_schema.topic_messages (created_sub, topic, message)
+            SELECT created_sub, $2, $3
+            FROM dbtable_schema.sock_connections
+            WHERE connection_id = $1 
+          `, [message.sender, message.topic, message]);
+        }
+      };
   
       ws.onclose = () => {
         console.log('socket closed. reconnecting...');

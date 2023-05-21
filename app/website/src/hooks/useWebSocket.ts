@@ -6,7 +6,7 @@ import { sh } from './store';
 
 export function useWebSocketSend() {
   const context = useContext(useContexts().WebSocketContext) as WebSocketContextType;
-  return context.sendMessage;
+  return context.transmit;
 }
 
 export function useWebSocketSubscribe <T>(topic: string, callback: SocketResponseHandler<T>) {
@@ -14,7 +14,7 @@ export function useWebSocketSubscribe <T>(topic: string, callback: SocketRespons
   const {
     connectionId,
     connected,
-    sendMessage,
+    transmit,
     subscribe
   } = useContext(useContexts().WebSocketContext) as WebSocketContextType;
 
@@ -31,7 +31,7 @@ export function useWebSocketSubscribe <T>(topic: string, callback: SocketRespons
 
   useEffect(() => {
     if (connected) {
-      sendMessage('subscribe', topic);
+      transmit(true, 'subscribe', topic);
 
       const unsubscribe = subscribe(topic, async message => {
         if (['existing-subscribers', 'subscribe-topic'].includes(message.type)) {
@@ -67,12 +67,12 @@ export function useWebSocketSubscribe <T>(topic: string, callback: SocketRespons
       });
 
       return () => {
-        sendMessage('unsubscribe', topic);
+        transmit(true, 'unsubscribe', topic);
 
         unsubscribe();
       };
     }
-  }, [sendMessage, connected, topic]);
+  }, [transmit, connected, topic]);
 
   return useMemo(() => ({
     userList,
@@ -80,9 +80,14 @@ export function useWebSocketSubscribe <T>(topic: string, callback: SocketRespons
     unsubscriber,
     connectionId,
     connected,
+    storeMessage: (type: string, payload?: Partial<T>) => {
+      if (connected) {
+        transmit(true, type, topic, payload);
+      }
+    },
     sendMessage: (type: string, payload?: Partial<T>) => {
       if (connected) {
-        sendMessage(type, topic, payload);
+        transmit(false, type, topic, payload);
       }
     }
   }), [connectionId, connected, userList, subscriber, unsubscriber]);

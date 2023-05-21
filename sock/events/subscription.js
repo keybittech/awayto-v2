@@ -41,6 +41,7 @@ export async function handleSubscription(wss, ws, message) {
 
       // Notify all other subscribers that a new user has joined the topic
       const notificationMessage = Buffer.from(JSON.stringify({
+        store: true,
         sender: ws.connectionId,
         type: 'subscribe-topic',
         topic: parsed.topic,
