@@ -7,7 +7,7 @@
     "start": "npm-run-all --parallel start-nodemon start-webpack",
     "start-webpack": "NODE_ENV=development webpack --config api.webpack.js",
     "start-nodemon": "nodemon -r dotenv/config build/api.js --watch build",
-    "prestart": "kill $(lsof -t -i:9443) &2>1",
+    "prestart": "kill $(lsof -t -i:9443) &",
     "debug": "npm run start-webpack & npm run start-nodemon"
   },
   "author": "",
