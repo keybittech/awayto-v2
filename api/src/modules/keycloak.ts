@@ -2,7 +2,7 @@
 
 import KcAdminClient from '@keycloak/keycloak-admin-client';
 import { KeycloakAdminClient } from '@keycloak/keycloak-admin-client/lib/client';
-import { BaseClient, Issuer } from 'openid-client';
+import { BaseClient } from 'openid-client';
 import { Credentials } from '@keycloak/keycloak-admin-client/lib/utils/auth';
 import { RoleMappingPayload } from '@keycloak/keycloak-admin-client/lib/defs/roleRepresentation';
 import GroupRepresentation from '@keycloak/keycloak-admin-client/lib/defs/groupRepresentation';
@@ -121,11 +121,6 @@ export async function connect() {
 
   try {
 
-    while (false === redis.isReady) {
-      console.error('redis is not ready');
-      await new Promise<void>(res => setTimeout(() => res(), 1000));
-    }
-
     // API Client admin keycloak login
     await keycloak.auth(credentials);
     console.log('keycloak connected');
@@ -163,20 +158,6 @@ export async function connect() {
       }
     }
 
-    while (!keycloak.apiClient) {
-      // KC Passport & OIDC Client
-      const keycloakIssuer = await Issuer.discover(`https://${KEYCLOAK_HOST}:${KEYCLOAK_PORT}/realms/${KC_REALM}`);
-      
-      keycloak.apiClient = new keycloakIssuer.Client({
-        client_id: KC_API_CLIENT_ID,
-        client_secret: KC_API_CLIENT_SECRET,
-        redirect_uris: [`https://${CUST_APP_HOSTNAME}/api/auth/login/callback`],
-        post_logout_redirect_uris: [`https://${CUST_APP_HOSTNAME}/api/auth/logout/callback`],
-        response_types: ['code']
-      });
-      await new Promise(res => setTimeout(res, 5000));
-    }
-
   } catch (error) {
     const err = error as ApiErrorResponse;
     await new Promise<void>(res => setTimeout(() => res(), 1000));
@@ -203,6 +184,16 @@ export async function getGroupRegistrationRedirectParts(groupCode: string): Prom
   } catch (error) {
     throw { reason: 'Unexpected error, try again later.' };
   }
+}
+
+export const keycloakDiscoveryUrl = `https://${KEYCLOAK_HOST}:${KEYCLOAK_PORT}/realms/${KC_REALM}`;
+
+export const keycloakClientConfiguration = {
+  client_id: KC_API_CLIENT_ID,
+  client_secret: KC_API_CLIENT_SECRET,
+  redirect_uris: [`https://${CUST_APP_HOSTNAME}/api/auth/login/callback`],
+  post_logout_redirect_uris: [`https://${CUST_APP_HOSTNAME}/api/auth/logout/callback`],
+  response_types: ['code']
 }
 
 export default keycloak;

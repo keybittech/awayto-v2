@@ -30,13 +30,7 @@ export async function connect() {
 
   try {
 
-    while (false === redis.isReady) {
-      console.error('redis is not ready');
-      await new Promise<void>(res => setTimeout(() => res(), 250))
-    }
-
     await db.connect();
-    console.log('db connected');
 
     try {
       // Set admin sub

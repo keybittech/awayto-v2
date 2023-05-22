@@ -2,16 +2,16 @@ import cookieParser from 'cookie-parser';
 import cookieSession from 'cookie-session';
 import passport from 'passport';
 import express, { Request, Response, NextFunction, Express } from 'express';
-import { Strategy, StrategyVerifyCallbackUserInfo } from 'openid-client';
+import { Strategy, StrategyVerifyCallbackUserInfo, Issuer } from 'openid-client';
 import { StrategyUser } from 'awayto/core';
 
-import keycloak from '../modules/keycloak';
+import { keycloakClientConfiguration, keycloakDiscoveryUrl } from '../modules/keycloak';
 
 const {
   API_COOKIE
 } = process.env as { [prop: string]: string };
 
-export const setupMiddleware = (app: Express) => {
+export const setupMiddleware = async (app: Express) => {
   // Configure for reverse proxy
   app.set('trust proxy', true);
 
@@ -56,7 +56,11 @@ export const setupMiddleware = (app: Express) => {
     return done(null, { sub });
   }
 
-  passport.use('oidc', new Strategy<StrategyUser>({ client: keycloak.apiClient }, strategyResponder));
+  const keycloakIssuer = await Issuer.discover(keycloakDiscoveryUrl);
+
+  passport.use('oidc', new Strategy<StrategyUser>({
+    client: new keycloakIssuer.Client(keycloakClientConfiguration)
+  }, strategyResponder));
 
   passport.serializeUser(function (user, done) {
     done(null, user);

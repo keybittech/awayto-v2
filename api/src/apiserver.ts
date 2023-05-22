@@ -40,41 +40,37 @@ const key = fs.readFileSync('server.key', 'utf-8');
 const cert = fs.readFileSync('server.crt', 'utf-8');
 const creds = { key, cert };
 
-let httpsServer: Server | null = null;
+const httpsServer = https.createServer(creds, app)
 
-redis.connect().then(() => {
-  console.log('Redis Connected');
-  connectDb().then(() => {
-    console.log('Postgres Connected');
-    connectKc().then(() => {
-      console.log('Keycloak Connected');
+httpsServer.listen(9443, () => {
+  setupMiddleware(app).then(() => {
+    app.use('/api', baseRoutes);
+    app.use('/api/auth', authRoutes);
+    app.use('/api/sock', sockRoutes);
+    app.use('/api/twitch', twitchRoutes);
+    
+    redis.connect().then(() => {
+      console.log('Redis Connected');
+      connectDb().then(() => {
+        console.log('Postgres Connected');
+        connectKc().then(() => {
+          console.log('Keycloak Connected');
+          connectToTwitch(httpsServer).then(() => {
 
-      setupMiddleware(app);
-      
-      app.use('/api', baseRoutes);
-      app.use('/api/auth', authRoutes);
-      app.use('/api/sock', sockRoutes);
-      app.use('/api/twitch', twitchRoutes);
-
-      httpsServer = https.createServer(creds, app);
-
-      httpsServer.listen(9443, () => {
-        if (httpsServer) {
-          connectToTwitch(httpsServer)
-        }
-
-        console.log('Server listening on port 9443');
+            console.log('Server listening on port 9443');
+          });
+        });
       });
-
-    })
+    });
   });
 });
 
-process.on('SIGINT', async function() {
-  console.log('Shutting down...');
-  if (httpsServer) {
-    httpsServer.close();
-  }
-  process.exit(1);
-})
+process.once('SIGUSR2', function () {
+  process.kill(process.pid, 'SIGUSR2');
+});
+
+process.on('SIGINT', function () {
+  // this is only called on ctrl+c, not restart
+  process.kill(process.pid, 'SIGINT');
+});
 

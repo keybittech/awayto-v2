@@ -6,7 +6,7 @@
     "build": "webpack --config api.webpack.js",
     "start": "npm-run-all --parallel start-nodemon start-webpack",
     "start-webpack": "NODE_ENV=development webpack --config api.webpack.js",
-    "start-nodemon": "nodemon -r dotenv/config build/api.js --watch build",
+    "start-nodemon": "nodemon --delay 3000ms -r dotenv/config build/api.js --watch build",
     "prestart": "kill $(lsof -t -i:9443) &",
     "debug": "npm run start-webpack & npm run start-nodemon"
   },
