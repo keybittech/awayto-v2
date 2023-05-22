@@ -1,10 +1,23 @@
-import { IGroup, IGroupRole, asyncForEach, createHandlers } from 'awayto/core';
+import { IGroup, IGroupRole, asyncForEach, createHandlers, utcNowString } from 'awayto/core';
 
 export default createHandlers({
   postGroupRole: async props => {
-    return { success: true };
-  },
-  putGroupRole: async props => {
+    const { groupName, role } = props.event.body;
+
+    const group = await props.tx.one<IGroup>(`
+      SELECT id, external_id as "externalId"
+      FROM dbtable_schema.groups
+      WHERE name = $1 AND enabled = true
+    `, [groupName]);
+
+    const { id: kcSubgroupId } = await props.keycloak.groups.setOrCreateChild({ id: group.externalId }, { name: role.name });
+
+    await props.tx.none(`
+      INSERT INTO dbtable_schema.group_roles (group_id, role_id, external_id, created_on, created_sub)
+      VALUES ($1, $2, $3, $4, $5::uuid)
+      ON CONFLICT (group_id, role_id) DO NOTHING
+    `, [group.id, role.id, kcSubgroupId, utcNowString(), props.event.userSub]);
+
     return { success: true };
   },
   getGroupRoles: async props => {

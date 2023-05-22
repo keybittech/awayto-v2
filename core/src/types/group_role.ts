@@ -20,15 +20,7 @@ export default {
     url: 'group/:groupName/roles',
     method: 'POST',
     opts: {} as ApiOptions,
-    queryArg: { groupName: '' as string },
-    resultType: { success: true as boolean }
-  },
-  putGroupRole: {
-    kind: EndpointType.MUTATION,
-    url: 'group/:groupName/roles',
-    method: 'PUT',
-    opts: {} as ApiOptions,
-    queryArg: { groupName: '' as string },
+    queryArg: { role: {} as IRole, groupName: '' as string },
     resultType: { success: true as boolean }
   },
   getGroupRoles: {

@@ -58,7 +58,6 @@ function WebSocketProvider({ children }: IProps): React.JSX.Element {
         ws.onmessage = (event: MessageEvent<{ text(): Promise<string> }>) => {
           async function go () {
             const { sender, type, topic, payload } = JSON.parse(await event.data.text()) as SocketResponse<unknown>;
-            console.log('hello', messageListeners, topic);
             const listeners = messageListeners.current.get(topic);
       
             if (listeners) {

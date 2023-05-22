@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useMemo, Suspense } from 'react';
+import React, { useState, useMemo, Suspense } from 'react';
+import { useParams } from 'react-router-dom';
 import dayjs from 'dayjs';
 
 import Box from '@mui/material/Box';
@@ -14,14 +15,19 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { DataGrid } from '@mui/x-data-grid';
 
 import { IRole } from 'awayto/core';
-import { sh, useGrid, useStyles } from 'awayto/hooks';
+import { sh, useComponents, useGrid, useStyles } from 'awayto/hooks';
 
-import ManageRoleModal from './ManageRoleModal';
-
-export function ManageRoles(props: IProps): React.JSX.Element {
+export function ManageRoles(): React.JSX.Element {
+  const { groupName } = useParams();
+  
   const classes = useStyles();
 
-  const { data: profile, refetch: getUserProfileDetails } = sh.useGetUserProfileDetailsQuery();
+  const { ManageRoleModal } = useComponents();
+
+  const { data: groupRoles, refetch: getGroupRoles } = sh.useGetGroupRolesQuery({ groupName: groupName || '' }, { skip: !groupName }); 
+  const { data: profile, refetch: getUserProfileDetails } = sh.useGetUserProfileDetailsQuery(undefined, { skip: !!groupName });
+
+  const roleSet = useMemo(() => groupRoles?.length ? groupRoles : profile && Object.keys(profile.roles || {}).length ? Object.values(profile.roles) : [], [groupRoles, profile]);
 
   const [deleteRole] = sh.useDeleteRoleMutation();
 
@@ -34,11 +40,16 @@ export function ManageRoles(props: IProps): React.JSX.Element {
     const acts = length == 1 ? [
       <Tooltip key={'manage_role'} title="Edit">
         <Button onClick={() => {
-          if (profile?.roles) {
-            setRole(profile?.roles[selected[0]]);
-            setDialog('manage_role');
-            setSelected([]);
+          const role = roleSet.find(r => r.id === selected[0]);
+          if (role && groupName) {
+            const userRole = Object.values(profile?.roles || {}).find(r => r.name === role.name);
+            if (userRole) {
+              role.id = userRole.id;
+            }
           }
+          setRole(role);
+          setDialog('manage_role');
+          setSelected([]);
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Edit</Typography>
           <CreateIcon className={classes.variableButtonIcon} />
@@ -65,7 +76,7 @@ export function ManageRoles(props: IProps): React.JSX.Element {
   }, [selected]);
 
   const roleGridProps = useGrid({
-    rows: Object.values(profile?.roles || {}),
+    rows: roleSet,
     columns: [
       { flex: 1, headerName: 'Name', field: 'name' },
       { flex: 1, headerName: 'Created', field: 'createdOn', renderCell: ({ row }) => dayjs().to(dayjs.utc(row.createdOn)) }
@@ -90,9 +101,9 @@ export function ManageRoles(props: IProps): React.JSX.Element {
   return <>
     <Dialog open={dialog === 'manage_role'} fullWidth maxWidth="sm">
       <Suspense>
-        <ManageRoleModal {...props} editRole={role} closeModal={() => {
-          setDialog('')
-          void getUserProfileDetails();
+        <ManageRoleModal editRole={role} closeModal={() => {
+          setDialog('');
+          groupRoles?.length ? void getGroupRoles() : void getUserProfileDetails();
         }} />
       </Suspense>
     </Dialog>

@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
+import { useParams } from 'react-router-dom';
 
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
@@ -20,27 +21,33 @@ declare global {
 
 export function ManageRoleModal ({ editRole, closeModal }: IProps): React.JSX.Element {
 
+  const { groupName } = useParams();
+
   const { setSnack } = useUtil();
   const [putRole] = sh.usePutRoleMutation();
   const [postRole] = sh.usePostRoleMutation();
+  const [postGroupRole] = sh.usePostGroupRoleMutation();
 
   const [role, setRole] = useState<Partial<IRole>>({
     name: '',
     ...editRole
   });
   
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     const { id, name } = role;
 
     if (!name) {
       setSnack({snackType: 'error', snackOn: 'Roles must have a name.' });
       return;
     }
+    const newRole = await (id ? putRole : postRole)({ name, id } as IRole).unwrap();
 
-    (id ? putRole : postRole)(role as IRole).unwrap().then(() => {
-      if (closeModal)
-        closeModal();
-    }).catch(console.error);
+    if (groupName && !id) {
+      await postGroupRole({ groupName, role: newRole });
+    }
+
+    if (closeModal)
+      closeModal();
   }, [role]);
 
   return <>
@@ -63,7 +70,7 @@ export function ManageRoleModal ({ editRole, closeModal }: IProps): React.JSX.El
                   value={role.name}
                   onKeyDown={e => {
                     if ('Enter' === e.key) {
-                      handleSubmit();
+                      void handleSubmit();
                     }
                   }}
                   onChange={e => setRole({ ...role, name: e.target.value })} />
@@ -75,7 +82,7 @@ export function ManageRoleModal ({ editRole, closeModal }: IProps): React.JSX.El
       <CardActions>
         <Grid container justifyContent="space-between">
           <Button onClick={closeModal}>Cancel</Button>
-          <Button onClick={handleSubmit}>Submit</Button>
+          <Button onClick={() => void handleSubmit()}>Submit</Button>
         </Grid>
       </CardActions>
     </Card>

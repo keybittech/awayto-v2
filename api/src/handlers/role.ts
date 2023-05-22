@@ -3,7 +3,7 @@ import { IRole, IUserProfile, buildUpdate, utcNowString, asyncForEach, createHan
 export default createHandlers({
   postRole: async props => {
     const { name } = props.event.body;
-    const { adminSub } = await props.redisProxy('adminSub');
+    const { adminSub } = await props.redisProxy('adminSub'); // sys admin ultimately owns all roles
 
     const role = await props.tx.one<IRole>(`
       WITH input_rows(name, created_sub) as (VALUES ($1, $2::uuid)), ins AS (
