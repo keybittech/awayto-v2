@@ -27,7 +27,6 @@ import scheduleApiHandler from './schedule';
 import serviceAddonApiHandler from './service_addon';
 import serviceTierApiHandler from './service_tier';
 import serviceApiHandler from './service';
-import socketApiHandler from './web_socket'
 import uuidNotesApiHandler from './uuid_notes';
 
 /**
@@ -60,7 +59,6 @@ export const siteApiHandlerRef = createHandlers({
   ...serviceAddonApiHandler,
   ...serviceTierApiHandler,
   ...serviceApiHandler,
-  ...socketApiHandler,
   ...groupFilesApiHandler,
   ...uuidNotesApiHandler
 });

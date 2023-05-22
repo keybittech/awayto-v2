@@ -27,7 +27,7 @@ export async function handleSubscription(wss, ws, message) {
 
       // send the existing user list to the joining connections
       if (existingUsers.length) {
-        ws.send(Buffer.from(JSON.stringify({
+        wss.backchannel.send(Buffer.from(JSON.stringify({
           sender: ws.connectionId,
           type: 'existing-subscribers',
           topic: parsed.topic,
@@ -39,29 +39,32 @@ export async function handleSubscription(wss, ws, message) {
       await redis.sAdd(`member_topics:${parsed.topic}`, ws.connectionId); // track connection to just this topic
       await redis.expire(`member_topics:${parsed.topic}`, 86400); // Set expiration to 24 hours
 
-      // Notify all other subscribers that a new user has joined the topic
-      const notificationMessage = Buffer.from(JSON.stringify({
-        store: true,
+      wss.backchannel.send(Buffer.from(JSON.stringify({
         sender: ws.connectionId,
         type: 'subscribe-topic',
         topic: parsed.topic,
         payload: ws.connectionId
-      }));
-      wss.clients.forEach(client => {
-        if (client.readyState === WebSocket.OPEN && (client.backchannel || client.subscriber.subscribedTopics.has(parsed.topic))) {
-          client.send(notificationMessage);
-        }
-      });
+      })));
     }
   } else if ('unsubscribe' === parsed.type) {
     await unsubscribe(wss, ws.connectionId, parsed.topic);
     ws.subscriber.subscribedTopics.delete(parsed.topic);
+  } else if (parsed.target) {
+    wss.clients.forEach(client => {
+      if (client.readyState && client.connectionId == parsed.target) {
+        client.send(Buffer.from(JSON.stringify(parsed.payload)));
+      }
+    });
   } else if (parsed.topic) {
     // send messages as normal to topic-subscribed connections
     wss.clients.forEach(client => {
-      if (client.readyState === WebSocket.OPEN && (client.backchannel || client.subscriber.subscribedTopics.has(parsed.topic))) {
+      if (client.readyState === WebSocket.OPEN && !client.backchannel && client.subscriber.subscribedTopics.has(parsed.topic)) {
         client.send(message);
       }
     });
+  }
+
+  if (parsed.store) {
+    wss.backchannel.send(message);
   }
 }

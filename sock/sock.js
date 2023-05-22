@@ -107,6 +107,7 @@ server.on('upgrade', async function (req, socket, head) {
     } else if (checkBackchannel(req.headers['authorization'])) {
       wss.handleUpgrade(req, socket, head, async ws => {
         ws.backchannel = true;
+        wss.backchannel = ws;
         wss.emit('connection', ws, req);
       });
     } else {

@@ -43,14 +43,3 @@ export type SocketMessage = SocketParticipant & {
   message: string;
   timestamp: string;
 };
-
-export default {
-  getSocketParticipants: {
-    kind: EndpointType.QUERY,
-    url: 'ws/ps/:cids',
-    method: 'GET',
-    opts: {} as ApiOptions,
-    queryArg: { cids: '' as string },
-    resultType: [] as SocketParticipant[]
-  }
-} as const;

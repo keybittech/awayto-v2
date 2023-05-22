@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -23,6 +23,8 @@ export function WSTextProvider({ children, topicId, topicMessages, setTopicMessa
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const [names, setNames] = useState<string[]>([]);
+
   const {
     userList,
     connectionId,
@@ -35,20 +37,20 @@ export function WSTextProvider({ children, topicId, topicMessages, setTopicMessa
 
     const { message, style } = payload;
 
-    const user = Object.values(userList).find(p => p.cids.includes(sender));
-    
-    if (message && style && user && setTopicMessages) {
-      setTopicMessages(m => [...m, {
-        ...user,
-        sender,
-        style,
-        message,
-        timestamp: (new Date()).toString()
-      }]);
+    if (message && style && setTopicMessages) {
+      for (const user of userList.values()) {
+        if (user.cids.includes(sender)) {
+          setTopicMessages(m => [...m, {
+            ...user,
+            sender,
+            style,
+            message,
+            timestamp: (new Date()).toString()
+          }]);
+        }
+      }
     }
   });
-
-  const userListValues = useMemo(() => Object.values(userList || {}), [userList]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'auto', block: 'end', inline: 'nearest' })
@@ -63,6 +65,7 @@ export function WSTextProvider({ children, topicId, topicMessages, setTopicMessa
         message: `${subscriber.name} entered chat.`,
         timestamp: (new Date()).toString()
       }]);
+      setNames(n => [ ...n, subscriber.name]);
     }
   }, [subscriber, setTopicMessages]);
 
@@ -75,6 +78,11 @@ export function WSTextProvider({ children, topicId, topicMessages, setTopicMessa
         message: `${unsubscriber.name} left chat.`,
         timestamp: (new Date()).toString()
       }]);
+      setNames(n => {
+        const idx = n.indexOf(unsubscriber.name);
+        n.splice(idx, 1);
+        return [ ...n ];
+      });
     }
   }, [unsubscriber, setTopicMessages]);
 
@@ -90,7 +98,7 @@ export function WSTextProvider({ children, topicId, topicMessages, setTopicMessa
         }}
       />
       <Typography variant="caption">
-        {!!userListValues.length && `${plural(userListValues.length, 'participant', 'participants')}: ${userListValues.map(p => p.name).join(', ')}`}
+        {names.length && `${plural(names.length, 'participant', 'participants')}: ${names.join(', ')}`}
       </Typography>
     </>
   } as WSTextContextType | null;

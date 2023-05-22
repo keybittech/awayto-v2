@@ -59,6 +59,6 @@ router.post('/stale', checkBackchannel, async (req, res) => {
     WHERE created_sub || ':' || connection_id = ANY($1::text[])
   `, [staleConnections]);
   res.end();
-})
+});
 
 export default router;

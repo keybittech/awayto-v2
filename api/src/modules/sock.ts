@@ -1,6 +1,6 @@
 import { WebSocket } from 'ws';
 
-import { SocketResponse, charCount } from 'awayto/core';
+import { SocketParticipant, SocketResponse, charCount } from 'awayto/core';
 import { db } from './db';
 
 const {
@@ -8,6 +8,30 @@ const {
   SOCK_PORT,
   SOCK_SECRET
 } = process.env as { [prop: string]: string };
+
+async function getSubDetails(parts: SocketParticipant[]) {
+  try {
+    for (const part of parts) {
+      const partDetails = await db.one<{ name: string, role: string }>(`
+        SELECT
+          LEFT(first_name, 1) || LEFT(last_name, 1) as name,
+          'Tutor' as role
+        FROM dbtable_schema.users
+        WHERE sub = $1
+      `, [part.scid]);
+      Object.assign(part, partDetails);
+    }
+  
+    return parts.map(part => ({
+      scid: `${part.name}#${charCount(part.scid)}`,
+      cids: part.cids,
+      name: part.name.toUpperCase(),
+      role: 'Tutor'
+    }));
+  } catch (error) {
+    console.log('failed to get sub details', error);
+  }
+}
 
 async function go() {
   async function connect() {
@@ -21,31 +45,66 @@ async function go() {
       };
 
       ws.onmessage = async ({ data }) => {
-        const { store, ...message } = JSON.parse(data.toString()) as SocketResponse<unknown>;
-        console.log({ message });
-        if (store) {
-
-          if ('subscribe-topic' === message.type) {
-            const messages = await db.manyOrNone<{ message: SocketResponse<unknown> }>(`
-              SELECT message
-              FROM dbtable_schema.topic_messages
-              WHERE topic = $1
-            `, [message.topic]);
-  
-            for (const { message: existingMessage } of messages) {
-              console.log('eeeeeeeeee', existingMessage)
-              ws.send(JSON.stringify(existingMessage));
+        const { store, ...event } = JSON.parse(data.toString()) as SocketResponse<unknown>;
+        if ('subscribe-topic' === event.type) {
+          const subscribers = [await db.one<SocketParticipant>(`
+            SELECT
+              ARRAY_AGG(source.connection_id) as cids,
+              source.created_sub as scid
+            FROM dbtable_schema.sock_connections source
+            JOIN dbtable_schema.sock_connections sc ON sc.connection_id = $1
+            WHERE source.created_sub = sc.created_sub
+            GROUP BY source.created_sub
+          `,[event.payload as string])];
+          if (subscribers) {
+            const subDetails = await getSubDetails(subscribers);
+            if (subDetails) {
+              event.payload = subDetails
+              ws.send(JSON.stringify(event));
             }
-  
-            console.log({ OLD_MESSAGES: messages });
           }
+        } else if ('existing-subscribers' === event.type) {
+          const subscribers = await db.manyOrNone<SocketParticipant>(`
+            SELECT DISTINCT
+              ARRAY_AGG(connection_id) as cids,
+              created_sub as scid
+            FROM dbtable_schema.topic_messages
+            WHERE topic = $1
+            GROUP BY created_sub
+          `, [event.topic]);
+          if (subscribers) {
+            const subDetails = await getSubDetails(subscribers);
+            if (subDetails && subDetails.length) {
+              ws.send(JSON.stringify({
+                target: event.sender,
+                payload: {
+                  ...event,
+                  payload: subDetails
+                }
+              }));
+    
+              const messages = await db.manyOrNone<{ message: SocketResponse<unknown> }>(`
+                SELECT message
+                FROM dbtable_schema.topic_messages
+                WHERE topic = $1
+              `, [event.topic]);
+              for (const { message } of messages) {
+                ws.send(JSON.stringify({
+                  target: event.sender,
+                  payload: message
+                }));
+              }
+            }
+          }
+        }
 
+        if (store) {
           await db.none(`
             INSERT INTO dbtable_schema.topic_messages (created_sub, topic, message, connection_id)
-            SELECT created_sub, $2, $3, $4
+            SELECT created_sub, $2, $3, $1
             FROM dbtable_schema.sock_connections
             WHERE connection_id = $1 
-          `, [message.sender, message.topic, message, message.sender]);
+          `, [event.sender, event.topic, event]);
         }
       };
   

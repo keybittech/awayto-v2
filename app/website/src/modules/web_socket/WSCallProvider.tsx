@@ -43,27 +43,33 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
     const timestamp = (new Date()).toString();
     const { formats, sdp, ice, message, style } = payload;
 
-    const user = Object.values(userList).find(p => p.cids.includes(sender));
-
-    if ('text' === type && setTopicMessages && user && message && style) {
-      setTopicMessages(m => [...m, {
-        ...user,
-        sender,
-        style,
-        message,
-        timestamp
-      }]);
+    if ('text' === type && setTopicMessages && message && style) {
+      for (const user of userList.values()) {
+        if (user.cids.includes(sender)) {
+          setTopicMessages(m => [...m, {
+            ...user,
+            sender,
+            style,
+            message,
+            timestamp
+          }]);
+        }
+      }
     } else if (['join-call', 'peer-response'].includes(type)) {
       // Parties to an incoming caller's 'join-call' will see this, and then notify the caller that they exist in return
       // The caller gets a party member's 'peer-response', and sets them up in return
-      if (formats && setTopicMessages && user) {
-        setTopicMessages(m => [...m, {
-          ...user,
-          sender,
-          style: 'utterance',
-          message: `Joined call with ${formats.indexOf('video') > -1 ? 'video' : 'voice'}.`,
-          timestamp
-        }]);
+      if (formats && setTopicMessages) {
+        for (const user of userList.values()) {
+          if (user.cids.includes(sender)) {
+            setTopicMessages(m => [...m, {
+              ...user,
+              sender,
+              style: 'utterance',
+              message: `Joined call with ${formats.indexOf('video') > -1 ? 'video' : 'voice'}.`,
+              timestamp
+            }]);
+          } 
+        }
       }
 
       const senders = Object.keys(senderStreams).filter(sender => !senderStreams[sender].pc);

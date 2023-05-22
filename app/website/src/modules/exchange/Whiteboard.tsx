@@ -81,15 +81,17 @@ export default function Whiteboard({ optionsMenu, sharedFile, openFileSelect, to
       } else if ('share-file' === type) {
         const fileDetails = { mimeType: board.sharedFile?.mimeType, uuid: board.sharedFile?.uuid };
         if (connectionId !== sender) {
-          const user = Object.values(userList).find(u => u.cids.includes(sender));
-          if (user) {
-            openConfirm({
-              isConfirming: true,
-              confirmEffect: `${user.name} wants to share a file`,
-              confirmAction: () => {
-                getFileContents(fileDetails).catch(console.error);
-              }
-            });
+
+          for (const user of userList.values()) {
+            if (user.cids.includes(sender)) {
+              openConfirm({
+                isConfirming: true,
+                confirmEffect: `${user.name} wants to share a file`,
+                confirmAction: () => {
+                  getFileContents(fileDetails).catch(console.error);
+                }
+              });
+            }
           }
         } else {
           getFileContents(fileDetails).catch(console.error);

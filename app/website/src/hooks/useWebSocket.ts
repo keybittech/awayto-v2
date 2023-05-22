@@ -20,10 +20,27 @@ export function useWebSocketSubscribe <T>(topic: string, callback: SocketRespons
 
   const [subscriber, setSubscriber] = useState<SocketParticipant | undefined>();
   const [unsubscriber, setUnsubscriber] = useState<SocketParticipant | undefined>();
-  const [userList, setUserList] = useState<Record<string, SocketParticipant>>({});
+  const [userList, setUserList] = useState<Map<string, SocketParticipant>>(new Map());
   const callbackRef = useRef(callback);
 
-  const [getSocketParticipants] = sh.useLazyGetSocketParticipantsQuery();
+  const handleSub = (sub: SocketParticipant) => {
+    setUserList(ul => {
+      const user = ul.get(sub.scid);
+      if (user) {
+        for (const cid of sub.cids) {
+          if (!user.cids.includes(cid)) {
+            user.cids.push(cid);
+          }
+        }
+      } else {
+        sub.color = generateLightBgColor();
+        ul.set(sub.scid, sub);
+        setSubscriber(sub);
+        console.log(sub.name, 'joined the channel')
+      }
+      return new Map(ul);
+    });
+  }
 
   useEffect(() => {
     callbackRef.current = callback;
@@ -31,32 +48,28 @@ export function useWebSocketSubscribe <T>(topic: string, callback: SocketRespons
 
   useEffect(() => {
     if (connected) {
-      transmit(true, 'subscribe', topic);
 
-      const unsubscribe = subscribe(topic, async message => {
+      const unsubscribe = subscribe(topic, message => {
         if (['existing-subscribers', 'subscribe-topic'].includes(message.type)) {
-          const subs = await getSocketParticipants({ cids: message.payload as string }).unwrap().catch(console.error);
-          if (subs) {
-            for (const sub of deepClone(subs)) {
-              sub.color = generateLightBgColor();
-              setUserList(ul => ({ ...ul, [sub.scid]: sub }));
-              setSubscriber(sub);
-            }
+          for (const sub of message.payload as SocketParticipant[]) {
+            handleSub(sub);
           }
         } else if ('unsubscribe-topic' === message.type) {
-          const unsub = Object.values(userList).find(c => c.cids.includes(message.payload as string))
-          if (unsub) {
-            delete userList[unsub.scid];
-            setUserList(ul => {
-              delete ul[unsub.scid];
-              return { ...ul };
-            });
+          for (const unsub of userList.values()) {
+            if (unsub.cids.includes(message.payload as string)) {
+              setUserList(ul => {
+                ul.delete(unsub.scid);
+                return new Map(ul);
+              });
+              setUnsubscriber(unsub);
+            }
           }
-          setUnsubscriber(unsub);
         } else {
           void callbackRef.current(message);        
         }
       });
+
+      transmit(true, 'subscribe', topic);
 
       return () => {
         transmit(true, 'unsubscribe', topic);
