@@ -9,6 +9,7 @@ export type SocketResponse<T> = {
   sender: string;
   type: string;
   topic: string;
+  timestamp: string;
   payload: Partial<T>;
 };
 

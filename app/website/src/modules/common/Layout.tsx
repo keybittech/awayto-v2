@@ -48,7 +48,7 @@ const Layout = (props: IProps): React.JSX.Element => {
             <Grid xs={12} px={1} sx={{ bgcolor: 'primary.dark' }}>
               <Topbar forceSiteMenu={true} {...props} />
             </Grid>
-            <Grid p={2} sx={{ width: '100%', height: 'calc(100vh - 75px)' }}>
+            <Grid sx={{ width: '100%', height: 'calc(100vh - 59px)' }}>
               <Suspense fallback={<CircularProgress color="inherit" />}>
                 <ExchangeProvider>
                   <Outlet />

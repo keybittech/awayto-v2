@@ -36,7 +36,7 @@ export function useWebSocketSubscribe <T>(topic: string, callback: SocketRespons
         sub.color = generateLightBgColor();
         ul.set(sub.scid, sub);
         setSubscriber(sub);
-        console.log(sub.name, 'joined the channel')
+        console.log(sub.name, 'joined the channel');
       }
       return new Map(ul);
     });

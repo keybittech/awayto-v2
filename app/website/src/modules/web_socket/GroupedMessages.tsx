@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React from 'react';
 
 import Grid from '@mui/material/Grid';
 import Tooltip from '@mui/material/Tooltip';
@@ -31,7 +31,7 @@ function GroupedMessages({ topicMessages: messages }: IProps): React.JSX.Element
   const groupedMessages: GroupedMessage[] = [];
   let currentGroup: GroupedMessage | null = null;
   messages.forEach((msg, i) => {
-    if (i === 0 || messages[i - 1].sender !== msg.sender || messages[i -1].style !== msg.style) {
+    if (i === 0 || messages[i - 1].scid !== msg.scid || messages[i -1].style !== msg.style) {
       currentGroup = {
         ...msg,
         messages: [msg.message]
@@ -48,7 +48,7 @@ function GroupedMessages({ topicMessages: messages }: IProps): React.JSX.Element
     </Card>
     {groupedMessages.map((group, i) => {
       const Action = group.action;
-      return <Card sx={{ marginBottom: '8px' }} key={`${group.sender}_group_${i}`}>
+      return <Card sx={{ marginBottom: '8px' }} key={`${group.scid}_group_${i}`}>
         <CardContent>
           <Grid container spacing={1}>
             <Grid item>
@@ -70,7 +70,7 @@ function GroupedMessages({ topicMessages: messages }: IProps): React.JSX.Element
             </Grid>
           </Grid>
           {group.messages.map((message, j) => (
-            <Typography color="primary" style={{ overflowWrap: 'anywhere', whiteSpace: 'pre-wrap' }} key={`${group.sender}_msg_${j}`}>
+            <Typography color="primary" style={{ overflowWrap: 'anywhere', whiteSpace: 'pre-wrap' }} key={`${group.scid}_msg_${j}`}>
               {message}
             </Typography>
           ))}

@@ -86,18 +86,19 @@ async function go() {
             }
           }
         } else if ('load-messages' === event.type) {
-          const messages = await db.manyOrNone<{ message: SocketResponse<unknown> }>(`
-            SELECT message
+          const messages = await db.manyOrNone<{ timestamp: string, message: SocketResponse<unknown> }>(`
+            SELECT JSONB_SET(message, '{timestamp}', TO_JSONB(created_on), true) as message
             FROM dbtable_schema.topic_messages
             WHERE topic = $1
             ORDER BY created_on ASC
           `, [event.topic]);
           for (const { message } of messages) {
-            if (!['subscribe', 'unsubscribe'].includes(message.type))
-            ws.send(JSON.stringify({
-              target: event.sender,
-              payload: message
-            }));
+            if (!['subscribe', 'unsubscribe'].includes(message.type)) {
+              ws.send(JSON.stringify({
+                target: event.sender,
+                payload: message
+              }));
+            }
           }
         }
 

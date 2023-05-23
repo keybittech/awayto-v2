@@ -32,7 +32,7 @@ export function WSTextProvider({ children, topicId, topicMessages, setTopicMessa
     subscriber,
     unsubscriber,
     storeMessage
-  } = useWebSocketSubscribe<{ message: string, style: SocketMessage['style'] }>(topicId, ({ sender, topic, type, payload }) => {
+  } = useWebSocketSubscribe<{ message: string, style: SocketMessage['style'] }>(topicId, ({ timestamp, sender, topic, type, payload }) => {
     console.log('RECEIVED A NEW SOCKET TEXT', { userList, connectionId, sender, topic, type }, JSON.stringify(payload));
 
     const { message, style } = payload;
@@ -45,7 +45,7 @@ export function WSTextProvider({ children, topicId, topicMessages, setTopicMessa
             sender,
             style,
             message,
-            timestamp: (new Date()).toString()
+            timestamp
           }]);
         }
       }

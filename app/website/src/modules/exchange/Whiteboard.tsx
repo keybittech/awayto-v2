@@ -59,7 +59,6 @@ export default function Whiteboard({ optionsMenu, sharedFile, openFileSelect, to
     userList,
     sendMessage: sendWhiteboardMessage
   } = useWebSocketSubscribe<Whiteboard>(topicId, ({ sender, type, payload }) => {
-    console.log({ sender, type, payload })
     setBoards(b => {
       const board = {  ...b[sender], ...payload };
       if ('set-position' === type) {
@@ -78,7 +77,6 @@ export default function Whiteboard({ optionsMenu, sharedFile, openFileSelect, to
       } else if ('share-file' === type) {
         const fileDetails = { mimeType: board.sharedFile?.mimeType, uuid: board.sharedFile?.uuid };
         if (connectionId !== sender) {
-
           for (const user of userList.values()) {
             if (user.cids.includes(sender)) {
               openConfirm({
