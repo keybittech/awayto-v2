@@ -72,7 +72,7 @@ export async function connectToTwitch(httpsServer: https.Server) {
       }
     }
 
-    const userName = 'ChatJOEPT';
+    const userName = 'awayto';
     const userCall = await fetch(`https://api.twitch.tv/helix/users?login=${encodeURIComponent(userName)}`, headers);
 
 
@@ -111,8 +111,8 @@ export async function connectToTwitch(httpsServer: https.Server) {
         ws.on('open', async function () {
           ws.send('CAP REQ :twitch.tv/membership twitch.tv/tags twitch.tv/commands')
           ws.send(`PASS oauth:${client_access_token}`);
-          ws.send(`NICK chatjoept`);
-          ws.send('JOIN #chatjoept');
+          ws.send(`NICK awayto`);
+          ws.send('JOIN #awayto');
         });
 
         let residents: string[] = [];
@@ -144,9 +144,9 @@ export async function connectToTwitch(httpsServer: https.Server) {
               return;
             }
 
-            if (data.includes(' JOIN #chatjoept')) {
-              if (data.includes(':chatjoept!')) return;
-              const joiners = data.toString().split('#chatjoept').map(n => n.trim().split('!')[0].slice(1).trim());
+            if (data.includes(' JOIN #awayto')) {
+              if (data.includes(':awayto!')) return;
+              const joiners = data.toString().split('#awayto').map(n => n.trim().split('!')[0].slice(1).trim());
               joiners.pop();
               residents = residents.concat(joiners);
               localSocketServer.clients.forEach((localSocket) => {
@@ -156,15 +156,15 @@ export async function connectToTwitch(httpsServer: https.Server) {
               });
             }
 
-            if (data.includes(' PART #chatjoept')) {
-              if (data.includes(':chatjoept!')) return;
-              const parters = data.toString().split('#chatjoept').map(n => n.trim().split('!')[0].slice(1).trim());
+            if (data.includes(' PART #awayto')) {
+              if (data.includes(':awayto!')) return;
+              const parters = data.toString().split('#awayto').map(n => n.trim().split('!')[0].slice(1).trim());
               parters.pop();
               parters.forEach(partName => residents.splice(residents.indexOf(partName)));
             }
 
-            if (data.includes(' PRIVMSG #chatjoept :')) {
-              const [payload, message] = body.split(" PRIVMSG #chatjoept :");
+            if (data.includes(' PRIVMSG #awayto :')) {
+              const [payload, message] = body.split(" PRIVMSG #awayto :");
               let messageBuilder = message;
               const payloadItems = payload.slice(1).split(';');
 
