@@ -38,13 +38,13 @@ const directions = {
     background: 'conic-gradient(transparent 0deg 270deg, lightblue 270deg 360deg)',
     anchor: { vertical: 'bottom', horizontal: 'left' },
     transform: { vertical: 'top', horizontal: 'left' },
-    position: { top: 25, left: 25 }
+    position: { top: 0, left: 25 }
   },
   tr: {
     background: 'conic-gradient(lightblue 0deg 90deg, transparent 90deg 270deg)',
     anchor: { vertical: 'bottom', horizontal: 'right' },
     transform: { vertical: 'top', horizontal: 'right' },
-    position: { top: 25, right: 25 }
+    position: { top: 0, right: 25 }
   },
   bl: {
     background: 'conic-gradient(transparent 0deg 180deg, lightblue 180deg 270deg, transparent 270deg 360deg)',

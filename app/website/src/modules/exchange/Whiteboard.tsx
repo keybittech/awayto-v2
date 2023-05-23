@@ -8,9 +8,6 @@ import 'react-pdf/dist/esm/Page/TextLayer.css';
 import { Document, Page } from 'react-pdf/dist/esm/entry.webpack5';
 
 import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-
-import SettingsIcon from '@mui/icons-material/Settings';
 
 import { useWebSocketSubscribe, useFileContents, useComponents, useUtil } from 'awayto/hooks';
 import { IFile, Whiteboard } from 'awayto/core';
