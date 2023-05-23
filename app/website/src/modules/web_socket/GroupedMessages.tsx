@@ -42,7 +42,7 @@ function GroupedMessages({ topicMessages: messages }: IProps): React.JSX.Element
     }
   });
 
-  return useMemo(() => <>
+  return <>
     <Card sx={{ marginBottom: '8px' }}>
       <CardHeader subheader="Welcome to the chat! Messages will appear below..." />
     </Card>
@@ -78,7 +78,7 @@ function GroupedMessages({ topicMessages: messages }: IProps): React.JSX.Element
         </CardContent>
       </Card>
     })}
-  </>, [messages]);
+  </>;
 }
 
 export default GroupedMessages;

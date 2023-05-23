@@ -54,6 +54,9 @@ export function useWebSocketSubscribe <T>(topic: string, callback: SocketRespons
           for (const sub of message.payload as SocketParticipant[]) {
             handleSub(sub);
           }
+          if ('existing-subscribers' === message.type) {
+            transmit(false, 'load-messages', topic);
+          }
         } else if ('unsubscribe-topic' === message.type) {
           for (const unsub of userList.values()) {
             if (unsub.cids.includes(message.payload as string)) {

@@ -47,15 +47,16 @@ async function go() {
       ws.onmessage = async ({ data }) => {
         const { store, ...event } = JSON.parse(data.toString()) as SocketResponse<unknown>;
         if ('subscribe-topic' === event.type) {
-          const subscribers = [await db.one<SocketParticipant>(`
+          const subscribers = await db.manyOrNone<SocketParticipant>(`
             SELECT
               ARRAY_AGG(source.connection_id) as cids,
               source.created_sub as scid
             FROM dbtable_schema.sock_connections source
-            JOIN dbtable_schema.sock_connections sc ON sc.connection_id = $1
+            JOIN dbtable_schema.sock_connections sc ON sc.connection_id = $2
             WHERE source.created_sub = sc.created_sub
             GROUP BY source.created_sub
-          `,[event.payload as string])];
+          `,[event.topic, event.payload as string]);
+          
           if (subscribers) {
             const subDetails = await getSubDetails(subscribers);
             if (subDetails) {
@@ -82,19 +83,21 @@ async function go() {
                   payload: subDetails
                 }
               }));
-    
-              const messages = await db.manyOrNone<{ message: SocketResponse<unknown> }>(`
-                SELECT message
-                FROM dbtable_schema.topic_messages
-                WHERE topic = $1
-              `, [event.topic]);
-              for (const { message } of messages) {
-                ws.send(JSON.stringify({
-                  target: event.sender,
-                  payload: message
-                }));
-              }
             }
+          }
+        } else if ('load-messages' === event.type) {
+          const messages = await db.manyOrNone<{ message: SocketResponse<unknown> }>(`
+            SELECT message
+            FROM dbtable_schema.topic_messages
+            WHERE topic = $1
+            ORDER BY created_on ASC
+          `, [event.topic]);
+          for (const { message } of messages) {
+            if (!['subscribe', 'unsubscribe'].includes(message.type))
+            ws.send(JSON.stringify({
+              target: event.sender,
+              payload: message
+            }));
           }
         }
 
@@ -103,7 +106,7 @@ async function go() {
             INSERT INTO dbtable_schema.topic_messages (created_sub, topic, message, connection_id)
             SELECT created_sub, $2, $3, $1
             FROM dbtable_schema.sock_connections
-            WHERE connection_id = $1 
+            WHERE connection_id = $1
           `, [event.sender, event.topic, event]);
         }
       };
