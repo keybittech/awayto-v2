@@ -70,7 +70,7 @@ export function PendingQuotesProvider ({ children }: IProps): React.JSX.Element 
           }) as IBooking);
 
           postBooking({ bookings: newBookings }).unwrap().then(() => {
-            const disableQuoteIds = selectedValues.concat(approval ? copies : []).map(s => s.id).join(',');
+            const disableQuoteIds = selectedValues.concat(approval ? copies : []).filter(c => !newBookings.some(b => b.id === c.id)).map(s => s.id).join(',');
             
             disableQuote({ ids: disableQuoteIds }).unwrap().then(() => {
               setSelectedPendingQuotes([]);

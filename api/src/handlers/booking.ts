@@ -51,7 +51,7 @@ export default createHandlers({
   getBookingById: async props => {
     const { id } = props.event.pathParameters;
     const booking = await props.db.one<IBooking>(`
-      SELECT * FROM dbview_schema.enabled_bookings_ext
+      SELECT * FROM dbview_schema.enabled_bookings
       WHERE id = $1
     `, [id]);
     return booking;

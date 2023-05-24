@@ -4,18 +4,18 @@ export default createHandlers({
   postService: async props => {
     try {
 
-      const { name, cost, formId, tiers } = props.event.body;
+      const { name, cost, formId, surveyId, tiers } = props.event.body;
       
       const service = await props.tx.one<IService>(`
-        INSERT INTO dbtable_schema.services (name, cost, form_id, created_sub)
-        VALUES ($1, $2::integer, $3::uuid, $4::uuid)
+        INSERT INTO dbtable_schema.services (name, cost, form_id, survey_id, created_sub)
+        VALUES ($1, $2::integer, $3::uuid, $4::uuid, $5::uuid)
         RETURNING id, name, cost, created_on
-      `, [name, cost || 0, formId || undefined, props.event.userSub]);
+      `, [name, cost || 0, formId || undefined, surveyId || undefined, props.event.userSub]);
 
       await asyncForEach(Object.values(tiers).sort((a, b) => a.order - b.order), async t => {
         const serviceTier = await props.tx.one<IServiceTier>(`
-          WITH input_rows(name, service_id, multiplier, form_id, created_sub) as (VALUES ($1, $2::uuid, $3::decimal, $4::uuid, $5::uuid)), ins AS (
-            INSERT INTO dbtable_schema.service_tiers (name, service_id, multiplier, form_id, created_sub)
+          WITH input_rows(name, service_id, multiplier, form_id, survey_id, created_sub) as (VALUES ($1, $2::uuid, $3::decimal, $4::uuid, $5::uuid, $6::uuid)), ins AS (
+            INSERT INTO dbtable_schema.service_tiers (name, service_id, multiplier, form_id, survey_id, created_sub)
             SELECT * FROM input_rows
             ON CONFLICT (name, service_id) DO NOTHING
             RETURNING id
@@ -26,7 +26,7 @@ export default createHandlers({
           SELECT st.id
           FROM input_rows
           JOIN dbtable_schema.service_tiers st USING (name, service_id);
-        `, [t.name, service.id, t.multiplier, t.formId || undefined, props.event.userSub]);
+        `, [t.name, service.id, t.multiplier, t.formId || undefined, t.surveyId || undefined, props.event.userSub]);
 
         await asyncForEach(Object.values(t.addons).sort((a, b) => a.order - b.order), async a => {
           await props.tx.none(`

@@ -3,6 +3,7 @@ import { IQuote } from './quote';
 import { EndpointType, ApiOptions } from './api';
 import { IBookingTranscript } from './booking_transcript';
 import { IFile } from './file';
+import { IFormVersionSubmission } from './form';
 
 /**
  * @category Booking
@@ -11,6 +12,15 @@ import { IFile } from './file';
 export type IBooking = IQuote & {
   quoteId: string;
   quoteSub: string;
+  serviceId: string;
+  serviceFormId?: string;
+  serviceSurveyId?: string;
+  serviceSurvey?: IFormVersionSubmission;
+  serviceSurveyVersionSubmissionId: string;
+  tierFormId?: string;
+  tierSurveyId?: string;
+  tierSurvey?: IFormVersionSubmission;
+  tierSurveyVersionSubmissionId: string;
   transcripts: IBookingTranscript[];
 };
 
@@ -58,6 +68,17 @@ export default {
     queryArg: { id: '' as string },
     resultType: [] as IFile[]
   },
+  // getBookingSummary: {
+  //   kind: EndpointType.QUERY,
+  //   url: 'bookings/:id/summary',
+  //   method: 'GET',
+  //   opts: {} as ApiOptions,
+  //   queryArg: { id: '' as string },
+  //   resultType: {} as IBooking
+  // },
+  // putBookingSummary: {
+  //   kind: EndpointType.MUTATION
+  // },
   deleteBooking: {
     kind: EndpointType.MUTATION,
     url: 'bookings/:id',

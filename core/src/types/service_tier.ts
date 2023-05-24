@@ -10,6 +10,7 @@ export type IServiceTier = {
   id: string;
   serviceId: string;
   formId: string;
+  surveyId: string;
   name: string;
   multiplier: string;
   addons: Record<string, IServiceAddon>;

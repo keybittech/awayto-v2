@@ -86,6 +86,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     name,
     cost,
     form_id as "formId",
+    survey_id as "surveyId",
     created_on as "createdOn",
     row_number() OVER () as row
   FROM
@@ -137,6 +138,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     id,
     service_id as "serviceId",
     form_id as "formId",
+    survey_id as "surveyId",
     name,
     multiplier,
     created_on as "createdOn",
@@ -262,11 +264,18 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     esbs."startTime",
     b.quote_id as "quoteId",
     b.schedule_bracket_slot_id as "scheduleBracketSlotId",
+    es.id as "serviceId",
+    es.name as "serviceName",
+    es."formId" as "serviceFormId",
+    q.service_form_version_submission_id as "serviceFormVersionSubmissionId",
+    es."surveyId" as "serviceSurveyId",
+    b.service_survey_version_submission_id as "serviceSurveyVersionSubmissionId",
     q.service_tier_id as "serviceTierId",
     est.name as "serviceTierName",
-    es.name as "serviceName",
-    q.service_form_version_submission_id as "serviceFormVersionSubmissionId",
+    est."formId" as "tierFormId",
     q.tier_form_version_submission_id as "tierFormVersionSubmissionId",
+    est."surveyId" as "tierSurveyId",
+    b.tier_survey_version_submission_id as "tierSurveyVersionSubmissionId",
     b.created_on as "createdOn",
     row_number() OVER () as row
   FROM
@@ -333,6 +342,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
             este.name,
             este.multiplier,
             este."formId",
+            este."surveyId",
             este."createdOn",
             este.addons
           FROM
@@ -360,7 +370,8 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
             ese.name,
             ese.cost,
             ese.tiers,
-            ese."formId"
+            ese."formId",
+            ese."surveyId"
           FROM
             dbtable_schema.schedule_bracket_services sbs
             JOIN dbview_schema.enabled_services_ext ese ON ese.id = sbs.service_id

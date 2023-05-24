@@ -33,7 +33,8 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
           JOIN dbtable_schema.schedule_bracket_slots sbs ON sbs.id = eq."scheduleBracketSlotId"
           JOIN dbview_schema.enabled_schedule_brackets esb ON esb.id = sbs.schedule_bracket_id
           JOIN dbview_schema.enabled_schedules schedule ON schedule.id = esb."scheduleId"
-          WHERE sbs.created_sub = u.sub
+          LEFT JOIN dbtable_schema.bookings b ON b.quote_id = q.id
+          WHERE sbs.created_sub = u.sub AND b.id IS NULL
         ) q
     ) as quos on true
     LEFT JOIN LATERAL (

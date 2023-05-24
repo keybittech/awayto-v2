@@ -12,6 +12,7 @@ export type IService = {
   cost: string;
   tiers: Record<string, IServiceTier>;
   formId: string;
+  surveyId: string;
   createdOn: string;
 };
 
@@ -24,7 +25,7 @@ export default {
     url: 'services',
     method: 'POST',
     opts: {} as ApiOptions,
-    queryArg: { name: '' as string, cost: '' as string, formId: '' as string, tiers: {} as Record<string, IServiceTier> },
+    queryArg: { name: '' as string, cost: '' as string, formId: '' as string, surveyId: '' as string, tiers: {} as Record<string, IServiceTier> },
     resultType: {} as IService
   },
   putService: {

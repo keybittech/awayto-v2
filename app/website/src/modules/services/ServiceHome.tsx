@@ -20,13 +20,15 @@ import { useComponents, useStyles, sh, useUtil } from 'awayto/hooks';
 const serviceSchema = {
   name: '',
   cost: '',
-  formId: ''
+  formId: '',
+  surveyId: '',
 };
 
 const serviceTierSchema = {
   name: '',
   multiplier: '1.00',
-  formId: ''
+  formId: '',
+  surveyId: '',
 };
 
 const validCost = function (cost: string): boolean {
@@ -51,7 +53,7 @@ export function ServiceHome(props: IProps): React.JSX.Element {
   const [getGroupServices] = sh.useLazyGetGroupServicesQuery();
   const [getPrompt] = sh.useLazyGetPromptQuery();
 
-  const { data : profile } = sh.useGetUserProfileDetailsQuery();
+  const { data: profile } = sh.useGetUserProfileDetailsQuery();
 
   const [group, setGroup] = useState(Object.values(profile?.groups || {})[0]);
 
@@ -67,7 +69,7 @@ export function ServiceHome(props: IProps): React.JSX.Element {
   const [featureSuggestions, setFeatureSuggestions] = useState('');
 
   const groupsValues = useMemo(() => Object.values(profile?.groups || {}), [profile]);
-  
+
   useEffect(() => {
     async function go() {
       if (groupsValues.length) {
@@ -110,7 +112,7 @@ export function ServiceHome(props: IProps): React.JSX.Element {
                   onChange={e => setNewService({ ...newService, name: e.target.value })}
                   onBlur={() => {
                     // When this service name changes, let's get a new prompt for tier name suggestions
-                    getPrompt({ id: IPrompts.SUGGEST_TIER, prompt: `${newService.name.toLowerCase()} at ${group.name.replaceAll('_', ' ')}`} as IAssist).unwrap().then(({ promptResult }) => {
+                    getPrompt({ id: IPrompts.SUGGEST_TIER, prompt: `${newService.name.toLowerCase()} at ${group.name.replaceAll('_', ' ')}` } as IAssist).unwrap().then(({ promptResult }) => {
                       if (promptResult.length) setTierSuggestions(promptResult.join(', '));
                     }).catch(console.error);
                   }}
@@ -122,21 +124,38 @@ export function ServiceHome(props: IProps): React.JSX.Element {
                 <TextField fullWidth label="Cost" helperText="Optional." value={newService.cost || ''} onChange={e => validCost(e.target.value) && setNewService({ ...newService, cost: /\.\d\d/.test(e.target.value) ? parseFloat(e.target.value).toFixed(2) : e.target.value })} />
               </Box>
 
-              {groupFormsLoaded && <Box>
+              {groupFormsLoaded && <Box mb={4}>
                 <TextField
                   select
                   fullWidth
                   value={newService.formId}
-                  label="Form"
-                  helperText="Optional."
+                  label="Intake Form"
+                  helperText="Optional. Shown during appointment creation."
                   onChange={e => {
-                    async function go() {
-                      const form = await getGroupFormById({ groupName: group.name, formId: e.target.value }).unwrap();
+                    getGroupFormById({ groupName: group.name, formId: e.target.value }).unwrap().then(form => {
                       if (form) {
-                        setNewService({ ...newService, formId: form.id })
+                        setNewService({ ...newService, formId: form.id });
                       }
-                    }
-                    void go();
+                    }).catch(console.error);
+                  }}
+                >
+                  {groupForms?.map(form => <MenuItem key={`form-version-select${form.id}`} value={form.id}>{form.name}</MenuItem>)}
+                </TextField>
+              </Box>}
+
+              {groupFormsLoaded && <Box>
+                <TextField
+                  select
+                  fullWidth
+                  value={newService.surveyId}
+                  label="Survey Form"
+                  helperText="Optional. Shown during post-appointment summary."
+                  onChange={e => {
+                    getGroupFormById({ groupName: group.name, formId: e.target.value }).unwrap().then(form => {
+                      if (form) {
+                        setNewService({ ...newService, surveyId: form.id });
+                      }
+                    }).catch(console.error);
                   }}
                 >
                   {groupForms?.map(form => <MenuItem key={`form-version-select${form.id}`} value={form.id}>{form.name}</MenuItem>)}
@@ -163,7 +182,7 @@ export function ServiceHome(props: IProps): React.JSX.Element {
                   value={newServiceTier.name}
                   onBlur={() => {
                     // When this tier name changes, let's get a new prompt for feature name suggestions
-                    getPrompt({ id: IPrompts.SUGGEST_FEATURE, prompt: `${newServiceTier.name} ${newService.name}`} as IAssist).unwrap().then(({ promptResult }) => {
+                    getPrompt({ id: IPrompts.SUGGEST_FEATURE, prompt: `${newServiceTier.name} ${newService.name}` } as IAssist).unwrap().then(({ promptResult }) => {
                       if (promptResult.length) setFeatureSuggestions(promptResult.join(', '));
                     }).catch(console.error);
                   }}
@@ -202,16 +221,33 @@ export function ServiceHome(props: IProps): React.JSX.Element {
                   select
                   fullWidth
                   value={newServiceTier.formId}
-                  label="Form"
-                  helperText="Optional."
+                  label="Intake Form"
+                  helperText="Optional. Shown during appointment creation."
                   onChange={e => {
-                    async function go() {
-                      const form = await getGroupFormById({ groupName: group.name, formId: e.target.value }).unwrap();
+                    getGroupFormById({ groupName: group.name, formId: e.target.value }).unwrap().then(form => {
                       if (form) {
-                        setNewServiceTier({ ...newServiceTier, formId: form.id })
+                        setNewServiceTier({ ...newServiceTier, formId: form.id });
                       }
-                    }
-                    void go();
+                    }).catch(console.error);
+                  }}
+                >
+                  {groupForms?.map(form => <MenuItem key={`form-version-select${form.id}`} value={form.id}>{form.name}</MenuItem>)}
+                </TextField>
+              </Box>}
+
+              {groupFormsLoaded && <Box mb={4}>
+                <TextField
+                  select
+                  fullWidth
+                  value={newServiceTier.surveyId}
+                  label="Survey Form"
+                  helperText="Optional. Shown during post-appointment summary."
+                  onChange={e => {
+                    getGroupFormById({ groupName: group.name, formId: e.target.value }).unwrap().then(form => {
+                      if (form) {
+                        setNewServiceTier({ ...newServiceTier, surveyId: form.id });
+                      }
+                    }).catch(console.error);
                   }}
                 >
                   {groupForms?.map(form => <MenuItem key={`form-version-select${form.id}`} value={form.id}>{form.name}</MenuItem>)}
