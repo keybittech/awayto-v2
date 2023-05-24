@@ -13,13 +13,14 @@ declare global {
 }
 
 export function PickTheme (props: IProps): React.JSX.Element {
-
-  const { setTheme } = useUtil()
-
   const { showTitle } = props;
+
   const classes = useStyles();
 
+  const { setTheme } = useUtil();
+
   const edit = (e: React.SyntheticEvent) => {
+    localStorage.setItem('site_theme', e.currentTarget.id);
     setTheme({ theme: e.currentTarget.id as PaletteMode });
   };
 

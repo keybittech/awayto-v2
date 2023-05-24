@@ -25,7 +25,7 @@ export type IUtil = {
   snackOn: string;
   snackRequestId: string;
   perPage: number;
-  theme: 'light' | 'dark';
+  theme: string;
 }
 
 type UtilPayload = [

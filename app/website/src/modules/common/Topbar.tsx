@@ -1,4 +1,4 @@
-import React, { useMemo, useState, } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Switch from '@mui/material/Switch';
@@ -30,7 +30,7 @@ import Icon from '../../img/kbt-icon.png';
 import keycloak from '../../keycloak';
 
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { SiteRoles, PaletteMode } from 'awayto/core';
+import { SiteRoles } from 'awayto/core';
 import { useSecure, useComponents, sh, useAppSelector, useUtil, useStyles } from 'awayto/hooks';
 
 declare global {
@@ -50,6 +50,12 @@ export function Topbar(props: IProps): React.JSX.Element {
 
   const { theme } = useAppSelector(state => state.util);
   const { setTheme } = useUtil();
+
+  useEffect(() => {
+    if (theme) {
+      localStorage.setItem('site_theme', theme);
+    }
+  }, [theme]);
 
   const { data: profile } = sh.useGetUserProfileDetailsQuery();
 
@@ -209,8 +215,9 @@ export function Topbar(props: IProps): React.JSX.Element {
             <ListItemText>
               Dark
               <Switch
-                value={theme !== 'dark'}
-                onChange={e => setTheme({ theme: (e.target.checked ? 'light' : 'dark') as PaletteMode })}
+                value={theme}
+                checked={theme !== 'dark'}
+                onChange={e => setTheme({ theme: e.target.checked ? 'light' : 'dark' })}
               />
               Light
             </ListItemText>

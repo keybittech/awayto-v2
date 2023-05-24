@@ -3,6 +3,8 @@ import { Theme, ThemeOptions } from '@mui/material/styles/createTheme';
 
 import makeStyles from '@mui/styles/makeStyles';
 
+import deepmerge from '@mui/utils/deepmerge';
+import createTheme from '@mui/material/styles/createTheme';
 import green from '@mui/material/colors/green';
 import red from '@mui/material/colors/red';
 import { PaletteMode } from 'awayto/core';
@@ -209,29 +211,6 @@ export const getBaseComponents: () => ThemeOptions = () => ({
   }
 });
 
-/**
- * @category Style
- */
-export const lightTheme: ThemeOptions = {
-  palette: {
-    mode: 'light',
-    primary: {
-      main: '#000',
-      dark: '#aaa',
-      contrastText: '#333'
-    }
-  }
-};
-
-/**
- * @category Style
- */
-export const darkTheme: ThemeOptions = {
-  palette: {
-    mode: 'dark'
-  }
-};
-
 export const getDesignTokens: (mode: PaletteMode) => ThemeOptions = (mode) => ({
   typography: {
     fontFamily: ['Roboto', 'sans-serif'].join(',')
@@ -355,3 +334,13 @@ export const getThemedComponents: (mode: PaletteMode) => ThemeOptions = (mode) =
     )
   }
 })
+
+const darkTokens = getDesignTokens('dark');
+const darkComponents = getThemedComponents('dark');
+const darkSite = deepmerge(darkTokens, darkComponents);
+export const darkTheme = createTheme(deepmerge(darkSite, getBaseComponents()));
+
+const lightTokens = getDesignTokens('light');
+const lightComponents = getThemedComponents('light');
+const lightSite = deepmerge(lightTokens, lightComponents);
+export const lightTheme = createTheme(deepmerge(lightSite, getBaseComponents()));

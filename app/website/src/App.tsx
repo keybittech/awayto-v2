@@ -10,14 +10,10 @@ import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
 import ThemeProvider from '@mui/material/styles/ThemeProvider';
-import deepmerge from '@mui/utils/deepmerge';
-import createTheme from '@mui/material/styles/createTheme';
-import useMediaQuery from '@mui/material/useMediaQuery';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 
-import { getBaseComponents, getDesignTokens, getThemedComponents } from './hooks/useStyles';
 import { SiteRoles } from 'awayto/core';
-import { useUtil, sh, useAppSelector, useComponents } from 'awayto/hooks';
+import { useUtil, sh, useAppSelector, useComponents, lightTheme, darkTheme } from 'awayto/hooks';
 
 import './App.css';
 
@@ -35,7 +31,7 @@ const {
 } = process.env as { [prop: string]: string };
 
 export default function App (props: IProps): React.JSX.Element {
-  const { setSnack } = useUtil();
+  const { setSnack, setTheme } = useUtil();
   const { Onboard, ConfirmAction } = useComponents();
   const { theme, snackOn, snackType, snackRequestId, isLoading, loadingMessage } = useAppSelector(state => state.util);
   const { data: profile, refetch } = sh.useGetUserProfileDetailsQuery();
@@ -43,8 +39,9 @@ export default function App (props: IProps): React.JSX.Element {
   const [ready, setReady] = useState(false);
   const [onboarding, setOnboarding] = useState(false);
 
-  const defaultTheme = useMediaQuery('(prefers-color-scheme: dark)') ? 'dark' : 'light';
-  const currentTheme = React.useMemo(() => createTheme(deepmerge(deepmerge(getDesignTokens(theme || defaultTheme), getThemedComponents(theme || defaultTheme)), getBaseComponents())), [theme]);
+  if (!theme) {
+    setTheme({ theme: localStorage.getItem('site_theme') || 'dark' })
+  }
 
   useEffect(() => {
     const interval: NodeJS.Timeout = setInterval(() => {
@@ -75,7 +72,7 @@ export default function App (props: IProps): React.JSX.Element {
 
   return <>
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <ThemeProvider theme={currentTheme}>
+      <ThemeProvider theme={'light' === theme ? lightTheme : darkTheme}>
         {onboarding && <Suspense fallback={<CircularProgress color="inherit" />}>
           <Onboard {...props} />
         </Suspense>}
