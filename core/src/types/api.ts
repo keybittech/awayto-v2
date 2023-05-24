@@ -208,6 +208,7 @@ export const buildUpdate = (params: BuildUpdateParams) => {
  */
 export type ProxyKeys = {
   adminSub: string;
+  adminRoleId: string;
   appClient: ClientRepresentation;
   groupRoleActions: Record<string, IGroupRoleAuthActions>;
   groupAdminRoles: RoleMappingPayload[];

@@ -37,7 +37,7 @@ export default createHandlers({
 
       const purposeMission = (await props.ai.useAi<string>(IPrompts.CONVERT_PURPOSE, name, purpose)).message;
 
-      const { groupAdminRoles, appClient, roleCall } = await props.redisProxy('groupAdminRoles', 'appClient', 'roleCall');
+      const { groupAdminRoles, appClient, roleCall, adminRoleId } = await props.redisProxy('groupAdminRoles', 'appClient', 'roleCall', 'adminRoleId');
 
       await props.tx.none(`
         INSERT INTO dbtable_schema.users (sub, username, created_on, created_sub)
@@ -47,6 +47,13 @@ export default createHandlers({
       // Create an Admin subgroup in keycloak for this group
       const { id: kcAdminSubgroupExternalId } = await props.keycloak.groups.setOrCreateChild({ id: kcGroupExternalId }, { name: 'Admin' });
 
+      // Add the Admin subgroup/role to the app db
+      await props.tx.none(`
+        INSERT INTO dbtable_schema.group_roles (group_id, role_id, external_id, created_on, created_sub)
+        VALUES ($1, $2, $3, $4, $5::uuid)
+        ON CONFLICT (group_id, role_id) DO NOTHING
+      `, [group.id, adminRoleId, kcAdminSubgroupExternalId, utcNowString(), props.event.userSub]);
+      
       // Add admin roles to the admin subgroup
       await props.keycloak.groups.addClientRoleMappings({
         id: kcAdminSubgroupExternalId,

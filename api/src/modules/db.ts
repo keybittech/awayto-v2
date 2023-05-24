@@ -1,6 +1,6 @@
 import { v4 as uuid } from 'uuid';
 import redis from './redis';
-import { IUserProfile } from 'awayto/core';
+import { IRole, IUserProfile } from 'awayto/core';
 import pgPromise from 'pg-promise';
 
 const {
@@ -40,14 +40,27 @@ export async function connect() {
         WHERE username = 'system_owner'
       `);
       await redis.set('adminSub', sub);
+
+      const { id: roleId } = await db.one<IRole>(`
+        SELECT id
+        FROM dbtable_schema.roles
+        WHERE name = 'Admin'
+      `);
+      await redis.set('adminRoleId', roleId);
     } catch (error) {
       const sub = uuid();
       await db.none(`
         INSERT INTO dbtable_schema.users (sub, username, created_on, created_sub)
         VALUES ($1::uuid, $2, $3, $1::uuid)
       `, [sub, 'system_owner', new Date()]);
-
       await redis.set('adminSub', sub);
+      const { id: roleId } = await db.one<IRole>(`
+        INSERT INTO dbtable_schema.roles (name)
+        VALUES ($1)
+        RETURNING id
+      `, ['Admin']);
+      await redis.set('adminRoleId', roleId);
+
     }
 
   } catch (error) {

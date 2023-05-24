@@ -14,10 +14,13 @@ async function getSubDetails(parts: SocketParticipant[]) {
     for (const part of parts) {
       const partDetails = await db.one<{ name: string, role: string }>(`
         SELECT
-          LEFT(first_name, 1) || LEFT(last_name, 1) as name,
-          'Tutor' as role
-        FROM dbtable_schema.users
-        WHERE sub = $1
+          LEFT(u.first_name, 1) || LEFT(u.last_name, 1) as name,
+          r.name as role
+        FROM dbtable_schema.users u
+        JOIN dbtable_schema.group_users gu ON gu.user_id = u.id
+        JOIN dbtable_schema.group_roles gr ON gr.external_id = gu.external_id
+        JOIN dbtable_schema.roles r ON r.id = gr.role_id
+        WHERE u.sub = $1
       `, [part.scid]);
       Object.assign(part, partDetails);
     }
@@ -26,7 +29,7 @@ async function getSubDetails(parts: SocketParticipant[]) {
       scid: `${part.name}#${charCount(part.scid)}`,
       cids: part.cids,
       name: part.name.toUpperCase(),
-      role: 'Tutor'
+      role: part.role
     }));
   } catch (error) {
     console.log('failed to get sub details', error);
