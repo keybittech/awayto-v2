@@ -5,7 +5,7 @@ import { DataGrid, GridColDef } from '@mui/x-data-grid';
 
 import CheckIcon from '@mui/icons-material/Check';
 
-import { IService, nid } from 'awayto/core';
+import { IService } from 'awayto/core';
 import { useGrid, useStyles } from 'awayto/hooks';
 
 declare global {
@@ -23,37 +23,37 @@ export function ServiceTierAddons({ service }: IProps): React.JSX.Element {
 
   const classes = useStyles();
 
-  const serviceTierAddons = useMemo(() => {
-    return serviceTiers
-      .sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime())
-      .reduce<string[]>((memo, { addons }) => {
-        const serviceAddons = Object.values(addons);
-        if (serviceAddons) {
-          for (let i = 0, v = serviceAddons.length; i < v; i++) {
-            const { name } = serviceAddons[i];
-            if (memo.indexOf(name) < 0) memo.push(name);
+  const serviceTierData = useMemo(() => {
+    const rows: { name: string, tiers: string[] }[] = [];
+    if (serviceTiers) {
+      serviceTiers.forEach(st => {
+        for (const addon of Object.values(st.addons)) {
+          const recordId = rows.findIndex(r => r.name === addon.name);
+          const existing = recordId > -1 ? rows[recordId] : { id: `sta_cell_${st.id}_${addon.id}`, name: addon.name, tiers: [] } as { name: string, tiers: string[] };
+          existing.tiers.push(st.name);
+          if (recordId > -1) {
+            rows[recordId] = existing;
+          } else {
+            rows.push(existing);
           }
         }
-        return memo;
-      }, []);
+      });
+    }
+    return rows;
   }, [serviceTiers]);
 
   const tierGridProps = useGrid({
     noPagination: true,
-    rows: serviceTierAddons.map(name => ({ id: nid(), name })),
+    rows: serviceTierData,
     columns: [
       { type: 'string', field: 'name', headerName: '', flex: 1 },
-      ...serviceTiers.reduce((memo, { name, addons }) => {
-        memo.push({
-          flex: 1,
-          headerName: name,
-          field: '',
-          renderCell: ({ row }) => {
-            return Object.values(addons).map(ad => ad.name).indexOf(row.name) > -1 ? <Avatar sx={{ width: 24, height: 24, backgroundColor: 'white' }}><CheckIcon className={classes.green} /></Avatar> : '--';
-          }
-        });
-        return memo;
-      }, [] as GridColDef<{ name: string }>[])
+      ...serviceTiers.map<GridColDef<{ tiers: string[] }>>(st => ({
+        type: 'string',
+        field: `sta_col_${st.id}`,
+        headerName: st.name,
+        renderCell: params => params.row.tiers.includes(st.name) ? <Avatar sx={{ width: 24, height: 24, backgroundColor: 'white' }}><CheckIcon className={classes.green} /></Avatar> : '--',
+        flex: 1
+      }))
     ]
   });
 
