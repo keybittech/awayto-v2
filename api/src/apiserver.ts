@@ -22,12 +22,12 @@ import baseRoutes from './routes/base';
 import authRoutes from './routes/auth';
 import sockRoutes from './routes/sock';
 import twitchRoutes from './routes/twitch';
-import publicRoutes from './routes/public';
+import kioskRoutes from './routes/kiosk';
 
 import { connect as connectKc } from './modules/keycloak';
 import { connect as connectDb } from './modules/db';
-import redis from './modules/redis';
 import { connectToTwitch } from './modules/twitch';
+import redis from './modules/redis';
 import './modules/prompts';
 import './modules/sock';
 
@@ -48,7 +48,7 @@ httpsServer.listen(9443, () => {
     app.use('/api/auth', authRoutes);
     app.use('/api/sock', sockRoutes);
     app.use('/api/twitch', twitchRoutes);
-    app.use('/api/public', publicRoutes);
+    app.use('/api/kiosk', kioskRoutes);
     
     redis.connect().then(() => {
       console.log('Redis Connected');

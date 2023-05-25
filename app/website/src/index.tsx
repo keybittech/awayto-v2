@@ -51,27 +51,38 @@ declare global {
  * @category Awayto
  * @param renderComponent {JSX.Element} The typical element structure you would give when calling React's `render()`
  */
-void initKeycloak.call({
-  cb: async function () {
 
+const root = createRoot(document.getElementById('root') as Element);
+
+if (window.location.pathname.startsWith('/app/kiosk')) {
+  (async function() {
     try {
-      const { store } = await import('awayto/hooks');
-      const App = (await import('./App')).default;
-
-      const root = createRoot(document.getElementById('root') as Element);
-      root.render(
-        <Provider store={store}>
-          {/* <PersistGate persistor={persistor}> */}
+      const Kiosk = (await import('./Kiosk')).default;
+      root.render(<Kiosk />);
+    } catch (err) {
+      const error = err as Error
+      console.log('error loading kiosk', error);
+    }
+  })().catch(console.error);
+} else {
+  void initKeycloak.call({
+    cb: async function () {
+      try {
+        const { store } = await import('awayto/hooks');
+        const App = (await import('./App')).default;
+  
+        root.render(
+          <Provider store={store}>
             <BrowserRouter basename="/app">
               <App />
             </BrowserRouter>
-          {/* </PersistGate> */}
-        </Provider>
-      )
-      reportWebVitals(console.log);
-    } catch (error) {
-      console.log('the final error', error)
+          </Provider>
+        );
+        reportWebVitals(console.log);
+      } catch (error) {
+        console.log('the final error', error)
+      }
     }
+  });
+}
 
-  }
-});
