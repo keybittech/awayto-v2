@@ -7,7 +7,7 @@ import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { BrowserRouter } from 'react-router-dom';
 
-import { Theme } from '@mui/material/styles/createTheme';
+import type { Theme } from '@mui/material/styles/createTheme';
 
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
@@ -17,14 +17,10 @@ import timezone from 'dayjs/plugin/timezone';
 
 import 'dayjs/locale/en';
 
-import { store } from 'awayto/hooks';
-
 import reportWebVitals from './reportWebVitals';
 import { initKeycloak } from './keycloak';
 
 import './App.css';
-
-import App from './App';
 
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
@@ -56,18 +52,21 @@ declare global {
  * @param renderComponent {JSX.Element} The typical element structure you would give when calling React's `render()`
  */
 void initKeycloak.call({
-  cb: function () {
+  cb: async function () {
 
     try {
+      const { store } = await import('awayto/hooks');
+      const App = (await import('./App')).default;
+
       const root = createRoot(document.getElementById('root') as Element);
       root.render(
         <Provider store={store}>
-            {/* <PersistGate persistor={persistor}> */}
-              <BrowserRouter basename="/app">
-                <App />
-              </BrowserRouter>
-            {/* </PersistGate> */}
-          </Provider>
+          {/* <PersistGate persistor={persistor}> */}
+            <BrowserRouter basename="/app">
+              <App />
+            </BrowserRouter>
+          {/* </PersistGate> */}
+        </Provider>
       )
       reportWebVitals(console.log);
     } catch (error) {
