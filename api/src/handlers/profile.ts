@@ -53,7 +53,7 @@ export default createHandlers({
       WHERE sub = $1
     `, [props.event.userSub]);
 
-    for (const group of Object.values(profile.groups)) {
+    for (const group of Object.values(profile.groups || {})) {
       if (group.ldr) {
         const groupExt = await props.db.one<IGroup>(`
           SELECT * 
