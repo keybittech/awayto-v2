@@ -298,6 +298,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     schedule_bracket_slot_id uuid NOT NULL REFERENCES dbtable_schema.schedule_bracket_slots (id),
     service_survey_version_submission_id uuid REFERENCES dbtable_schema.form_version_submissions (id),
     tier_survey_version_submission_id uuid REFERENCES dbtable_schema.form_version_submissions (id),
+    rating SMALLINT,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
     created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,

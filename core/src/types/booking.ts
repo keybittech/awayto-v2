@@ -10,6 +10,7 @@ import { IFormVersionSubmission } from './form';
  * @purpose establishes a confirmed appointment derived from a Quote, holds transcript during Exchange
  */
 export type IBooking = IQuote & {
+  rating: string;
   quoteId: string;
   quoteSub: string;
   serviceId: string;
@@ -76,9 +77,16 @@ export default {
   //   queryArg: { id: '' as string },
   //   resultType: {} as IBooking
   // },
-  // putBookingSummary: {
-  //   kind: EndpointType.MUTATION
-  // },
+  putBookingRating: {
+    kind: EndpointType.MUTATION,
+    url: 'bookings/:id/rating',
+    method: 'PUT',
+    opts: {
+      throttle: 1
+    } as ApiOptions,
+    queryArg: { id: '' as string, rating: '' as string },
+    resultType: { rating: '' as string }
+  },
   deleteBooking: {
     kind: EndpointType.MUTATION,
     url: 'bookings/:id',

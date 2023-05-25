@@ -260,6 +260,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
   OR REPLACE VIEW dbview_schema.enabled_bookings AS
   SELECT
     b.id,
+    b.rating,
     b.slot_date as "slotDate",
     esbs."startTime",
     b.quote_id as "quoteId",

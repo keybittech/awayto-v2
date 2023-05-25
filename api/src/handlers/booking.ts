@@ -67,6 +67,16 @@ export default createHandlers({
     `, [id]);
     return files;
   },
+  putBookingRating: async props => {
+    const { id } = props.event.pathParameters;
+    const { rating } = props.event.body;
+    await props.tx.none(`
+      UPDATE dbtable_schema.bookings
+      SET rating = $2
+      WHERE id = $1
+    `, [id, rating]);
+    return { rating };
+  },
   deleteBooking: async props => {
     const { id } = props.event.pathParameters;
     await props.tx.none(`
