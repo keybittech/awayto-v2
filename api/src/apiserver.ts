@@ -22,6 +22,7 @@ import baseRoutes from './routes/base';
 import authRoutes from './routes/auth';
 import sockRoutes from './routes/sock';
 import twitchRoutes from './routes/twitch';
+import publicRoutes from './routes/public';
 
 import { connect as connectKc } from './modules/keycloak';
 import { connect as connectDb } from './modules/db';
@@ -47,6 +48,7 @@ httpsServer.listen(9443, () => {
     app.use('/api/auth', authRoutes);
     app.use('/api/sock', sockRoutes);
     app.use('/api/twitch', twitchRoutes);
+    app.use('/api/public', publicRoutes);
     
     redis.connect().then(() => {
       console.log('Redis Connected');
