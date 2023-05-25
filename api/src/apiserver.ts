@@ -31,7 +31,6 @@ import './modules/prompts';
 import './modules/sock';
 
 import { setupMiddleware } from './middlewares';
-import type { Server } from 'https';
 
 // Create Express app
 const app: Express = express();

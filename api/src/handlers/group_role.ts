@@ -38,7 +38,7 @@ export default createHandlers({
         egr."createdOn"
       FROM dbview_schema.enabled_group_roles egr
       JOIN dbview_schema.enabled_roles er ON er.id = egr."roleId"
-      WHERE egr."groupId" = $1 AND er.name IS NOT 'Admin'
+      WHERE egr."groupId" = $1 AND er.name != 'Admin'
     `, [groupId]);
 
     return roles;

@@ -104,7 +104,7 @@ export function ManageScheduleBrackets(): React.JSX.Element {
         <ManageScheduleBracketsModal editSchedule={scheduleId ? scheduleDetails : undefined} closeModal={(added: boolean) => {
           setDialog('');
           if (added) {
-            getScheduleById().catch(console.error);
+            scheduleId && getScheduleById().catch(console.error);
             getSchedules().catch(console.error);
           }
         }} />

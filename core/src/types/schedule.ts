@@ -108,7 +108,7 @@ export default {
   },
   postScheduleBrackets: {
     kind: EndpointType.MUTATION,
-    url: 'schedule/brackets',
+    url: 'schedules/brackets',
     method: 'POST',
     opts: {} as ApiOptions,
     queryArg: { scheduleId: '' as string, brackets: {} as Record<string, IScheduleBracket> },
