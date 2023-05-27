@@ -84,7 +84,7 @@ for (const apiRefId in siteApiRef) {
 
     const { groupRoleActions } = await redisProxy('groupRoleActions');
     let response = {} as typeof resultType;
-
+    let wasCached = false;
     const cacheKey = user.sub + req.originalUrl.slice(5); // remove /api/
 
     if ('get' === method.toLowerCase() && 'skip' !== cache) {
@@ -92,17 +92,17 @@ for (const apiRefId in siteApiRef) {
       if (value) {
         response = JSON.parse(value);
         res.header('x-of-cache', 'true');
+        wasCached = true;
       }
     }
 
-    if (!Object.keys(response).length) {
+    if (!wasCached) {
 
       try {
-        if (!req.headers.authorization) throw { reason: 'No auth.' };
 
         const xfwd = (req.headers['x-forwarded-for'] as string).split('.');
         const sourceIp = xfwd.filter((a, i) => i !== xfwd.length - 1).join('.') + '.000';
-        const token = jwtDecode<DecodedJWTToken & IdTokenClaims>(req.headers.authorization);
+        const token = jwtDecode<DecodedJWTToken & IdTokenClaims>(req.headers.authorization || '');
         const tokenGroupRoles = {} as UserGroupRoles;
 
         for (const subgroupPath of token.groups) {

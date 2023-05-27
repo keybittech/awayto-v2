@@ -1,5 +1,9 @@
 import { v4 } from 'uuid';
 
+export const isExternal = (loc: string) => {
+  return loc.startsWith('/app/ext/');
+}
+
 let arbitraryCounter = 0;
 
 export function nid(uuid?: string) {

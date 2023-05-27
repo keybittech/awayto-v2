@@ -1,7 +1,7 @@
 import { ComponentType, FunctionComponent, ReactNode, LazyExoticComponent, createElement, useMemo, lazy } from 'react';
 import { useParams } from 'react-router';
 
-import { hasGroupRole, SiteRoles } from 'awayto/core';
+import { hasGroupRole, SiteRoles, isExternal } from 'awayto/core';
 
 import buildOutput from '../build.json';
 import rolesOutput from '../roles.json';
@@ -56,7 +56,7 @@ const components = {} as IBaseComponents;
  * @category Hooks
  */
 export function useComponents(): IBaseComponents {
-  const { data: profile = { availableUserGroupRoles: {} } } = sh.useGetUserProfileDetailsQuery();
+  const { data: profile = { availableUserGroupRoles: {} } } = sh.useGetUserProfileDetailsQuery(undefined, { skip: isExternal(window.location.pathname) });
 
   const { groupName } = useParams();
 

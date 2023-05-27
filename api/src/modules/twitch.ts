@@ -35,7 +35,7 @@ export async function connectToTwitch(httpsServer: https.Server) {
       server_access_token = await redis.get('twitch_token');
     }
 
-    let client_access_token = await  redis.get('client_access_token');
+    let client_access_token = await redis.get('client_access_token');
 
     while (!client_access_token) {
       await new Promise(res => setTimeout(res, 5000))
@@ -173,29 +173,32 @@ export async function connectToTwitch(httpsServer: https.Server) {
                 contents[key.replace(/-./g, x => x[1].toUpperCase())] = value;
               });
 
-              // console.log({ contents })
-
-              if (contents.customRewardId) {
-                if ('Skip TTS' === rewards[contents.customRewardId].title) {
-                  contents.action = 'skip';
-                  messageBuilder = 'skipped the poor bastard, ' + messageBuilder
-                }
-
-                if ('Generate API' === rewards[contents.customRewardId].title) {
-                  messageBuilder = await createApi(messageBuilder.trimEnd(), contents.displayName);
-                }
-
-                if ('Generate Component' === rewards[contents.customRewardId].title) {
-                  messageBuilder = await createComponent(messageBuilder.trimEnd(), contents.displayName);
-                }
-
-                if ('Edit File' === rewards[contents.customRewardId].title) {
-                  messageBuilder = await guidedEdit(messageBuilder.trimEnd(), contents.displayName);
-                }
-
+              if (userName === contents.displayName) {
                 contents.message = createWordMix(contents.displayName, messageBuilder.trimEnd());
+              } else {
+                if (contents.customRewardId) {
+                  if ('Skip TTS' === rewards[contents.customRewardId].title) {
+                    contents.action = 'skip';
+                    messageBuilder = 'skipped the poor bastard, ' + messageBuilder
+                  }
+
+                  if ('Generate API' === rewards[contents.customRewardId].title) {
+                    messageBuilder = await createApi(messageBuilder.trimEnd(), contents.displayName);
+                  }
+
+                  if ('Generate Component' === rewards[contents.customRewardId].title) {
+                    messageBuilder = await createComponent(messageBuilder.trimEnd(), contents.displayName);
+                  }
+
+                  if ('Edit File' === rewards[contents.customRewardId].title) {
+                    messageBuilder = await guidedEdit(messageBuilder.trimEnd(), contents.displayName);
+                  }
+
+                  contents.message = createWordMix(contents.displayName, messageBuilder.trimEnd());
+                }
+                console.log(`${contents.displayName} ${contents.message || message.trim()}`);
               }
-              console.log(`${contents.displayName} ${contents.message || message.trim()}`);
+
             }
 
             if (Object.keys(contents).length) {

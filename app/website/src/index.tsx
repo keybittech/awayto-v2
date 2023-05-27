@@ -52,13 +52,21 @@ declare global {
  * @param renderComponent {JSX.Element} The typical element structure you would give when calling React's `render()`
  */
 
+import { store } from 'awayto/hooks';
+
 const root = createRoot(document.getElementById('root') as Element);
 
-if (window.location.pathname.startsWith('/app/kiosk')) {
+if (window.location.pathname.startsWith('/app/ext/')) {
   (async function() {
     try {
-      const Kiosk = (await import('./Kiosk')).default;
-      root.render(<Kiosk />);
+      const Ext = (await import('./Ext')).default;
+      root.render(
+        <Provider store={store}>
+          <BrowserRouter basename="/app/ext">
+            <Ext />
+          </BrowserRouter>
+        </Provider>
+      );
     } catch (err) {
       const error = err as Error
       console.log('error loading kiosk', error);
@@ -68,9 +76,7 @@ if (window.location.pathname.startsWith('/app/kiosk')) {
   void initKeycloak.call({
     cb: async function () {
       try {
-        const { store } = await import('awayto/hooks');
         const App = (await import('./App')).default;
-  
         root.render(
           <Provider store={store}>
             <BrowserRouter basename="/app">
