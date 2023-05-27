@@ -94,6 +94,7 @@ export * from './group_service';
 export * from './group_user_schedule';
 export * from './group_user';
 export * from './group';
+export * from './kiosk';
 export * from './lookup';
 export * from './manage_group';
 export * from './manage_role';

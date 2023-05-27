@@ -1,4 +1,3 @@
-import { Void } from '../util';
 import { ApiOptions, EndpointType } from './api';
 import { IUserProfile } from './profile';
 import { IRole } from './role';

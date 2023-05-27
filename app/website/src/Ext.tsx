@@ -8,12 +8,8 @@ export function Ext(): React.JSX.Element {
 
   return <>
     <Routes>
-      <Route path="/kiosk/:groupName" element={
-        <GroupProvider>
-          <GroupScheduleProvider>
-            <Kiosk />
-          </GroupScheduleProvider>
-        </GroupProvider>
+      <Route path="/kiosk/:groupName/:scheduleName?" element={
+        <Kiosk />
       } />
     </Routes>
   </>

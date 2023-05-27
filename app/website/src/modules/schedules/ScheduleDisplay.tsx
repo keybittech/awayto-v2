@@ -11,6 +11,7 @@ import { useSchedule, useTimeName } from 'awayto/hooks';
 export type ScheduleDisplayProps = {
   schedule?: ISchedule;
   setSchedule?(value: ISchedule): void;
+  isKiosk?: boolean;
 };
 
 type GridCell = {
@@ -23,7 +24,7 @@ declare global {
 
 const bracketColors = ['cadetblue', 'brown', 'chocolate', 'forestgreen', 'darkslateblue', 'goldenrod', 'indianred', 'teal'];
 
-export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Required<ScheduleDisplayProps>): React.JSX.Element {
+export default function ScheduleDisplay({ isKiosk, schedule, setSchedule }: IProps & Required<ScheduleDisplayProps>): React.JSX.Element {
 
   const scheduleDisplay = useMemo(() => deepClone(schedule), [schedule]);
   
@@ -36,9 +37,9 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
   const [buttonDown, setButtonDown] = useState(false);
   const [width, setWidth] = useState(1);
 
-  const scheduleTimeUnitName = useTimeName(scheduleDisplay.scheduleTimeUnitId);
-  const bracketTimeUnitName = useTimeName(scheduleDisplay.bracketTimeUnitId);
-  const slotTimeUnitName = useTimeName(scheduleDisplay.slotTimeUnitId);
+  const scheduleTimeUnitName = scheduleDisplay.scheduleTimeUnitName || useTimeName(scheduleDisplay.scheduleTimeUnitId);
+  const bracketTimeUnitName = scheduleDisplay.bracketTimeUnitName || useTimeName(scheduleDisplay.bracketTimeUnitId);
+  const slotTimeUnitName = scheduleDisplay.slotTimeUnitName || useTimeName(scheduleDisplay.slotTimeUnitId);
   
   const { divisions, durations, selections, xAxisTypeName } = useMemo(() => {
     return getScheduleData({ scheduleTimeUnitName, bracketTimeUnitName, slotTimeUnitName, slotDuration: scheduleDisplay.slotDuration });
@@ -90,7 +91,7 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
       sx={{
         userSelect: 'none',
         cursor: 'pointer',
-        backgroundColor: '#eee',
+        backgroundColor: exists ? '#eee' : 'white',
         textAlign: 'center',
         position: 'relative',
         '&:hover': {
@@ -102,11 +103,13 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
         color: !exists ? '#666' : 'black',
         boxShadow: exists ? '2' : undefined
       }}
-      onMouseLeave={() => buttonDown && setValue(startTime)}
-      onMouseDown={() => setButtonDown(true)}
+      onMouseLeave={() => !isKiosk && buttonDown && setValue(startTime)}
+      onMouseDown={() => !isKiosk && setButtonDown(true)}
       onMouseUp={() => {
-        setButtonDown(false);
-        setValue(startTime);
+        if (!isKiosk) {
+          setButtonDown(false);
+          setValue(startTime);
+        }
       }}
     >
       {contextFormat}
@@ -136,8 +139,8 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
   }, [selected, scheduleBracketsValues]);
 
   return <>
-    <Typography variant="caption">Click a bracket, then use up the allotted time by clicking on the time slots. Hold down the mouse button to select multiple slots. There can be leftover slots if they're unneeded.</Typography>
-    <Box ref={parentRef}>
+    {!isKiosk && <>
+      <Typography variant="caption">Click a bracket, then use up the allotted time by clicking on the time slots. Hold down the mouse button to select multiple slots. There can be leftover slots if they're unneeded.</Typography>
       <Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
         {scheduleBracketsValues.map((bracket, i) => {
           if (!bracket.slots) bracket.slots = {};
@@ -156,7 +159,9 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
           </Box>
         })}
       </Box>
+    </>}
 
+    <Box width="100%" ref={parentRef}>
       <Box onMouseLeave={() => setButtonDown(false)}>
         {!isNaN(selections) && !isNaN(divisions) && <FixedSizeGrid
           rowCount={selections}
@@ -164,12 +169,12 @@ export default function ScheduleDisplay({ schedule, setSchedule }: IProps & Requ
           rowHeight={30}
           columnWidth={columnWidth}
           height={400}
-          width={Math.min(width, columnWidth * divisions)}
+          width={Math.min(parentRef.current?.getClientRects()[0].width || 0, columnWidth * divisions) + 20}
         >
           {Cell}
         </FixedSizeGrid>}
       </Box>
-      <Typography>This schedule is representing 1 {scheduleTimeUnitName} of {bracketTimeUnitName}s divided by {scheduleDisplay.slotDuration} {slotTimeUnitName} blocks.</Typography>
+      <Typography variant="caption">This schedule is representing 1 {scheduleTimeUnitName} of {bracketTimeUnitName}s divided by {scheduleDisplay.slotDuration} {slotTimeUnitName} blocks.</Typography>
     </Box>
   </>;
 }
