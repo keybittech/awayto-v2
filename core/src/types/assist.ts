@@ -1,4 +1,13 @@
 import { ApiOptions, EndpointType } from './api';
+import { IPrompts } from '@keybittech/wizapp/dist/lib';
+
+declare module '@keybittech/wizapp/dist/lib' {
+  export enum IPrompts {
+    TRANSLATE = 'translate'
+  }
+}
+
+export const ChatPrompts = Object.assign(IPrompts, { TRANSLATE: 'translate' });
 
 /**
  * @category Assist

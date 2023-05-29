@@ -1,16 +1,14 @@
 import { IPrompts, injectPrompts } from '@keybittech/wizapp/dist/lib';
-import { injectResponseValidators } from '@keybittech/wizapp/dist/server'
-
-declare module '@keybittech/wizapp/dist/lib' {
-  export enum IPrompts {
-    // new prompts here
-    // NEW_PROMPT = 'new_prompt'
-  }
-}
+import { injectResponseValidators } from '@keybittech/wizapp/dist/server';
 
 const customSuggestion = 'You generate 3 to 5 suggestions consisting only of whole words and pipe symbols, no numbering, without fail; if a topic seems too bizarre or obscure, you resolve to generate a list of similar but more acceptable qualities. Response format examples: Kite Ball|Library Card|Carrot Cake|Pogs|Dog; Red|Green|Blue|Yellow|Orange; First Place|Second Chance|Third Rock|Fourth Meal|Fifth of Vodka.';
 
 injectPrompts({
+  [IPrompts.TRANSLATE]: [
+    { role: 'system', content: 'You translate a Phrase given in ${prompt1} to its translated statement Translation in ${prompt2}, in a Phrase: ... Translation: format.' },
+    { role: 'assistant', content: 'Provide a phrase with the format "Phrase: <phrase>" and I will respond with "Translation: <translation>".' },
+    { role: 'user', content: 'Phrase: ${prompt3}'}
+  ],
   [IPrompts.SUGGEST_ROLE]: [
     {
       role: 'system',
@@ -70,5 +68,6 @@ injectPrompts({
 });
 
 injectResponseValidators([
-  obj => 'string' === typeof obj && obj.indexOf('|') > -1
+  obj => 'string' === typeof obj && obj.indexOf('|') > -1,
+  obj => 'string' === typeof obj && obj.startsWith('Translation: ')
 ]);

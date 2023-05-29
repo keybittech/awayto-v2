@@ -1,5 +1,2 @@
 #!/bin/bash
-
-cd core && yarn upgrade @keybittech/wizapp@file:../../wiz && cd ..
-cd api && yarn upgrade @keybittech/wizapp@file:../../wiz && cd ..
-cd app/website && yarn upgrade @keybittech/wizapp@file:../../../wiz && cd ../..
+yarn upgrade @keybittech/wizapp@file:../wiz

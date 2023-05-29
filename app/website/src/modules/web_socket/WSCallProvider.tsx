@@ -1,7 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 
-import { useComponents, useContexts, useUtil, useWebSocketSubscribe } from 'awayto/hooks';
+import { sh, useComponents, useContexts, useUtil, useWebSocketSubscribe } from 'awayto/hooks';
 import { ExchangeSessionAttributes, SenderStreams, SocketMessage } from 'awayto/core';
+import { IPrompts } from '@keybittech/wizapp/dist/lib';
 
 const peerConnectionConfig = {
   'iceServers': [
@@ -27,6 +28,8 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
   const { Video } = useComponents();
 
   const speechRecognizer = useRef<SpeechRecognition>();
+
+  const [getPrompt] = sh.useLazyGetPromptQuery();
   
   const [localStream, setLocalStream] = useState<MediaStream>();
   const [connected, setConnected] = useState(false);
@@ -177,13 +180,15 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
     // Handle speech recognition results
     speechRecognizer.current.addEventListener('result', (event: SpeechRecognitionEvent) => {
       const lastResult = event.results[event.results.length - 1];
-      const transcript = lastResult[0].transcript;
+      const { transcript } = lastResult[0];
 
       const isFinal = lastResult.isFinal;
 
       // Check if the user is speaking or not
-      if (isFinal) {
-        sendMessage('text', { style: 'utterance', message: transcript });
+      if (isFinal && transcript.length) {
+        getPrompt({ id: IPrompts.TRANSLATE, prompt: `English|Chinese Simplified|${transcript}`}).unwrap().then(({ promptResult: [translated] }) => {
+          sendMessage('text', { style: 'utterance', message: translated.split('Translation:')[1] });
+        }).catch(console.error);
       }
     });
 

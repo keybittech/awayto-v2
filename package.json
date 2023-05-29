@@ -5,5 +5,8 @@
     "api",
     "core",
     "app/website"
-  ]
+  ],
+  "dependencies": {
+    "@keybittech/wizapp": "file:../wiz"
+  }
 }
