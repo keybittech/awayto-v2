@@ -1,0 +1,16 @@
+ufw allow $AWAYTO_SSH_PORT/tcp
+ufw enable
+  
+printf "[sshd]\nenabled = true\nbanaction = iptables-multiport\n\n[ssh]\nport=$AWAYTO_SSH_PORT" > /etc/fail2ban/jail.local
+systemctl enable fail2ban
+
+sed -i -e '/^#Port/s/^.*$/Port '"$AWAYTO_SSH_PORT"'/' /etc/ssh/sshd_config
+sed -i -e '/^PermitRootLogin/s/^.*$/PermitRootLogin no/' /etc/ssh/sshd_config
+sed -i -e '/^PasswordAuthentication/s/^.*$/PasswordAuthentication no/' /etc/ssh/sshd_config
+sed -i -e '/^X11Forwarding/s/^.*$/X11Forwarding no/' /etc/ssh/sshd_config
+sed -i -e '/^#MaxAuthTries/s/^.*$/MaxAuthTries 2/' /etc/ssh/sshd_config
+sed -i -e '/^#AllowTcpForwarding/s/^.*$/AllowTcpForwarding no/' /etc/ssh/sshd_config
+sed -i -e '/^#AllowAgentForwarding/s/^.*$/AllowAgentForwarding no/' /etc/ssh/sshd_config
+sed -i -e '/^#AuthorizedKeysFile/s/^.*$/AuthorizedKeysFile .ssh\/authorized_keys/' /etc/ssh/sshd_config
+sed -i '$a AllowUsers '"$AWAYTO_ROOT_USER" /etc/ssh/sshd_config
+reboot
