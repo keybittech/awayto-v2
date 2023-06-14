@@ -1,0 +1,17 @@
+#cloud-config
+bootcmd:
+  - echo 'disable_root: 0' >> /etc/cloud/cloud.cfg
+  - echo 'PasswordAuthentication no' >> /etc/ssh/sshd_config
+  - echo 'PermitRootLogin no' >> /etc/ssh/sshd_config
+users:
+  - name: root
+    lock_passwd: true
+  - name: dummyuser
+    chpasswd: 
+      expire: true
+    groups: sudo
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    ssh_authorized_keys: []
+runcmd:
+  - su -c 'curl -fsSL https://gist.githubusercontent.com/jcmccormick/820ad1cf61df4650825a00ea275edfa0/raw/2a3f8a624fcd2834afe15550bf1229b5ace56216/gistfile1.txt -o /tmp/bootstrap.sh && chmod +x /tmp/bootstrap.sh && TS_OPERATOR=dummyuser TS_AUTH_KEY=ts-auth-key /tmp/bootstrap.sh' - dummyuser

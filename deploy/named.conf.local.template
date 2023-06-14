@@ -1,0 +1,12 @@
+zone "domain-name" {
+  type ns-type;
+  file "/base-dir/db.domain-name";
+  xfer-opt { target-ip; };
+};
+
+zone "in-addr-arpa" {
+  type ns-type;
+  notify-opt
+  file "/base-dir/db.first-octet";
+  xfer-opt { target-ip; };
+};
