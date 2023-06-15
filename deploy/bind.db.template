@@ -1,0 +1,14 @@
+$TTL    604800
+@       IN      SOA     ns-name.domain-name. admin.domain-name. (
+  ns-serial ; Serial
+  604800 ; Refresh
+  86400 ; Retry
+  2419200 ; Expire
+  604800 ) ; Negative Cache TTL
+;
+first-origin
+second-origin
+ns1-zone
+ns2-zone
+www-zone
+app-zone
