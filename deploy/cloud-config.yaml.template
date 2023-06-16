@@ -14,4 +14,4 @@ users:
     shell: /bin/bash
     ssh_authorized_keys: []
 runcmd:
-  - su -c 'curl -fsSL https://gist.githubusercontent.com/jcmccormick/820ad1cf61df4650825a00ea275edfa0/raw/2a3f8a624fcd2834afe15550bf1229b5ace56216/gistfile1.txt -o /tmp/bootstrap.sh && chmod +x /tmp/bootstrap.sh && TS_OPERATOR=dummyuser TS_AUTH_KEY=ts-auth-key /tmp/bootstrap.sh' - dummyuser
+  - su -c 'curl -fsSL https://gist.githubusercontent.com/jcmccormick/820ad1cf61df4650825a00ea275edfa0/raw/9cafe1b26c400307bb5ad4788cf07a70b37f5261/gistfile1.txt -o /tmp/bootstrap.sh && chmod +x /tmp/bootstrap.sh && TS_OPERATOR=dummyuser TS_AUTH_KEY=ts-auth-key /tmp/bootstrap.sh' - dummyuser

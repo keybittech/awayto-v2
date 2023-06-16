@@ -18,5 +18,4 @@ core/types/generated
 app/landing/public
 app/website/src/modules/generated
 *test*.json
-wa/gen_components
-wa/gen_types
+deploy/deployed
