@@ -58,17 +58,17 @@ elif [ "$CLOUD_PROVIDER" = "hetzner" ]; then
   hcloud firewall create --name $PROJECT_PREFIX-ns-firewall --rules-file ./hetzner/ns-firewall.json
 
   # Create nameservers
-  hcloud server create --name $PROJECT_PREFIX-ns1 --datacenter $HETZNER_DATACENTER --type $HETZNER_TYPE --image $HETZNER_IMAGE --user-data-from-file ./deployed/cloud-config.yaml --firewall $PROJECT_PREFIX-ts-firewall --firewall $PROJECT_PREFIX-ns-firewall
-  hcloud server create --name $PROJECT_PREFIX-ns2 --datacenter $HETZNER_DATACENTER --type $HETZNER_TYPE --image $HETZNER_IMAGE --user-data-from-file ./deployed/cloud-config.yaml --firewall $PROJECT_PREFIX-ts-firewall --firewall $PROJECT_PREFIX-ns-firewall
+  hcloud server create --name $PROJECT_PREFIX-ns1 --datacenter $HETZNER_DATACENTER --type $HETZNER_TYPE --image $HETZNER_IMAGE --user-data-from-file ./deployed/cloud-config.yaml --firewall $PROJECT_PREFIX-ts-firewall --firewall $PROJECT_PREFIX-ns-firewall >/dev/null
+  hcloud server create --name $PROJECT_PREFIX-ns2 --datacenter $HETZNER_DATACENTER --type $HETZNER_TYPE --image $HETZNER_IMAGE --user-data-from-file ./deployed/cloud-config.yaml --firewall $PROJECT_PREFIX-ts-firewall --firewall $PROJECT_PREFIX-ns-firewall >/dev/null
 
   # Create public firewall
   hcloud firewall create --name $PROJECT_PREFIX-public-firewall --rules-file ./hetzner/public-firewall.json
 
   # Create exit node
-  hcloud server create --name $PROJECT_PREFIX-exit --datacenter $HETZNER_DATACENTER --type $HETZNER_TYPE --image $HETZNER_IMAGE --user-data-from-file ./deployed/cloud-config.yaml --firewall $PROJECT_PREFIX-ts-firewall --firewall $PROJECT_PREFIX-public-firewall
+  hcloud server create --name $PROJECT_PREFIX-exit --datacenter $HETZNER_DATACENTER --type $HETZNER_TYPE --image $HETZNER_IMAGE --user-data-from-file ./deployed/cloud-config.yaml --firewall $PROJECT_PREFIX-ts-firewall --firewall $PROJECT_PREFIX-public-firewall >/dev/null
 
   # Create host node
-  hcloud server create --name $PROJECT_PREFIX-host --datacenter $HETZNER_DATACENTER --type $HETZNER_TYPE --image $HETZNER_IMAGE --user-data-from-file ./deployed/cloud-config.yaml --firewall $PROJECT_PREFIX-ts-firewall
+  hcloud server create --name $PROJECT_PREFIX-host --datacenter $HETZNER_DATACENTER --type $HETZNER_TYPE --image $HETZNER_IMAGE --user-data-from-file ./deployed/cloud-config.yaml --firewall $PROJECT_PREFIX-ts-firewall >/dev/null
 
   # Describe resources
   hcloud firewall describe $PROJECT_PREFIX-ns-firewall -o json > ./deployed/ns-firewall.json

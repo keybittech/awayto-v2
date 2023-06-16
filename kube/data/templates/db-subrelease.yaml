@@ -42,12 +42,12 @@ spec:
         - name: postgres-persistent-volume
           mountPath: /var/lib/postgresql/data
         resources:
-          requests:
-            memory: 1024M
-            cpu: 500m
           limits:
-            memory: 1536M
             cpu: 750m
+            memory: 1536M
+          requests:
+            cpu: 500m
+            memory: 1024M
         envFrom:
         - secretRef:
             name: postgres-secrets
