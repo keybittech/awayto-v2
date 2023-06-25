@@ -5,8 +5,10 @@ import { v4 } from 'uuid';
 import { stale } from './events/index.js';
 
 const redis = createClient({
+  username: process.env.REDIS_USER,
+  password: process.env.REDIS_PASS,
   socket: {
-    host: process.env.REDIS_HOST
+    host: process.env.REDIS_HOST,
   }
 });
 

@@ -1,5 +1,5 @@
 upstream sock {
-  server 192.168.0.3:8080;
+  server ${CUST_HOST_IP}:8080;
 }
 
 upstream auth {

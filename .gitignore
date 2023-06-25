@@ -4,7 +4,7 @@ landing_build
 web_build
 target
 .htpasswd
-*.env
+*.env*
 *.cert
 *.crt
 *.key

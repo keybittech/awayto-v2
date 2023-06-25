@@ -26,8 +26,8 @@ services:
       - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
       - CUST_LAND_HOSTNAME=${CUST_LAND_HOSTNAME}
       - CUST_HOST_IP=${CUST_HOST_IP}
-      - KC_REALM=devel
-      - KC_CLIENT=devel-client
+      - KC_REALM=${KC_REALM}
+      - KC_CLIENT=${KC_CLIENT}
       - KC_PATH=/auth
     networks:
       site:
@@ -41,31 +41,33 @@ services:
       context: ./
       dockerfile: ./api/Dockerfile
     extra_hosts:
-      - wcapp.site.com:127.0.0.1
+      - ${CUST_APP_HOSTNAME}:127.0.0.1
     # ports:
     #   - 8083:9443
     environment:
-      - API_COOKIE=23hf923f2g3f9273gf923gf9273gf80
+      - API_COOKIE=${API_COOKIE}
       - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
-      - KC_REALM=devel
-      - KC_CLIENT=devel-client
-      - KC_API_CLIENT_ID=api-client
-      - KC_API_CLIENT_SECRET=YANlSUC5w3RlMGjWbCQTZC1xYn7mtLNw
-      - DB_URL=jdbc:postgresql://postgres:postgres@172.20.0.5:5432/sysmaindb #NONSECRET
+      - KC_REALM=${KC_REALM}
+      - KC_CLIENT=${KC_CLIENT}
+      - KC_API_CLIENT_ID=${KC_API_CLIENT_ID}
+      - KC_API_CLIENT_SECRET=${KC_API_CLIENT_SECRET}
+      - DB_URL=jdbc:postgresql://${PG_USER}:${PG_PASS}@172.20.0.5:5432/${PG_DB} #NONSECRET
       - PG_HOST=172.20.0.5 #NONSECRET
       - PG_PORT=5432 #NONSECRET
-      - PG_USER=postgres #SECRET
-      - PG_PASSWORD=postgres #SECRET
-      - PG_DATABASE=sysmaindb #SECRET
+      - PG_USER=${PG_USER} #SECRET
+      - PG_PASSWORD=${PG_PASS} #SECRET
+      - PG_DATABASE=${PG_DB} #SECRET
       - GRAYLOG_HOST=172.20.0.10
       - GRAYLOG_PORT=12201
       - SOCK_HOST=172.20.0.6
       - SOCK_PORT=8080
-      - SOCK_SECRET=320hf032h8f08239r23gf9327gf09237g
+      - SOCK_SECRET=${SOCK_SECRET}
       - KEYCLOAK_HOST=172.20.0.7
       - KEYCLOAK_PORT=8443
       - REDIS_HOST=172.20.0.14
       - REDIS_PORT=6379
+      - REDIS_USER=blah
+      - REDIS_PASS=blah
       - NODE_TLS_REJECT_UNAUTHORIZED=0 #NONSECRET # Remove when having cert - otherwise keycloak blocks redirects
     depends_on:
       - db
@@ -80,9 +82,9 @@ services:
     # ports:
     #   - 8082:5432
     environment:
-      - POSTGRES_DB=sysmaindb
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres #SECRET
+      - POSTGRES_DB=${PG_DB}
+      - POSTGRES_USER=${PG_USER}
+      - POSTGRES_PASSWORD=${PG_PASS} #SECRET
     volumes: 
       - ./db/scripts:/docker-entrypoint-initdb.d
       - pg15store:/var/lib/postgresql/data
@@ -139,14 +141,16 @@ services:
       - KC_HOSTNAME_URL=https://${CUST_APP_HOSTNAME}/auth #NONSECRET
       - KC_PROXY=edge #NONSECRET
       - KC_HOSTNAME_STRICT_BACKCHANNEL=true #NONSECRET
-      - KEYCLOAK_ADMIN=admin #SECRET
-      - KEYCLOAK_ADMIN_PASSWORD=kcpass #SECRET
-      - KC_DB_URL=jdbc:postgresql://172.20.0.5:5432/sysmaindb #NONSECRET
-      - KC_DB_USERNAME=postgres #SECRET
-      - KC_DB_PASSWORD=postgres #SECRET
+      - KEYCLOAK_ADMIN=${KC_ADMIN} #SECRET
+      - KEYCLOAK_ADMIN_PASSWORD=${KC_PASS} #SECRET
+      - KC_DB_URL=jdbc:postgresql://172.20.0.5:5432/${PG_DB} #NONSECRET
+      - KC_DB_USERNAME=${PG_USER} #SECRET
+      - KC_DB_PASSWORD=${PG_PASS} #SECRET
       - KC_REDIS_HOST=172.20.0.14
       - KC_REDIS_PORT=6379
-      - KC_REGISTRATION_RATE_LIMIT=1000
+      - KC_REDIS_USER=blah
+      - KC_REDIS_PASS=blah
+      - KC_REGISTRATION_RATE_LIMIT=10
     depends_on:
       - db
     networks:
@@ -160,7 +164,7 @@ services:
     #   - 8081:8080
     environment:
       - KC_API_HOST=172.20.0.4:9443/api #pointing to reverse proxy or use =172.20.0.4:9443/api for internal routing
-      - SOCK_SECRET=320hf032h8f08239r23gf9327gf09237g
+      - SOCK_SECRET=${SOCK_SECRET}
       - REDIS_HOST=172.20.0.14
       - NODE_TLS_REJECT_UNAUTHORIZED=0
       - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
@@ -213,10 +217,8 @@ services:
   graylog:
     image: graylog/graylog:5.0
     environment:
-      # CHANGE ME (must be at least 16 characters)!
-      - GRAYLOG_PASSWORD_SECRET=somepasswordpepper #SECRET
-      # Password: admin
-      - GRAYLOG_ROOT_PASSWORD_SHA2=8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918 #SECRET
+      - GRAYLOG_PASSWORD_SECRET=${GRAYLOG_PASSWORD_SECRET} #SECRET
+      - GRAYLOG_ROOT_PASSWORD_SHA2=${GRAYLOG_ROOT_PASSWORD_SHA2} #SECRET
       - GRAYLOG_HTTP_EXTERNAL_URI=http://${CUST_HOST_IP}:9000/ #NONSECRET
     entrypoint: /usr/bin/tini -- wait-for-it elasticsearch:9200 --  /docker-entrypoint.sh
     restart: always
@@ -242,14 +244,14 @@ services:
         aliases:
           - graylog
 
-  mail:
-    image: bytemark/smtp
-    restart: always
-    networks:
-      site:
-        ipv4_address: 172.20.0.13
-        aliases:
-          - mail
+  # mail:
+  #   image: bytemark/smtp
+  #   restart: always
+  #   networks:
+  #     site:
+  #       ipv4_address: 172.20.0.13
+  #       aliases:
+  #         - mail
 
 volumes:
   sqlitedata:

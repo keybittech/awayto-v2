@@ -3,12 +3,18 @@ package kbt;
 import org.jboss.logging.Logger;
 
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.DefaultJedisClientConfig;
 
 public class RedisConnection {
   private static final Logger log = Logger.getLogger(CustomEventListenerProvider.class);
 
   public Jedis connect() {
-    return new Jedis(System.getenv("KC_REDIS_HOST"), Integer.valueOf(System.getenv("KC_REDIS_PORT")));
+    DefaultJedisClientConfig clientConfig = DefaultJedisClientConfig
+      .builder()
+      .user(System.getenv("KC_REDIS_USER"))
+      .password(System.getenv("KC_REDIS_PASS"))
+      .build();
+    return new Jedis(System.getenv("KC_REDIS_HOST"), Integer.valueOf(System.getenv("KC_REDIS_PORT")), clientConfig);
   }
 
   public boolean rateLimit(String target, String action, int maxAttempts, int timeWindowSeconds) {
