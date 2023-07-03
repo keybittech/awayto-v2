@@ -36,10 +36,10 @@ public final class BackchannelAuth {
 
     try {
 
-      log.info("SENDING BACKCHANNEL REQUEST TO " + " https://" + System.getenv("KC_API_HOST") + endpoint);
+      log.info("SENDING BACKCHANNEL REQUEST TO " + " https://" + System.getenv("APP_HOST") + endpoint);
       log.info("PAYLOAD: " + payload.toString());
 
-      HttpPost httpPost = new HttpPost("https://" + System.getenv("KC_API_HOST") + endpoint);
+      HttpPost httpPost = new HttpPost("https://" + System.getenv("APP_HOST") + endpoint);
       httpPost.setHeader("x-backchannel-id", getClientSecret(realm));
       httpPost.setEntity(EntityBuilder.create().setText(payload.toString())
           .setContentType(ContentType.APPLICATION_JSON).build());

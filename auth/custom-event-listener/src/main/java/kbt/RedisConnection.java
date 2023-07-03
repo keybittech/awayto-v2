@@ -11,7 +11,6 @@ public class RedisConnection {
   public Jedis connect() {
     DefaultJedisClientConfig clientConfig = DefaultJedisClientConfig
       .builder()
-      .user(System.getenv("KC_REDIS_USER"))
       .password(System.getenv("KC_REDIS_PASS"))
       .build();
     return new Jedis(System.getenv("KC_REDIS_HOST"), Integer.valueOf(System.getenv("KC_REDIS_PORT")), clientConfig);

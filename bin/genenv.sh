@@ -8,34 +8,42 @@ if [ ! -f ./.env ]; then
 
   echo "Generating .env file..."
 
-  read -p "Enter SITE_NAME (ex. My Project): " site_name
-  read -p "Enter DOMAIN_NAME (ex. myproject.com): " domain_name
-  read -p "Enter PROJECT_PREFIX (ex. mp): " project_prefix
-  read -p "Enter DEPLOYMENT_LOCATION (local/hetzner/aws): " deployment_location
-  read -p "Enter DEPLOYMENT_METHOD (compose/kubernetes): " deployment_method
-  read -p "Enter DEPLOY_NAMESERVERS (y/n): " deploy_nameservers
+  read -p "Enter SITE_NAME (ex. My Project): " SITE_NAME
+  read -p "Enter DOMAIN_NAME (ex. myproject.com): " DOMAIN_NAME
+  read -p "Enter PROJECT_PREFIX (ex. mp): " PROJECT_PREFIX
+  read -p "Enter TAILSCALE_TAILNET (ex. tail1a2b3c.ts.net): " TAILSCALE_TAILNET
+  read -p "Enter DEPLOYMENT_LOCATION (local/hetzner/aws): " DEPLOYMENT_LOCATION
+  read -p "Enter DEPLOYMENT_METHOD (compose/kubernetes): " DEPLOYMENT_METHOD
+  read -p "Enter CONFIGURE_NAMESERVERS (y/n): " CONFIGURE_NAMESERVERS
+  read -p "Enter PROJECT_REPO (Leave blank for default): " PROJECT_REPO
+  read -p "Enter CLOUD_INIT_LOCATION (Leave blank for default): " CLOUD_INIT_LOCATION
 
   cat << EOF > ./.env
-SITE_NAME=$site_name
-PROJECT_PREFIX=$project_prefix
-DEPLOYMENT_METHOD=$deployment_method
-DEPLOYMENT_LOCATION=$deployment_location
-DEPLOY_NAMESERVERS=$deploy_nameservers
+SITE_NAME=$SITE_NAME
+PROJECT_PREFIX=$PROJECT_PREFIX
+TAILSCALE_TAILNET=$TAILSCALE_TAILNET
+
+PROJECT_REPO=${PROJECT_REPO:-"https://github.com/jcmccormick/wc.git"}
+CLOUD_INIT_LOCATION=${CLOUD_INIT_LOCATION:-"https://gist.githubusercontent.com/jcmccormick/820ad1cf61df4650825a00ea275edfa0/raw/9cafe1b26c400307bb5ad4788cf07a70b37f5261/gistfile1.txt"}
 WIZAPP_VERSION=${WIZAPP_VERSION:-"0.2.0-beta.2"}
 
-CUST_APP_HOSTNAME=app.$domain_name
-CUST_LAND_HOSTNAME=www.$domain_name
+DEPLOYMENT_LOCATION=$DEPLOYMENT_LOCATION
+DEPLOYMENT_METHOD=$DEPLOYMENT_METHOD
+CONFIGURE_NAMESERVERS=$CONFIGURE_NAMESERVERS
 
-REDIS_USER=$project_prefix-redis-$(genid)
+DOMAIN_NAME=$DOMAIN_NAME
+CUST_APP_HOSTNAME=app.$DOMAIN_NAME
+CUST_LAND_HOSTNAME=www.$DOMAIN_NAME
+
 REDIS_PASS=$(genid)
 
-PG_DB=$project_prefix-db-$(genid)
-PG_USER=$project_prefix-postgres-$(genid)
+PG_DB=$PROJECT_PREFIX-db-$(genid)
+PG_USER=$PROJECT_PREFIX-postgres-$(genid)
 PG_PASS=$(genid)
 
 API_COOKIE=$(genid)
 
-KC_ADMIN=$project_prefix-auth-$(genid)
+KC_ADMIN=$PROJECT_PREFIX-auth-$(genid)
 KC_PASS=$(genid)
 KC_REALM=kc-realm
 KC_CLIENT=kc-client
@@ -44,64 +52,69 @@ KC_API_CLIENT_SECRET=kc-api-client-secret
 
 SOCK_SECRET=$(genid)
 
-GRAYLOG_ROOT_PASSWORD_SHA2=$(echo -n "${project_prefix}changeme1" | sha256sum | cut -d " " -f1)
+GRAYLOG_ROOT_PASSWORD_SHA2=$(echo -n "${PROJECT_PREFIX}changeme1" | sha256sum | cut -d " " -f1)
 GRAYLOG_PASSWORD_SECRET=$(genid)
 
 EOF
   # Local deployments should specify existing tailscale ips and the operator
-  if [ $deployment_location = "local" ]; then
+  if [ $DEPLOYMENT_LOCATION = "local" ]; then
+    echo "In a local deployment, you need to provide information for existing servers that you control. The machines should be ssh accessible using the Tailscale operator account. The host names should be accessible on the tailnet you provided earlier. Only provide the machine name, for example 'db.tailnet.ts.net' would yield 'db'."
 
+    cat << EOF >> ./.env
+TAILSCALE_OPERATOR=${TAILSCALE_OPERATOR:-$(read -p "Enter TAILSCALE_OPERATOR: " var; echo "$var")}
 
-    if [ $deploy_nameservers = "y" ]; then
+BUILD_HOST=${BUILD_HOST:-$(read -p "Enter BUILD_HOST: " var; echo "$var";)}
+EXIT_HOST=${EXIT_HOST:-$(read -p "Enter EXIT_HOST: " var; echo "$var";)}
+APP_HOST=${APP_HOST:-$(read -p "Enter APP_HOST: " var; echo "$var";)}
+DB_HOST=${DB_HOST:-$(read -p "Enter DB_HOST: " var; echo "$var";)}
+SVC_HOST=${SVC_HOST:-$(read -p "Enter SVC_HOST: " var; echo "$var";)}
+
+EOF
+
+    if [ $CONFIGURE_NAMESERVERS = "y" ]; then
+      echo "In order to configure nameservers, provide host names and public IPv4 addresses for two name servers, and the public IPv4 of the Tailscale exit node. Bind9 will be installed and configured on the name servers; Nginx will be installed on the exit server."
       cat << EOF >> ./.env
-NS1_TAILSCALE_IPV4=${NS1_TAILSCALE_IPV4:-$(read -p "Enter NS1_TAILSCALE_IPV4: " var; echo "$var";)}
-NS1_REAL_IP=${NS1_REAL_IP:-$(read -p "Enter NS1_REAL_IP: " var; echo "$var";)}
-NS2_TAILSCALE_IPV4=${NS2_TAILSCALE_IPV4:-$(read -p "Enter NS2_TAILSCALE_IPV4: " var; echo "$var";)}
-NS2_REAL_IP=${NS2_REAL_IP:-$(read -p "Enter NS2_REAL_IP: " var; echo "$var";)}
+NS1_HOST=${NS1_HOST:-$(read -p "Enter NS1_HOST: " var; echo "$var";)}
+NS1_PUBLIC_IP=${NS1_PUBLIC_IP:-$(read -p "Enter NS1_PUBLIC_IP: " var; echo "$var";)}
+NS2_HOST=${NS2_HOST:-$(read -p "Enter NS2_HOST: " var; echo "$var";)}
+NS2_PUBLIC_IP=${NS2_PUBLIC_IP:-$(read -p "Enter NS2_PUBLIC_IP: " var; echo "$var";)}
+EXIT_PUBLIC_IP=${EXIT_PUBLIC_IP:-$(read -p "Enter EXIT_PUBLIC_IP: " var; echo "$var";)}
 
 EOF
     fi
 
+  elif [ $DEPLOYMENT_LOCATION = "aws" ]; then
     cat << EOF >> ./.env
-TAILSCALE_OPERATOR=${TAILSCALE_OPERATOR:-$(read -p "Enter TAILSCALE_OPERATOR: " var; echo ${var:-"ts-operator"})}
-
-EXIT_TAILSCALE_IPV4=${EXIT_TAILSCALE_IPV4:-$(read -p "Enter EXIT_TAILSCALE_IPV4: " var; echo "$var";)}
-EXIT_REAL_IP=${EXIT_REAL_IP:-$(read -p "Enter EXIT_REAL_IP: " var; echo "$var";)}
-APP_TAILSCALE_IPV4=${APP_TAILSCALE_IPV4:-$(read -p "Enter APP_TAILSCALE_IPV4: " var; echo "$var";)}
-DB_TAILSCALE_IPV4=${DB_TAILSCALE_IPV4:-$(read -p "Enter DB_TAILSCALE_IPV4: " var; echo "$var";)}
-SVC_TAILSCALE_IPV4=${SVC_TAILSCALE_IPV4:-$(read -p "Enter SVC_TAILSCALE_IPV4: " var; echo "$var";)}
-
-EOF
-
-  elif [ $deployment_location = "aws" ]; then
-    cat << EOF >> ./.env
-TAILSCALE_OPERATOR=${project_prefix}oper
-
 AWS_AMI_ID=${AWS_AMI_ID:-$(read -p "Enter AWS_AMI_ID: " var; echo ${var:-"aws-ami-id"})}
 AWS_INSTANCE_TYPE=${AWS_INSTANCE_TYPE:-$(read -p "Enter AWS_INSTANCE_TYPE: " var; echo ${var:-"aws-instance-type"})}
 AWS_KEY_NAME=${AWS_KEY_NAME:-$(read -p "Enter AWS_KEY_NAME: " var; echo ${var:-"aws-key-name"})}
 
 EOF
-  elif [ $deployment_location = "hetzner" ]; then
+  elif [ $DEPLOYMENT_LOCATION = "hetzner" ]; then
     cat << EOF >> ./.env
-HETZNER_DATACENTER=${HETZNER_DATACENTER:-$(read -p "Enter HETZNER_DATACENTER: " var; echo ${var:-"hil-dc1"})}
-HETZNER_TYPE=${HETZNER_TYPE:-$(read -p "Enter HETZNER_TYPE: " var; echo ${var:-"cpx11"})}
-HETZNER_IMAGE=${HETZNER_IMAGE:-$(read -p "Enter HETZNER_IMAGE: " var; echo ${var:-"ubuntu-22.04"})}
+HETZNER_DATACENTER=${HETZNER_DATACENTER:-$(read -p "Enter HETZNER_DATACENTER (Leave blank for default): " var; echo ${var:-"hil-dc1"})}
+HETZNER_TYPE=${HETZNER_TYPE:-$(read -p "Enter HETZNER_TYPE (Leave blank for default): " var; echo ${var:-"cpx11"})}
+HETZNER_IMAGE=${HETZNER_IMAGE:-$(read -p "Enter HETZNER_IMAGE (Leave blank for default): " var; echo ${var:-"ubuntu-22.04"})}
+
+EOF
+  fi
+
+  if [ ! $DEPLOYMENT_LOCATION = "local" ]; then
+    cat << EOF >> ./.env
+TAILSCALE_OPERATOR=${PROJECT_PREFIX}oper
+BUILD_HOST=$PROJECT_PREFIX-build.$TAILSCALE_TAILNET
+EXIT_HOST=$PROJECT_PREFIX-exit.$TAILSCALE_TAILNET
+APP_HOST=$PROJECT_PREFIX-app.$TAILSCALE_TAILNET
+DB_HOST=$PROJECT_PREFIX-db.$TAILSCALE_TAILNET
+SVC_HOST=$PROJECT_PREFIX-svc.$TAILSCALE_TAILNET
 
 EOF
   fi
 
   echo ".env file generated successfully!"
 
-  # # testing
-  # cat .env
-  # rm .env
-
 else
 
   echo "Using existing env file"
 
 fi
-
-# testing
-. ./.env

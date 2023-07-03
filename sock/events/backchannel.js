@@ -4,11 +4,11 @@ import { charCount } from '../util.js';
 dotenv.config();
 const {
   SOCK_SECRET,
-  KC_API_HOST
+  APP_HOST
 } = process.env;
 
 export async function sendBackchannel(path, body) {
-  return await fetch(`https://${KC_API_HOST}/sock/${path}/`, {
+  return await fetch(`https://${APP_HOST}/sock/${path}/`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

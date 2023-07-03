@@ -4,13 +4,11 @@ import { ProxyKeys } from 'awayto/core';
 export const DEFAULT_THROTTLE = 10;
 
 const {
-  REDIS_USER,
   REDIS_PASS,
   REDIS_HOST
 } = process.env as { [prop: string]: string };
 
 export const redis = createClient({
-  username: REDIS_USER,
   password: REDIS_PASS,
   socket: {
     host: REDIS_HOST

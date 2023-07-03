@@ -1,14 +1,13 @@
 #!/bin/sh
 
 . ./bin/genenv.sh
+. ./.env
 
-mkdir -p deployed
+mkdir -p "deployed/$PROJECT_PREFIX"
 
 TIMESTAMP=$(date +%Y%m%d)
 
-exit 1
-
-# If not local, we need to deploy new servers on a cloud provider
+# If not local, we need to deploy servers.
 if [ ! "$DEPLOYMENT_LOCATION" = "local" ]; then
 
   # Check if all required options are set
@@ -27,7 +26,7 @@ if [ ! "$DEPLOYMENT_LOCATION" = "local" ]; then
 
     # aws ec2 run-instances --image-id $AWS_AMI_ID --count 1 --instance-type $AWS_INSTANCE_TYPE --key-name $AWS_KEY_NAME --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value='$SECRETAILSCALE_SERVER_NAME'}]' 
   elif [ "$DEPLOYMENT_LOCATION" = "hetzner" ]; then
-    date >> ./deployed/$PROJECT_PREFIX/hetzner
+    date >> "./deployed/$PROJECT_PREFIX/hetzner"
 
     # Check if hcloud is installed
     if ! command -v hcloud >/dev/null 2>&1; then
@@ -35,147 +34,98 @@ if [ ! "$DEPLOYMENT_LOCATION" = "local" ]; then
       exit 1
     fi
 
-    # Validate required params
-    echo "Datacenter ${HETZNER_DATACENTER:?'missing in .env'}"
-    echo "Type ${HETZNER_TYPE:?'missing in .env'}"
-    echo "Image ${HETZNER_IMAGE:?'missing in .env'}"
-
-    # Create tailscale firewall
-    hcloud firewall create --name $PROJECT_PREFIX-ts-firewall --rules-file ./deploy/hetzner/ts-firewall.json
-
     # Configure the cloud-config file for first-run deployment
     echo "# Configure the cloud-config file for first-run deployment"
-    sed "s/dummyuser/$TAILSCALE_OPERATOR/g; s/ts-auth-key/$TAILSCALE_AUTH_KEY/g" ./deploy/cloud-config.yaml.template > ./deployed/$PROJECT_PREFIX/cloud-config.yaml
+    sed "s#dummyuser#$TAILSCALE_OPERATOR#g; \
+      s#cloud-init-location#$CLOUD_INIT_LOCATION#g; \
+      s#ts-auth-key#$TAILSCALE_AUTH_KEY#g" ./deploy/cloud-config.yaml.template > "./deployed/$PROJECT_PREFIX/cloud-config.yaml"
+    
+    # # Create private network
+    # hcloud network create --name $PROJECT_PREFIX-network --ip-range 10.0.0.0/16
+    # hcloud network add-subnet $PROJECT_PREFIX-network --type server --network-zone us-west --ip-range 10.0.1.0/24
+    # hcloud network describe $PROJECT_PREFIX-network -o json > ./deployed/$PROJECT_PREFIX/network.json
 
-    if [ "$DEPLOY_NAMESERVERS" = "y" ]; then
-      # Create ns firewall
-      hcloud firewall create --name $PROJECT_PREFIX-ns-firewall --rules-file ./deploy/hetzner/ns-firewall.json
+    # Create hetzner firewall for tailscale use
+    hcloud firewall create --name "$PROJECT_PREFIX-ts-firewall" --rules-file ./deploy/hetzner/ts-firewall.json
+    hcloud firewall describe "$PROJECT_PREFIX-ts-firewall" -o json > "./deployed/$PROJECT_PREFIX/ts-firewall.json"
 
-      # Create nameservers
-      hcloud server create --name $PROJECT_PREFIX-ns1 --datacenter $HETZNER_DATACENTER --type $HETZNER_TYPE --image $HETZNER_IMAGE --user-data-from-file ./deployed/$PROJECT_PREFIX/cloud-config.yaml --firewall $PROJECT_PREFIX-ts-firewall --firewall $PROJECT_PREFIX-ns-firewall >/dev/null
-      hcloud server create --name $PROJECT_PREFIX-ns2 --datacenter $HETZNER_DATACENTER --type $HETZNER_TYPE --image $HETZNER_IMAGE --user-data-from-file ./deployed/$PROJECT_PREFIX/cloud-config.yaml --firewall $PROJECT_PREFIX-ts-firewall --firewall $PROJECT_PREFIX-ns-firewall >/dev/null
-
-      hcloud firewall describe $PROJECT_PREFIX-ns-firewall -o json > ./deployed/$PROJECT_PREFIX/ns-firewall.json
-      hcloud server describe $PROJECT_PREFIX-ns1 -o json > ./deployed/$PROJECT_PREFIX/ns1.json
-      hcloud server describe $PROJECT_PREFIX-ns2 -o json > ./deployed/$PROJECT_PREFIX/ns2.json
-      
-      NS1_REAL_IP=$(hcloud server describe $PROJECT_PREFIX-ns1 -o=format="{{.PublicNet.IPv4.IP}}")
-      NS2_REAL_IP=$(hcloud server describe $PROJECT_PREFIX-ns2 -o=format="{{.PublicNet.IPv4.IP}}")
-    fi
 
     # Create public firewall
-    hcloud firewall create --name $PROJECT_PREFIX-public-firewall --rules-file ./deploy/hetzner/public-firewall.json
+    hcloud firewall create --name "$PROJECT_PREFIX-public-firewall" --rules-file ./deploy/hetzner/public-firewall.json
+    hcloud firewall describe "$PROJECT_PREFIX-public-firewall" -o json > "./deployed/$PROJECT_PREFIX/public-firewall.json"
 
-    # Create exit node
-    hcloud server create --name $PROJECT_PREFIX-exit --datacenter $HETZNER_DATACENTER --type $HETZNER_TYPE --image $HETZNER_IMAGE --user-data-from-file ./deployed/$PROJECT_PREFIX/cloud-config.yaml --firewall $PROJECT_PREFIX-ts-firewall --firewall $PROJECT_PREFIX-public-firewall >/dev/null
+    echo "# Generating exit server"
 
-    # Create app, db, svc nodes
-    hcloud server create --name $PROJECT_PREFIX-app --datacenter $HETZNER_DATACENTER --type $HETZNER_TYPE --image $HETZNER_IMAGE --user-data-from-file ./deployed/$PROJECT_PREFIX/cloud-config.yaml --firewall $PROJECT_PREFIX-ts-firewall --without-ipv4 --without-ipv6 >/dev/null
-    hcloud server create --name $PROJECT_PREFIX-db --datacenter $HETZNER_DATACENTER --type $HETZNER_TYPE --image $HETZNER_IMAGE --user-data-from-file ./deployed/$PROJECT_PREFIX/cloud-config.yaml --firewall $PROJECT_PREFIX-ts-firewall --without-ipv4 --without-ipv6 >/dev/null
-    hcloud server create --name $PROJECT_PREFIX-svc --datacenter $HETZNER_DATACENTER --type $HETZNER_TYPE --image $HETZNER_IMAGE --user-data-from-file ./deployed/$PROJECT_PREFIX/cloud-config.yaml --firewall $PROJECT_PREFIX-ts-firewall --without-ipv4 --without-ipv6 >/dev/null
+    # Create exit, app, db, svc, build machines
+    hcloud server create --name "$PROJECT_PREFIX-exit" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./deployed/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" --firewall "$PROJECT_PREFIX-public-firewall" >/dev/null
+    hcloud server describe "$PROJECT_PREFIX-exit" -o json > "./deployed/$PROJECT_PREFIX/exit.json"
 
-    # Describe resources
-    hcloud firewall describe $PROJECT_PREFIX-ts-firewall -o json > ./deployed/$PROJECT_PREFIX/ts-firewall.json
-    hcloud firewall describe $PROJECT_PREFIX-public-firewall -o json > ./deployed/$PROJECT_PREFIX/public-firewall.json
-
-    hcloud server describe $PROJECT_PREFIX-exit -o json > ./deployed/$PROJECT_PREFIX/exit.json
-    hcloud server describe $PROJECT_PREFIX-app -o json > ./deployed/$PROJECT_PREFIX/app.json
-    hcloud server describe $PROJECT_PREFIX-db -o json > ./deployed/$PROJECT_PREFIX/db.json
-    hcloud server describe $PROJECT_PREFIX-svc -o json > ./deployed/$PROJECT_PREFIX/svc.json
-
-    EXIT_REAL_IP=$(hcloud server describe $PROJECT_PREFIX-exit -o=format="{{.PublicNet.IPv4.IP}}")
-
-  fi
-
-  # Wait for tailscale attachments
-  while [ -z "$SVC_TAILSCALE_IPV4" ]; do
-    SVC_TAILSCALE_IPV4=$(tailscale ip -4 "$PROJECT_PREFIX-svc")
-    if [ -z "$SVC_TAILSCALE_IPV4" ]; then
-      echo "Waiting for $PROJECT_PREFIX-svc to become available..."
-      sleep 5
-    fi
-  done
-
-  while [ -z "$DB_TAILSCALE_IPV4" ]; do
-    DB_TAILSCALE_IPV4=$(tailscale ip -4 "$PROJECT_PREFIX-db")
-    if [ -z "$DB_TAILSCALE_IPV4" ]; then
-      echo "Waiting for $PROJECT_PREFIX-db to become available..."
-      sleep 5
-    fi
-  done
-
-  while [ -z "$APP_TAILSCALE_IPV4" ]; do
-    APP_TAILSCALE_IPV4=$(tailscale ip -4 "$PROJECT_PREFIX-app")
-    if [ -z "$APP_TAILSCALE_IPV4" ]; then
-      echo "Waiting for $PROJECT_PREFIX-app to become available..."
-      sleep 5
-    fi
-  done
-
-  while [ -z "$EXIT_TAILSCALE_IPV4" ]; do
-    EXIT_TAILSCALE_IPV4=$(tailscale ip -4 "$PROJECT_PREFIX-exit")
-    if [ -z "$EXIT_TAILSCALE_IPV4" ]; then
-      echo "Waiting for $PROJECT_PREFIX-exit to become available..."
-      sleep 5
-    fi
-  done
-
-  if [ "$DEPLOY_NAMESERVERS" = "y" ]; then
-    while [ -z "$NS1_TAILSCALE_IPV4" ]; do
-      NS1_TAILSCALE_IPV4=$(tailscale ip -4 "$PROJECT_PREFIX-ns1")
-      if [ -z "$NS1_TAILSCALE_IPV4" ]; then
-        echo "Waiting for $PROJECT_PREFIX-ns1 to become available..."
-        sleep 5
-      fi
+    for SERVER in app db svc build; do
+      echo "# Generating $SERVER server"
+      hcloud server create --name "$PROJECT_PREFIX-$SERVER" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./deployed/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" >/dev/null
+      hcloud server describe "$PROJECT_PREFIX-$SERVER" -o json > "./deployed/$PROJECT_PREFIX/$SERVER.json"
     done
 
-    while [ -z "$NS2_TAILSCALE_IPV4" ]; do
-      NS2_TAILSCALE_IPV4=$(tailscale ip -4 "$PROJECT_PREFIX-ns2")
-      if [ -z "$NS2_TAILSCALE_IPV4" ]; then
-        echo "Waiting for $PROJECT_PREFIX-ns2 to become available..."
-        sleep 5
-      fi
-    done
+    echo "# Servers generated"
 
+    if [ "$CONFIGURE_NAMESERVERS" = "y" ]; then
+      echo "# Generating nameservers"
+
+      # Create ns firewall
+      hcloud firewall create --name "$PROJECT_PREFIX-ns-firewall" --rules-file ./deploy/hetzner/ns-firewall.json
+      hcloud firewall describe "$PROJECT_PREFIX-ns-firewall" -o json > "./deployed/$PROJECT_PREFIX/ns-firewall.json"
+
+      # Create nameservers
+      hcloud server create --name "$PROJECT_PREFIX-ns1" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./deployed/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" --firewall "$PROJECT_PREFIX-ns-firewall" >/dev/null
+      hcloud server describe "$PROJECT_PREFIX-ns1" -o json > "./deployed/$PROJECT_PREFIX/ns1.json"
+      hcloud server create --name "$PROJECT_PREFIX-ns2" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./deployed/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" --firewall "$PROJECT_PREFIX-ns-firewall" >/dev/null
+      hcloud server describe "$PROJECT_PREFIX-ns2" -o json > "./deployed/$PROJECT_PREFIX/ns2.json"
+
+
+      NS1_PUBLIC_IP=$(hcloud server describe "$PROJECT_PREFIX-ns1" -o=format="{{.PublicNet.IPv4.IP}}")
+      NS2_PUBLIC_IP=$(hcloud server describe "$PROJECT_PREFIX-ns2" -o=format="{{.PublicNet.IPv4.IP}}")
+
+      cat << EOF >> ./.env
+NS1_HOST=$PROJECT_PREFIX-ns1.$TAILSCALE_TAILNET
+NS1_PUBLIC_IP=$NS1_PUBLIC_IP
+NS2_HOST=$PROJECT_PREFIX-ns2.$TAILSCALE_TAILNET
+NS2_PUBLIC_IP=$NS2_PUBLIC_IP
+
+EOF
+      echo "# Nameservers generated"
+    fi
+
+    EXIT_PUBLIC_IP=$(hcloud server describe "$PROJECT_PREFIX-exit" -o=format="{{.PublicNet.IPv4.IP}}")
+    
     cat << EOF >> ./.env
-# NAMESERVERS
-NS1_TAILSCALE_IPV4=$NS1_TAILSCALE_IPV4
-NS1_REAL_IP=$NS1_REAL_IP
-NS2_TAILSCALE_IPV4=$NS2_TAILSCALE_IPV4
-NS2_REAL_IP=$NS2_REAL_IP
+EXIT_PUBLIC_IP=$EXIT_PUBLIC_IP
 
 EOF
-  fi
+  fi #end if hetzner
+fi #end if not local
 
-  cat << EOF >> ./.env
-# SERVERS
-EXIT_TAILSCALE_IPV4=$EXIT_TAILSCALE_IPV4
-EXIT_REAL_IP=$EXIT_REAL_IP
-APP_TAILSCALE_IPV4=$APP_TAILSCALE_IPV4
-DB_TAILSCALE_IPV4=$DB_TAILSCALE_IPV4
-SVC_TAILSCALE_IPV4=$SVC_TAILSCALE_IPV4
-
-EOF
-fi
+. ./.env
 
 . ./bin/genexit.sh
-. ./bin/genapp.sh
 . ./bin/genns.sh
 
-echo "------ POST INSTALLATION ------"
+until ping -c1 "$DOMAIN_NAME" >/dev/null 2>&1; do
+  echo "Waiting for $DOMAIN_NAME to be pingable. Will try again in 30 seconds. You need to configure $DOMAIN_NAME registrar to use the name servers $NS1_PUBLIC_IP and $NS2_PUBLIC_IP"
+  sleep 30
+done
 
+read -p "Enter email configure with certbot: " CERTBOT_EMAIL
+ssh $TAILSCALE_OPERATOR@$EXIT_HOST "sudo certbot --nginx -d $DOMAIN_NAME -m $CERTBOT_EMAIL --agree-tos --no-eff-email --redirect"
+
+exit 1
+
+# At this point all servers should be deployed and we should have hostnames for the various systems
+. ./.env
+
+. ./bin/genapp.sh
+ 
 # Notify approver
-echo "If you don't have Tailscale autoApprovers setup, go to the admin console and enable the exit node for $PROJECT_PREFIX-exit. Run the following command after."
-echo "ssh $TAILSCALE_OPERATOR@$APP_TAILSCALE_IPV4 \"sudo tailscale up --operator $TAILSCALE_OPERATOR --exit-node=$EXIT_TAILSCALE_IPV4 --ssh\""
-
-if [ "$DEPLOY_NAMESERVERS" = "y" ]; then
-  echo "You can now configure your registrar to point $DOMAIN_NAME to:\nns1: $NS1_REAL_IP\nns2: $NS2_REAL_IP"
-  echo "When DNS propagation has resolved, enable certbot with the following:"
-  echo "ssh $TAILSCALE_OPERATOR@$EXIT_TAILSCALE_IPV4 \"sudo certbot --nginx -d $DOMAIN_NAME -m <your email> --agree-tos --no-eff-email --redirect\""
-else
-  read -p "Enter email configure with certbot" CERTBOT_EMAIL
-  ssh $TAILSCALE_OPERATOR@$EXIT_TAILSCALE_IPV4 "sudo certbot --nginx -d $DOMAIN_NAME -m $CERTBOT_EMAIL --agree-tos --no-eff-email --redirect"
-fi
-
+echo "If you don't have Tailscale autoApprovers setup, go to the admin console and enable the exit node for "$PROJECT_PREFIX-exit". Run the following command after."
+echo "ssh $TAILSCALE_OPERATOR@$APP_HOST \"sudo tailscale up --operator $TAILSCALE_OPERATOR --exit-node=$EXIT_TAILSCALE_IPV4 --ssh\""
 
 

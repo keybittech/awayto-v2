@@ -1,0 +1,114 @@
+upstream sock {
+  server ${SVC_HOST}:8080;
+}
+
+upstream auth {
+  server ${APP_HOST}:8443;
+}
+
+upstream api {
+  server ${DB_HOST}:9443;
+}
+
+limit_req_zone $binary_remote_addr zone=app:10m rate=30r/s;
+limit_req_zone $binary_remote_addr zone=primary:10m rate=10r/s;
+
+server {
+
+  server_name wcapp.site.com;
+
+  listen 443 http2 ssl;
+  listen [::]:443 http2 ssl;
+
+  ssl_certificate /etc/ssl/certs/server.crt;
+  ssl_certificate_key /etc/ssl/private/server.key;
+  
+  proxy_buffers 4 64k;
+  proxy_buffer_size 64k;
+
+  large_client_header_buffers 4 64k;
+
+  access_log /var/log/nginx/80.access.log main;
+  error_log /var/log/nginx/80.error.log;
+  
+  location / {
+    limit_req zone=primary burst=20 nodelay;
+
+    proxy_read_timeout 300s;
+    proxy_connect_timeout 75s;
+    proxy_pass http://${CUST_HOST_IP}:1313/;
+  }
+  
+  location /app/ {
+    limit_req zone=app burst=100 nodelay;
+
+    proxy_read_timeout 300s;
+    proxy_connect_timeout 75s;
+    proxy_pass https://${CUST_HOST_IP}:3000/app/;
+  }
+
+  location /auth/ {
+    proxy_read_timeout 300s;
+    proxy_connect_timeout 75s;
+
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    
+    proxy_pass https://auth/;
+  }
+
+  location /auth/admin/ {
+    satisfy any;
+
+    # allow 192.168.0.4;
+    # allow 172.20.0.4;
+    allow 100.64.0.0/10;
+    deny all;
+
+    # auth_basic "Restricted";
+    # auth_basic_user_file /conf/htpasswd;
+
+    proxy_read_timeout 300s;
+    proxy_connect_timeout 75s;
+
+    proxy_pass https://auth/admin/;
+
+  }
+
+  location /api/ {
+    limit_req zone=primary burst=10 nodelay;
+
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+    proxy_read_timeout 300s;
+    proxy_connect_timeout 75s;
+
+    proxy_pass https://api/api/;
+  }
+  
+  location /join {
+    limit_req zone=primary burst=5 nodelay;
+
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+    proxy_read_timeout 300s;
+    proxy_connect_timeout 75s;
+
+    proxy_pass https://api/api/join;
+  }
+
+  location /sock/ {
+    limit_req zone=primary burst=10 nodelay;
+
+    proxy_read_timeout 300s;
+    proxy_connect_timeout 75s;
+
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+    proxy_pass http://sock/;
+    
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "Upgrade";
+  }
+
+}

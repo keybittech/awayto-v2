@@ -580,3 +580,22 @@ Select an action.
 
 Actions 1-3 allow us to once again select from all the different services, denoted with an x, and perform the desired action.
 The Shutdown action safely shuts down all services immediately.
+
+
+Certbot always puts the latest version of all certificates under /etc/letsencrypt/live:
+
+/etc/letsencrypt/live
+├── mail.example.org
+│   ├── cert.pem -> ../../archive/mail.example.org/cert8.pem
+│   ├── chain.pem -> ../../archive/mail.example.org/chain8.pem
+│   ├── fullchain.pem -> ../../archive/mail.example.org/fullchain8.pem
+│   └── privkey.pem -> ../../archive/mail.example.org/privkey8.pem
+└── www.example.org
+    ├── cert.pem -> ../../archive/www.example.org/cert7.pem
+    ├── chain.pem -> ../../archive/www.example.org/chain7.pem
+    ├── fullchain.pem -> ../../archive/www.example.org/fullchain7.pem
+    └── privkey.pem -> ../../archive/www.example.org/privkey7.pem
+Therefore you would configure services like this:
+
+SSLCertificateFile     /etc/letsencrypt/live/www.example.org/fullchain.pem
+SSLCertificateKeyFile  /etc/letsencrypt/live/www.example.org/privkey.pem
