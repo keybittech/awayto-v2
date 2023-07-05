@@ -38,6 +38,8 @@ services:
       - KC_API_CLIENT_ID=${KC_API_CLIENT_ID}
       - KC_API_CLIENT_SECRET=${KC_API_CLIENT_SECRET}
       - DB_URL=jdbc:postgresql://${PG_USER}:${PG_PASS}@${DB_HOST}:8082/${PG_DB} #NONSECRET
+      - FS_HOST=${DB_HOST}
+      - FS_PORT=8000
       - PG_HOST=${DB_HOST} #NONSECRET
       - PG_PORT=8082 #NONSECRET
       - PG_USER=${PG_USER} #SECRET
@@ -75,6 +77,8 @@ services:
       - redisdata:/bitnami/redis/data
   fs: 
     image: wcfs
+    ports:
+      - 8000:8000
     build:
       context: ./fs
       dockerfile: ./Dockerfile
@@ -177,7 +181,7 @@ services:
       - 12201:12201/udp
     volumes: # DONE
       - graylogdata:/usr/share/graylog/data
-      
+
 volumes:
   pg15store:
   graylogdata:
