@@ -177,3 +177,9 @@ services:
       - 12201:12201/udp
     volumes: # DONE
       - graylogdata:/usr/share/graylog/data
+      
+volumes:
+  pg15store:
+  graylogdata:
+  redisdata:
+  sqlitedata:
