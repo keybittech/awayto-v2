@@ -8,7 +8,6 @@ services:
       args:
         - CUST_LAND_HOSTNAME=${CUST_LAND_HOSTNAME}
         - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
-        - CUST_HOST_IP=${CUST_HOST_IP}
         - SITE_NAME=${SITE_NAME}
     ports:
       - 80:80
@@ -16,7 +15,6 @@ services:
     environment:
       - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
       - CUST_LAND_HOSTNAME=${CUST_LAND_HOSTNAME}
-      - CUST_HOST_IP=${CUST_HOST_IP}
       - KC_REALM=${KC_REALM}
       - KC_CLIENT=${KC_CLIENT}
       - KC_PATH=/auth
@@ -109,7 +107,6 @@ services:
       - KC_DB_PASSWORD=${PG_PASS} #SECRET
       - KC_REDIS_HOST=${APP_HOST}
       - KC_REDIS_PORT=6379
-      - KC_REDIS_USER=${REDIS_USER}
       - KC_REDIS_PASS=${REDIS_PASS}
       - KC_REGISTRATION_RATE_LIMIT=10
 
@@ -161,7 +158,7 @@ services:
     environment:
       - GRAYLOG_PASSWORD_SECRET=${GRAYLOG_PASSWORD_SECRET} #SECRET
       - GRAYLOG_ROOT_PASSWORD_SHA2=${GRAYLOG_ROOT_PASSWORD_SHA2} #SECRET
-      - GRAYLOG_HTTP_EXTERNAL_URI=http://${CUST_HOST_IP}:9000/ #NONSECRET
+      - GRAYLOG_HTTP_EXTERNAL_URI=http://${SVC_HOST}:9000/ #NONSECRET
     entrypoint: /usr/bin/tini -- wait-for-it elasticsearch:9200 --  /docker-entrypoint.sh
     restart: always
     depends_on:

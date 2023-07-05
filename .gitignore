@@ -19,3 +19,4 @@ app/landing/public
 app/website/src/modules/generated
 *test*.json
 deployed
+sites/

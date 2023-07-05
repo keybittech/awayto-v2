@@ -8,7 +8,7 @@ until ssh-keyscan -H $EXIT_HOST >> ~/.ssh/known_hosts; do sleep 5; done
 ssh -T $TAILSCALE_OPERATOR@$EXIT_HOST "echo 'net.ipv4.ip_forward = 1' | sudo tee -a /etc/sysctl.conf && echo 'net.ipv6.conf.all.forwarding = 1' | sudo tee -a /etc/sysctl.conf && sudo sysctl -p /etc/sysctl.conf && sudo tailscale up --operator $TAILSCALE_OPERATOR --ssh --advertise-exit-node"
 
 # Exit node dependencies
-ssh -T $TAILSCALE_OPERATOR@$EXIT_HOST "sudo apt update && sudo apt install nginx certbot python3-certbot-nginx -y"
+ssh -T $TAILSCALE_OPERATOR@$EXIT_HOST "sudo apt update && sudo apt install nginx certbot python3-certbot-nginx -y > /dev/null"
 
 # Check for the existence of /etc/nginx/sites-available/ directory
 ssh -T $TAILSCALE_OPERATOR@$EXIT_HOST '[ -d /etc/nginx/sites-available/ ] && echo "Directory exists" || echo "Directory does not exist"'

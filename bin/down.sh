@@ -14,9 +14,9 @@ if [ ! "$DEPLOYMENT_LOCATION" = "local" ]; then
     exit 1
   fi
 
-  if [ -f ./deployed/$PROJECT_PREFIX/aws ]; then
+  if [ -f ./sites/$PROJECT_PREFIX/aws ]; then
     echo "uninstalling from aws"
-  elif [ -f ./deployed/$PROJECT_PREFIX/hetzner ]; then
+  elif [ -f ./sites/$PROJECT_PREFIX/hetzner ]; then
     echo "uninstalling from hetzner"
 
     # Check if hcloud is installed
@@ -61,5 +61,5 @@ if [ ! "$DEPLOYMENT_LOCATION" = "local" ]; then
 
   fi
 
-  rm -rf ./deployed
+  rm -rf ./sites/$PROJECT_PREFIX
 fi

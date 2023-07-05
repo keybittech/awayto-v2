@@ -3,7 +3,7 @@
 . ./bin/genenv.sh
 . ./.env
 
-mkdir -p "deployed/$PROJECT_PREFIX"
+mkdir -p "sites/$PROJECT_PREFIX"
 
 TIMESTAMP=$(date +%Y%m%d)
 
@@ -26,7 +26,7 @@ if [ ! "$DEPLOYMENT_LOCATION" = "local" ]; then
 
     # aws ec2 run-instances --image-id $AWS_AMI_ID --count 1 --instance-type $AWS_INSTANCE_TYPE --key-name $AWS_KEY_NAME --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value='$SECRETAILSCALE_SERVER_NAME'}]' 
   elif [ "$DEPLOYMENT_LOCATION" = "hetzner" ]; then
-    date >> "./deployed/$PROJECT_PREFIX/hetzner"
+    date >> "./sites/$PROJECT_PREFIX/hetzner"
 
     # Check if hcloud is installed
     if ! command -v hcloud >/dev/null 2>&1; then
@@ -38,32 +38,32 @@ if [ ! "$DEPLOYMENT_LOCATION" = "local" ]; then
     echo "# Configure the cloud-config file for first-run deployment"
     sed "s#dummyuser#$TAILSCALE_OPERATOR#g; \
       s#cloud-init-location#$CLOUD_INIT_LOCATION#g; \
-      s#ts-auth-key#$TAILSCALE_AUTH_KEY#g" ./deploy/cloud-config.yaml.template > "./deployed/$PROJECT_PREFIX/cloud-config.yaml"
+      s#ts-auth-key#$TAILSCALE_AUTH_KEY#g" ./deploy/cloud-config.yaml.template > "./sites/$PROJECT_PREFIX/cloud-config.yaml"
     
     # # Create private network
     # hcloud network create --name $PROJECT_PREFIX-network --ip-range 10.0.0.0/16
     # hcloud network add-subnet $PROJECT_PREFIX-network --type server --network-zone us-west --ip-range 10.0.1.0/24
-    # hcloud network describe $PROJECT_PREFIX-network -o json > ./deployed/$PROJECT_PREFIX/network.json
+    # hcloud network describe $PROJECT_PREFIX-network -o json > ./sites/$PROJECT_PREFIX/network.json
 
     # Create hetzner firewall for tailscale use
     hcloud firewall create --name "$PROJECT_PREFIX-ts-firewall" --rules-file ./deploy/hetzner/ts-firewall.json
-    hcloud firewall describe "$PROJECT_PREFIX-ts-firewall" -o json > "./deployed/$PROJECT_PREFIX/ts-firewall.json"
+    hcloud firewall describe "$PROJECT_PREFIX-ts-firewall" -o json > "./sites/$PROJECT_PREFIX/ts-firewall.json"
 
 
     # Create public firewall
     hcloud firewall create --name "$PROJECT_PREFIX-public-firewall" --rules-file ./deploy/hetzner/public-firewall.json
-    hcloud firewall describe "$PROJECT_PREFIX-public-firewall" -o json > "./deployed/$PROJECT_PREFIX/public-firewall.json"
+    hcloud firewall describe "$PROJECT_PREFIX-public-firewall" -o json > "./sites/$PROJECT_PREFIX/public-firewall.json"
 
     echo "# Generating exit server"
 
     # Create exit, app, db, svc, build machines
-    hcloud server create --name "$PROJECT_PREFIX-exit" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./deployed/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" --firewall "$PROJECT_PREFIX-public-firewall" >/dev/null
-    hcloud server describe "$PROJECT_PREFIX-exit" -o json > "./deployed/$PROJECT_PREFIX/exit.json"
+    hcloud server create --name "$PROJECT_PREFIX-exit" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./sites/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" --firewall "$PROJECT_PREFIX-public-firewall" >/dev/null
+    hcloud server describe "$PROJECT_PREFIX-exit" -o json > "./sites/$PROJECT_PREFIX/exit.json"
 
     for SERVER in app db svc build; do
       echo "# Generating $SERVER server"
-      hcloud server create --name "$PROJECT_PREFIX-$SERVER" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./deployed/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" >/dev/null
-      hcloud server describe "$PROJECT_PREFIX-$SERVER" -o json > "./deployed/$PROJECT_PREFIX/$SERVER.json"
+      hcloud server create --name "$PROJECT_PREFIX-$SERVER" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./sites/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" >/dev/null
+      hcloud server describe "$PROJECT_PREFIX-$SERVER" -o json > "./sites/$PROJECT_PREFIX/$SERVER.json"
     done
 
     echo "# Servers generated"
@@ -73,13 +73,13 @@ if [ ! "$DEPLOYMENT_LOCATION" = "local" ]; then
 
       # Create ns firewall
       hcloud firewall create --name "$PROJECT_PREFIX-ns-firewall" --rules-file ./deploy/hetzner/ns-firewall.json
-      hcloud firewall describe "$PROJECT_PREFIX-ns-firewall" -o json > "./deployed/$PROJECT_PREFIX/ns-firewall.json"
+      hcloud firewall describe "$PROJECT_PREFIX-ns-firewall" -o json > "./sites/$PROJECT_PREFIX/ns-firewall.json"
 
       # Create nameservers
-      hcloud server create --name "$PROJECT_PREFIX-ns1" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./deployed/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" --firewall "$PROJECT_PREFIX-ns-firewall" >/dev/null
-      hcloud server describe "$PROJECT_PREFIX-ns1" -o json > "./deployed/$PROJECT_PREFIX/ns1.json"
-      hcloud server create --name "$PROJECT_PREFIX-ns2" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./deployed/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" --firewall "$PROJECT_PREFIX-ns-firewall" >/dev/null
-      hcloud server describe "$PROJECT_PREFIX-ns2" -o json > "./deployed/$PROJECT_PREFIX/ns2.json"
+      hcloud server create --name "$PROJECT_PREFIX-ns1" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./sites/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" --firewall "$PROJECT_PREFIX-ns-firewall" >/dev/null
+      hcloud server describe "$PROJECT_PREFIX-ns1" -o json > "./sites/$PROJECT_PREFIX/ns1.json"
+      hcloud server create --name "$PROJECT_PREFIX-ns2" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./sites/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" --firewall "$PROJECT_PREFIX-ns-firewall" >/dev/null
+      hcloud server describe "$PROJECT_PREFIX-ns2" -o json > "./sites/$PROJECT_PREFIX/ns2.json"
 
 
       NS1_PUBLIC_IP=$(hcloud server describe "$PROJECT_PREFIX-ns1" -o=format="{{.PublicNet.IPv4.IP}}")
@@ -109,17 +109,9 @@ fi #end if not local
 . ./bin/genexit.sh
 . ./bin/genns.sh
 
-until ping -c1 "$DOMAIN_NAME" >/dev/null 2>&1; do
-  echo "Waiting for $DOMAIN_NAME to be pingable. Will try again in 30 seconds. You need to configure $DOMAIN_NAME registrar to use the name servers $NS1_PUBLIC_IP and $NS2_PUBLIC_IP"
-  sleep 30
-done
-
-read -p "Enter email configure with certbot: " CERTBOT_EMAIL
-ssh $TAILSCALE_OPERATOR@$EXIT_HOST "sudo certbot --nginx -d $DOMAIN_NAME -m $CERTBOT_EMAIL --agree-tos --no-eff-email --redirect"
-
 exit 1
 
-# At this point all servers should be deployed and we should have hostnames for the various systems
+# At this point all servers should be sites and we should have hostnames for the various systems
 . ./.env
 
 . ./bin/genapp.sh
