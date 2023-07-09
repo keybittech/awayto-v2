@@ -2,10 +2,10 @@
 
 # Function to get the current version
 get_version() {
-  if [ -s version.txt ]; then
-    cat version.txt
+  if [ -s VERSION ]; then
+    cat VERSION
   else
-    echo 0 > version.txt
+    echo 0 > VERSION
     echo 0
   fi
 }
@@ -13,9 +13,9 @@ get_version() {
 # Function to increment the version
 increment_version() {
   NEW_VERSION=$(get_version)
-  VERSION=$(($NEW_VERSION + 1))
-  echo $VERSION > version.txt
-  echo $VERSION
+  VERS=$(($NEW_VERSION + 1))
+  echo $VERS > VERSION
+  echo $VERS
 }
 
 # Process command-line options
