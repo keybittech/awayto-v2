@@ -6,11 +6,16 @@ until ping -c1 $BUILD_HOST; do sleep 5; done
 until ssh-keyscan -H $BUILD_HOST >> ~/.ssh/known_hosts; do sleep 5; done
 
 # Install Docker, clone repo on build server
-echo "# Install docker, clone repo on build server"
 ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST << EOF
+echo "# Installing docker"
 curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh
+echo "# Installing docker registry"
 sudo docker run -d -p 5000:5000 --restart=always --name registry registry:2
-git clone $PROJECT_REPO /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX && cd /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX
+echo "# Cloning repo"
+git clone $PROJECT_REPO /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX
+cd /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX
+sudo cp ./deploy/docker-compose.yml ./docker-compose.yml
+echo "# Build init complete"
 EOF
 
 # Put env file on build server

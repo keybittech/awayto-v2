@@ -116,8 +116,8 @@ exit 1
 
 . ./bin/genapp.sh
  
-# Notify approver
-echo "If you don't have Tailscale autoApprovers setup, go to the admin console and enable the exit node for "$PROJECT_PREFIX-exit". Run the following command after."
-echo "ssh $TAILSCALE_OPERATOR@$APP_HOST \"sudo tailscale up --operator $TAILSCALE_OPERATOR --exit-node=$EXIT_TAILSCALE_IPV4 --ssh\""
+# # Notify approver
+# echo "If you don't have Tailscale autoApprovers setup, go to the admin console and enable the exit node for "$PROJECT_PREFIX-exit". Run the following command after."
+# echo "ssh $TAILSCALE_OPERATOR@$APP_HOST \"sudo tailscale up --operator $TAILSCALE_OPERATOR --exit-node=$EXIT_TAILSCALE_IPV4 --ssh\""
 
 
