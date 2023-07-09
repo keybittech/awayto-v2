@@ -12,8 +12,8 @@ get_version() {
 
 # Function to increment the version
 increment_version() {
-  VERSION=$(get_version)
-  VERSION=$((version + 1))
+  NEW_VERSION=$(get_version)
+  VERSION=$(($NEW_VERSION + 1))
   echo $VERSION > version.txt
   echo $VERSION
 }
@@ -33,3 +33,13 @@ while getopts "gi" opt; do
       ;;
   esac
 done
+
+
+
+# VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "cat /path/to/VERSION")
+# MAJOR=$(echo $VERSION | cut -d. -f1)
+# MINOR=$(echo $VERSION | cut -d. -f2)
+# PATCH=$(echo $VERSION | cut -d. -f3)
+
+# NEW_PATCH=$((PATCH + 1))
+# NEW_VERSION="${MAJOR}.${MINOR}.${NEW_PATCH}"
