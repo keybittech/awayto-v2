@@ -13,8 +13,7 @@ echo "# Installing docker registry"
 sudo docker run -d -p 5000:5000 --restart=always --name registry registry:2
 echo "# Cloning repo"
 git clone $PROJECT_REPO /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX
-cd /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX
-sudo cp ./deploy/docker-compose.yml ./docker-compose.yml
+sudo cp /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/deploy/docker-compose.yml /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/docker-compose.yml
 echo "# Build init complete"
 EOF
 

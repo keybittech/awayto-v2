@@ -46,12 +46,13 @@ if [ ! "$DEPLOYMENT_LOCATION" = "local" ]; then
     # hcloud network describe $PROJECT_PREFIX-network -o json > ./sites/$PROJECT_PREFIX/network.json
 
     # Create hetzner firewall for tailscale use
-    hcloud firewall create --name "$PROJECT_PREFIX-ts-firewall" --rules-file ./deploy/hetzner/ts-firewall.json
+    echo "# Generating firewalls for general Tailscale usage and exit server"
+    hcloud firewall create --name "$PROJECT_PREFIX-ts-firewall" --rules-file ./deploy/hetzner/ts-firewall.json >/dev/null
     hcloud firewall describe "$PROJECT_PREFIX-ts-firewall" -o json > "./sites/$PROJECT_PREFIX/ts-firewall.json"
 
 
     # Create public firewall
-    hcloud firewall create --name "$PROJECT_PREFIX-public-firewall" --rules-file ./deploy/hetzner/public-firewall.json
+    hcloud firewall create --name "$PROJECT_PREFIX-public-firewall" --rules-file ./deploy/hetzner/public-firewall.json >/dev/null
     hcloud firewall describe "$PROJECT_PREFIX-public-firewall" -o json > "./sites/$PROJECT_PREFIX/public-firewall.json"
 
     echo "# Generating exit server"
@@ -72,7 +73,7 @@ if [ ! "$DEPLOYMENT_LOCATION" = "local" ]; then
       echo "# Generating nameservers"
 
       # Create ns firewall
-      hcloud firewall create --name "$PROJECT_PREFIX-ns-firewall" --rules-file ./deploy/hetzner/ns-firewall.json
+      hcloud firewall create --name "$PROJECT_PREFIX-ns-firewall" --rules-file ./deploy/hetzner/ns-firewall.json >/dev/null
       hcloud firewall describe "$PROJECT_PREFIX-ns-firewall" -o json > "./sites/$PROJECT_PREFIX/ns-firewall.json"
 
       # Create nameservers
