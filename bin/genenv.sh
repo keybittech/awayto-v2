@@ -4,27 +4,46 @@ genid() {
   openssl rand -base64 32 | shasum | cut -d " " -f1
 }
 
+prompt_user() {
+  var_name="$1"
+  prompt_msg="$2"
+  default_value="$3"
+
+  while true; do
+    printf "%s" "$prompt_msg"
+    read input
+    if [ -n "$input" ]; then
+      eval "$var_name=\"$input\""
+      break
+    elif [ -n "$default_value" ]; then
+      eval "$var_name=\"$default_value\""
+      break
+    fi
+  done
+}
+
 if [ ! -f ./.env ]; then
 
   echo "Generating .env file..."
 
-  read -p "Enter SITE_NAME (ex. My Project): " SITE_NAME
-  read -p "Enter DOMAIN_NAME (ex. myproject.com): " DOMAIN_NAME
-  read -p "Enter PROJECT_PREFIX (ex. mp): " PROJECT_PREFIX
-  read -p "Enter TAILSCALE_TAILNET (ex. tail1a2b3c.ts.net): " TAILSCALE_TAILNET
-  read -p "Enter DEPLOYMENT_LOCATION (local/hetzner/aws): " DEPLOYMENT_LOCATION
-  read -p "Enter DEPLOYMENT_METHOD (compose/kubernetes): " DEPLOYMENT_METHOD
-  read -p "Enter CONFIGURE_NAMESERVERS (y/n): " CONFIGURE_NAMESERVERS
-  read -p "Enter PROJECT_REPO (Leave blank for default): " PROJECT_REPO
-  read -p "Enter CLOUD_INIT_LOCATION (Leave blank for default): " CLOUD_INIT_LOCATION
+  echo "All of the following are required."
+  prompt_user "SITE_NAME" "Enter SITE_NAME (ex. My Project): "
+  prompt_user "DOMAIN_NAME" "Enter DOMAIN_NAME (ex. myproject.com): "
+  prompt_user "PROJECT_PREFIX" "Enter PROJECT_PREFIX (ex. mp): "
+  prompt_user "TAILSCALE_TAILNET" "Enter TAILSCALE_TAILNET (ex. tail1a2b3c.ts.net): "
+  prompt_user "DEPLOYMENT_LOCATION" "Enter DEPLOYMENT_LOCATION (local/hetzner/aws): "
+  prompt_user "DEPLOYMENT_METHOD" "Enter DEPLOYMENT_METHOD (compose/kubernetes): "
+  prompt_user "CONFIGURE_NAMESERVERS" "Enter CONFIGURE_NAMESERVERS (y/n): "
+  prompt_user "PROJECT_REPO" "Enter PROJECT_REPO (Leave blank for default): " "https://github.com/jcmccormick/wc.git"  # Replace "default" with your default project repo.
+  prompt_user "CLOUD_INIT_LOCATION" "Enter CLOUD_INIT_LOCATION (Leave blank for default): " "https://gist.githubusercontent.com/jcmccormick/820ad1cf61df4650825a00ea275edfa0/raw/9cafe1b26c400307bb5ad4788cf07a70b37f5261/gistfile1.txt"  # Replace "default" with your default cloud init location.
 
   cat << EOF > ./.env
 SITE_NAME=$SITE_NAME
 PROJECT_PREFIX=$PROJECT_PREFIX
 TAILSCALE_TAILNET=$TAILSCALE_TAILNET
 
-PROJECT_REPO=${PROJECT_REPO:-"https://github.com/jcmccormick/wc.git"}
-CLOUD_INIT_LOCATION=${CLOUD_INIT_LOCATION:-"https://gist.githubusercontent.com/jcmccormick/820ad1cf61df4650825a00ea275edfa0/raw/9cafe1b26c400307bb5ad4788cf07a70b37f5261/gistfile1.txt"}
+PROJECT_REPO=$PROJECT_REPO
+CLOUD_INIT_LOCATION=$CLOUD_INIT_LOCATION
 WIZAPP_VERSION=${WIZAPP_VERSION:-"0.2.0-beta.2"}
 
 DEPLOYMENT_LOCATION=$DEPLOYMENT_LOCATION

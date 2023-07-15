@@ -79,11 +79,11 @@ services:
       - redisdata:/bitnami/redis/data
   fs: 
     image: wcfs
+    build:
+      context: ./
+      dockerfile: ./fs/Dockerfile
     ports:
       - 8000:8000
-    build:
-      context: ./fs
-      dockerfile: ./Dockerfile
     environment:
       - SQLITE_DATA=/app/data/sqlite-db.db
     volumes:

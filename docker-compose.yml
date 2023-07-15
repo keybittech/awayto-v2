@@ -112,8 +112,8 @@ services:
   fs: 
     image: wcfs
     build:
-      context: ./fs
-      dockerfile: ./Dockerfile
+      context: ./
+      dockerfile: ./fs/Dockerfile
     environment:
       - SQLITE_DATA=/app/data/sqlite-db.db
     volumes:

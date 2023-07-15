@@ -1,5 +1,13 @@
 #!/bin/sh
 
+if [ -f ./.env ]; then
+  . ./.env
+  if [ -f "./sites/$PROJECT_PREFIX" ]; then
+    echo "Project exists."
+    exit 1
+  fi
+fi
+
 . ./bin/genenv.sh
 . ./.env
 

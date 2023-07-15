@@ -7,13 +7,17 @@ until ssh-keyscan -H $BUILD_HOST >> ~/.ssh/known_hosts; do sleep 5; done
 
 # Install Docker, clone repo on build server
 ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST << EOF
+
 echo "# Installing docker"
 curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh
+
 echo "# Installing docker registry"
 sudo docker run -d -p 5000:5000 --restart=always --name registry registry:2
+
 echo "# Cloning repo"
 git clone $PROJECT_REPO /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX
 sudo cp /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/deploy/docker-compose.yml /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/docker-compose.yml
+
 echo "# Build init complete"
 EOF
 
@@ -45,11 +49,4 @@ EOF
 scp "./sites/$PROJECT_PREFIX/fullchain.pem" "$TAILSCALE_OPERATOR@$BUILD_HOST:/home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/app/server/server.crt"
 scp "./sites/$PROJECT_PREFIX/privkey.pem" "$TAILSCALE_OPERATOR@$BUILD_HOST:/home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/app/server/server.key"
 
-
-# Create cert keystore for auth
-ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST << EOF
-openssl pkcs12 -export -in /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/app/server/server.crt -inkey /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/app/server/server.key -out /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/app/server/keystore.p12 -name ${PROJECT_PREFIX}cert -passout pass:$KC_PASS
-sudo apt-get install -y openjdk-11-jdk >/dev/null
-keytool -importkeystore -srcstoretype PKCS12 -srckeystore /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/app/server/keystore.p12 -destkeystore /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/app/server/KeyStore.jks -deststoretype JKS -srcalias ${PROJECT_PREFIX}cert -deststorepass $KC_PASS -destkeypass $KC_PASS -srcstorepass $KC_PASS
-EOF
 

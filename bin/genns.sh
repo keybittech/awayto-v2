@@ -95,12 +95,15 @@ if [ "$CONFIGURE_NAMESERVERS" = "y" ]; then
   ssh -T $TAILSCALE_OPERATOR@$NS2_HOST "sudo systemctl restart bind9"
 
   echo "Configure $DOMAIN_NAME to use the following nameservers:"
-  echo "NS1: $NS1_PUBLIC_IP"
-  echo "NS2: $NS2_PUBLIC_IP"
+  echo "ns1.$DOMAIN_NAME: $NS1_PUBLIC_IP"
+  echo "ns2.$DOMAIN_NAME: $NS2_PUBLIC_IP"
 fi
 
 until ping -c1 "$DOMAIN_NAME" >/dev/null 2>&1; do
-  echo "Waiting for $DOMAIN_NAME to be pingable. Will try again in 30 seconds. You need to configure $DOMAIN_NAME registrar to use the name servers $NS1_PUBLIC_IP and $NS2_PUBLIC_IP"
+  echo "Waiting for $DOMAIN_NAME to be pingable. Will try again in 30 seconds."
+  echo "Configure $DOMAIN_NAME to use the following nameservers:"
+  echo "ns1.$DOMAIN_NAME: $NS1_PUBLIC_IP"
+  echo "ns2.$DOMAIN_NAME: $NS2_PUBLIC_IP"
   sleep 30
 done
 
