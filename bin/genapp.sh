@@ -11,6 +11,8 @@ BUILD_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "sh /home/$TAILSCALE_OPER
 ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST << EOF
 cd /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX
 
+chmod +x ./build-deps && sudo ./build-deps
+
 echo "# Building app image"
 sudo docker compose build --build-arg ENVIRONMENT=deploy app
 
@@ -23,16 +25,9 @@ sudo docker push localhost:5000/wcapp:$BUILD_VERSION
 sudo docker push localhost:5000/wcapp:latest
 EOF
 
-# Configure host tailscale
 ssh -T $TAILSCALE_OPERATOR@$APP_HOST << EOF
+
 sudo tailscale up --operator $TAILSCALE_OPERATOR --exit-node=$PROJECT_PREFIX-exit --ssh
-EOF
-
-
-ssh -T $TAILSCALE_OPERATOR@$APP_HOST << EOF
-
-echo "# Install postgres client"
-sudo apt-get install -y postgresql-client
 
 if ! command -v docker >/dev/null 2>&1; then
   echo "# Installing Docker"

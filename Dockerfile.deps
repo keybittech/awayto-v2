@@ -12,7 +12,8 @@ COPY /app/website/package.json /app/website/yarn.lock /deps/app/website
 
 WORKDIR /deps
 
-RUN sed -i "s/file:..\/..\/wiz/${WIZAPP_VERSION}/g" /deps/api/package.json &&\
+RUN sed -i "s/file:..\/wiz/${WIZAPP_VERSION}/g" /deps/package.json &&\
+  sed -i "s/file:..\/..\/wiz/${WIZAPP_VERSION}/g" /deps/api/package.json &&\
   sed -i "s/file:..\/..\/wiz/${WIZAPP_VERSION}/g" /deps/core/package.json &&\
   sed -i "s/file:..\/..\/..\/wiz/${WIZAPP_VERSION}/g" /deps/app/website/package.json
 
