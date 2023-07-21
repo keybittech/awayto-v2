@@ -15,7 +15,7 @@ limit_req_zone $binary_remote_addr zone=primary:10m rate=10r/s;
 
 server {
 
-  server_name wcapp.site.com;
+  server_name ${DOMAIN_NAME};
 
   listen 443 http2 ssl;
   listen [::]:443 http2 ssl;
@@ -67,7 +67,6 @@ server {
     proxy_connect_timeout 75s;
 
     proxy_pass https://auth/admin/;
-
   }
 
   location /api/ {

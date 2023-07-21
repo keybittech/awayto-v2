@@ -7,7 +7,7 @@ until ssh-keyscan -H $DB_HOST >> ~/.ssh/known_hosts; do sleep 5; done
 
 # In order to deploy the DB, we need to setup the build server for it, build it, then pull it to the db server
 
-BUILD_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "sh /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/bin/getversion.sh -i")
+BUILD_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "sh /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/bin/getversion.sh -g")
 
 ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST << EOF
 cd /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX
@@ -34,11 +34,17 @@ sudo docker push localhost:5000/wcfs:latest
 EOF
 
 ssh -T $TAILSCALE_OPERATOR@$DB_HOST << EOF
-echo "# Installing Docker"
-sudo mkdir -p /etc/docker
-curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh
-echo '{ "insecure-registries": ["'"$BUILD_HOST"':5000"] }' | sudo tee /etc/docker/daemon.json > /dev/null
-sudo systemctl restart docker
+
+echo "# Install postgres client"
+sudo apt-get install -y postgresql-client
+
+if ! command -v docker >/dev/null 2>&1; then
+  echo "# Installing Docker"
+  sudo mkdir -p /etc/docker
+  curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh
+  echo '{ "insecure-registries": ["'"$BUILD_HOST"':5000"] }' | sudo tee /etc/docker/daemon.json > /dev/null
+  sudo systemctl restart docker
+fi
 
 echo "# Creating volume for permanence"
 sudo docker volume create pg15store

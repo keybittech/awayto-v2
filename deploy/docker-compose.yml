@@ -9,10 +9,17 @@ services:
         - CUST_LAND_HOSTNAME=${CUST_LAND_HOSTNAME}
         - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
         - SITE_NAME=${SITE_NAME}
+        - KC_REALM=${KC_REALM}
+        - KC_CLIENT=${KC_CLIENT}
+        - KC_PATH=/auth
     ports:
       - 80:80
       - 443:443
     environment:
+      - DOMAIN_NAME=${DOMAIN_NAME}
+      - SVC_HOST=${SVC_HOST}
+      - APP_HOST=${APP_HOST}
+      - DB_HOST=${DB_HOST}
       - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
       - CUST_LAND_HOSTNAME=${CUST_LAND_HOSTNAME}
       - KC_REALM=${KC_REALM}

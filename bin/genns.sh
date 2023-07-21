@@ -107,5 +107,4 @@ until ping -c1 "$DOMAIN_NAME" >/dev/null 2>&1; do
   sleep 30
 done
 
-read -p "Enter email configure with certbot: " CERTBOT_EMAIL
-ssh $TAILSCALE_OPERATOR@$EXIT_HOST "sudo certbot --nginx -d $DOMAIN_NAME -m $CERTBOT_EMAIL --agree-tos --no-eff-email --redirect"
+ssh $TAILSCALE_OPERATOR@$EXIT_HOST "sudo certbot --nginx -d $DOMAIN_NAME -m $ADMIN_EMAIL --agree-tos --no-eff-email --redirect"

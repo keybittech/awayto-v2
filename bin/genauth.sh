@@ -11,15 +11,6 @@ BUILD_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "sh /home/$TAILSCALE_OPER
 
 ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST << EOF
 
-echo "# Installing auth build dependencies"
-
-sudo apt-get update >/dev/null
-sudo apt-get install -y maven openjdk-11-jdk >/dev/null
-
-echo "# Generate keystore"
-openssl pkcs12 -export -in /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/app/server/server.crt -inkey /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/app/server/server.key -out /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/app/server/keystore.p12 -name ${PROJECT_PREFIX}cert -passout pass:$KC_PASS >/dev/null
-keytool -importkeystore -srcstoretype PKCS12 -srckeystore /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/app/server/keystore.p12 -destkeystore /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/app/server/KeyStore.jks -deststoretype JKS -srcalias ${PROJECT_PREFIX}cert -deststorepass $KC_PASS -destkeypass $KC_PASS -srcstorepass $KC_PASS >/dev/null
-
 echo "# Building auth event listener"
 cd /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/auth/custom-event-listener
 mvn install
@@ -39,25 +30,28 @@ sudo docker push localhost:5000/wcauth:latest
 EOF
 
 ssh -T $TAILSCALE_OPERATOR@$APP_HOST << EOF
-echo "# Installing Docker"
-sudo mkdir -p /etc/docker
-curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh
-echo '{ "insecure-registries": ["'"$BUILD_HOST"':5000"] }' | sudo tee /etc/docker/daemon.json > /dev/null
-sudo systemctl restart docker
+
+if ! command -v docker >/dev/null 2>&1; then
+  echo "# Installing Docker"
+  sudo mkdir -p /etc/docker
+  curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh
+  echo '{ "insecure-registries": ["'"$BUILD_HOST"':5000"] }' | sudo tee /etc/docker/daemon.json > /dev/null
+  sudo systemctl restart docker
+fi
 
 echo "# Pulling auth image"
-# sudo docker pull $BUILD_HOST:5000/wcauth:$BUILD_VERSION
+sudo docker pull $BUILD_HOST:5000/wcauth:$BUILD_VERSION
 
-sudo docker run -d --restart=always --name=wcauth \
+echo "# Starting Keycloak on $APP_HOST:8443"
+sudo docker run -d --restart=always --name=wcauth --network="host" \
   -e KC_API_CLIENT_ID=$KC_API_CLIENT_ID \
   -e APP_HOST=$APP_HOST/api \
   -e KC_SPI_TRUSTSTORE_FILE_FILE=/opt/keycloak/conf/KeyStore.jks \
   -e KC_SPI_TRUSTSTORE_FILE_PASSWORD=$KC_PASS \
-  -e KC_SPI_TRUSTSTORE_FILE_HOSTNAME_VERIFICATION_POLICY=ANY \
+  -e KC_SPI_TRUSTSTORE_FILE_HOSTNAME_VERIFICATION_POLICY=WILDCARD \
   -e KC_HOSTNAME_ADMIN_URL=https://$CUST_APP_HOSTNAME/auth \
   -e KC_HOSTNAME_URL=https://$CUST_APP_HOSTNAME/auth \
   -e KC_PROXY=edge \
-  -e KC_HOSTNAME_STRICT_BACKCHANNEL=true \
   -e KEYCLOAK_ADMIN=$KC_ADMIN \
   -e KEYCLOAK_ADMIN_PASSWORD=$KC_PASS \
   -e KC_DB_URL=jdbc:postgresql://$DB_HOST:5432/$PG_DB \
@@ -66,7 +60,7 @@ sudo docker run -d --restart=always --name=wcauth \
   -e KC_REDIS_HOST=$APP_HOST \
   -e KC_REDIS_PORT=6379 \
   -e KC_REDIS_PASS=$REDIS_PASS \
-  -e KC_REGISTRATION_RATE_LIMIT=10 \
-  -p 8443:8443 $BUILD_HOST:5000/wcauth:$BUILD_VERSION
+  -e KC_REGISTRATION_RATE_LIMIT=10 $BUILD_HOST:5000/wcauth:$BUILD_VERSION
 
 EOF
+#  -e KC_HOSTNAME_STRICT_BACKCHANNEL=true \

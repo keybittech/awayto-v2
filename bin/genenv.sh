@@ -34,8 +34,9 @@ if [ ! -f ./.env ]; then
   prompt_user "DEPLOYMENT_LOCATION" "Enter DEPLOYMENT_LOCATION (local/hetzner/aws): "
   prompt_user "DEPLOYMENT_METHOD" "Enter DEPLOYMENT_METHOD (compose/kubernetes): "
   prompt_user "CONFIGURE_NAMESERVERS" "Enter CONFIGURE_NAMESERVERS (y/n): "
-  prompt_user "PROJECT_REPO" "Enter PROJECT_REPO (Leave blank for default): " "https://github.com/jcmccormick/wc.git"  # Replace "default" with your default project repo.
-  prompt_user "CLOUD_INIT_LOCATION" "Enter CLOUD_INIT_LOCATION (Leave blank for default): " "https://gist.githubusercontent.com/jcmccormick/820ad1cf61df4650825a00ea275edfa0/raw/9cafe1b26c400307bb5ad4788cf07a70b37f5261/gistfile1.txt"  # Replace "default" with your default cloud init location.
+  prompt_user "ADMIN_EMAIL" "Enter ADMIN_EMAIL: "
+  prompt_user "PROJECT_REPO" "Enter PROJECT_REPO (Leave blank for default): " "https://github.com/jcmccormick/wc.git"
+  prompt_user "CLOUD_INIT_LOCATION" "Enter CLOUD_INIT_LOCATION (Leave blank for default): " "https://gist.githubusercontent.com/jcmccormick/820ad1cf61df4650825a00ea275edfa0/raw/9cafe1b26c400307bb5ad4788cf07a70b37f5261/gistfile1.txt"
 
   cat << EOF > ./.env
 SITE_NAME=$SITE_NAME
@@ -49,10 +50,13 @@ WIZAPP_VERSION=${WIZAPP_VERSION:-"0.2.0-beta.2"}
 DEPLOYMENT_LOCATION=$DEPLOYMENT_LOCATION
 DEPLOYMENT_METHOD=$DEPLOYMENT_METHOD
 CONFIGURE_NAMESERVERS=$CONFIGURE_NAMESERVERS
+ADMIN_EMAIL=$ADMIN_EMAIL
 
 DOMAIN_NAME=$DOMAIN_NAME
-CUST_APP_HOSTNAME=app.$DOMAIN_NAME
+CUST_APP_HOSTNAME=www.$DOMAIN_NAME
 CUST_LAND_HOSTNAME=www.$DOMAIN_NAME
+
+CA_PASS=$(genid)
 
 REDIS_PASS=$(genid)
 
