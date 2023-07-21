@@ -5,8 +5,6 @@ FROM node:18.16.0-alpine as builder
 
 RUN apk update && apk add gettext
 
-ARG ENVIRONMENT=local
-
 ARG CUST_LAND_HOSTNAME
 ARG CUST_APP_HOSTNAME
 ARG SITE_NAME
@@ -38,7 +36,11 @@ RUN envsubst < ./settings.application.env.template > ./settings.application.env
 RUN npm run build
 
 FROM nginx:alpine
-EXPOSE 443
+
+ARG ENVIRONMENT=local
+
+EXPOSE 80
+
 RUN mkdir -p /etc/ssl/private && chmod 700 /etc/ssl/private
 RUN mkdir -p /usr/share/nginx/html/app
 RUN ln -sf /dev/stdout /var/log/nginx/access.log &&\
@@ -46,11 +48,11 @@ RUN ln -sf /dev/stdout /var/log/nginx/access.log &&\
 
 # CMD ["nginx-debug", "-g", "daemon off;"]
 CMD [ "nginx", "-g", "daemon off;"]
-COPY ./app/server/server.crt /etc/ssl/certs/
-COPY ./app/server/server.key /etc/ssl/private/
+# COPY ./app/server/server.crt /etc/ssl/certs/
+# COPY ./app/server/server.key /etc/ssl/private/
 COPY ./app/server/ssl-redirect.conf /etc/nginx/default.d/
 COPY ./app/server/nginx.conf /etc/nginx/nginx.conf
-COPY ./app/server/.htpasswd /conf/htpasswd
+# COPY ./app/server/.htpasswd /conf/htpasswd
 
 COPY ./app/server/${ENVIRONMENT}/default.conf.template /etc/nginx/templates/
 

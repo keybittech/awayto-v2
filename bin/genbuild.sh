@@ -29,8 +29,10 @@ echo "# Installing auth build dependencies"
 sudo apt-get update >/dev/null
 sudo apt-get install -y expect easy-rsa maven openjdk-11-jdk >/dev/null
 
-echo "# Installing docker"
-curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh
+if ! command -v docker >/dev/null 2>&1; then
+  echo "# Installing docker"
+  curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh
+fi
 
 echo "# Installing docker registry"
 sudo docker run -d -p 5000:5000 --restart=always --name registry registry:2

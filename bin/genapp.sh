@@ -42,7 +42,6 @@ echo "# Pulling wcapp image"
 
 echo "# Starting app on $APP_HOST:443"
 sudo docker run -d --restart always --name wcapp --network="host" \
-  -e DOMAIN_NAME=$DOMAIN_NAME \
   -e SVC_HOST=$SVC_HOST \
   -e APP_HOST=$APP_HOST \
   -e DB_HOST=$DB_HOST \

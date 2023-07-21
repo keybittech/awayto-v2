@@ -49,6 +49,7 @@ sudo docker run -d --restart=always --name=wcauth --network="host" \
   -e KC_SPI_TRUSTSTORE_FILE_FILE=/opt/keycloak/conf/KeyStore.jks \
   -e KC_SPI_TRUSTSTORE_FILE_PASSWORD=$KC_PASS \
   -e KC_SPI_TRUSTSTORE_FILE_HOSTNAME_VERIFICATION_POLICY=WILDCARD \
+  -e KC_HOSTNAME_STRICT=false \
   -e KC_HOSTNAME_ADMIN_URL=https://$CUST_APP_HOSTNAME/auth \
   -e KC_HOSTNAME_URL=https://$CUST_APP_HOSTNAME/auth \
   -e KC_PROXY=edge \
