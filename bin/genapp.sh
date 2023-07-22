@@ -44,6 +44,7 @@ sudo ufw allow 80
 
 echo "# Starting app container"
 sudo docker run -d --restart always --name wcapp --network="host" \
+  -e DOMAIN_NAME=$DOMAIN_NAME \
   -e SVC_HOST=$SVC_HOST \
   -e APP_HOST=$APP_HOST \
   -e DB_HOST=$DB_HOST \
