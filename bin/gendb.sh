@@ -46,7 +46,7 @@ if ! command -v docker >/dev/null 2>&1; then
   sudo systemctl restart docker
 fi
 
-echo "# Creating volume for permanence"
+echo "# Creating docker volumes"
 sudo docker volume create pg15store
 sudo docker volume create redisdata
 sudo docker volume create sqlitedata
@@ -55,9 +55,25 @@ echo "# Pulling db image"
 # sudo docker pull $BUILD_HOST:5000/wcdb:$BUILD_VERSION
 # sudo docker pull $BUILD_HOST:5000/wcfs:$BUILD_VERSION
 
-sudo docker run -d --restart always --name wcdb -e POSTGRES_DB=$PG_DB -e POSTGRES_USER=$PG_USER -e POSTGRES_PASSWORD=$PG_PASS -v pg15store:/var/lib/postgresql/data -p 5432:5432 $BUILD_HOST:5000/wcdb:$BUILD_VERSION
+echo "# Allowing ports 5432 (postgres), 6379 (redis), 8000 (files) on $DB_HOST"
+sudo ufw allow 5432
+sudo ufw allow 6379
+sudo ufw allow 8000
 
-sudo docker run -d --restart always --name wcredis -e REDIS_PASSWORD=$REDIS_PASS -v redisdata:/bitnami/redis/data -p 6379:6379 bitnami/redis:7.0
+echo "# Starting postgres container"
+sudo docker run -d --restart always --name wcdb --network="host" \
+  -e POSTGRES_DB=$PG_DB \
+  -e POSTGRES_USER=$PG_USER \
+  -e POSTGRES_PASSWORD=$PG_PASS \
+  -v pg15store:/var/lib/postgresql/data $BUILD_HOST:5000/wcdb:$BUILD_VERSION
 
-sudo docker run -d --restart always --name wcfs -e SQLITE_DATA=/app/data/sqlite-db.db -v sqlitedata:/app/data -p 8000:8000 $BUILD_HOST:5000/wcfs:$BUILD_VERSION
+echo "# Starting redis container"
+sudo docker run -d --restart always --name wcredis --network="host" \
+  -e REDIS_PASSWORD=$REDIS_PASS \
+  -v redisdata:/bitnami/redis/data bitnami/redis:7.0
+
+echo "# Starting files container"
+sudo docker run -d --restart always --name wcfs --network="host" \
+  -e SQLITE_DATA=/app/data/sqlite-db.db \
+  -v sqlitedata:/app/data $BUILD_HOST:5000/wcfs:$BUILD_VERSION
 EOF

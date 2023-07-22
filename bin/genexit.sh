@@ -16,11 +16,14 @@ sudo tailscale up --operator $TAILSCALE_OPERATOR --ssh --advertise-exit-node
 echo "# Installing exit node dependencies"
 sudo apt-get update > /dev/null
 sudo apt-get install nginx certbot python3-certbot-nginx -y > /dev/null
+EOF
 
+# Generate exit nginx config
 echo "# Generate exit nginx config"
 sed "s/domain-name/$DOMAIN_NAME/g; \
-  s/host-ts-ip/$APP_HOST/g;" ./deploy/exit.nginx.conf | ssh $TAILSCALE_OPERATOR@$EXIT_HOST "sudo tee /etc/nginx/sites-available/exit.nginx.conf > /dev/null"
+  s/host-ts-ip/$APP_HOST/g;" ./deploy/exit.nginx.conf | ssh -T $TAILSCALE_OPERATOR@$EXIT_HOST "sudo tee /etc/nginx/sites-available/exit.nginx.conf > /dev/null"
 
+ssh -T $TAILSCALE_OPERATOR@$EXIT_HOST << EOF
 echo "# Configure exit nginx"
 sudo ufw allow "Nginx Full"
 sudo rm /etc/nginx/sites-enabled/default

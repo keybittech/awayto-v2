@@ -30,7 +30,6 @@ if [ ! -f ./.env ]; then
   prompt_user "SITE_NAME" "Enter SITE_NAME (ex. My Project): "
   prompt_user "DOMAIN_NAME" "Enter DOMAIN_NAME (ex. myproject.com): "
   prompt_user "PROJECT_PREFIX" "Enter PROJECT_PREFIX (ex. mp): "
-  prompt_user "TAILSCALE_TAILNET" "Enter TAILSCALE_TAILNET (ex. tail1a2b3c.ts.net): "
   prompt_user "DEPLOYMENT_LOCATION" "Enter DEPLOYMENT_LOCATION (local/hetzner/aws): "
   prompt_user "DEPLOYMENT_METHOD" "Enter DEPLOYMENT_METHOD (compose/kubernetes): "
   prompt_user "CONFIGURE_NAMESERVERS" "Enter CONFIGURE_NAMESERVERS (y/n): "
@@ -41,7 +40,6 @@ if [ ! -f ./.env ]; then
   cat << EOF > ./.env
 SITE_NAME=$SITE_NAME
 PROJECT_PREFIX=$PROJECT_PREFIX
-TAILSCALE_TAILNET=$TAILSCALE_TAILNET
 
 PROJECT_REPO=$PROJECT_REPO
 CLOUD_INIT_LOCATION=$CLOUD_INIT_LOCATION
@@ -125,11 +123,13 @@ EOF
   if [ ! $DEPLOYMENT_LOCATION = "local" ]; then
     cat << EOF >> ./.env
 TAILSCALE_OPERATOR=${PROJECT_PREFIX}oper
-BUILD_HOST=$PROJECT_PREFIX-build.$TAILSCALE_TAILNET
-EXIT_HOST=$PROJECT_PREFIX-exit.$TAILSCALE_TAILNET
-APP_HOST=$PROJECT_PREFIX-app.$TAILSCALE_TAILNET
-DB_HOST=$PROJECT_PREFIX-db.$TAILSCALE_TAILNET
-SVC_HOST=$PROJECT_PREFIX-svc.$TAILSCALE_TAILNET
+BUILD_HOST=$PROJECT_PREFIX-build
+EXIT_HOST=$PROJECT_PREFIX-exit
+APP_HOST=$PROJECT_PREFIX-app
+DB_HOST=$PROJECT_PREFIX-db
+SVC_HOST=$PROJECT_PREFIX-svc
+NS1_HOST=$PROJECT_PREFIX-ns1
+NS2_HOST=$PROJECT_PREFIX-ns2
 
 EOF
   fi
@@ -139,5 +139,6 @@ EOF
 else
 
   echo "Using existing env file"
+  sed -i '/# Server Listings/,/^$/d' ./.env
 
 fi

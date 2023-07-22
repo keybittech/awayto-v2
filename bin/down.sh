@@ -27,7 +27,7 @@ if [ ! "$DEPLOYMENT_LOCATION" = "local" ]; then
 
     # Loop over the array and delete each server on Hetzner and Tailscale
     for SERVER in $SERVERS; do
-      ssh-keygen -R $PROJECT_PREFIX-$SERVER.$TAILSCALE_TAILNET
+      ssh-keygen -R $PROJECT_PREFIX-$SERVER
 
       # Remove the server on Hetzner
       echo "Removing server $PROJECT_PREFIX-$SERVER"

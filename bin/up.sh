@@ -95,11 +95,9 @@ if [ ! "$DEPLOYMENT_LOCATION" = "local" ]; then
       NS2_PUBLIC_IP=$(hcloud server describe "$PROJECT_PREFIX-ns2" -o=format="{{.PublicNet.IPv4.IP}}")
 
       cat << EOF >> ./.env
-NS1_HOST=$PROJECT_PREFIX-ns1.$TAILSCALE_TAILNET
+# Server Listings
 NS1_PUBLIC_IP=$NS1_PUBLIC_IP
-NS2_HOST=$PROJECT_PREFIX-ns2.$TAILSCALE_TAILNET
 NS2_PUBLIC_IP=$NS2_PUBLIC_IP
-
 EOF
       echo "# Nameservers generated"
     fi

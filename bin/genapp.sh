@@ -1,7 +1,7 @@
 #!/bin/sh
 . ./.env
 
-echo "Configuring db server..."
+echo "Configuring app server..."
 until ping -c1 $APP_HOST; do sleep 5; done
 until ssh-keyscan -H $APP_HOST >> ~/.ssh/known_hosts; do sleep 5; done
 
@@ -37,10 +37,10 @@ if ! command -v docker >/dev/null 2>&1; then
   sudo systemctl restart docker
 fi
 
-echo "# Pulling wcapp image"
-# sudo docker pull $BUILD_HOST:5000/wcapp:$BUILD_VERSION
+echo "# Allowing app port 80 (app) on $APP_HOST"
+sudo ufw allow 80
 
-echo "# Starting app on $APP_HOST:443"
+echo "# Starting app container"
 sudo docker run -d --restart always --name wcapp --network="host" \
   -e SVC_HOST=$SVC_HOST \
   -e APP_HOST=$APP_HOST \

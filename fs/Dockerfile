@@ -2,7 +2,7 @@ FROM alpine:3.15.0
 
 RUN apk add uuidgen sqlite socat
 
-COPY ./sh/*.sh /app/
+COPY ./fs/sh/*.sh /app/
 
 WORKDIR /app
 
