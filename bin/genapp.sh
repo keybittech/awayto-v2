@@ -11,6 +11,8 @@ BUILD_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "sh /home/$TAILSCALE_OPER
 ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST << EOF
 cd /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX
 
+git pull
+
 chmod +x ./build-deps && sudo ./build-deps
 
 echo "# Building app image"
