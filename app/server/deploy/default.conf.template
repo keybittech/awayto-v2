@@ -35,18 +35,15 @@ server {
   location / {
     limit_req zone=primary burst=20 nodelay;
 
-
+    alias /usr/share/nginx/html/;
     try_files $uri $uri/ =404;
-    root /usr/share/nginx/html;
-    index index.html;
   }
   
   location /app/ {
     limit_req zone=app burst=100 nodelay;
 
-    try_files $uri $uri/ /index.html;
-    root /usr/share/nginx/html/app;
-    index index.html;
+    alias /usr/share/nginx/html/app/;
+    try_files $uri $uri/ /app/index.html;
   }
 
   location /auth/ {
