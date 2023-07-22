@@ -39,10 +39,10 @@ if ! command -v docker >/dev/null 2>&1; then
   sudo systemctl restart docker
 fi
 
-echo "# Pulling auth image"
-sudo docker pull $BUILD_HOST:5000/wcauth:$BUILD_VERSION
+echo "# Allowing app port 8080 (keycloak) on $APP_HOST"
+sudo ufw allow 8080
 
-echo "# Starting Keycloak on $APP_HOST:8443"
+echo "# Starting Keycloak container"
 sudo docker run -d --restart=always --name=wcauth --network="host" \
   -e KC_API_CLIENT_ID=$KC_API_CLIENT_ID \
   -e APP_HOST=$APP_HOST/api \
