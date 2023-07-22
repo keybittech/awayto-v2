@@ -39,8 +39,8 @@ if ! command -v docker >/dev/null 2>&1; then
   sudo systemctl restart docker
 fi
 
-echo "# Allowing app port 80 (app) on $APP_HOST"
-sudo ufw allow 80
+echo "# Allowing app port 443 (app) on $APP_HOST"
+sudo ufw allow 443
 
 echo "# Starting app container"
 sudo docker run -d --restart always --name wcapp --network="host" \
