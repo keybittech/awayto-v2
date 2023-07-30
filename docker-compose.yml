@@ -11,60 +11,67 @@
 version: '3.9'
 services:
   app:
-    image: wcapp # typescript cra react project hosted on nginx
+    image: wcapp # 80 443 typescript cra react project hosted on nginx
     build:
       context: ./
       dockerfile: ./app/Dockerfile
       args:
         - CUST_LAND_HOSTNAME=${CUST_LAND_HOSTNAME}
         - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
-        - CUST_HOST_IP=${CUST_HOST_IP}
         - SITE_NAME=${SITE_NAME}
+        - KC_REALM=${KC_REALM}
+        - KC_CLIENT=${KC_CLIENT}
+        - KC_PATH=/auth
+        - CA_PASS=${CA_PASS}
     ports:
+      - 80:80
       - 443:443
     environment:
       - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
       - CUST_LAND_HOSTNAME=${CUST_LAND_HOSTNAME}
-      - CUST_HOST_IP=${CUST_HOST_IP}
       - KC_REALM=${KC_REALM}
       - KC_CLIENT=${KC_CLIENT}
       - KC_PATH=/auth
-    networks:
-      site:
-        ipv4_address: 172.20.0.8
+      - APP_HOST=${APP_HOST}
     depends_on:
       - api
+      - sock
+      - auth
 
-  api: # express passport for keycloak auth
+  api: # 9443 express passport for keycloak auth
     image: wcapi
     build:
       context: ./
       dockerfile: ./api/Dockerfile
+    ports:
+      - 9443:9443
     extra_hosts:
-      - ${CUST_APP_HOSTNAME}:127.0.0.1
-    # ports:
-    #   - 8083:9443
+      - ${CUST_APP_HOSTNAME}:${APP_HOST}
     environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
       - API_COOKIE=${API_COOKIE}
-      - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
       - KC_REALM=${KC_REALM}
       - KC_CLIENT=${KC_CLIENT}
       - KC_API_CLIENT_ID=${KC_API_CLIENT_ID}
       - KC_API_CLIENT_SECRET=${KC_API_CLIENT_SECRET}
-      - DB_URL=jdbc:postgresql://${PG_USER}:${PG_PASS}@172.20.0.5:5432/${PG_DB} #NONSECRET
-      - PG_HOST=172.20.0.5 #NONSECRET
+      - DB_URL=jdbc:postgresql://${PG_USER}:${PG_PASS}@db:5432/${PG_DB} #NONSECRET
+      - APP_HOST=${APP_HOST}
+      - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
+      - KC_HOST=auth
+      - KC_PORT=8443
+      - FS_HOST=fs
+      - FS_PORT=8000
+      - PG_HOST=db #NONSECRET
       - PG_PORT=5432 #NONSECRET
       - PG_USER=${PG_USER} #SECRET
       - PG_PASSWORD=${PG_PASS} #SECRET
       - PG_DATABASE=${PG_DB} #SECRET
-      - GRAYLOG_HOST=172.20.0.10
+      - GRAYLOG_HOST=graylog
       - GRAYLOG_PORT=12201
-      - SOCK_HOST=172.20.0.6
-      - SOCK_PORT=8080
+      - SOCK_HOST=sock
+      - SOCK_PORT=8888
       - SOCK_SECRET=${SOCK_SECRET}
-      - KEYCLOAK_HOST=172.20.0.7
-      - KEYCLOAK_PORT=8443
-      - REDIS_HOST=172.20.0.14
+      - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASS=${REDIS_PASS}
       - NODE_TLS_REJECT_UNAUTHORIZED=0 #NONSECRET # Remove when having cert - otherwise keycloak blocks redirects
@@ -72,14 +79,15 @@ services:
       - db
       - auth
       - redis
-    networks:
-      site:
-        ipv4_address: 172.20.0.4
+      - sock
 
-  db: # postgres
-    image: postgres:15.0
-    # ports:
-    #   - 8082:5432
+  db: # 5432 postgres
+    image: wcdb
+    build:
+      context: ./
+      dockerfile: ./db/Dockerfile
+    ports:
+      - 5432:5432
     environment:
       - POSTGRES_DB=${PG_DB}
       - POSTGRES_USER=${PG_USER}
@@ -87,21 +95,15 @@ services:
     volumes: 
       - ./db/scripts:/docker-entrypoint-initdb.d
       - pg15store:/var/lib/postgresql/data
-    # volumes:
-    #   - pgvol:/var/lib/postgresql/data
-    networks:
-      site:
-        ipv4_address: 172.20.0.5
 
-  redis:
-    image: 'bitnami/redis:latest'
+  redis: # 6379
+    image: 'bitnami/redis:7.0'
+    ports:
+      - 6379:6379
     environment:
-      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_PASSWORD=${REDIS_PASS}
     volumes:
       - redisdata:/bitnami/redis/data
-    networks:
-      site:
-        ipv4_address: 172.20.0.14
 
   # docker run --rm --name curl-container --net site alpine sh -c "apk add --no-cache curl"
   # INJECTION: docker exec curl-container /usr/bin/curl -H 'Content-Type: text/plain' -H 'Content-Disposition: attachment; filename="; DROP TABLE files;"' -H 'Expires-At: 2099-12-31 23:59:59' -d 'expiration test' http://172.20.0.16:8000/file
@@ -109,8 +111,10 @@ services:
   # EXPIRE_FOREVER: docker exec curl-container /usr/bin/curl -X PUT -H 'Expires-At: 2000-12-31 00:00:00' http://172.20.0.16:8000/file/5baa7d25-884d-436c-b12d-e1c0a2520560
   # EXPIRED: docker exec curl-container /usr/bin/curl -H 'Content-Type: text/plain' -H 'Content-Disposition: attachment; filename="erased_within_60.txt"' -H 'Expires-At: 2020-12-31 23:59:59' -d 'expiration 3f3f3f' http://172.20.0.16:8000/file
   # docker exec curl-container /usr/bin/curl http://172.20.0.16:8000/file/2e397ef5-2241-47b6-ba95-7ccd138b4654
-  fs: 
+  fs: # 8000
     image: wcfs
+    ports:
+      - 8000:8000
     build:
       context: ./
       dockerfile: ./fs/Dockerfile
@@ -119,22 +123,22 @@ services:
     volumes:
       # - ./fs/sh:/app
       - sqlitedata:/app/data
-    networks:
-      site:
-        ipv4_address: 172.20.0.16
 
-  auth: # keycloak
+  auth: # 8443 keycloak
     image: wcauth
+    ports:
+      - 8080:8080
+      - 8443:8443
     build:
       context: ./
       dockerfile: ./auth/Dockerfile
-    # ports:
-    #   - 8443:8443
     environment:
-      - KC_API_CLIENT_ID=api-client
-      - APP_HOST=172.20.0.8/api #pointing to reverse proxy or use =172.20.0.4:9443/api for internal routing
+      - KC_API_CLIENT_ID=${KC_API_CLIENT_ID}
+      - APP_HOST=api:9443/api #pointing to reverse proxy or use =${DB_HOST}:9443/api for internal routing
+      - KC_HTTPS_KEY_STORE_FILE=/opt/keycloak/conf/KeyStore.jks
+      - KC_HTTPS_KEY_STORE_PASSWORD=${CA_PASS}
       - KC_SPI_TRUSTSTORE_FILE_FILE=/opt/keycloak/conf/KeyStore.jks
-      - KC_SPI_TRUSTSTORE_FILE_PASSWORD=123456
+      - KC_SPI_TRUSTSTORE_FILE_PASSWORD=${CA_PASS}
       - KC_SPI_TRUSTSTORE_FILE_HOSTNAME_VERIFICATION_POLICY=ANY
       - KC_HOSTNAME_ADMIN_URL=https://${CUST_APP_HOSTNAME}/auth #NONSECRET
       - KC_HOSTNAME_URL=https://${CUST_APP_HOSTNAME}/auth #NONSECRET
@@ -142,53 +146,45 @@ services:
       - KC_HOSTNAME_STRICT_BACKCHANNEL=true #NONSECRET
       - KEYCLOAK_ADMIN=${KC_ADMIN} #SECRET
       - KEYCLOAK_ADMIN_PASSWORD=${KC_PASS} #SECRET
-      - KC_DB_URL=jdbc:postgresql://172.20.0.5:5432/${PG_DB} #NONSECRET
+      - KC_DB_URL=jdbc:postgresql://db:5432/${PG_DB} #NONSECRET
       - KC_DB_USERNAME=${PG_USER} #SECRET
       - KC_DB_PASSWORD=${PG_PASS} #SECRET
-      - KC_REDIS_HOST=172.20.0.14
+      - KC_REDIS_HOST=redis
       - KC_REDIS_PORT=6379
       - KC_REDIS_PASS=${REDIS_PASS}
       - KC_REGISTRATION_RATE_LIMIT=10
     depends_on:
       - db
-    networks:
-      site:
-        ipv4_address: 172.20.0.7
 
-  sock: # websocket server
+  sock: # 8888 websocket server
     image: wcsock
     build: ./sock
-    # ports:
-    #   - 8081:8080
+    extra_hosts:
+      - ${CUST_APP_HOSTNAME}:${APP_HOST}
     environment:
-      - APP_HOST=172.20.0.4:9443/api #pointing to reverse proxy or use =172.20.0.4:9443/api for internal routing
+      - API_HOST=${CUST_APP_HOSTNAME}/api #pointing to reverse proxy or use =${DB_HOST}:9443/api for internal routing
       - SOCK_SECRET=${SOCK_SECRET}
-      - REDIS_HOST=172.20.0.14
+      - REDIS_HOST=redis
+      - REDIS_PASS=${REDIS_PASS}
       - NODE_TLS_REJECT_UNAUTHORIZED=0
       - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
-      - KC_REALM=devel
-    networks:
-      site:
-        ipv4_address: 172.20.0.6
+      - KC_REALM=${KC_REALM}
+    depends_on:
+      - redis
 
   turn: # STUN/TURN server for WebRTC
     image: wcturn
-    build: ./turn
+    build:
+      context: ./
+      dockerfile: ./turn/Dockerfile
     restart: always
-    environment:
-      - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
-    networks:
-      site:
-        ipv4_address: 172.20.0.15
+    volumes:
+      - ./turn/turnserver.conf:/etc/coturn/turnserver.conf:ro
 
   ## Graylog
   # MongoDB: https://hub.docker.com/_/mongo/
   mongo:
     image: mongo:5.0.13
-    networks:
-      site:
-        aliases:
-          - mongo
     
   # Elasticsearch: https://www.elastic.co/guide/en/elasticsearch/reference/7.10/docker.html
   elasticsearch:
@@ -206,10 +202,6 @@ services:
       resources:
         limits:
           memory: 1g
-    networks:
-      site:
-        aliases:
-          - elasticsearch
           
   # Graylog: https://hub.docker.com/r/graylog/graylog/
   graylog:
@@ -217,7 +209,7 @@ services:
     environment:
       - GRAYLOG_PASSWORD_SECRET=${GRAYLOG_PASSWORD_SECRET} #SECRET
       - GRAYLOG_ROOT_PASSWORD_SHA2=${GRAYLOG_ROOT_PASSWORD_SHA2} #SECRET
-      - GRAYLOG_HTTP_EXTERNAL_URI=http://${CUST_HOST_IP}:9000/ #NONSECRET
+      - GRAYLOG_HTTP_EXTERNAL_URI=http://${SVC_HOST}:9000/ #NONSECRET
     entrypoint: /usr/bin/tini -- wait-for-it elasticsearch:9200 --  /docker-entrypoint.sh
     restart: always
     depends_on:
@@ -236,11 +228,6 @@ services:
       - 12201:12201/udp
     volumes: # DONE
       - graylogdata:/usr/share/graylog/data
-    networks:
-      site:
-        ipv4_address: 172.20.0.10
-        aliases:
-          - graylog
 
   # mail:
   #   image: bytemark/smtp
@@ -259,8 +246,4 @@ volumes:
   graylogdata:
     external: true
   redisdata:
-    external: true
-
-networks:
-  site:
     external: true

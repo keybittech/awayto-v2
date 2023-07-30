@@ -40,6 +40,7 @@ FROM nginx:alpine
 ARG ENVIRONMENT=local
 
 EXPOSE 80
+EXPOSE 443
 
 RUN mkdir -p /etc/ssl/private && chmod 700 /etc/ssl/private
 RUN mkdir -p /usr/share/nginx/html/app
@@ -50,6 +51,7 @@ RUN ln -sf /dev/stdout /var/log/nginx/access.log &&\
 CMD [ "nginx", "-g", "daemon off;"]
 COPY ./app/server/server.crt /etc/ssl/certs/
 COPY ./app/server/server.key /etc/ssl/private/
+COPY ./app/server/server.pass /etc/nginx/ssl_pass
 COPY ./app/server/ssl-redirect.conf /etc/nginx/default.d/
 COPY ./app/server/nginx.conf /etc/nginx/nginx.conf
 # COPY ./app/server/.htpasswd /conf/htpasswd

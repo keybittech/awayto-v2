@@ -17,8 +17,8 @@ const { APP_ROLE_CALL } = SiteRoles;
 
 const {
   CUST_APP_HOSTNAME,
-  KEYCLOAK_HOST,
-  KEYCLOAK_PORT,
+  KC_HOST,
+  KC_PORT,
   KC_REALM,
   KC_CLIENT,
   KC_API_CLIENT_ID,
@@ -27,7 +27,7 @@ const {
 
 // KC Admin
 const keycloak = new KcAdminClient({
-  baseUrl: `https://${KEYCLOAK_HOST}:${KEYCLOAK_PORT}`,
+  baseUrl: `https://${KC_HOST}:${KC_PORT}`,
   realmName: KC_REALM,
 }) as KeycloakAdminClient & KcSiteOpts & {
   apiClient: BaseClient;
@@ -186,7 +186,7 @@ export async function getGroupRegistrationRedirectParts(groupCode: string): Prom
   }
 }
 
-export const keycloakDiscoveryUrl = `https://${KEYCLOAK_HOST}:${KEYCLOAK_PORT}/realms/${KC_REALM}`;
+export const keycloakDiscoveryUrl = `https://${KC_HOST}:${KC_PORT}/realms/${KC_REALM}`;
 
 export const keycloakClientConfiguration = {
   client_id: KC_API_CLIENT_ID,

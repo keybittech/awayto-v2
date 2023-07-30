@@ -42,10 +42,10 @@ export const AuthWebhooks: IWebhooks = {
         await siteApiHandlerRef.joinGroup(requestParams);
       }
 
-      console.log({ sending_scucess: true })
+      console.log({ sending_success: true })
     } catch (error) {
       const err = error as Error;
-      console.log({ sending_scucess: false, err: err.message, stack: err.stack })
+      console.log({ sending_success: false, err: err.message, stack: err.stack })
     }
   },
   AUTH_LOGIN: async event => {

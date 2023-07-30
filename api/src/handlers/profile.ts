@@ -4,7 +4,7 @@ export default createHandlers({
   postUserProfile: async props => {
     const { firstName, lastName, username, email, image, sub } = props.event.body;
 
-    const user = await props.tx.one<IUserProfile>(`
+    await props.tx.none(`
       INSERT INTO dbtable_schema.users (sub, username, first_name, last_name, email, image, created_on, created_sub, ip_address)
       VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8::uuid, $9)
     `, [sub || props.event.userSub, username, firstName, lastName, email, image, utcNowString(), props.event.userSub, props.event.sourceIp]);

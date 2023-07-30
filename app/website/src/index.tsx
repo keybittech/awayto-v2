@@ -1,6 +1,5 @@
 export default {};
 
-import 'typeface-roboto';
 
 import React, { ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -21,6 +20,7 @@ import reportWebVitals from './reportWebVitals';
 import { initKeycloak } from './keycloak';
 
 import './App.css';
+import './fonts.css';
 
 dayjs.extend(duration);
 dayjs.extend(relativeTime);

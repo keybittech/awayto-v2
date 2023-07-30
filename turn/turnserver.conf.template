@@ -1,6 +1,6 @@
 # TURN server name and realm
-realm=wcapp.site.com
-server-name=wcapp.site.com
+realm=$CUST_APP_HOSTNAME
+server-name=$CUST_APP_HOSTNAME
 
 # Use fingerprint in TURN message
 fingerprint
@@ -9,7 +9,7 @@ fingerprint
 listening-ip=0.0.0.0
 
 # External IP-Address of the TURN server
-external-ip=wcapp.site.com
+external-ip=$CUST_APP_HOSTNAME
 
 # Main listening port
 listening-port=3478

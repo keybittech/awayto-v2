@@ -2,8 +2,6 @@
 
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'EOSQL'
 
-  \c sysmaindb
-
   CREATE OR REPLACE VIEW dbview_schema.distinct_schedule_slots AS
   SELECT DISTINCT
     gus.group_schedule_id,
@@ -17,7 +15,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     gus.group_schedule_id, sbs.start_time;
 
 
-  DROP MATERIALIZED VIEW dbview_schema.kiosk_schedule;
+  DROP MATERIALIZED VIEW IF EXISTS dbview_schema.kiosk_schedule;
 
   CREATE MATERIALIZED VIEW dbview_schema.kiosk_schedule AS
   SELECT

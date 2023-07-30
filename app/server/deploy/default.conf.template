@@ -1,9 +1,9 @@
 upstream sock {
-  server ${SVC_HOST}:8080;
+  server ${SVC_HOST}:8888;
 }
 
 upstream auth {
-  server ${APP_HOST}:8080;
+  server ${APP_HOST}:8443;
 }
 
 upstream api {
@@ -23,6 +23,7 @@ server {
 
   ssl_certificate /etc/ssl/certs/server.crt;
   ssl_certificate_key /etc/ssl/private/server.key;
+  ssl_password_file /etc/nginx/ssl_pass;
   
   proxy_buffers 4 64k;
   proxy_buffer_size 64k;

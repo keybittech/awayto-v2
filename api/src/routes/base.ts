@@ -1,4 +1,5 @@
 import express, { RequestHandler, Request, Response } from 'express';
+import fetch from 'node-fetch';
 import jwtDecode from 'jwt-decode';
 import { IdTokenClaims } from 'openid-client';
 

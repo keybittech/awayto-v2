@@ -1,5 +1,5 @@
 upstream sock {
-  server ${CUST_HOST_IP}:8081;
+  server ${CUST_HOST_IP}:8888;
 }
 
 upstream auth {

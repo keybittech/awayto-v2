@@ -1,13 +1,11 @@
 #!/bin/bash
 
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'EOSQL'
-
-  \c sysmaindb
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
 
   DROP SCHEMA IF EXISTS dbtable_schema CASCADE;
   CREATE SCHEMA dbtable_schema;
 
-  GRANT ALL ON SCHEMA dbtable_schema TO postgres;
+  GRANT ALL ON SCHEMA dbtable_schema TO $POSTGRES_USER;
 
   CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 

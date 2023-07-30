@@ -1,10 +1,6 @@
 FROM coturn/coturn
 
-COPY ./turnserver.conf /etc/coturn/turnserver.conf
-# COPY ./turnserver.conf.template /etc/coturn/turnserver.conf.template
+WORKDIR /app
 
-
-COPY ./server.crt /app
-COPY ./server.key /app
-
-# RUN sudo envsubst < /etc/coturn/turnserver.conf.template > /etc/coturn/turnserver.conf
+COPY ./turn/server.crt /app
+COPY ./turn/server.key /app

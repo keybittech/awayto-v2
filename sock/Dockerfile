@@ -1,7 +1,7 @@
-# docker build -t wcsock . && docker run --rm --init -p 8081:8080 wcsock
+# docker build -t wcsock . && docker run --rm --init -p 8888:8888 wcsock
 
 FROM node:16.18.0-alpine
-EXPOSE 8080
+EXPOSE 8888
 WORKDIR /app
 CMD ["node", "sock.js"]
 

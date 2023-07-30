@@ -24,7 +24,7 @@ spec:
         image: wcsock
         imagePullPolicy: Never
         ports:
-        - containerPort: 8080
+        - containerPort: 8888
         resources:
           limits:
             cpu: 100m
@@ -43,8 +43,8 @@ metadata:
 spec:
   ports:
   - name: sock
-    port: 8081
-    targetPort: 8080
+    port: 8888
+    targetPort: 8888
   selector:
     app: sock
     release: {{ .Release.Name }}

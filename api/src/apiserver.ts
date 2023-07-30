@@ -21,12 +21,12 @@ import express, { Express } from 'express';
 import baseRoutes from './routes/base';
 import authRoutes from './routes/auth';
 import sockRoutes from './routes/sock';
-import twitchRoutes from './routes/twitch';
+// import twitchRoutes from './routes/twitch';
 import kioskRoutes from './routes/kiosk';
 
 import { connect as connectKc } from './modules/keycloak';
 import { connect as connectDb } from './modules/db';
-import { connectToTwitch } from './modules/twitch';
+// import { connectToTwitch } from './modules/twitch';
 import redis from './modules/redis';
 import './modules/prompts';
 import './modules/sock';
@@ -47,7 +47,7 @@ httpsServer.listen(9443, () => {
     app.use('/api', baseRoutes);
     app.use('/api/auth', authRoutes);
     app.use('/api/sock', sockRoutes);
-    app.use('/api/twitch', twitchRoutes);
+    // app.use('/api/twitch', twitchRoutes);
     app.use('/api/kiosk', kioskRoutes);
     
     redis.connect().then(() => {
@@ -56,10 +56,10 @@ httpsServer.listen(9443, () => {
         console.log('Postgres Connected');
         connectKc().then(() => {
           console.log('Keycloak Connected');
-          connectToTwitch(httpsServer).then(() => {
+          console.log('Server listening on port 9443');
+          // connectToTwitch(httpsServer).then(() => {
 
-            console.log('Server listening on port 9443');
-          });
+          // });
         });
       });
     });

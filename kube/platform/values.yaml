@@ -8,4 +8,4 @@ graylog:
   port: 12201
 
 sock:
-  port: 8081
+  port: 8888

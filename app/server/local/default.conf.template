@@ -1,13 +1,13 @@
 upstream sock {
-  server ${CUST_HOST_IP}:8080;
+  server sock:8888;
 }
 
 upstream auth {
-  server 172.20.0.7:8443;
+  server auth:8443;
 }
 
 upstream api {
-  server ${CUST_HOST_IP}:9443;
+  server api:9443;
 }
 
 limit_req_zone $binary_remote_addr zone=app:10m rate=30r/s;
@@ -15,13 +15,14 @@ limit_req_zone $binary_remote_addr zone=primary:10m rate=10r/s;
 
 server {
 
-  server_name wcapp.site.com;
+  server_name localhost;
 
   listen 443 http2 ssl;
   listen [::]:443 http2 ssl;
 
   ssl_certificate /etc/ssl/certs/server.crt;
   ssl_certificate_key /etc/ssl/private/server.key;
+  ssl_password_file /etc/nginx/ssl_pass;
   
   proxy_buffers 4 64k;
   proxy_buffer_size 64k;
@@ -34,17 +35,23 @@ server {
   location / {
     limit_req zone=primary burst=20 nodelay;
 
-    proxy_read_timeout 300s;
-    proxy_connect_timeout 75s;
-    proxy_pass http://${CUST_HOST_IP}:1313/;
+    alias /usr/share/nginx/html/;
+    try_files $uri $uri/ =404;
+
+    #proxy_read_timeout 300s;
+    #proxy_connect_timeout 75s;
+    #proxy_pass http://${APP_HOST}:1313/;
   }
   
   location /app/ {
     limit_req zone=app burst=100 nodelay;
 
-    proxy_read_timeout 300s;
-    proxy_connect_timeout 75s;
-    proxy_pass https://${CUST_HOST_IP}:3000/app/;
+    alias /usr/share/nginx/html/app/;
+    try_files $uri $uri/ /app/index.html;
+
+    #proxy_read_timeout 300s;
+    #proxy_connect_timeout 75s;
+    #proxy_pass https://${APP_HOST}:3000/app/;
   }
 
   location /auth/ {
@@ -57,14 +64,14 @@ server {
   }
 
   location /auth/admin/ {
-    satisfy any;
+    #satisfy any;
 
-    allow 192.168.0.4;
-    allow 172.20.0.4;
-    deny all;
+    #allow 192.168.0.4;
+    #allow 172.20.0.4;
+    #deny all;
 
-    auth_basic "Restricted";
-    auth_basic_user_file /conf/htpasswd;
+    #auth_basic "Restricted";
+    #auth_basic_user_file /conf/htpasswd;
 
     proxy_read_timeout 300s;
     proxy_connect_timeout 75s;
@@ -115,7 +122,7 @@ server {
     proxy_read_timeout 300s;
     proxy_connect_timeout 75s;
 
-    proxy_pass http://${CUST_HOST_IP}:1313/livereload;
+    proxy_pass http://${APP_HOST}:1313/livereload;
     
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
@@ -127,7 +134,7 @@ server {
     proxy_read_timeout 300s;
     proxy_connect_timeout 75s;
 
-    proxy_pass https://${CUST_HOST_IP}:3000/ws;
+    proxy_pass https://${APP_HOST}:3000/ws;
     
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;

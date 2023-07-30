@@ -1,8 +1,6 @@
 #!/bin/bash
 
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'EOSQL'
-
-  \c sysmaindb
   
   DROP SCHEMA IF EXISTS dbview_schema CASCADE;
   CREATE SCHEMA dbview_schema;

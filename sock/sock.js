@@ -7,7 +7,7 @@ import { connect } from './events/connect.js';
 import { checkBackchannel } from './events/backchannel.js';
 
 // Start a generic http server
-const server = createServer().listen(8080);
+const server = createServer().listen(8888);
 
 // Catch any request coming into the http server for inter-socket connectivity
 // Define connection endpoints between containers where needed here

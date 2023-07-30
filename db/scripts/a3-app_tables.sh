@@ -2,8 +2,6 @@
 
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'EOSQL'
 
-  \c sysmaindb
-
   CREATE TABLE dbtable_schema.budgets (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR (50) NOT NULL UNIQUE,

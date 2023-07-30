@@ -4,11 +4,11 @@ import { charCount } from '../util.js';
 dotenv.config();
 const {
   SOCK_SECRET,
-  APP_HOST
+  API_HOST
 } = process.env;
 
 export async function sendBackchannel(path, body) {
-  return await fetch(`https://${APP_HOST}/sock/${path}/`, {
+  return await fetch(`https://${API_HOST}/sock/${path}/`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

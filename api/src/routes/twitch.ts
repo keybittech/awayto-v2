@@ -1,5 +1,6 @@
 import path from 'path';
 import express from 'express';
+import fetch from 'node-fetch';
 
 import redis from '../modules/redis';
 import { TWITCH_REDIRECT_URI } from '../modules/twitch';

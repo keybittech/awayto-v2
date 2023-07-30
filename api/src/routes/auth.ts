@@ -17,6 +17,10 @@ import { useAi } from '@keybittech/wizapp/dist/server';
 
 import { AuthBody, IGroup } from 'awayto/core';
 
+const {
+  CUST_APP_HOSTNAME
+} = process.env as { [prop: string]: string };
+
 const router = express.Router();
 
 router.post('/register/validate', checkBackchannel, async (req, res) => {
@@ -40,7 +44,7 @@ router.get('/checkin', (req, res, next) => {
 
 router.get('/login/callback', (req, res, next) => {
   //@ts-ignore
-  if (!req.session['oidc:wcapp.site.com']) {
+  if (!req.session[`oidc:${CUST_APP_HOSTNAME}`]) {
     res.redirect('/app');
   } else {
     passport.authenticate('oidc', {

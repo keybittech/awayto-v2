@@ -35,7 +35,7 @@ module.exports = {
   },
   target: 'node',
   optimization: {
-    minimize: dd
+    minimize: false
   },
   plugins: Array.prototype.concat([
     new webpack.ContextReplacementPlugin(/@ts-morph\/common\/dist/, /^$/),

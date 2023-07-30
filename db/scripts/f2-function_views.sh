@@ -2,8 +2,6 @@
 
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'EOSQL'
 
-  \c sysmaindb
-
   CREATE
   OR REPLACE VIEW dbview_schema.group_user_schedule_stubs AS
   SELECT

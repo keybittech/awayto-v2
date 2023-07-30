@@ -29,8 +29,6 @@
     "redux-logger": "^3.0.6",
     "redux-thunk": "^2.3.0",
     "styled-components": "^5.3.6",
-    "typeface-courgette": "0.0.72",
-    "typeface-roboto": "0.0.54",
     "uuid": "^3.3.2",
     "web-vitals": "^1.1.2"
   },

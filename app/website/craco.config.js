@@ -155,6 +155,19 @@ module.exports = {
         })
       );
 
+      webpackConfig.module.rules.push({
+        test: /\.(woff(2)?|ttf|eot)(\?v=\d+\.\d+\.\d+)?$/,
+        use: [
+          {
+            loader: 'file-loader',
+            options: {
+              name: '[name].[ext]',
+              outputPath: 'fonts/'
+            }
+          }
+        ]
+      });      
+
       // webpackConfig.devServer = {};
       // webpackConfig.devServer.setupMiddlewares = middlewares => {
       //   middlewares.unshift({
