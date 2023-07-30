@@ -1,7 +1,7 @@
 version: '3.9'
 services:
   app:
-    image: wcapp # typescript cra react project hosted on nginx
+    image: wcapp # 80 443 typescript cra react project hosted on nginx
     build:
       context: ./
       dockerfile: ./app/Dockerfile
@@ -12,9 +12,7 @@ services:
         - KC_REALM=${KC_REALM}
         - KC_CLIENT=${KC_CLIENT}
         - KC_PATH=/auth
-    ports:
-      - 80:80
-      - 443:443
+        - CA_PASS=${CA_PASS}
     environment:
       - SVC_HOST=${SVC_HOST}
       - APP_HOST=${APP_HOST}
@@ -24,52 +22,49 @@ services:
       - KC_REALM=${KC_REALM}
       - KC_CLIENT=${KC_CLIENT}
       - KC_PATH=/auth
-    depends_on:
-      - api
+      - APP_HOST=${APP_HOST}
 
-  api: # express passport for keycloak auth
+  api: # 9443 express passport for keycloak auth
     image: wcapi
     build:
       context: ./
       dockerfile: ./api/Dockerfile
     extra_hosts:
       - ${CUST_APP_HOSTNAME}:${APP_HOST}
-    ports:
-      - 8083:9443
     environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
       - API_COOKIE=${API_COOKIE}
-      - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
       - KC_REALM=${KC_REALM}
       - KC_CLIENT=${KC_CLIENT}
       - KC_API_CLIENT_ID=${KC_API_CLIENT_ID}
       - KC_API_CLIENT_SECRET=${KC_API_CLIENT_SECRET}
-      - DB_URL=jdbc:postgresql://${PG_USER}:${PG_PASS}@${DB_HOST}:8082/${PG_DB} #NONSECRET
+      - DB_URL=jdbc:postgresql://${PG_USER}:${PG_PASS}@${DB_HOST}:5432/${PG_DB} #NONSECRET
+      - APP_HOST=${APP_HOST}
+      - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
+      - KC_HOST=${APP_HOST}
+      - KC_PORT=8443
       - FS_HOST=${DB_HOST}
       - FS_PORT=8000
       - PG_HOST=${DB_HOST} #NONSECRET
-      - PG_PORT=8082 #NONSECRET
+      - PG_PORT=5432 #NONSECRET
       - PG_USER=${PG_USER} #SECRET
       - PG_PASSWORD=${PG_PASS} #SECRET
       - PG_DATABASE=${PG_DB} #SECRET
       - GRAYLOG_HOST=${SVC_HOST}
       - GRAYLOG_PORT=12201
       - SOCK_HOST=${SVC_HOST}
-      - SOCK_PORT=8081
+      - SOCK_PORT=8888
       - SOCK_SECRET=${SOCK_SECRET}
-      - KEYCLOAK_HOST=${APP_HOST}
-      - KEYCLOAK_PORT=8443
-      - REDIS_HOST=${APP_HOST}
+      - REDIS_HOST=${DB_HOST}
       - REDIS_PORT=6379
       - REDIS_PASS=${REDIS_PASS}
       - NODE_TLS_REJECT_UNAUTHORIZED=0 #NONSECRET # Remove when having cert - otherwise keycloak blocks redirects
 
-  db: # postgres
+  db: # 5432 postgres
     image: wcdb
     build:
       context: ./
       dockerfile: ./db/Dockerfile
-    ports:
-      - 8082:5432
     environment:
       - POSTGRES_DB=${PG_DB}
       - POSTGRES_USER=${PG_USER}
@@ -77,36 +72,35 @@ services:
     volumes: 
       - pg15store:/var/lib/postgresql/data
 
-  redis:
+  redis: # 6379
     image: bitnami/redis:7.0
     environment:
       - REDIS_PASSWORD=${REDIS_PASS}
     volumes:
       - redisdata:/bitnami/redis/data
-  fs: 
+
+  fs: # 8000
     image: wcfs
     build:
       context: ./
       dockerfile: ./fs/Dockerfile
-    ports:
-      - 8000:8000
     environment:
       - SQLITE_DATA=/app/data/sqlite-db.db
     volumes:
       - sqlitedata:/app/data
 
-  auth: # keycloak
+  auth: # 8443 keycloak
     image: wcauth
     build:
       context: ./
       dockerfile: ./auth/Dockerfile
-    ports:
-      - 8443:8443
     environment:
       - KC_API_CLIENT_ID=${KC_API_CLIENT_ID}
       - APP_HOST=${APP_HOST}/api
+      - KC_HTTPS_KEY_STORE_FILE=/opt/keycloak/conf/KeyStore.jks
+      - KC_HTTPS_KEY_STORE_PASSWORD=${CA_PASS}
       - KC_SPI_TRUSTSTORE_FILE_FILE=/opt/keycloak/conf/KeyStore.jks
-      - KC_SPI_TRUSTSTORE_FILE_PASSWORD=${KC_PASS}
+      - KC_SPI_TRUSTSTORE_FILE_PASSWORD=${CA_PASS}
       - KC_SPI_TRUSTSTORE_FILE_HOSTNAME_VERIFICATION_POLICY=ANY
       - KC_HOSTNAME_ADMIN_URL=https://${CUST_APP_HOSTNAME}/auth #NONSECRET
       - KC_HOSTNAME_URL=https://${CUST_APP_HOSTNAME}/auth #NONSECRET
@@ -114,7 +108,7 @@ services:
       - KC_HOSTNAME_STRICT_BACKCHANNEL=true #NONSECRET
       - KEYCLOAK_ADMIN=${KC_ADMIN} #SECRET
       - KEYCLOAK_ADMIN_PASSWORD=${KC_PASS} #SECRET
-      - KC_DB_URL=jdbc:postgresql://${DB_HOST}:8082/${PG_DB} #NONSECRET
+      - KC_DB_URL=jdbc:postgresql://${DB_HOST}:5432/${PG_DB} #NONSECRET
       - KC_DB_USERNAME=${PG_USER} #SECRET
       - KC_DB_PASSWORD=${PG_PASS} #SECRET
       - KC_REDIS_HOST=${APP_HOST}
@@ -122,25 +116,26 @@ services:
       - KC_REDIS_PASS=${REDIS_PASS}
       - KC_REGISTRATION_RATE_LIMIT=10
 
-  sock: # websocket server
+  sock: # 8888 websocket server
     image: wcsock
     build: ./sock
-    ports:
-      - 8081:8080
     environment:
-      - APP_HOST=${APP_HOST}/api
+      - API_HOST=${CUST_APP_HOSTNAME}/api
       - SOCK_SECRET=${SOCK_SECRET}
       - REDIS_HOST=${APP_HOST}
+      - REDIS_PASS=${REDIS_PASS}
       - NODE_TLS_REJECT_UNAUTHORIZED=0
       - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
       - KC_REALM=${KC_REALM}
 
   turn: # STUN/TURN server for WebRTC
     image: wcturn
-    build: ./turn
+    build:
+      context: ./
+      dockerfile: ./turn/Dockerfile
     restart: always
-    environment:
-      - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
+    volumes:
+      - ./turn/turnserver.conf:/etc/coturn/turnserver.conf:ro
 
   ## Graylog
   # MongoDB: https://hub.docker.com/_/mongo/
@@ -191,7 +186,7 @@ services:
       - graylogdata:/usr/share/graylog/data
 
 volumes:
+  sqlitedata:
   pg15store:
   graylogdata:
   redisdata:
-  sqlitedata:

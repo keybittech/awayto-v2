@@ -66,10 +66,10 @@ API_COOKIE=$(genid)
 
 KC_ADMIN=$PROJECT_PREFIX-auth-$(genid)
 KC_PASS=$(genid)
-KC_REALM=kc-realm
-KC_CLIENT=kc-client
-KC_API_CLIENT_ID=kc-api-client-id
-KC_API_CLIENT_SECRET=kc-api-client-secret
+KC_REALM=$PROJECT_PREFIX-realm
+KC_CLIENT=$PROJECT_PREFIX-client
+KC_API_CLIENT_ID=$PROJECT_PREFIX-api-client
+KC_API_CLIENT_SECRET=$(genid)
 
 SOCK_SECRET=$(genid)
 

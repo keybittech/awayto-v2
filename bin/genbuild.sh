@@ -4,6 +4,7 @@
 SERVER_DIR_LOC="/home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/app/server/"
 CA_CERT_LOC="/home/$TAILSCALE_OPERATOR/easy-rsa/pki/ca.crt"
 CA_KEY_LOC="/home/$TAILSCALE_OPERATOR/easy-rsa/pki/private/ca.key"
+PASS_LOC="${SERVER_DIR_LOC}server.pass"
 EXIT_CERT_LOC="${SERVER_DIR_LOC}server.crt"
 EXIT_KEY_LOC="${SERVER_DIR_LOC}server.key"
 
@@ -71,15 +72,17 @@ cd /home/$TAILSCALE_OPERATOR/easy-rsa
 CA_PASSWORD=$CA_PASS EASYRSA_BATCH=1 /home/$TAILSCALE_OPERATOR/easy-rsa/installeasyrsa.sh
 
 echo "# Generate P12 for exit and CA certs"
-openssl pkcs12 -export -in $EXIT_CERT_LOC -inkey $EXIT_KEY_LOC -out ${SERVER_DIR_LOC}exit.p12 -name $PROJECT_PREFIX-exit-cert -passout pass:$KC_PASS >/dev/null
-openssl pkcs12 -export -in $CA_CERT_LOC -inkey $CA_KEY_LOC -out ${SERVER_DIR_LOC}ca.p12 -name $PROJECT_PREFIX-ca-cert -passin pass:$CA_PASS -passout pass:$KC_PASS >/dev/null
+openssl pkcs12 -export -in $EXIT_CERT_LOC -inkey $EXIT_KEY_LOC -out ${SERVER_DIR_LOC}exit.p12 -name $PROJECT_PREFIX-exit-cert -passout pass:$CA_PASS >/dev/null
+openssl pkcs12 -export -in $CA_CERT_LOC -inkey $CA_KEY_LOC -out ${SERVER_DIR_LOC}ca.p12 -name $PROJECT_PREFIX-ca-cert -passin pass:$CA_PASS -passout pass:$CA_PASS >/dev/null
 
 echo "# Add certs p12 to JKS"
-keytool -importkeystore -srcstoretype PKCS12 -srckeystore ${SERVER_DIR_LOC}exit.p12 -destkeystore ${SERVER_DIR_LOC}KeyStore.jks -deststoretype JKS -srcalias $PROJECT_PREFIX-exit-cert -deststorepass $KC_PASS -destkeypass $KC_PASS -srcstorepass $KC_PASS >/dev/null
-keytool -importkeystore -srcstoretype PKCS12 -srckeystore ${SERVER_DIR_LOC}ca.p12 -destkeystore ${SERVER_DIR_LOC}KeyStore.jks -deststoretype JKS -srcalias $PROJECT_PREFIX-ca-cert -deststorepass $KC_PASS -destkeypass $KC_PASS -srcstorepass $KC_PASS >/dev/null
+keytool -importkeystore -srcstoretype PKCS12 -srckeystore ${SERVER_DIR_LOC}exit.p12 -destkeystore ${SERVER_DIR_LOC}KeyStore.jks -deststoretype JKS -srcalias $PROJECT_PREFIX-exit-cert -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS >/dev/null
+keytool -importkeystore -srcstoretype PKCS12 -srckeystore ${SERVER_DIR_LOC}ca.p12 -destkeystore ${SERVER_DIR_LOC}KeyStore.jks -deststoretype JKS -srcalias $PROJECT_PREFIX-ca-cert -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS >/dev/null
 
 rm ${SERVER_DIR_LOC}exit.p12
 rm ${SERVER_DIR_LOC}ca.p12
+
+echo $CA_PASS > ${PASS_LOC}server.pass
 
 echo "# Cert generation complete!"
 EOF

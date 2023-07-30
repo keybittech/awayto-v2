@@ -113,18 +113,14 @@ fi #end if not local
 
 . ./.env
 
+# First we deploy the exit server to get an ip for use with the nameservers
 . ./bin/genexit.sh
+
+# Deploy the nameservers
 . ./bin/genns.sh
 
-exit 1
+# Deploy the build server/internal CA
+. ./bin/genbuild.sh
 
-# At this point all servers should be sites and we should have hostnames for the various systems
-. ./.env
-
-. ./bin/genapp.sh
- 
-# # Notify approver
-# echo "If you don't have Tailscale autoApprovers setup, go to the admin console and enable the exit node for "$PROJECT_PREFIX-exit". Run the following command after."
-# echo "ssh $TAILSCALE_OPERATOR@$APP_HOST \"sudo tailscale up --operator $TAILSCALE_OPERATOR --exit-node=$EXIT_TAILSCALE_IPV4 --ssh\""
-
-
+# Deploy the db/redis/file system
+. ./bin/gendb.sh

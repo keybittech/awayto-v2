@@ -39,13 +39,16 @@ if ! command -v docker >/dev/null 2>&1; then
   sudo systemctl restart docker
 fi
 
-echo "# Allowing app port 8080 (keycloak) on $APP_HOST"
+echo "# Allowing app port 8080/8443 (keycloak) on $APP_HOST"
 sudo ufw allow 8080
+sudo ufw allow 8443
 
 echo "# Starting Keycloak container"
 sudo docker run -d --restart=always --name=wcauth --network="host" \
   -e KC_API_CLIENT_ID=$KC_API_CLIENT_ID \
   -e APP_HOST=$APP_HOST/api \
+  -e KC_HTTPS_KEY_STORE_FILE=/opt/keycloak/conf/KeyStore.jks \
+  -e KC_HTTPS_KEY_STORE_PASSWORD=${CA_PASS} \
   -e KC_SPI_TRUSTSTORE_FILE_FILE=/opt/keycloak/conf/KeyStore.jks \
   -e KC_SPI_TRUSTSTORE_FILE_PASSWORD=$KC_PASS \
   -e KC_SPI_TRUSTSTORE_FILE_HOSTNAME_VERIFICATION_POLICY=WILDCARD \
@@ -53,12 +56,13 @@ sudo docker run -d --restart=always --name=wcauth --network="host" \
   -e KC_HOSTNAME_ADMIN_URL=https://$CUST_APP_HOSTNAME/auth \
   -e KC_HOSTNAME_URL=https://$CUST_APP_HOSTNAME/auth \
   -e KC_PROXY=edge \
+  -e KC_HOSTNAME_STRICT_BACKCHANNEL=true \
   -e KEYCLOAK_ADMIN=$KC_ADMIN \
   -e KEYCLOAK_ADMIN_PASSWORD=$KC_PASS \
   -e KC_DB_URL=jdbc:postgresql://$DB_HOST:5432/$PG_DB \
   -e KC_DB_USERNAME=$PG_USER \
   -e KC_DB_PASSWORD=$PG_PASS \
-  -e KC_REDIS_HOST=$APP_HOST \
+  -e KC_REDIS_HOST=$DB_HOST \
   -e KC_REDIS_PORT=6379 \
   -e KC_REDIS_PASS=$REDIS_PASS \
   -e KC_REGISTRATION_RATE_LIMIT=10 $BUILD_HOST:5000/wcauth:$BUILD_VERSION
