@@ -22,7 +22,6 @@ services:
       - KC_REALM=${KC_REALM}
       - KC_CLIENT=${KC_CLIENT}
       - KC_PATH=/auth
-      - APP_HOST=${APP_HOST}
 
   api: # 9443 express passport for keycloak auth
     image: wcapi

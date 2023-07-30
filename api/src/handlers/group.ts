@@ -8,7 +8,7 @@ export default createHandlers({
     try {
       const { name, displayName, purpose, roles, allowedDomains, defaultRoleId } = props.event.body;
 
-      if (true === (await props.ai.useAi<boolean>(undefined, purpose)).flagged) {
+      if (process.env.OPENAI_API_KEY && true === (await props.ai.useAi<boolean>(undefined, purpose)).flagged) {
         props.logger.log('moderation failure event', props.event.requestId);
         throw { reason: 'Moderation event flagged. Please revise the group purpose.' };
       }
@@ -35,7 +35,7 @@ export default createHandlers({
         }
       }
 
-      const purposeMission = (await props.ai.useAi<string>(IPrompts.CONVERT_PURPOSE, name, purpose)).message;
+      const purposeMission = process.env.OPENAI_API_KEY ? (await props.ai.useAi<string>(IPrompts.CONVERT_PURPOSE, name, purpose)).message : "Primary";
 
       const { groupAdminRoles, appClient, roleCall, adminRoleId } = await props.redisProxy('groupAdminRoles', 'appClient', 'roleCall', 'adminRoleId');
 

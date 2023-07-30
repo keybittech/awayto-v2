@@ -38,7 +38,7 @@ if [ ! -f ./.env ]; then
   prompt_user "CLOUD_INIT_LOCATION" "Enter CLOUD_INIT_LOCATION (Leave blank for default): " "https://gist.githubusercontent.com/jcmccormick/820ad1cf61df4650825a00ea275edfa0/raw/9cafe1b26c400307bb5ad4788cf07a70b37f5261/gistfile1.txt"
 
   cat << EOF > ./.env
-SITE_NAME=$SITE_NAME
+SITE_NAME="$SITE_NAME"
 PROJECT_PREFIX=$PROJECT_PREFIX
 
 PROJECT_REPO=$PROJECT_REPO
