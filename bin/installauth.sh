@@ -1,0 +1,84 @@
+#!/bin/bash
+. ./.env
+
+# Default values
+KEYCLOAK_HOST="localhost"
+KEYCLOAK_PORT="8080"
+
+KEYCLOAK_URL="http://${KEYCLOAK_HOST}:${KEYCLOAK_PORT}"
+
+while true; do
+  if curl -s $KEYCLOAK_URL | grep -q "<html>"; then
+    echo "Found <html> in the response."
+    break
+  fi
+  
+  sleep 5 # sleep for 5 seconds before the next attempt
+done
+
+AUTH_CID=$(docker ps -aqf "name=auth")
+kcadm() {
+  docker exec $AUTH_CID /bin/sh opt/keycloak/bin/kcadm.sh "$@"
+}
+
+# Login
+kcadm config credentials --server $KEYCLOAK_URL --realm master --user $KC_ADMIN --password $KC_PASS
+
+# Realm creation
+echo "# Creating the realm $KC_REALM"
+kcadm create realms -s realm=$KC_REALM -s enabled=true
+kcadm update realms/$KC_REALM \
+  -s registrationAllowed=true \
+  -s resetPasswordAllowed=true \
+  -s rememberMe=true \
+  -s registrationEmailAsUsername=true \
+  -s loginWithEmailAllowed=true \
+  -s loginTheme=site \
+  -s adminTheme=kcv2 \
+  -s emailTheme=site
+
+kcadm update events/config -r $KC_REALM -s eventsListeners=[\"custom-event-listener\"]
+
+echo "# Configuring authenticator to use custom registration"
+kcadm create authentication/flows/registration/copy -r $KC_REALM -s newName="custom registration"
+
+REGISTRATION_USER_CREATION_ID=$(kcadm get authentication/flows/custom%20registration/executions -r $KC_REALM | jq -r '.[] | select(.displayName == "Registration User Creation") | .id')
+
+kcadm delete authentication/executions/$REGISTRATION_USER_CREATION_ID -r $KC_REALM
+
+CUSTOM_REGISTRATION_USER_CREATION_ID=$(kcadm create authentication/flows/custom%20registration%20registration%20form/executions/execution -r $KC_REALM -s provider=custom-registration-user-creation -i)
+
+kcadm create authentication/executions/$CUSTOM_REGISTRATION_USER_CREATION_ID/raise-priority -r $KC_REALM
+kcadm create authentication/executions/$CUSTOM_REGISTRATION_USER_CREATION_ID/raise-priority -r $KC_REALM
+kcadm create authentication/executions/$CUSTOM_REGISTRATION_USER_CREATION_ID/raise-priority -r $KC_REALM
+
+kcadm update authentication/flows/custom%20registration/executions -r $KC_REALM -b '{"id":"'"$CUSTOM_REGISTRATION_USER_CREATION_ID"'","requirement":"REQUIRED"}'
+
+kcadm update realms/$KC_REALM -b '{ "registrationFlow": "custom registration", "attributes": { "userProfileEnabled": true } }'
+
+echo "# Configuring front-end auth client"
+SITE_CLIENT_ID=$(kcadm create clients -r $KC_REALM -s clientId=$PROJECT_PREFIX-client -s 'redirectUris=["https://'"$CUST_APP_HOSTNAME/*"'"]' -s rootUrl=https://$CUST_APP_HOSTNAME -s baseUrl=https://$CUST_APP_HOSTNAME -s publicClient=true -s standardFlowEnabled=true -s directAccessGrantsEnabled=true -s attributes='{ "post.logout.redirect.uris": "https://'"$CUST_APP_HOSTNAME"'", "access.token.lifespan": 60 }' -i)
+
+echo "# Attaching roles"
+SITE_ROLES="GROUP_ADMIN GROUP_BOOKINGS GROUP_FEATURES GROUP_MATRIX GROUP_ROLES GROUP_SCHEDULES GROUP_SERVICES GROUP_USERS ROLE_CALL"
+for SITE_ROLE in $SITE_ROLES; do
+  kcadm create clients/$SITE_CLIENT_ID/roles -r $KC_REALM -s name=APP_${SITE_ROLE}
+done
+
+echo "# Create group scope element with attribute mapper"
+GROUP_SCOPE_ID=$(kcadm create client-scopes -r $KC_REALM -b '{"name":"groups","description":"","attributes":{"consent.screen.text":"","display.on.consent.screen":"true","include.in.token.scope":"true","gui.order":""},"type":"none","protocol":"openid-connect"}' -i)
+
+kcadm update default-default-client-scopes/$GROUP_SCOPE_ID -r $KC_REALM
+
+kcadm create client-scopes/$GROUP_SCOPE_ID/protocol-mappers/models -r $KC_REALM -b '{"protocol":"openid-connect","protocolMapper":"oidc-group-membership-mapper","name":"groups","config":{"claim.name":"groups","full.path":"true","id.token.claim":false,"access.token.claim":"true","userinfo.token.claim":false}}'
+
+kcadm update clients/$SITE_CLIENT_ID/default-client-scopes/$GROUP_SCOPE_ID -r $KC_REALM
+
+echo "# Configuring api client"
+API_CLIENT_ID=$(kcadm create clients -r $KC_REALM -s clientId=$PROJECT_PREFIX-api-client -s 'redirectUris=["https://'"$CUST_APP_HOSTNAME/api/auth/login/callback"'"]' -s rootUrl=https://$CUST_APP_HOSTNAME/api -s baseUrl=https://$CUST_APP_HOSTNAME/api -s standardFlowEnabled=true -s serviceAccountsEnabled=true -s attributes='{ "post.logout.redirect.uris": "https://'"$CUST_APP_HOSTNAME/api/auth/logout/callback"'" }' -i)
+
+kcadm add-roles -r $KC_REALM --uusername service-account-$PROJECT_PREFIX-api-client --cclientid realm-management --rolename manage-clients --rolename manage-realm --rolename manage-users
+
+kcadm update clients/$API_CLIENT_ID -r $KC_REALM -s "secret=$KC_API_CLIENT_SECRET"
+
+echo "# Keycloak configuration finished"
