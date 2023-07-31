@@ -11,6 +11,9 @@ BUILD_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "sh /home/$TAILSCALE_OPER
 
 ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST << EOF
 
+cd /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX
+git pull
+
 echo "# Building auth event listener"
 cd /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/auth/custom-event-listener
 mvn install
