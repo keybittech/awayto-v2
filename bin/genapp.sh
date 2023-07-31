@@ -44,6 +44,9 @@ sudo ufw allow 443
 
 echo "# Starting app container"
 sudo docker run -d --restart always --name wcapp --network="host" \
+  --add-host=$DB_HOST:$(tailscale ip -4 $DB_HOST) \
+  --add-host=$APP_HOST:$(tailscale ip -4 $APP_HOST) \
+  --add-host=$SVC_HOST:$(tailscale ip -4 $SVC_HOST) \
   -e DOMAIN_NAME=$DOMAIN_NAME \
   -e SVC_HOST=$SVC_HOST \
   -e APP_HOST=$APP_HOST \

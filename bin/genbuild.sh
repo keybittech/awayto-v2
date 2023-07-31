@@ -26,7 +26,7 @@ scp "./.env" "$TAILSCALE_OPERATOR@$BUILD_HOST:/home/$TAILSCALE_OPERATOR/.env"
 # Move exit server cert to build server
 echo "# Sending LE cert copy from exit"
 ssh -T $TAILSCALE_OPERATOR@$EXIT_HOST << EOF
-sudo tailscale file cp /etc/letsencrypt/live/$DOMAIN_NAME/fullchain.pem /etc/letsencrypt/live/$DOMAIN_NAME/privkey.pem $PROJECT_PREFIX-build:
+sudo tailscale file cp /etc/letsencrypt/live/$DOMAIN_NAME/fullchain.pem /etc/letsencrypt/live/$DOMAIN_NAME/privkey.pem $BUILD_HOST:
 EOF
 
 # Install Docker, clone repo on build server
