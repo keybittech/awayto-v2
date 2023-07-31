@@ -56,17 +56,17 @@ server {
     proxy_pass http://auth/;
   }
 
-  location /auth/admin/ {
-    satisfy any;
+  #location /auth/admin/ {
+  #  satisfy any;
 
-    allow 100.64.0.0/10;
-    deny all;
+  #  allow 100.64.0.0/10;
+  #  deny all;
 
-    proxy_read_timeout 300s;
-    proxy_connect_timeout 75s;
+  #  proxy_read_timeout 300s;
+  #  proxy_connect_timeout 75s;
 
-    proxy_pass http://auth/admin/;
-  }
+  #  proxy_pass http://auth/admin/;
+  #}
 
   location /api/ {
     limit_req zone=primary burst=10 nodelay;

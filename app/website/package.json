@@ -33,6 +33,7 @@
     "web-vitals": "^1.1.2"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@craco/craco": "^7.1.0",
     "@types/crypto-js": "^4.0.1",
     "@types/dom-speech-recognition": "^0.0.1",

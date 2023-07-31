@@ -10,21 +10,20 @@ BUILD_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "sh /home/$TAILSCALE_OPER
 ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST << EOF
 cd /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX
 
+git pull
+
+chmod +x ./build-deps && sudo ./build-deps
+
 echo "# Building api image"
-sudo docker build --build-arg WIZAPP_VERSION=0.2.0-beta.2 -t awayto-deps . -f ./Dockerfile.deps
 sudo docker compose build api
 
 echo "# Tagging image"
 sudo docker tag wcapi localhost:5000/wcapi:$BUILD_VERSION
 sudo docker tag wcapi localhost:5000/wcapi:latest
-sudo docker tag awayto-deps localhost:5000/awayto-deps:$BUILD_VERSION
-sudo docker tag awayto-deps localhost:5000/awayto-deps:latest
 
 echo "# Submitting image to registry"
 sudo docker push localhost:5000/wcapi:$BUILD_VERSION
 sudo docker push localhost:5000/wcapi:latest
-sudo docker push localhost:5000/awayto-deps:$BUILD_VERSION
-sudo docker push localhost:5000/awayto-deps:latest
 EOF
 
 ssh -T $TAILSCALE_OPERATOR@$DB_HOST << EOF
