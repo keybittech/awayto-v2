@@ -76,7 +76,7 @@ export EASYRSA_DIGEST="sha512"
 mv $PROJECT_DIR/bin/installeasyrsa.sh /home/$TAILSCALE_OPERATOR/easy-rsa/installeasyrsa.sh
 chmod +x /home/$TAILSCALE_OPERATOR/easy-rsa/installeasyrsa.sh
 cd /home/$TAILSCALE_OPERATOR/easy-rsa
-easyrsa init-pki >/dev/null 2>&1
+./easyrsa init-pki >/dev/null 2>&1
 CA_PASSWORD=$CA_PASS EASYRSA_BATCH=1 /home/$TAILSCALE_OPERATOR/easy-rsa/installeasyrsa.sh >/dev/null 2>&1
 
 echo "# Generate db server cert"
