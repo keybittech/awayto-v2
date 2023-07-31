@@ -107,4 +107,4 @@ until ping -c1 "$DOMAIN_NAME" >/dev/null 2>&1; do
   sleep 30
 done
 
-ssh $TAILSCALE_OPERATOR@$EXIT_HOST "sudo certbot --nginx -d $DOMAIN_NAME -m $ADMIN_EMAIL --agree-tos --no-eff-email --redirect"
+ssh $TAILSCALE_OPERATOR@$EXIT_HOST "sudo certbot --nginx -d $DOMAIN_NAME -d www.$DOMAIN_NAME -m $ADMIN_EMAIL --agree-tos --no-eff-email --redirect"
