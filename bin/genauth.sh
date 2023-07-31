@@ -56,6 +56,7 @@ sudo docker system prune -a -f
 
 echo "# Starting Keycloak container"
 sudo docker run -d --restart=always --name=wcauth --network="host" \
+  --add-host=$CUST_APP_HOSTNAME:$(tailscale ip -4 $APP_HOST) \
   -e KC_API_CLIENT_ID=$KC_API_CLIENT_ID \
   -e API_HOST=$CUST_APP_HOSTNAME/api \
   -e KC_HTTPS_KEY_STORE_FILE=/opt/keycloak/conf/KeyStore.jks \
@@ -79,7 +80,7 @@ sudo docker run -d --restart=always --name=wcauth --network="host" \
   -e KC_REGISTRATION_RATE_LIMIT=10 $BUILD_HOST:5000/wcauth:$BUILD_VERSION
 
 chmod +x /home/$TAILSCALE_OPERATOR/installauth.sh
-sudo KC_ADMIN=$KC_ADMIN KC_PASS=$KC_PASS KC_REALM=$KC_REALM PROJECT_PREFIX=$PROJECT_PREFIX CUST_APP_HOSTNAME=$CUST_APP_HOSTNAME KC_API_CLIENT_SECRET=$KC_API_CLIENT_SECRET /home/$TAILSCALE_OPERATOR/installauth.sh
+sudo KC_ADMIN=$KC_ADMIN KC_PASS=$KC_PASS KC_CLIENT=$KC_CLIENT KC_REALM=$KC_REALM PROJECT_PREFIX=$PROJECT_PREFIX CUST_APP_HOSTNAME=$CUST_APP_HOSTNAME KC_API_CLIENT_ID=$KC_API_CLIENT_ID KC_API_CLIENT_SECRET=$KC_API_CLIENT_SECRET /home/$TAILSCALE_OPERATOR/installauth.sh
 
 EOF
 #  -e KC_HOSTNAME_STRICT_BACKCHANNEL=true \
