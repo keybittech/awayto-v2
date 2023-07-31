@@ -143,3 +143,6 @@ fi #end if not local
 
 # Deploy api
 . ./bin/genapi.sh
+
+# Deploy app
+. ./bin/genapp.sh

@@ -95,7 +95,7 @@ services:
       dockerfile: ./auth/Dockerfile
     environment:
       - KC_API_CLIENT_ID=${KC_API_CLIENT_ID}
-      - APP_HOST=${APP_HOST}/api
+      - API_HOST=${CUST_APP_HOSTNAME}/api
       - KC_HTTPS_KEY_STORE_FILE=/opt/keycloak/conf/KeyStore.jks
       - KC_HTTPS_KEY_STORE_PASSWORD=${CA_PASS}
       - KC_SPI_TRUSTSTORE_FILE_FILE=/opt/keycloak/conf/KeyStore.jks

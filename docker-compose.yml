@@ -132,7 +132,7 @@ services:
       dockerfile: ./auth/Dockerfile
     environment:
       - KC_API_CLIENT_ID=${KC_API_CLIENT_ID}
-      - APP_HOST=api:9443/api #pointing to reverse proxy or use =${DB_HOST}:9443/api for internal routing
+      - API_HOST=api:9443/api #pointing to reverse proxy or use =${DB_HOST}:9443/api for internal routing
       - KC_HTTPS_KEY_STORE_FILE=/opt/keycloak/conf/KeyStore.jks
       - KC_HTTPS_KEY_STORE_PASSWORD=${CA_PASS}
       - KC_SPI_TRUSTSTORE_FILE_FILE=/opt/keycloak/conf/KeyStore.jks

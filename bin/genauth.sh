@@ -54,7 +54,7 @@ sudo docker system prune -a -f
 echo "# Starting Keycloak container"
 sudo docker run -d --restart=always --name=wcauth --network="host" \
   -e KC_API_CLIENT_ID=$KC_API_CLIENT_ID \
-  -e APP_HOST=$APP_HOST/api \
+  -e API_HOST=$CUST_APP_HOSTNAME/api \
   -e KC_HTTPS_KEY_STORE_FILE=/opt/keycloak/conf/KeyStore.jks \
   -e KC_HTTPS_KEY_STORE_PASSWORD=$CA_PASS \
   -e KC_SPI_TRUSTSTORE_FILE_FILE=/opt/keycloak/conf/KeyStore.jks \
