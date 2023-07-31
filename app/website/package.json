@@ -63,7 +63,7 @@
   },
   "scripts": {
     "start": "WDS_SOCKET_PORT=443 HTTPS=true craco start",
-    "build": "craco build --verbose"
+    "build": "NODE_OPTIONS='--max_old_space_size=4096' craco build"
   },
   "browserslist": {
     "production": [
