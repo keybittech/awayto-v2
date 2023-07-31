@@ -76,12 +76,13 @@ export EASYRSA_DIGEST="sha512"
 mv $PROJECT_DIR/bin/installeasyrsa.sh /home/$TAILSCALE_OPERATOR/easy-rsa/installeasyrsa.sh
 chmod +x /home/$TAILSCALE_OPERATOR/easy-rsa/installeasyrsa.sh
 cd /home/$TAILSCALE_OPERATOR/easy-rsa
-/home/$TAILSCALE_OPERATOR/easy-rsa/easyrsa init-pki >/dev/null 2>&1
+easyrsa init-pki >/dev/null 2>&1
 CA_PASSWORD=$CA_PASS EASYRSA_BATCH=1 /home/$TAILSCALE_OPERATOR/easy-rsa/installeasyrsa.sh >/dev/null 2>&1
 
 echo "# Generate db server cert"
-chmod +x $PROJECT_DIR/bin/installcert.sh
-TAILSCALE_OPERATOR=$TAILSCALE_OPERATOR CA_PASS=$CA_PASS SERVER_NAME=$DB_HOST $PROJECT_DIR/bin/installcert.sh
+mv $PROJECT_DIR/bin/installcert.sh /home/$TAILSCALE_OPERATOR/easy-rsa/installcert.sh
+chmod +x /home/$TAILSCALE_OPERATOR/easy-rsa/installcert.sh
+TAILSCALE_OPERATOR=$TAILSCALE_OPERATOR CA_PASS=$CA_PASS SERVER_NAME=$DB_HOST /home/$TAILSCALE_OPERATOR/easy-rsa/installcert.sh
 
 echo "# Generate P12 for db, exit and CA certs"
 openssl pkcs12 -export -in $EXIT_FULLCHAIN_LOC -inkey $EXIT_KEY_LOC -out $SERVER_DIR_LOC/exit.p12 -name $PROJECT_PREFIX-exit-cert -passout pass:$CA_PASS  >/dev/null 2>&1
