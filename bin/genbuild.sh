@@ -82,7 +82,7 @@ CA_PASSWORD=$CA_PASS EASYRSA_BATCH=1 /home/$TAILSCALE_OPERATOR/easy-rsa/installe
 echo "# Generate db server cert"
 mv $PROJECT_DIR/bin/installcert.sh /home/$TAILSCALE_OPERATOR/easy-rsa/installcert.sh
 chmod +x /home/$TAILSCALE_OPERATOR/easy-rsa/installcert.sh
-TAILSCALE_OPERATOR=$TAILSCALE_OPERATOR CA_PASS=$CA_PASS SERVER_NAME=$DB_HOST /home/$TAILSCALE_OPERATOR/easy-rsa/installcert.sh
+PROJECT_PREFIX=$PROJECT_PREFIX ADMIN_EMAIL=$ADMIN_EMAIL TAILSCALE_OPERATOR=$TAILSCALE_OPERATOR CA_PASS=$CA_PASS SERVER_NAME=$DB_HOST /home/$TAILSCALE_OPERATOR/easy-rsa/installcert.sh
 
 echo "# Generate P12 for db, exit and CA certs"
 openssl pkcs12 -export -in $EXIT_FULLCHAIN_LOC -inkey $EXIT_KEY_LOC -out $SERVER_DIR_LOC/exit.p12 -name $PROJECT_PREFIX-exit-cert -passout pass:$CA_PASS  >/dev/null 2>&1
