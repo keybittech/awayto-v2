@@ -51,14 +51,15 @@ sudo docker volume create pg15store
 sudo docker volume create redisdata
 sudo docker volume create sqlitedata
 
-echo "# Pulling db image"
-# sudo docker pull $BUILD_HOST:5000/wcdb:$BUILD_VERSION
-# sudo docker pull $BUILD_HOST:5000/wcfs:$BUILD_VERSION
-
 echo "# Allowing ports 5432 (postgres), 6379 (redis), 8000 (files) on $DB_HOST"
 sudo ufw allow 5432
 sudo ufw allow 6379
 sudo ufw allow 8000
+
+sudo docker stop wcdb
+sudo docker stop wcredis
+sudo docker stop wcfs
+sudo docker system prune -a -f
 
 echo "# Starting postgres container"
 sudo docker run -d --restart always --name wcdb --network="host" \

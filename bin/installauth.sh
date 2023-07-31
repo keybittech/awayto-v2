@@ -1,5 +1,7 @@
 #!/bin/bash
-. ./.env
+if [ -f ./.env ]; then
+  . ./.env
+fi
 
 # Default values
 KEYCLOAK_HOST="localhost"
@@ -57,12 +59,12 @@ kcadm update authentication/flows/custom%20registration/executions -r $KC_REALM 
 kcadm update realms/$KC_REALM -b '{ "registrationFlow": "custom registration", "attributes": { "userProfileEnabled": true } }'
 
 echo "# Configuring front-end auth client"
-SITE_CLIENT_ID=$(kcadm create clients -r $KC_REALM -s clientId=$PROJECT_PREFIX-client -s 'redirectUris=["https://'"$CUST_APP_HOSTNAME/*"'"]' -s rootUrl=https://$CUST_APP_HOSTNAME -s baseUrl=https://$CUST_APP_HOSTNAME -s publicClient=true -s standardFlowEnabled=true -s directAccessGrantsEnabled=true -s attributes='{ "post.logout.redirect.uris": "https://'"$CUST_APP_HOSTNAME"'", "access.token.lifespan": 60 }' -i)
+SITE_CLIENT_ID=$(kcadm create clients -r $KC_REALM -s clientId=${PROJECT_PREFIX}_client -s 'redirectUris=["https://'"$CUST_APP_HOSTNAME/*"'"]' -s rootUrl=https://$CUST_APP_HOSTNAME -s baseUrl=https://$CUST_APP_HOSTNAME -s publicClient=true -s standardFlowEnabled=true -s directAccessGrantsEnabled=true -s attributes='{ "post.logout.redirect.uris": "https://'"$CUST_APP_HOSTNAME"'", "access.token.lifespan": 60 }' -i)
 
 echo "# Attaching roles"
 SITE_ROLES="GROUP_ADMIN GROUP_BOOKINGS GROUP_FEATURES GROUP_MATRIX GROUP_ROLES GROUP_SCHEDULES GROUP_SERVICES GROUP_USERS ROLE_CALL"
 for SITE_ROLE in $SITE_ROLES; do
-  kcadm create clients/$SITE_CLIENT_ID/roles -r $KC_REALM -s name=APP_${SITE_ROLE}
+  kcadm create clients/$SITE_CLIENT_ID/roles -r $KC_REALM -s name=APP_$SITE_ROLE
 done
 
 echo "# Create group scope element with attribute mapper"
@@ -75,9 +77,9 @@ kcadm create client-scopes/$GROUP_SCOPE_ID/protocol-mappers/models -r $KC_REALM 
 kcadm update clients/$SITE_CLIENT_ID/default-client-scopes/$GROUP_SCOPE_ID -r $KC_REALM
 
 echo "# Configuring api client"
-API_CLIENT_ID=$(kcadm create clients -r $KC_REALM -s clientId=$PROJECT_PREFIX-api-client -s 'redirectUris=["https://'"$CUST_APP_HOSTNAME/api/auth/login/callback"'"]' -s rootUrl=https://$CUST_APP_HOSTNAME/api -s baseUrl=https://$CUST_APP_HOSTNAME/api -s standardFlowEnabled=true -s serviceAccountsEnabled=true -s attributes='{ "post.logout.redirect.uris": "https://'"$CUST_APP_HOSTNAME/api/auth/logout/callback"'" }' -i)
+API_CLIENT_ID=$(kcadm create clients -r $KC_REALM -s clientId=${PROJECT_PREFIX}_api_client -s 'redirectUris=["https://'"$CUST_APP_HOSTNAME/api/auth/login/callback"'"]' -s rootUrl=https://$CUST_APP_HOSTNAME/api -s baseUrl=https://$CUST_APP_HOSTNAME/api -s standardFlowEnabled=true -s serviceAccountsEnabled=true -s attributes='{ "post.logout.redirect.uris": "https://'"$CUST_APP_HOSTNAME/api/auth/logout/callback"'" }' -i)
 
-kcadm add-roles -r $KC_REALM --uusername service-account-$PROJECT_PREFIX-api-client --cclientid realm-management --rolename manage-clients --rolename manage-realm --rolename manage-users
+kcadm add-roles -r $KC_REALM --uusername service-account-${PROJECT_PREFIX}_api_client --cclientid realm-management --rolename manage-clients --rolename manage-realm --rolename manage-users
 
 kcadm update clients/$API_CLIENT_ID -r $KC_REALM -s "secret=$KC_API_CLIENT_SECRET"
 

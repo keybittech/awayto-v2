@@ -1,12 +1,19 @@
 #!/bin/sh
 . ./.env
 
-SERVER_DIR_LOC="/home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/app/server/"
 CA_CERT_LOC="/home/$TAILSCALE_OPERATOR/easy-rsa/pki/ca.crt"
 CA_KEY_LOC="/home/$TAILSCALE_OPERATOR/easy-rsa/pki/private/ca.key"
-PASS_LOC="${SERVER_DIR_LOC}server.pass"
-EXIT_CERT_LOC="${SERVER_DIR_LOC}server.crt"
-EXIT_KEY_LOC="${SERVER_DIR_LOC}server.key"
+PROJECT_DIR="/home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX"
+SERVER_DIR_LOC="$PROJECT_DIR/app/server"
+PASS_LOC="$SERVER_DIR_LOC/server.pass"
+EXIT_CERT_LOC="$SERVER_DIR_LOC/server.crt"
+EXIT_KEY_LOC="$SERVER_DIR_LOC/server.key"
+API_CERT_LOC="$PROJECT_DIR/api/server.crt"
+API_KEY_LOC="$PROJECT_DIR/api/server.key"
+SOCK_CERT_LOC="$PROJECT_DIR/sock/server.crt"
+SOCK_KEY_LOC="$PROJECT_DIR/sock/server.key"
+TURN_CERT_LOC="$PROJECT_DIR/turn/server.crt"
+TURN_KEY_LOC="$PROJECT_DIR/turn/server.key"
 
 echo "Configuring build server..."
 until ping -c1 $BUILD_HOST; do sleep 5; done
@@ -14,7 +21,6 @@ until ssh-keyscan -H $BUILD_HOST >> ~/.ssh/known_hosts; do sleep 5; done
 
 echo "# Setup EasyRSA Internal Certificate Authority on the build server..."
 # Move build files/env to build server
-scp "./bin/installeasyrsa.sh" "$TAILSCALE_OPERATOR@$BUILD_HOST:/home/$TAILSCALE_OPERATOR/installeasyrsa.sh"
 scp "./.env" "$TAILSCALE_OPERATOR@$BUILD_HOST:/home/$TAILSCALE_OPERATOR/.env"
 
 # Move exit server cert to build server
@@ -39,19 +45,19 @@ echo "# Installing docker registry"
 sudo docker run -d -p 5000:5000 --restart=always --name registry registry:2
 
 echo "# Cloning repo"
-git clone $PROJECT_REPO /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX
-cp /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/deploy/docker-compose.yml /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/docker-compose.yml
+git clone $PROJECT_REPO $PROJECT_DIR
+cp $PROJECT_DIR/deploy/docker-compose.yml $PROJECT_DIR/docker-compose.yml
 
 echo "# Increment version"
-sh /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/bin/getversion.sh -i
+sh $PROJECT_DIR/bin/getversion.sh -i
 echo "# Build init complete"
 
-mv /home/$TAILSCALE_OPERATOR/.env /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/.env
+mv /home/$TAILSCALE_OPERATOR/.env $PROJECT_DIR/.env
 
 echo "# Getting exit server cert on build"
 sudo tailscale file get $SERVER_DIR_LOC
-mv ${SERVER_DIR_LOC}fullchain.pem $EXIT_CERT_LOC
-mv ${SERVER_DIR_LOC}privkey.pem $EXIT_KEY_LOC
+mv $SERVER_DIR_LOC/fullchain.pem $EXIT_CERT_LOC
+mv $SERVER_DIR_LOC/privkey.pem $EXIT_KEY_LOC
 
 echo "# Setting up EasyRSA"
 mkdir /home/$TAILSCALE_OPERATOR/easy-rsa
@@ -65,24 +71,34 @@ export EASYRSA_REQ_CN="InternalCA"
 export EASYRSA_ALGO="ec"
 export EASYRSA_DIGEST="sha512"
 
-mv /home/$TAILSCALE_OPERATOR/installeasyrsa.sh /home/$TAILSCALE_OPERATOR/easy-rsa/installeasyrsa.sh
+mv $PROJECT_DIR/bin/installeasyrsa.sh /home/$TAILSCALE_OPERATOR/easy-rsa/installeasyrsa.sh
 chmod +x /home/$TAILSCALE_OPERATOR/easy-rsa/installeasyrsa.sh
 cd /home/$TAILSCALE_OPERATOR/easy-rsa
-/home/$TAILSCALE_OPERATOR/easy-rsa/easyrsa init-pki
-CA_PASSWORD=$CA_PASS EASYRSA_BATCH=1 /home/$TAILSCALE_OPERATOR/easy-rsa/installeasyrsa.sh
+/home/$TAILSCALE_OPERATOR/easy-rsa/easyrsa init-pki >/dev/null 2>&1
+CA_PASSWORD=$CA_PASS EASYRSA_BATCH=1 /home/$TAILSCALE_OPERATOR/easy-rsa/installeasyrsa.sh >/dev/null 2>&1
 
 echo "# Generate P12 for exit and CA certs"
-openssl pkcs12 -export -in $EXIT_CERT_LOC -inkey $EXIT_KEY_LOC -out ${SERVER_DIR_LOC}exit.p12 -name $PROJECT_PREFIX-exit-cert -passout pass:$CA_PASS >/dev/null
-openssl pkcs12 -export -in $CA_CERT_LOC -inkey $CA_KEY_LOC -out ${SERVER_DIR_LOC}ca.p12 -name $PROJECT_PREFIX-ca-cert -passin pass:$CA_PASS -passout pass:$CA_PASS >/dev/null
+openssl pkcs12 -export -in $EXIT_CERT_LOC -inkey $EXIT_KEY_LOC -out $SERVER_DIR_LOC/exit.p12 -name $PROJECT_PREFIX-exit-cert -passout pass:$CA_PASS  >/dev/null 2>&1
+openssl pkcs12 -export -in $CA_CERT_LOC -inkey $CA_KEY_LOC -out $SERVER_DIR_LOC/ca.p12 -name $PROJECT_PREFIX-ca-cert -passin pass:$CA_PASS -passout pass:$CA_PASS  >/dev/null 2>&1
 
 echo "# Add certs p12 to JKS"
-keytool -importkeystore -srcstoretype PKCS12 -srckeystore ${SERVER_DIR_LOC}exit.p12 -destkeystore ${SERVER_DIR_LOC}KeyStore.jks -deststoretype JKS -srcalias $PROJECT_PREFIX-exit-cert -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS >/dev/null
-keytool -importkeystore -srcstoretype PKCS12 -srckeystore ${SERVER_DIR_LOC}ca.p12 -destkeystore ${SERVER_DIR_LOC}KeyStore.jks -deststoretype JKS -srcalias $PROJECT_PREFIX-ca-cert -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS >/dev/null
+keytool -importkeystore -srcstoretype PKCS12 -srckeystore $SERVER_DIR_LOC/exit.p12 -destkeystore $SERVER_DIR_LOC/KeyStore.jks -deststoretype JKS -srcalias $PROJECT_PREFIX-exit-cert -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS  >/dev/null 2>&1
+keytool -importkeystore -srcstoretype PKCS12 -srckeystore $SERVER_DIR_LOC/ca.p12 -destkeystore $SERVER_DIR_LOC/KeyStore.jks -deststoretype JKS -srcalias $PROJECT_PREFIX-ca-cert -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS  >/dev/null 2>&1
 
-rm ${SERVER_DIR_LOC}exit.p12
-rm ${SERVER_DIR_LOC}ca.p12
+rm $SERVER_DIR_LOC/exit.p12
+rm $SERVER_DIR_LOC/ca.p12
 
-echo $CA_PASS > ${PASS_LOC}server.pass
+echo $CA_PASS > $PASS_LOC
+
+echo "# Configuring certs"
+cp $EXIT_KEY_LOC $API_KEY_LOC
+cp $EXIT_CERT_LOC $API_CERT_LOC
+
+cp $EXIT_KEY_LOC $SOCK_KEY_LOC
+cp $EXIT_CERT_LOC $SOCK_CERT_LOC
+
+cp $EXIT_KEY_LOC $TURN_KEY_LOC
+cp $EXIT_CERT_LOC $TURN_CERT_LOC
 
 echo "# Cert generation complete!"
 EOF
@@ -108,7 +124,7 @@ EOF
 # EOF
 
 # # Put cert files on the build server
-# scp "./sites/$PROJECT_PREFIX/fullchain.pem" "$TAILSCALE_OPERATOR@$BUILD_HOST:${SERVER_DIR_LOC}server.crt"
-# scp "./sites/$PROJECT_PREFIX/privkey.pem" "$TAILSCALE_OPERATOR@$BUILD_HOST:${SERVER_DIR_LOC}server.key"
+# scp "./sites/$PROJECT_PREFIX/fullchain.pem" "$TAILSCALE_OPERATOR@$BUILD_HOST:$SERVER_DIR_LOC/server.crt"
+# scp "./sites/$PROJECT_PREFIX/privkey.pem" "$TAILSCALE_OPERATOR@$BUILD_HOST:$SERVER_DIR_LOC/server.key"
 
 

@@ -124,3 +124,12 @@ fi #end if not local
 
 # Deploy the db/redis/file system
 . ./bin/gendb.sh
+
+# Deploy keycloak
+. ./bin/genauth.sh
+
+# Deploy svc host
+. ./bin/gensvc.sh
+
+# Deploy api
+. ./bin/genapi.sh

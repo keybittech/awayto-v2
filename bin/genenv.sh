@@ -58,17 +58,17 @@ CA_PASS=$(genid)
 
 REDIS_PASS=$(genid)
 
-PG_DB=$PROJECT_PREFIX-db-$(genid)
-PG_USER=$PROJECT_PREFIX-postgres-$(genid)
+PG_DB=${PROJECT_PREFIX}_db_$(genid)
+PG_USER=${PROJECT_PREFIX}_postgres_$(genid)
 PG_PASS=$(genid)
 
 API_COOKIE=$(genid)
 
-KC_ADMIN=$PROJECT_PREFIX-auth-$(genid)
+KC_ADMIN=${PROJECT_PREFIX}_auth_$(genid)
 KC_PASS=$(genid)
-KC_REALM=$PROJECT_PREFIX-realm
-KC_CLIENT=$PROJECT_PREFIX-client
-KC_API_CLIENT_ID=$PROJECT_PREFIX-api-client
+KC_REALM=${PROJECT_PREFIX}_realm
+KC_CLIENT=${PROJECT_PREFIX}_client
+KC_API_CLIENT_ID=${PROJECT_PREFIX}_api_client
 KC_API_CLIENT_SECRET=$(genid)
 
 SOCK_SECRET=$(genid)

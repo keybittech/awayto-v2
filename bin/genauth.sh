@@ -29,7 +29,12 @@ sudo docker push localhost:5000/wcauth:$BUILD_VERSION
 sudo docker push localhost:5000/wcauth:latest
 EOF
 
+scp "./bin/installauth.sh" "$TAILSCALE_OPERATOR@$APP_HOST:/home/$TAILSCALE_OPERATOR/installauth.sh"
+
 ssh -T $TAILSCALE_OPERATOR@$APP_HOST << EOF
+
+sudo apt-get update
+sudo apt-get install jq -y
 
 if ! command -v docker >/dev/null 2>&1; then
   echo "# Installing Docker"
@@ -43,14 +48,17 @@ echo "# Allowing app port 8080/8443 (keycloak) on $APP_HOST"
 sudo ufw allow 8080
 sudo ufw allow 8443
 
+sudo docker stop wcauth
+sudo docker system prune -a -f
+
 echo "# Starting Keycloak container"
 sudo docker run -d --restart=always --name=wcauth --network="host" \
   -e KC_API_CLIENT_ID=$KC_API_CLIENT_ID \
   -e APP_HOST=$APP_HOST/api \
   -e KC_HTTPS_KEY_STORE_FILE=/opt/keycloak/conf/KeyStore.jks \
-  -e KC_HTTPS_KEY_STORE_PASSWORD=${CA_PASS} \
+  -e KC_HTTPS_KEY_STORE_PASSWORD=$CA_PASS \
   -e KC_SPI_TRUSTSTORE_FILE_FILE=/opt/keycloak/conf/KeyStore.jks \
-  -e KC_SPI_TRUSTSTORE_FILE_PASSWORD=$KC_PASS \
+  -e KC_SPI_TRUSTSTORE_FILE_PASSWORD=$CA_PASS \
   -e KC_SPI_TRUSTSTORE_FILE_HOSTNAME_VERIFICATION_POLICY=WILDCARD \
   -e KC_HOSTNAME_STRICT=false \
   -e KC_HOSTNAME_ADMIN_URL=https://$CUST_APP_HOSTNAME/auth \
@@ -66,6 +74,9 @@ sudo docker run -d --restart=always --name=wcauth --network="host" \
   -e KC_REDIS_PORT=6379 \
   -e KC_REDIS_PASS=$REDIS_PASS \
   -e KC_REGISTRATION_RATE_LIMIT=10 $BUILD_HOST:5000/wcauth:$BUILD_VERSION
+
+chmod +x /home/$TAILSCALE_OPERATOR/installauth.sh
+sudo KC_ADMIN=$KC_ADMIN KC_PASS=$KC_PASS KC_REALM=$KC_REALM PROJECT_PREFIX=$PROJECT_PREFIX CUST_APP_HOSTNAME=$CUST_APP_HOSTNAME KC_API_CLIENT_SECRET=$KC_API_CLIENT_SECRET /home/$TAILSCALE_OPERATOR/installauth.sh
 
 EOF
 #  -e KC_HOSTNAME_STRICT_BACKCHANNEL=true \
