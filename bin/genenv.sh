@@ -51,8 +51,8 @@ CONFIGURE_NAMESERVERS=$CONFIGURE_NAMESERVERS
 ADMIN_EMAIL=$ADMIN_EMAIL
 
 DOMAIN_NAME=$DOMAIN_NAME
-CUST_APP_HOSTNAME=www.$DOMAIN_NAME
-CUST_LAND_HOSTNAME=www.$DOMAIN_NAME
+CUST_APP_HOSTNAME=$DOMAIN_NAME
+CUST_LAND_HOSTNAME=$DOMAIN_NAME
 
 CA_PASS=$(genid)
 
@@ -114,7 +114,12 @@ EOF
   elif [ $DEPLOYMENT_LOCATION = "hetzner" ]; then
     cat << EOF >> ./.env
 HETZNER_DATACENTER=${HETZNER_DATACENTER:-$(read -p "Enter HETZNER_DATACENTER (Leave blank for default): " var; echo ${var:-"hil-dc1"})}
-HETZNER_TYPE=${HETZNER_TYPE:-$(read -p "Enter HETZNER_TYPE (Leave blank for default): " var; echo ${var:-"cpx11"})}
+HETZNER_NS_TYPE=${HETZNER_NS_TYPE:-$(read -p "Enter HETZNER_NS_TYPE (Leave blank for default): " var; echo ${var:-"cpx11"})}
+HETZNER_EXIT_TYPE=${HETZNER_EXIT_TYPE:-$(read -p "Enter HETZNER_EXIT_TYPE (Leave blank for default): " var; echo ${var:-"cpx11"})}
+HETZNER_APP_TYPE=${HETZNER_APP_TYPE:-$(read -p "Enter HETZNER_APP_TYPE (Leave blank for default): " var; echo ${var:-"cpx11"})}
+HETZNER_DB_TYPE=${HETZNER_DB_TYPE:-$(read -p "Enter HETZNER_DB_TYPE (Leave blank for default): " var; echo ${var:-"cpx11"})}
+HETZNER_SVC_TYPE=${HETZNER_SVC_TYPE:-$(read -p "Enter HETZNER_SVC_TYPE (Leave blank for default): " var; echo ${var:-"cpx11"})}
+HETZNER_BUILD_TYPE=${HETZNER_BUILD_TYPE:-$(read -p "Enter HETZNER_BUILD_TYPE (Leave blank for default): " var; echo ${var:-"cpx21"})}
 HETZNER_IMAGE=${HETZNER_IMAGE:-$(read -p "Enter HETZNER_IMAGE (Leave blank for default): " var; echo ${var:-"ubuntu-22.04"})}
 
 EOF

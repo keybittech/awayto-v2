@@ -66,14 +66,24 @@ if [ ! "$DEPLOYMENT_LOCATION" = "local" ]; then
     echo "# Generating exit server"
 
     # Create exit, app, db, svc, build machines
-    hcloud server create --name "$PROJECT_PREFIX-exit" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./sites/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" --firewall "$PROJECT_PREFIX-public-firewall" >/dev/null
+    hcloud server create --name "$PROJECT_PREFIX-exit" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_EXIT_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./sites/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" --firewall "$PROJECT_PREFIX-public-firewall" >/dev/null
     hcloud server describe "$PROJECT_PREFIX-exit" -o json > "./sites/$PROJECT_PREFIX/exit.json"
 
-    for SERVER in app db svc build; do
-      echo "# Generating $SERVER server"
-      hcloud server create --name "$PROJECT_PREFIX-$SERVER" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./sites/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" >/dev/null
-      hcloud server describe "$PROJECT_PREFIX-$SERVER" -o json > "./sites/$PROJECT_PREFIX/$SERVER.json"
-    done
+    echo "# Generating app server"
+    hcloud server create --name "$PROJECT_PREFIX-app" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_APP_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./sites/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" >/dev/null
+    hcloud server describe "$PROJECT_PREFIX-app" -o json > "./sites/$PROJECT_PREFIX/app.json"
+
+    echo "# Generating db server"
+    hcloud server create --name "$PROJECT_PREFIX-db" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_DB_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./sites/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" >/dev/null
+    hcloud server describe "$PROJECT_PREFIX-db" -o json > "./sites/$PROJECT_PREFIX/db.json"
+
+    echo "# Generating svc server"
+    hcloud server create --name "$PROJECT_PREFIX-svc" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_SVC_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./sites/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" >/dev/null
+    hcloud server describe "$PROJECT_PREFIX-svc" -o json > "./sites/$PROJECT_PREFIX/svc.json"
+
+    echo "# Generating build server"
+    hcloud server create --name "$PROJECT_PREFIX-build" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_BUILD_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./sites/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" >/dev/null
+    hcloud server describe "$PROJECT_PREFIX-build" -o json > "./sites/$PROJECT_PREFIX/build.json"
 
     echo "# Servers generated"
 
@@ -85,9 +95,9 @@ if [ ! "$DEPLOYMENT_LOCATION" = "local" ]; then
       hcloud firewall describe "$PROJECT_PREFIX-ns-firewall" -o json > "./sites/$PROJECT_PREFIX/ns-firewall.json"
 
       # Create nameservers
-      hcloud server create --name "$PROJECT_PREFIX-ns1" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./sites/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" --firewall "$PROJECT_PREFIX-ns-firewall" >/dev/null
+      hcloud server create --name "$PROJECT_PREFIX-ns1" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_NS_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./sites/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" --firewall "$PROJECT_PREFIX-ns-firewall" >/dev/null
       hcloud server describe "$PROJECT_PREFIX-ns1" -o json > "./sites/$PROJECT_PREFIX/ns1.json"
-      hcloud server create --name "$PROJECT_PREFIX-ns2" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./sites/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" --firewall "$PROJECT_PREFIX-ns-firewall" >/dev/null
+      hcloud server create --name "$PROJECT_PREFIX-ns2" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_NS_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./sites/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" --firewall "$PROJECT_PREFIX-ns-firewall" >/dev/null
       hcloud server describe "$PROJECT_PREFIX-ns2" -o json > "./sites/$PROJECT_PREFIX/ns2.json"
 
 
