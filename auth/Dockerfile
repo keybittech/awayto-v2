@@ -14,12 +14,14 @@ RUN /opt/keycloak/bin/kc.sh build --features=declarative-user-profile
 
 FROM quay.io/keycloak/keycloak:21.1
 
+ARG KC_CERT_LOC
+ARG KC_KEY_LOC
+ARG KEYSTORE_LOC
+
 USER root
 
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
-COPY ./certs/KeyStore.jks /opt/keycloak/conf/KeyStore.jks
-COPY ./certs/keycloak.crt /opt/keycloak/conf/keycloak.crt
-COPY ./certs/keycloak.key /opt/keycloak/conf/keycloak.key
+COPY $KC_CERT_LOC $KC_KEY_LOC $KEYSTORE_LOC /opt/keycloak/conf/
 COPY ./auth/themes/base /opt/keycloak/themes/site
 
 RUN chown keycloak: /opt/keycloak/conf/KeyStore.jks \
