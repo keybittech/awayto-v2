@@ -35,6 +35,8 @@ EOF
 
 ssh -T $TAILSCALE_OPERATOR@$DB_HOST << EOF
 
+sudo tailscale up --operator $TAILSCALE_OPERATOR --exit-node=$PROJECT_PREFIX-exit --ssh
+
 echo "# Install postgres client"
 sudo apt-get install -y postgresql-client
 
