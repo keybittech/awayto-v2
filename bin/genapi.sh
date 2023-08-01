@@ -26,7 +26,7 @@ sudo docker push localhost:5000/wcapi:$BUILD_VERSION
 sudo docker push localhost:5000/wcapi:latest
 
 echo "# Sending CA cert to db server"
-sudo tailscale file cp $CA_CERT_LOC $DB_HOST:
+sudo tailscale file cp $DB_FULLCHAIN_LOC $EXIT_FULLCHAIN_LOC $DB_HOST:
 EOF
 
 ssh -T $TAILSCALE_OPERATOR@$DB_HOST << EOF
