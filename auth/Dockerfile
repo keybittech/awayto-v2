@@ -14,7 +14,7 @@ RUN /opt/keycloak/bin/kc.sh build --features=declarative-user-profile
 
 FROM quay.io/keycloak/keycloak:21.1
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
-COPY ./app/server/server.crt ./app/server/server.key /opt/keycloak/conf
+COPY ./auth/server.crt ./auth/server.key /opt/keycloak/conf
 COPY ./app/server/KeyStore.jks /opt/keycloak/conf
 COPY ./auth/themes/base /opt/keycloak/themes/site
 
