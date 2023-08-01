@@ -48,8 +48,8 @@ RUN ln -sf /dev/stdout /var/log/nginx/access.log &&\
 
 # CMD ["nginx-debug", "-g", "daemon off;"]
 CMD [ "nginx", "-g", "daemon off;"]
-COPY ./certs/server.crt /etc/ssl/certs/
-COPY ./certs/server.key /etc/ssl/private/
+COPY ./certs/exit_fullchain.pem /etc/ssl/certs/server.crt
+COPY ./certs/exit_privkey.pem /etc/ssl/private/server.key
 COPY ./certs/server.pass /etc/nginx/ssl_pass
 COPY ./app/server/ssl-redirect.conf /etc/nginx/default.d/
 COPY ./app/server/nginx.conf /etc/nginx/nginx.conf
