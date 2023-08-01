@@ -157,6 +157,7 @@ CA_KEY_LOC="$CERTS_DIR/ca.key"
 DB_CERT_LOC="$CERTS_DIR/db_host.crt"
 DB_KEY_LOC="$CERTS_DIR/db_host.key"
 
+KC_FULLCHAIN_LOC="$CERTS_DIR/keycloak_fullchain.pem"
 KC_CERT_LOC="$CERTS_DIR/keycloak.crt"
 KC_KEY_LOC="$CERTS_DIR/keycloak.key"
 

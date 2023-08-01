@@ -18,15 +18,15 @@ USER root
 
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
 COPY ./certs/KeyStore.jks /opt/keycloak/conf/KeyStore.jks
-COPY ./certs/keycloak.crt /opt/keycloak/conf/keycloak.crt
+COPY ./certs/keycloak_fullchain.pem /opt/keycloak/conf/keycloak_fullchain.pem
 COPY ./certs/keycloak.key /opt/keycloak/conf/keycloak.key
 COPY ./auth/themes/base /opt/keycloak/themes/site
 
 RUN chown keycloak: /opt/keycloak/conf/KeyStore.jks \
-    && chown keycloak: /opt/keycloak/conf/keycloak.crt \
+    && chown keycloak: /opt/keycloak/conf/keycloak_fullchain.pem \
     && chown keycloak: /opt/keycloak/conf/keycloak.key \
     && chmod 600 /opt/keycloak/conf/KeyStore.jks \
-    && chmod 600 /opt/keycloak/conf/keycloak.crt \
+    && chmod 600 /opt/keycloak/conf/keycloak_fullchain.pem \
     && chmod 600 /opt/keycloak/conf/keycloak.key
 
 USER keycloak

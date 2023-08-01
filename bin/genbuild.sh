@@ -78,7 +78,10 @@ sed "s/domain-name/$DOMAIN_NAME/g; s/app-host/$APP_HOST/g;" $PROJECT_DIR/deploy/
 openssl req -new -newkey rsa:2048 -nodes -keyout $CERTS_DIR/keycloak.key -out $CERTS_DIR/keycloak.csr -subj "/CN=$APP_HOST" -config $CERTS_DIR/kcsa.cnf
 ./easyrsa import-req $CERTS_DIR/keycloak.csr keycloak
 CSR_NAME=keycloak TAILSCALE_OPERATOR=$TAILSCALE_OPERATOR CA_PASS=$CA_PASS /home/$TAILSCALE_OPERATOR/easy-rsa/installcsr.sh
-cp $EASYRSA_LOC/issued/keycloak.crt $KC_CERT_LOC
+
+echo "Creating keycloak fullchain"
+awk '/-----BEGIN CERTIFICATE-----/,/-----END CERTIFICATE-----/' $EASYRSA_LOC/issued/keycloak.crt > $KC_FULLCHAIN_LOC
+cat $CA_CERT_LOC >> $KC_FULLCHAIN_LOC
 
 keytool -import -trustcacerts -noprompt -alias letsencrypt -file $EXIT_FULLCHAIN_LOC -keystore $KEYSTORE_LOC -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS
 keytool -import -trustcacerts -noprompt -alias easyrsa -file $CA_CERT_LOC -keystore $KEYSTORE_LOC -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS
