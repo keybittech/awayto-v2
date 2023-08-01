@@ -26,11 +26,17 @@ sudo docker push localhost:5000/wcapi:$BUILD_VERSION
 sudo docker push localhost:5000/wcapi:latest
 
 echo "# Sending CA cert to db server"
-sudo tailscale file cp $DB_FULLCHAIN_LOC $EXIT_FULLCHAIN_LOC $DB_HOST:
+sudo tailscale file cp $CA_CERT_LOC $DB_FULLCHAIN_LOC $EXIT_FULLCHAIN_LOC $DB_HOST:
 EOF
 
 ssh -T $TAILSCALE_OPERATOR@$DB_HOST << EOF
 echo "# Adding CA cert to db-host certs"
+
+sudo rm /usr/local/share/ca-certificates/ca.crt
+sudo rm /usr/local/share/ca-certificates/db_fullchain.pem
+sudo rm /usr/local/share/ca-certificates/exit_fullchain.pem
+sudo update-ca-certificates
+
 sudo tailscale file get /usr/local/share/ca-certificates/
 sudo update-ca-certificates
 

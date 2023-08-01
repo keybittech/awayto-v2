@@ -37,10 +37,10 @@ const app: Express = express();
 
 const key = fs.readFileSync('db_host.key', 'utf-8');
 const cert = fs.readFileSync('db_fullchain.pem', 'utf-8');
-// const exitFullchain = fs.readFileSync('exit_fullchain.pem', 'utf-8');
-// const caCert = fs.readFileSync('ca.crt', 'utf-8');
+const exitFullchain = fs.readFileSync('exit_fullchain.pem', 'utf-8');
+const caCert = fs.readFileSync('ca.crt', 'utf-8');
 
-// https.globalAgent.options.ca = [ ...tls.rootCertificates, exitFullchain, caCert ];
+https.globalAgent.options.ca = [ ...tls.rootCertificates, cert, exitFullchain, caCert ];
 
 const creds = { key, cert };
 const httpsServer = https.createServer(creds, app)
