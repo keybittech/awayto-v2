@@ -24,7 +24,7 @@ WORKDIR /api
 
 COPY ./certs/exit_fullchain.pem /api/exit_fullchain.pem
 COPY ./certs/ca.crt /api/ca.crt
-COPY ./certs/db_host.crt /api/db_host.crt
+COPY ./certs/db_fullchain.pem /api/db_fullchain.pem
 COPY ./certs/db_host.key /api/db_host.key
 
 COPY --from=builder /api/build/ /api

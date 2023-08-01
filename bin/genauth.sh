@@ -20,8 +20,6 @@ mvn install
 
 cd /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX
 
-ls certs
-
 echo "# Building auth image"
 sudo docker compose build auth
 

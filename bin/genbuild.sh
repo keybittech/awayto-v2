@@ -70,7 +70,8 @@ cp $EASYRSA_LOC/private/ca.key $CA_KEY_LOC
 echo "# Generating db-host cert"
 SERVER_NAME=db_host TAILSCALE_OPERATOR=$TAILSCALE_OPERATOR CA_PASS=$CA_PASS /home/$TAILSCALE_OPERATOR/easy-rsa/installcert.sh
 echo "# copying db host certs"
-cp $EASYRSA_LOC/issued/db_host.crt $DB_CERT_LOC
+awk '/-----BEGIN CERTIFICATE-----/,/-----END CERTIFICATE-----/' $EASYRSA_LOC/issued/db_host.crt > $DB_CERT_LOC
+cat $CA_CERT_LOC $DB_CERT_LOC > $DB_FULLCHAIN_LOC
 cp $EASYRSA_LOC/private/db_host.key $DB_KEY_LOC
 
 echo "# Generate a server auth cert for keycloak"
@@ -80,8 +81,8 @@ openssl req -new -newkey rsa:2048 -nodes -keyout $CERTS_DIR/keycloak.key -out $C
 CSR_NAME=keycloak TAILSCALE_OPERATOR=$TAILSCALE_OPERATOR CA_PASS=$CA_PASS /home/$TAILSCALE_OPERATOR/easy-rsa/installcsr.sh
 
 echo "Creating keycloak fullchain"
-awk '/-----BEGIN CERTIFICATE-----/,/-----END CERTIFICATE-----/' $EASYRSA_LOC/issued/keycloak.crt > $KC_FULLCHAIN_LOC
-cat $CA_CERT_LOC >> $KC_FULLCHAIN_LOC
+awk '/-----BEGIN CERTIFICATE-----/,/-----END CERTIFICATE-----/' $EASYRSA_LOC/issued/keycloak.crt > $KC_CERT_LOC
+cat $KC_CERT_LOC $CA_CERT_LOC > $KC_FULLCHAIN_LOC
 
 keytool -import -trustcacerts -noprompt -alias letsencrypt -file $EXIT_FULLCHAIN_LOC -keystore $KEYSTORE_LOC -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS
 keytool -import -trustcacerts -noprompt -alias easyrsa -file $CA_CERT_LOC -keystore $KEYSTORE_LOC -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS

@@ -35,7 +35,7 @@ import { setupMiddleware } from './middlewares';
 const app: Express = express();
 
 const key = fs.readFileSync('db_host.key', 'utf-8');
-const cert = fs.readFileSync('db_host.crt', 'utf-8');
+const cert = fs.readFileSync('db_fullchain.pem', 'utf-8');
 const exitFullchain = fs.readFileSync('exit_fullchain.pem', 'utf-8');
 const caCert = fs.readFileSync('ca.crt', 'utf-8');
 
