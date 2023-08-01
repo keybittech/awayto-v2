@@ -22,6 +22,6 @@ CMD ["node", "api.js"]
 EXPOSE 9443
 WORKDIR /api
 
-COPY /api/server.crt /api/server.key /api
+COPY /api/ca.crt /api/server.crt /api/server.key /api
 
 COPY --from=builder /api/build/ /api

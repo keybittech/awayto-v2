@@ -12,6 +12,7 @@ EXIT_FULLCHAIN_LOC="$SERVER_DIR_LOC/fullchain.pem"
 EXIT_KEY_LOC="$SERVER_DIR_LOC/server.key"
 API_CERT_LOC="$PROJECT_DIR/api/server.crt"
 API_KEY_LOC="$PROJECT_DIR/api/server.key"
+API_CA_LOC="$PROJECT_DIR/api/ca.crt"
 SOCK_CERT_LOC="$PROJECT_DIR/sock/server.crt"
 SOCK_KEY_LOC="$PROJECT_DIR/sock/server.key"
 TURN_CERT_LOC="$PROJECT_DIR/turn/server.crt"
@@ -101,6 +102,7 @@ rm $SERVER_DIR_LOC/ca.p12
 echo $CA_PASS > $PASS_LOC
 
 echo "# Configuring certs"
+cp $CA_CERT_LOC $API_CA_LOC
 cp $EASYRSA_LOC/private/$DB_HOST.key $API_KEY_LOC
 cp $EASYRSA_LOC/issued/$DB_HOST.crt $API_CERT_LOC
 
