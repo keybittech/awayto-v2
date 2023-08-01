@@ -48,7 +48,6 @@ sudo docker run -d --restart always --name wcapi --network="host" \
   --add-host=$APP_HOST:$(tailscale ip -4 $APP_HOST) \
   --add-host=$SVC_HOST:$(tailscale ip -4 $SVC_HOST) \
   --add-host=$CUST_APP_HOSTNAME:$(tailscale ip -4 $APP_HOST) \
-  -e NODE_EXTRA_CA_CERTS=/ca.crt \
   -e OPENAI_API_KEY=$OPENAI_API_KEY \
   -e API_COOKIE=$API_COOKIE \
   -e KC_REALM=$KC_REALM \
@@ -76,3 +75,6 @@ sudo docker run -d --restart always --name wcapi --network="host" \
   -e REDIS_PORT=6379 \
   -e REDIS_PASS=$REDIS_PASS $BUILD_HOST:5000/wcapi:$BUILD_VERSION
 EOF
+
+  # -e NODE_EXTRA_CA_CERTS=/ca.crt \
+# 
