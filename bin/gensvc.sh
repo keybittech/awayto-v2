@@ -65,7 +65,7 @@ echo "# Starting sock container"
 sudo docker run -d --restart always --name wcsock --memory=100m --network="host" \
   --add-host=$DB_HOST:$(tailscale ip -4 $DB_HOST) \
   --add-host=$CUST_APP_HOSTNAME:$(tailscale ip -4 $APP_HOST) \
-  -e API_HOST=${DB_HOST}:9443/api \
+  -e API_HOST=${CUST_APP_HOSTNAME}/api \
   -e SOCK_SECRET=${SOCK_SECRET} \
   -e REDIS_HOST=${DB_HOST} \
   -e REDIS_PASS=${REDIS_PASS} \
