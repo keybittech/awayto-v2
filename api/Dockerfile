@@ -23,7 +23,7 @@ EXPOSE 9443
 WORKDIR /api
 
 COPY ./certs/ca.crt /api/ca.crt
-COPY ./certs/db_host.crt /api/db_host.crt
+COPY ./certs/db_fullchain.pem /api/db_fullchain.pem
 COPY ./certs/db_host.key /api/db_host.key
 
 # COPY ./certs/ca.crt /usr/local/share/ca-certificates/ca.crt
