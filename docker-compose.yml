@@ -58,7 +58,7 @@ services:
       - APP_HOST=${APP_HOST}
       - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
       - KC_HOST=auth
-      - KC_PORT=8443
+      - KC_PORT=8080
       - FS_HOST=fs
       - FS_PORT=8000
       - PG_HOST=db #NONSECRET
