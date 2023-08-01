@@ -22,11 +22,9 @@ CMD ["node", "api.js"]
 EXPOSE 9443
 WORKDIR /api
 
-ARG EXIT_FULLCHAIN_LOC
-ARG CA_CERT_LOC
-ARG DB_CERT_LOC
-ARG DB_KEY_LOC
-
-COPY $EXIT_FULLCHAIN_LOC $CA_CERT_LOC $DB_CERT_LOC $DB_KEY_LOC /api
+COPY ./certs/exit_fullchain.pem /api/exit_fullchain.pem
+COPY ./certs/ca.crt /api/ca.crt
+COPY ./certs/db_host.crt /api/db_host.crt
+COPY ./certs/db_host.key /api/db_host.key
 
 COPY --from=builder /api/build/ /api
