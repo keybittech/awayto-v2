@@ -36,7 +36,10 @@ const app: Express = express();
 
 const key = fs.readFileSync('server.key', 'utf-8');
 const cert = fs.readFileSync('server.crt', 'utf-8');
-const creds = { key, cert };
+const ca = fs.readFileSync('fullchain.pem', 'utf-8');
+const creds = { key, cert, ca };
+
+https.globalAgent.options.ca = [ca];
 
 const httpsServer = https.createServer(creds, app)
 

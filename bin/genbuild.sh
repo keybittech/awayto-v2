@@ -12,6 +12,7 @@ EXIT_FULLCHAIN_LOC="$SERVER_DIR_LOC/fullchain.pem"
 EXIT_KEY_LOC="$SERVER_DIR_LOC/server.key"
 API_CERT_LOC="$PROJECT_DIR/api/server.crt"
 API_KEY_LOC="$PROJECT_DIR/api/server.key"
+API_FULLCHAIN_LOC="$PROJECT_DIR/api/fullchain.pem"
 SOCK_CERT_LOC="$PROJECT_DIR/sock/server.crt"
 SOCK_KEY_LOC="$PROJECT_DIR/sock/server.key"
 TURN_CERT_LOC="$PROJECT_DIR/turn/server.crt"
@@ -107,6 +108,7 @@ rm $SERVER_DIR_LOC/ca.p12
 echo $CA_PASS > $PASS_LOC
 
 # echo "# Configuring certs"
+cp $EXIT_FULLCHAIN_LOC $API_FULLCHAIN_LOC
 cp $EXIT_KEY_LOC $API_KEY_LOC
 cp $EXIT_CERT_LOC $API_CERT_LOC
 
