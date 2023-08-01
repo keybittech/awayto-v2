@@ -13,9 +13,12 @@ COPY ./auth/custom-event-listener/target/*.jar /opt/keycloak/providers/
 RUN /opt/keycloak/bin/kc.sh build --features=declarative-user-profile
 
 FROM quay.io/keycloak/keycloak:21.1
+
+ARG KC_CERT_LOC
+ARG KC_KEY_LOC
+
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
-COPY ./auth/server.crt ./auth/server.key /opt/keycloak/conf
-COPY ./app/server/KeyStore.jks /opt/keycloak/conf
+COPY $KC_CERT_LOC $KC_KEY_LOC $KEYSTORE_LOC /opt/keycloak/conf
 COPY ./auth/themes/base /opt/keycloak/themes/site
 
 ENTRYPOINT [ "/opt/keycloak/bin/kc.sh", "start", "--optimized" ]

@@ -154,11 +154,11 @@ EXIT_KEY_LOC="$CERTS_DIR/exit_privkey.pem"
 CA_CERT_LOC="$CERTS_DIR/ca.crt"
 CA_KEY_LOC="$CERTS_DIR/ca.key"
 
+DB_CERT_LOC="$CERTS_DIR/db_host.crt"
+DB_KEY_LOC="$CERTS_DIR/db_host.key"
+
 KC_CERT_LOC="$CERTS_DIR/keycloak.crt"
 KC_KEY_LOC="$CERTS_DIR/keycloak.key"
-
-DB_CERT_LOC="$CERTS_DIR/$DB_HOST.crt"
-DB_KEY_LOC="$CERTS_DIR/$DB_HOST.key"
 
 KEYSTORE_LOC="$CERTS_DIR/KeyStore.jks"
 

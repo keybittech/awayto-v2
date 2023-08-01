@@ -34,13 +34,14 @@ import { setupMiddleware } from './middlewares';
 // Create Express app
 const app: Express = express();
 
-const key = fs.readFileSync('server.key', 'utf-8');
-const cert = fs.readFileSync('server.crt', 'utf-8');
-const ca = fs.readFileSync('fullchain.pem', 'utf-8');
-const creds = { key, cert, ca };
+const key = fs.readFileSync('db_host.key', 'utf-8');
+const cert = fs.readFileSync('db_host.crt', 'utf-8');
+const exitFullchain = fs.readFileSync('exit_fullchain.pem', 'utf-8');
+const caCert = fs.readFileSync('ca.crt', 'utf-8');
 
-https.globalAgent.options.ca = [ca];
+https.globalAgent.options.ca = [exitFullchain, caCert];
 
+const creds = { key, cert };
 const httpsServer = https.createServer(creds, app)
 
 // const httpServer = http.createServer();

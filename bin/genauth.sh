@@ -58,8 +58,8 @@ echo "# Starting Keycloak container"
 sudo docker run -d --restart=always --name=wcauth --network="host" \
   --add-host=$CUST_APP_HOSTNAME:$(tailscale ip -4 $APP_HOST) \
   -e KC_API_CLIENT_ID=$KC_API_CLIENT_ID \
-  -e KC_HTTPS_CERTIFICATE_FILE=/opt/keycloak/conf/server.crt \
-  -e KC_HTTPS_CERTIFICATE_KEY_FILE=/opt/keycloak/conf/server.key \
+  -e KC_HTTPS_CERTIFICATE_FILE=/opt/keycloak/conf/keycloak.crt \
+  -e KC_HTTPS_CERTIFICATE_KEY_FILE=/opt/keycloak/conf/keycloak.key \
   -e KC_SPI_TRUSTSTORE_FILE_FILE=/opt/keycloak/conf/KeyStore.jks \
   -e KC_SPI_TRUSTSTORE_FILE_PASSWORD=$CA_PASS \
   -e API_HOST=$DB_HOST:9443/api \
