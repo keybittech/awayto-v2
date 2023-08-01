@@ -186,7 +186,7 @@ export async function getGroupRegistrationRedirectParts(groupCode: string): Prom
   }
 }
 
-export const keycloakDiscoveryUrl = `https://${KC_HOST}:${KC_PORT}/realms/${KC_REALM}`;
+export const keycloakDiscoveryUrl = `http://${KC_HOST}:8080/realms/${KC_REALM}`;
 
 export const keycloakClientConfiguration = {
   client_id: KC_API_CLIENT_ID,
