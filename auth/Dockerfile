@@ -20,8 +20,12 @@ COPY ./certs/keycloak.crt /opt/keycloak/conf/keycloak.crt
 COPY ./certs/keycloak.key /opt/keycloak/conf/keycloak.key
 COPY ./auth/themes/base /opt/keycloak/themes/site
 
+USER root
+
 RUN chmod 600 /opt/keycloak/conf/KeyStore.jks \
     && chmod 600 /opt/keycloak/conf/keycloak.crt \
     && chmod 600 /opt/keycloak/conf/keycloak.key
+
+USER jboss
 
 ENTRYPOINT [ "/opt/keycloak/bin/kc.sh", "start", "--optimized" ]
