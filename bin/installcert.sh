@@ -25,11 +25,5 @@ spawn /home/$TAILSCALE_OPERATOR/easy-rsa/easyrsa sign-req server $SERVER_NAME
 expect "Enter pass phrase for /home/$TAILSCALE_OPERATOR/easy-rsa/pki/private/ca.key"
 send -- "$env(CA_PASS)\r"
 
-# Listen for the confirmation prompt
-expect "Confirm request details:"
-
-# Send "yes" and a newline (\n)
-send -- "yes\r"
-
 # Expect end of the program
 expect eof
