@@ -16,6 +16,7 @@ FROM quay.io/keycloak/keycloak:21.1
 
 ARG KC_CERT_LOC
 ARG KC_KEY_LOC
+ARG KEYSTORE_LOC
 
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
 COPY $KC_CERT_LOC $KC_KEY_LOC $KEYSTORE_LOC /opt/keycloak/conf
