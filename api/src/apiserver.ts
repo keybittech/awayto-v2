@@ -37,11 +37,8 @@ const app: Express = express();
 
 const key = fs.readFileSync('db_host.key', 'utf-8');
 const cert = fs.readFileSync('db_host.crt', 'utf-8');
-const ca = fs.readFileSync('ca.crt', 'utf-8');
 
-https.globalAgent.options.ca = [ ca ];
-
-const creds = { key, cert, ca };
+const creds = { key, cert };
 const httpsServer = https.createServer(creds, app)
 
 // const httpServer = http.createServer();
