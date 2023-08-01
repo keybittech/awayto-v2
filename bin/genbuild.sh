@@ -68,11 +68,11 @@ cp $EASYRSA_LOC/ca.crt $CA_CERT_LOC
 cp $EASYRSA_LOC/private/ca.key $CA_KEY_LOC
 
 echo "# Generating db-host cert"
-SERVER_NAME=db_host TAILSCALE_OPERATOR=$TAILSCALE_OPERATOR CA_PASS=$CA_PASS /home/$TAILSCALE_OPERATOR/easy-rsa/installcert.sh
+SERVER_NAME=$DB_HOST TAILSCALE_OPERATOR=$TAILSCALE_OPERATOR CA_PASS=$CA_PASS /home/$TAILSCALE_OPERATOR/easy-rsa/installcert.sh
 echo "# copying db host certs"
-awk '/-----BEGIN CERTIFICATE-----/,/-----END CERTIFICATE-----/' $EASYRSA_LOC/issued/db_host.crt > $DB_CERT_LOC
+awk '/-----BEGIN CERTIFICATE-----/,/-----END CERTIFICATE-----/' $EASYRSA_LOC/issued/$DB_HOST.crt > $DB_CERT_LOC
 cat $DB_CERT_LOC $CA_CERT_LOC > $DB_FULLCHAIN_LOC
-cp $EASYRSA_LOC/private/db_host.key $DB_KEY_LOC
+cp $EASYRSA_LOC/private/$DB_HOST.key $DB_KEY_LOC
 
 echo "# Generate a server auth cert for keycloak"
 sed "s/domain-name/$DOMAIN_NAME/g; s/app-host/$APP_HOST/g;" $PROJECT_DIR/deploy/kcsa.cnf.template | tee $CERTS_DIR/kcsa.cnf
@@ -86,23 +86,6 @@ cat $KC_CERT_LOC $CA_CERT_LOC > $KC_FULLCHAIN_LOC
 
 keytool -import -trustcacerts -noprompt -alias letsencrypt -file $EXIT_FULLCHAIN_LOC -keystore $KEYSTORE_LOC -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS
 keytool -import -trustcacerts -noprompt -alias easyrsa -file $CA_CERT_LOC -keystore $KEYSTORE_LOC -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS
-
-# openssl req -x509 -newkey rsa:4096 -out $CERTS_DIR/keycloak_server_authority.crt -keyout $CERTS_DIR/keycloak_server_authority.key -days 365 -subj "/CN=$APP_HOST" -extensions v3_req -passout pass:$CA_PASS -config $CERTS_DIR/kcsa.cnf >/dev/null 2>&1
-
-# echo "# Generate P12 for db, exit and CA certs"
-# openssl pkcs12 -export -in $CERTS_DIR/keycloak_server_authority.crt -inkey $CERTS_DIR/keycloak_server_authority.key -out $CERTS_DIR/keycloak.p12 -name $PROJECT_PREFIX-keycloak-cert -passin pass:$CA_PASS -passout pass:$CA_PASS >/dev/null 2>&1
-# openssl pkcs12 -export -in $EXIT_FULLCHAIN_LOC -inkey $EXIT_KEY_LOC -out $CERTS_DIR/exit.p12 -name $PROJECT_PREFIX-exit-cert -passout pass:$CA_PASS  >/dev/null 2>&1
-# openssl pkcs12 -export -in $CA_CERT_LOC -inkey $CA_KEY_LOC -out $CERTS_DIR/ca.p12 -name $PROJECT_PREFIX-ca-cert -passin pass:$CA_PASS -passout pass:$CA_PASS  >/dev/null 2>&1
-# openssl pkcs12 -export -in "$EASYRSA_LOC/issued/$DB_HOST.crt" -inkey "$EASYRSA_LOC/private/$DB_HOST.key" -out "$CERTS_DIR/$DB_HOST.p12" -name $PROJECT_PREFIX-db-cert -passout pass:$CA_PASS >/dev/null 2>&1
-
-# echo "# Add certs p12 to JKS"
-# keytool -importkeystore -srcstoretype PKCS12 -srckeystore $CERTS_DIR/keycloak.p12 -destkeystore $KEYSTORE_LOC -deststoretype JKS -srcalias $PROJECT_PREFIX-keycloak-cert -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS  >/dev/null 2>&1
-# keytool -importkeystore -srcstoretype PKCS12 -srckeystore $CERTS_DIR/exit.p12 -destkeystore $KEYSTORE_LOC -deststoretype JKS -srcalias $PROJECT_PREFIX-exit-cert -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS  >/dev/null 2>&1
-# keytool -importkeystore -srcstoretype PKCS12 -srckeystore $CERTS_DIR/ca.p12 -destkeystore $KEYSTORE_LOC -deststoretype JKS -srcalias $PROJECT_PREFIX-ca-cert -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS  >/dev/null 2>&1
-# keytool -importkeystore -srcstoretype PKCS12 -srckeystore $CERTS_DIR/$DB_HOST.p12 -destkeystore $KEYSTORE_LOC -deststoretype JKS -srcalias $PROJECT_PREFIX-db-cert -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS >/dev/null 2>&1
-
-# rm $CERTS_DIR/exit.p12
-# rm $CERTS_DIR/ca.p12
 
 echo $CA_PASS > $PASS_LOC
 
