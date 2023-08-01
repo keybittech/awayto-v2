@@ -23,7 +23,7 @@ expect eof
 spawn /home/$TAILSCALE_OPERATOR/easy-rsa/easyrsa sign-req server $SERVER_NAME
 
 expect "Enter pass phrase for /home/$TAILSCALE_OPERATOR/easy-rsa/pki/private/ca.key:"
-send -- $env(CA_PASS)"\r"
+send -- $env(CA_PASS)
 
 # Expect end of the program
 expect eof
