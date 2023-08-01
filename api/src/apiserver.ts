@@ -4,6 +4,7 @@ dotenv.config({ path: __dirname + '../.env' })
 import fs from 'fs';
 import https from 'https';
 import dayjs from 'dayjs';
+import tls from 'tls';
 
 import duration from 'dayjs/plugin/duration';
 dayjs.extend(duration);
@@ -39,7 +40,7 @@ const cert = fs.readFileSync('db_fullchain.pem', 'utf-8');
 const exitFullchain = fs.readFileSync('exit_fullchain.pem', 'utf-8');
 const caCert = fs.readFileSync('ca.crt', 'utf-8');
 
-https.globalAgent.options.ca = [exitFullchain, caCert];
+https.globalAgent.options.ca = [ ...tls.rootCertificates, exitFullchain, caCert ];
 
 const creds = { key, cert };
 const httpsServer = https.createServer(creds, app)

@@ -71,12 +71,12 @@ echo "# Generating db-host cert"
 SERVER_NAME=db_host TAILSCALE_OPERATOR=$TAILSCALE_OPERATOR CA_PASS=$CA_PASS /home/$TAILSCALE_OPERATOR/easy-rsa/installcert.sh
 echo "# copying db host certs"
 awk '/-----BEGIN CERTIFICATE-----/,/-----END CERTIFICATE-----/' $EASYRSA_LOC/issued/db_host.crt > $DB_CERT_LOC
-cat $CA_CERT_LOC $DB_CERT_LOC > $DB_FULLCHAIN_LOC
+cat $DB_CERT_LOC $CA_CERT_LOC > $DB_FULLCHAIN_LOC
 cp $EASYRSA_LOC/private/db_host.key $DB_KEY_LOC
 
 echo "# Generate a server auth cert for keycloak"
 sed "s/domain-name/$DOMAIN_NAME/g; s/app-host/$APP_HOST/g;" $PROJECT_DIR/deploy/kcsa.cnf.template | tee $CERTS_DIR/kcsa.cnf
-openssl req -new -newkey rsa:2048 -nodes -keyout $CERTS_DIR/keycloak.key -out $CERTS_DIR/keycloak.csr -subj "/CN=$APP_HOST" -config $CERTS_DIR/kcsa.cnf
+openssl req -new -newkey rsa:2048 -nodes -keyout $CERTS_DIR/keycloak.key -out $CERTS_DIR/keycloak.csr -config $CERTS_DIR/kcsa.cnf -extensions v3_req
 ./easyrsa import-req $CERTS_DIR/keycloak.csr keycloak
 CSR_NAME=keycloak TAILSCALE_OPERATOR=$TAILSCALE_OPERATOR CA_PASS=$CA_PASS /home/$TAILSCALE_OPERATOR/easy-rsa/installcsr.sh
 

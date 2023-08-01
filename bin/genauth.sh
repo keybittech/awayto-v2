@@ -58,19 +58,15 @@ echo "# Starting Keycloak container"
 sudo docker run -d --restart=always --name=wcauth --network="host" \
   --add-host=$CUST_APP_HOSTNAME:$(tailscale ip -4 $APP_HOST) \
   -e KC_API_CLIENT_ID=$KC_API_CLIENT_ID \
+  -e KC_PROXY=edge \
   -e KC_HTTPS_CERTIFICATE_FILE=/opt/keycloak/conf/keycloak_fullchain.pem \
   -e KC_HTTPS_CERTIFICATE_KEY_FILE=/opt/keycloak/conf/keycloak.key \
-  -e KC_HTTPS_KEY_STORE_FILE=/opt/keycloak/conf/KeyStore.jks \
-  -e KC_HTTPS_KEY_STORE_PASSWORD=$CA_PASS \
   -e KC_SPI_TRUSTSTORE_FILE_FILE=/opt/keycloak/conf/KeyStore.jks \
   -e KC_SPI_TRUSTSTORE_FILE_PASSWORD=$CA_PASS \
   -e KC_SPI_TRUSTSTORE_FILE_HOSTNAME_VERIFICATION_POLICY=ANY \
   -e API_HOST=$DB_HOST:9443/api \
-  -e KC_HOSTNAME_STRICT=false \
   -e KC_HOSTNAME_ADMIN_URL=https://$CUST_APP_HOSTNAME/auth \
   -e KC_HOSTNAME_URL=https://$CUST_APP_HOSTNAME/auth \
-  -e KC_PROXY=edge \
-  -e KC_HOSTNAME_STRICT_BACKCHANNEL=true \
   -e KEYCLOAK_ADMIN=$KC_ADMIN \
   -e KEYCLOAK_ADMIN_PASSWORD=$KC_PASS \
   -e KC_DB_URL=jdbc:postgresql://$DB_HOST:5432/$PG_DB \
@@ -85,4 +81,3 @@ chmod +x /home/$TAILSCALE_OPERATOR/installauth.sh
 sudo KC_ADMIN=$KC_ADMIN KC_PASS=$KC_PASS KC_CLIENT=$KC_CLIENT KC_REALM=$KC_REALM PROJECT_PREFIX=$PROJECT_PREFIX CUST_APP_HOSTNAME=$CUST_APP_HOSTNAME KC_API_CLIENT_ID=$KC_API_CLIENT_ID KC_API_CLIENT_SECRET=$KC_API_CLIENT_SECRET /home/$TAILSCALE_OPERATOR/installauth.sh
 
 EOF
-#  -e KC_HOSTNAME_STRICT_BACKCHANNEL=true \
