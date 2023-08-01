@@ -12,7 +12,6 @@ EXIT_FULLCHAIN_LOC="$SERVER_DIR_LOC/fullchain.pem"
 EXIT_KEY_LOC="$SERVER_DIR_LOC/server.key"
 API_CERT_LOC="$PROJECT_DIR/api/server.crt"
 API_KEY_LOC="$PROJECT_DIR/api/server.key"
-API_CA_LOC="$PROJECT_DIR/api/ca.crt"
 SOCK_CERT_LOC="$PROJECT_DIR/sock/server.crt"
 SOCK_KEY_LOC="$PROJECT_DIR/sock/server.key"
 TURN_CERT_LOC="$PROJECT_DIR/turn/server.crt"
@@ -81,17 +80,42 @@ cd /home/$TAILSCALE_OPERATOR/easy-rsa
 CA_PASSWORD=$CA_PASS EASYRSA_BATCH=1 /home/$TAILSCALE_OPERATOR/easy-rsa/installeasyrsa.sh >/dev/null 2>&1
 
 echo "# Generate db server cert"
-mv $PROJECT_DIR/bin/installcert.sh /home/$TAILSCALE_OPERATOR/easy-rsa/installcert.sh
-chmod +x /home/$TAILSCALE_OPERATOR/easy-rsa/installcert.sh
-export EASYRSA_REQ_CN="$DB_HOST"
-TAILSCALE_OPERATOR=$TAILSCALE_OPERATOR CA_PASS=$CA_PASS SERVER_NAME=$DB_HOST EASYRSA_BATCH=1 /home/$TAILSCALE_OPERATOR/easy-rsa/installcert.sh
+# mv $PROJECT_DIR/bin/installcert.sh /home/$TAILSCALE_OPERATOR/easy-rsa/installcert.sh
+# chmod +x /home/$TAILSCALE_OPERATOR/easy-rsa/installcert.sh
+# export EASYRSA_REQ_CN="$DB_HOST"
+# TAILSCALE_OPERATOR=$TAILSCALE_OPERATOR CA_PASS=$CA_PASS SERVER_NAME=$DB_HOST EASYRSA_BATCH=1 /home/$TAILSCALE_OPERATOR/easy-rsa/installcert.sh
+
+echo "# Generate a server auth cert for keycloak"
+openssl req -x509 -newkey rsa:4096 -keyout $SERVER_DIR_LOC/keycloak_server_authority.key -out $SERVER_DIR_LOC/keycloak_server_authority.crt -days 365 -subj "/CN=$DB_HOST" -extensions v3_req -config <(
+cat <<-EOF
+[req]
+distinguished_name = req_distinguished_name
+x509_extensions = v3_req
+prompt = no
+[req_distinguished_name]
+CN = $DB_HOST
+[v3_req]
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer
+basicConstraints = CA:FALSE
+keyUsage = digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+subjectAltName = @alt_names
+[alt_names]
+DNS.1 = $DB_HOST
+DNS.2 = $DOMAIN_NAME
+DNS.3 = www.$DOMAIN_NAME
+EOF
+)
 
 echo "# Generate P12 for db, exit and CA certs"
+openssl pkcs12 -export -in $SERVER_DIR_LOC/keycloak_server_authority.crt -inkey $SERVER_DIR_LOC/keycloak_server_authority.key -out $SERVER_DIR_LOC/keycloak.p12 -name $PROJECT_PREFIX-keycloak-cert -passout pass:$CA_PASS >/dev/null 2>&1
 openssl pkcs12 -export -in $EXIT_FULLCHAIN_LOC -inkey $EXIT_KEY_LOC -out $SERVER_DIR_LOC/exit.p12 -name $PROJECT_PREFIX-exit-cert -passout pass:$CA_PASS  >/dev/null 2>&1
 openssl pkcs12 -export -in $CA_CERT_LOC -inkey $CA_KEY_LOC -out $SERVER_DIR_LOC/ca.p12 -name $PROJECT_PREFIX-ca-cert -passin pass:$CA_PASS -passout pass:$CA_PASS  >/dev/null 2>&1
 # openssl pkcs12 -export -in "$EASYRSA_LOC/issued/$DB_HOST.crt" -inkey "$EASYRSA_LOC/private/$DB_HOST.key" -out "$SERVER_DIR_LOC/$DB_HOST.p12" -name $PROJECT_PREFIX-db-cert -passout pass:$CA_PASS >/dev/null 2>&1
 
 echo "# Add certs p12 to JKS"
+keytool -importkeystore -srcstoretype PKCS12 -srckeystore $SERVER_DIR_LOC/keycloak.p12 -destkeystore $SERVER_DIR_LOC/KeyStore.jks -deststoretype JKS -srcalias $PROJECT_PREFIX-keycloak-cert -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS  >/dev/null 2>&1
 keytool -importkeystore -srcstoretype PKCS12 -srckeystore $SERVER_DIR_LOC/exit.p12 -destkeystore $SERVER_DIR_LOC/KeyStore.jks -deststoretype JKS -srcalias $PROJECT_PREFIX-exit-cert -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS  >/dev/null 2>&1
 keytool -importkeystore -srcstoretype PKCS12 -srckeystore $SERVER_DIR_LOC/ca.p12 -destkeystore $SERVER_DIR_LOC/KeyStore.jks -deststoretype JKS -srcalias $PROJECT_PREFIX-ca-cert -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS  >/dev/null 2>&1
 # keytool -importkeystore -srcstoretype PKCS12 -srckeystore $SERVER_DIR_LOC/$DB_HOST.p12 -destkeystore $SERVER_DIR_LOC/KeyStore.jks -deststoretype JKS -srcalias $PROJECT_PREFIX-db-cert -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS >/dev/null 2>&1
@@ -102,7 +126,6 @@ rm $SERVER_DIR_LOC/ca.p12
 echo $CA_PASS > $PASS_LOC
 
 echo "# Configuring certs"
-cp $EXIT_FULLCHAIN_LOC $API_CA_LOC
 cp $EASYRSA_LOC/private/$DB_HOST.key $API_KEY_LOC
 cp $EASYRSA_LOC/issued/$DB_HOST.crt $API_CERT_LOC
 
