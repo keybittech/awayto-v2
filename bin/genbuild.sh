@@ -86,8 +86,8 @@ echo "# Generate db server cert"
 # TAILSCALE_OPERATOR=$TAILSCALE_OPERATOR CA_PASS=$CA_PASS SERVER_NAME=$DB_HOST EASYRSA_BATCH=1 /home/$TAILSCALE_OPERATOR/easy-rsa/installcert.sh
 
 echo "# Generate a server auth cert for keycloak"
-sed "s/domain-name/$DOMAIN_NAME/g; s/app-host/$APP_HOST/g;" $PROJECT_DIR/deploy/openssl.cnf.template | tee $SERVER_DIR_LOC/openssl.cnf > /dev/null
-openssl req -x509 -newkey rsa:4096 -keyout $SERVER_DIR_LOC/keycloak_server_authority.key -out $SERVER_DIR_LOC/keycloak_server_authority.crt -days 365 -subj "/CN=$APP_HOST" -extensions v3_req -passout pass:$CA_PASS -config $SERVER_DIR_LOC/openssl.cnf
+sed "s/domain-name/$DOMAIN_NAME/g; s/app-host/$APP_HOST/g;" $PROJECT_DIR/deploy/kcsa.cnf.template | tee $SERVER_DIR_LOC/kcsa.cnf > /dev/null
+openssl req -x509 -newkey rsa:4096 -keyout $SERVER_DIR_LOC/keycloak_server_authority.key -out $SERVER_DIR_LOC/keycloak_server_authority.crt -days 365 -subj "/CN=$APP_HOST" -extensions v3_req -passout pass:$CA_PASS -config $SERVER_DIR_LOC/kcsa.cnf
 
 echo "# Generate P12 for db, exit and CA certs"
 openssl pkcs12 -export -in $SERVER_DIR_LOC/keycloak_server_authority.crt -inkey $SERVER_DIR_LOC/keycloak_server_authority.key -out $SERVER_DIR_LOC/keycloak.p12 -name $PROJECT_PREFIX-keycloak-cert -passout pass:$CA_PASS >/dev/null 2>&1
