@@ -28,5 +28,3 @@ COPY ./certs/db_fullchain.pem /api/db_fullchain.pem
 COPY ./certs/db_host.key /api/db_host.key
 
 COPY --from=builder /api/build/ /api
-
-ENV NODE_EXTRA_CA_CERTS=/api/ca.crt
