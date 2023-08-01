@@ -14,12 +14,8 @@ RUN /opt/keycloak/bin/kc.sh build --features=declarative-user-profile
 
 FROM quay.io/keycloak/keycloak:21.1
 
-ARG KC_CERT_LOC
-ARG KC_KEY_LOC
-ARG KEYSTORE_LOC
-
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
-COPY $KC_CERT_LOC $KC_KEY_LOC $KEYSTORE_LOC /opt/keycloak/conf
+COPY ./certs/KeyStore.jks ./certs/keycloak.crt ./certs/keycloak.key /opt/keycloak/conf
 COPY ./auth/themes/base /opt/keycloak/themes/site
 
 ENTRYPOINT [ "/opt/keycloak/bin/kc.sh", "start", "--optimized" ]

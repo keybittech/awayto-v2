@@ -20,6 +20,8 @@ mvn install
 
 cd /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX
 
+ls certs
+
 echo "# Building auth image"
 sudo docker compose build --build-arg KC_CERT_LOC=$KC_CERT_LOC --build-arg KC_KEY_LOC=$KC_KEY_LOC --build-arg KEYSTORE_LOC=$KEYSTORE_LOC auth
 
