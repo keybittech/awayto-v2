@@ -2,7 +2,6 @@ import dotenv from 'dotenv';
 dotenv.config({ path: __dirname + '../.env' })
 
 import fs from 'fs';
-import http from 'http';
 import https from 'https';
 import dayjs from 'dayjs';
 
@@ -35,16 +34,18 @@ import { setupMiddleware } from './middlewares';
 // Create Express app
 const app: Express = express();
 
-// const key = fs.readFileSync('server.key', 'utf-8');
-// const cert = fs.readFileSync('server.crt', 'utf-8');
-// const ca = fs.readFileSync('ca.crt', 'utf-8');
-// const creds = { key, cert, ca };
+const key = fs.readFileSync('server.key', 'utf-8');
+const cert = fs.readFileSync('server.crt', 'utf-8');
+const ca = fs.readFileSync('ca.crt', 'utf-8');
+const creds = { key, cert, ca };
 
-// const httpsServer = https.createServer(creds, app)
+https.globalAgent.options.ca = [cert, ca];
 
-const httpServer = http.createServer();
+const httpsServer = https.createServer(creds, app)
 
-httpServer.listen(9443, () => {
+// const httpServer = http.createServer();
+
+httpsServer.listen(9443, () => {
   console.log('Server listening on port 9443');
   setupMiddleware(app).then(() => {
     console.log('Middleware setup');

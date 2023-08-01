@@ -89,12 +89,12 @@ TAILSCALE_OPERATOR=$TAILSCALE_OPERATOR CA_PASS=$CA_PASS SERVER_NAME=$DB_HOST EAS
 echo "# Generate P12 for db, exit and CA certs"
 openssl pkcs12 -export -in $EXIT_FULLCHAIN_LOC -inkey $EXIT_KEY_LOC -out $SERVER_DIR_LOC/exit.p12 -name $PROJECT_PREFIX-exit-cert -passout pass:$CA_PASS  >/dev/null 2>&1
 openssl pkcs12 -export -in $CA_CERT_LOC -inkey $CA_KEY_LOC -out $SERVER_DIR_LOC/ca.p12 -name $PROJECT_PREFIX-ca-cert -passin pass:$CA_PASS -passout pass:$CA_PASS  >/dev/null 2>&1
-openssl pkcs12 -export -in "$EASYRSA_LOC/issued/$DB_HOST.crt" -inkey "$EASYRSA_LOC/private/$DB_HOST.key" -out "$SERVER_DIR_LOC/$DB_HOST.p12" -name $PROJECT_PREFIX-db-cert -passout pass:$CA_PASS >/dev/null 2>&1
+# openssl pkcs12 -export -in "$EASYRSA_LOC/issued/$DB_HOST.crt" -inkey "$EASYRSA_LOC/private/$DB_HOST.key" -out "$SERVER_DIR_LOC/$DB_HOST.p12" -name $PROJECT_PREFIX-db-cert -passout pass:$CA_PASS >/dev/null 2>&1
 
 echo "# Add certs p12 to JKS"
 keytool -importkeystore -srcstoretype PKCS12 -srckeystore $SERVER_DIR_LOC/exit.p12 -destkeystore $SERVER_DIR_LOC/KeyStore.jks -deststoretype JKS -srcalias $PROJECT_PREFIX-exit-cert -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS  >/dev/null 2>&1
 keytool -importkeystore -srcstoretype PKCS12 -srckeystore $SERVER_DIR_LOC/ca.p12 -destkeystore $SERVER_DIR_LOC/KeyStore.jks -deststoretype JKS -srcalias $PROJECT_PREFIX-ca-cert -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS  >/dev/null 2>&1
-keytool -importkeystore -srcstoretype PKCS12 -srckeystore $SERVER_DIR_LOC/$DB_HOST.p12 -destkeystore $SERVER_DIR_LOC/KeyStore.jks -deststoretype JKS -srcalias $PROJECT_PREFIX-db-cert -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS >/dev/null 2>&1
+# keytool -importkeystore -srcstoretype PKCS12 -srckeystore $SERVER_DIR_LOC/$DB_HOST.p12 -destkeystore $SERVER_DIR_LOC/KeyStore.jks -deststoretype JKS -srcalias $PROJECT_PREFIX-db-cert -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS >/dev/null 2>&1
 
 rm $SERVER_DIR_LOC/exit.p12
 rm $SERVER_DIR_LOC/ca.p12
@@ -102,7 +102,7 @@ rm $SERVER_DIR_LOC/ca.p12
 echo $CA_PASS > $PASS_LOC
 
 echo "# Configuring certs"
-cp $CA_CERT_LOC $API_CA_LOC
+cp $EXIT_FULLCHAIN_LOC $API_CA_LOC
 cp $EASYRSA_LOC/private/$DB_HOST.key $API_KEY_LOC
 cp $EASYRSA_LOC/issued/$DB_HOST.crt $API_CERT_LOC
 
