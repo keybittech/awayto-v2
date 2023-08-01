@@ -87,10 +87,10 @@ echo "# Generate db server cert"
 
 echo "# Generate a server auth cert for keycloak"
 sed "s/domain-name/$DOMAIN_NAME/g; s/app-host/$APP_HOST/g;" $PROJECT_DIR/deploy/kcsa.cnf.template | tee $SERVER_DIR_LOC/kcsa.cnf > /dev/null
-openssl req -x509 -newkey rsa:4096 -keyout $SERVER_DIR_LOC/keycloak_server_authority.key -out $SERVER_DIR_LOC/keycloak_server_authority.crt -days 365 -subj "/CN=$APP_HOST" -extensions v3_req -passout pass:$CA_PASS -config $SERVER_DIR_LOC/kcsa.cnf
+openssl req -x509 -newkey rsa:4096 -out $SERVER_DIR_LOC/keycloak_server_authority.crt -keyout $SERVER_DIR_LOC/keycloak_server_authority.key -days 365 -subj "/CN=$APP_HOST" -extensions v3_req -passout pass:$CA_PASS -config $SERVER_DIR_LOC/kcsa.cnf >/dev/null 2>&1
 
 echo "# Generate P12 for db, exit and CA certs"
-openssl pkcs12 -export -in $SERVER_DIR_LOC/keycloak_server_authority.crt -inkey $SERVER_DIR_LOC/keycloak_server_authority.key -out $SERVER_DIR_LOC/keycloak.p12 -name $PROJECT_PREFIX-keycloak-cert -passout pass:$CA_PASS >/dev/null 2>&1
+openssl pkcs12 -export -in $SERVER_DIR_LOC/keycloak_server_authority.crt -inkey $SERVER_DIR_LOC/keycloak_server_authority.key -out $SERVER_DIR_LOC/keycloak.p12 -name $PROJECT_PREFIX-keycloak-cert -passin pass:$CA_PASS -passout pass:$CA_PASS >/dev/null 2>&1
 openssl pkcs12 -export -in $EXIT_FULLCHAIN_LOC -inkey $EXIT_KEY_LOC -out $SERVER_DIR_LOC/exit.p12 -name $PROJECT_PREFIX-exit-cert -passout pass:$CA_PASS  >/dev/null 2>&1
 openssl pkcs12 -export -in $CA_CERT_LOC -inkey $CA_KEY_LOC -out $SERVER_DIR_LOC/ca.p12 -name $PROJECT_PREFIX-ca-cert -passin pass:$CA_PASS -passout pass:$CA_PASS  >/dev/null 2>&1
 # openssl pkcs12 -export -in "$EASYRSA_LOC/issued/$DB_HOST.crt" -inkey "$EASYRSA_LOC/private/$DB_HOST.key" -out "$SERVER_DIR_LOC/$DB_HOST.p12" -name $PROJECT_PREFIX-db-cert -passout pass:$CA_PASS >/dev/null 2>&1
@@ -106,9 +106,9 @@ rm $SERVER_DIR_LOC/ca.p12
 
 echo $CA_PASS > $PASS_LOC
 
-echo "# Configuring certs"
-cp $EASYRSA_LOC/private/$DB_HOST.key $API_KEY_LOC
-cp $EASYRSA_LOC/issued/$DB_HOST.crt $API_CERT_LOC
+# echo "# Configuring certs"
+cp $EXIT_KEY_LOC $API_KEY_LOC
+cp $EXIT_CERT_LOC $API_CERT_LOC
 
 cp $EXIT_KEY_LOC $SOCK_KEY_LOC
 cp $EXIT_CERT_LOC $SOCK_CERT_LOC
