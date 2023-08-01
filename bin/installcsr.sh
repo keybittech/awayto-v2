@@ -1,7 +1,10 @@
 #!/usr/bin/expect
 
 # Now spawn the sign-req command
-spawn ./easyrsa build-server-full $env(SERVER_NAME) nopass
+spawn ./easyrsa sign-req server $env(CSR_NAME)
+
+expect "Confirm request details:"
+send -- "yes\r"
 
 expect "Enter pass phrase for /home/$env(TAILSCALE_OPERATOR)/easy-rsa/pki/private/ca.key:"
 send -- "$env(CA_PASS)\r"

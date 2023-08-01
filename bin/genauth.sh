@@ -60,6 +60,8 @@ sudo docker run -d --restart=always --name=wcauth --network="host" \
   -e KC_API_CLIENT_ID=$KC_API_CLIENT_ID \
   -e KC_HTTPS_CERTIFICATE_FILE=/opt/keycloak/conf/server.crt \
   -e KC_HTTPS_CERTIFICATE_KEY_FILE=/opt/keycloak/conf/server.key \
+  -e KC_SPI_TRUSTSTORE_FILE_FILE=/opt/keycloak/conf/KeyStore.jks \
+  -e KC_SPI_TRUSTSTORE_FILE_PASSWORD=$CA_PASS \
   -e API_HOST=$DB_HOST:9443/api \
   -e KC_HOSTNAME_STRICT=false \
   -e KC_HOSTNAME_ADMIN_URL=https://$CUST_APP_HOSTNAME/auth \
@@ -83,6 +85,4 @@ EOF
 #  -e KC_HOSTNAME_STRICT_BACKCHANNEL=true \
   # -e KC_HTTPS_KEY_STORE_FILE=/opt/keycloak/conf/KeyStore.jks \
   # -e KC_HTTPS_KEY_STORE_PASSWORD=$CA_PASS \
-  # -e KC_SPI_TRUSTSTORE_FILE_FILE=/opt/keycloak/conf/KeyStore.jks \
-  # -e KC_SPI_TRUSTSTORE_FILE_PASSWORD=$CA_PASS \
   # -e KC_SPI_TRUSTSTORE_FILE_HOSTNAME_VERIFICATION_POLICY=WILDCARD \

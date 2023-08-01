@@ -1,23 +1,6 @@
 #!/bin/sh
 . ./.env
 
-EASYRSA_LOC="/home/$TAILSCALE_OPERATOR/easy-rsa/pki"
-CA_CERT_LOC="$EASYRSA_LOC/ca.crt"
-CA_KEY_LOC="$EASYRSA_LOC/private/ca.key"
-PROJECT_DIR="/home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX"
-SERVER_DIR_LOC="$PROJECT_DIR/app/server"
-PASS_LOC="$SERVER_DIR_LOC/server.pass"
-EXIT_CERT_LOC="$SERVER_DIR_LOC/server.crt"
-EXIT_FULLCHAIN_LOC="$SERVER_DIR_LOC/fullchain.pem"
-EXIT_KEY_LOC="$SERVER_DIR_LOC/server.key"
-API_CERT_LOC="$PROJECT_DIR/api/server.crt"
-API_KEY_LOC="$PROJECT_DIR/api/server.key"
-API_FULLCHAIN_LOC="$PROJECT_DIR/api/fullchain.pem"
-SOCK_CERT_LOC="$PROJECT_DIR/sock/server.crt"
-SOCK_KEY_LOC="$PROJECT_DIR/sock/server.key"
-TURN_CERT_LOC="$PROJECT_DIR/turn/server.crt"
-TURN_KEY_LOC="$PROJECT_DIR/turn/server.key"
-
 echo "Configuring build server..."
 until ping -c1 $BUILD_HOST; do sleep 5; done
 until ssh-keyscan -H $BUILD_HOST >> ~/.ssh/known_hosts; do sleep 5; done
@@ -57,10 +40,11 @@ echo "# Build init complete"
 
 mv /home/$TAILSCALE_OPERATOR/.env $PROJECT_DIR/.env
 
-echo "# Getting exit server cert on build"
-sudo tailscale file get $SERVER_DIR_LOC
-mv $SERVER_DIR_LOC/cert.pem $EXIT_CERT_LOC
-mv $SERVER_DIR_LOC/privkey.pem $EXIT_KEY_LOC
+mkdir -p $CERTS_DIR
+sudo tailscale file get $CERTS_DIR
+mv $CERTS_DIR/fullchain.pem $EXIT_FULLCHAIN_LOC
+mv $CERTS_DIR/cert.pem $EXIT_CERT_LOC
+mv $CERTS_DIR/privkey.pem $EXIT_KEY_LOC
 
 echo "# Setting up EasyRSA"
 mkdir /home/$TAILSCALE_OPERATOR/easy-rsa
@@ -74,49 +58,49 @@ export EASYRSA_REQ_CN="InternalCA"
 export EASYRSA_ALGO="ec"
 export EASYRSA_DIGEST="sha512"
 
-mv $PROJECT_DIR/bin/installeasyrsa.sh /home/$TAILSCALE_OPERATOR/easy-rsa/installeasyrsa.sh
-chmod +x /home/$TAILSCALE_OPERATOR/easy-rsa/installeasyrsa.sh
+mv $PROJECT_DIR/bin/installeasyrsa.sh $PROJECT_DIR/bin/installcsr.sh $PROJECT_DIR/bin/installcert.sh /home/$TAILSCALE_OPERATOR/easy-rsa/
+chmod +x /home/$TAILSCALE_OPERATOR/easy-rsa/installeasyrsa.sh /home/$TAILSCALE_OPERATOR/easy-rsa/installcsr.sh /home/$TAILSCALE_OPERATOR/easy-rsa/installcert.sh
+
 cd /home/$TAILSCALE_OPERATOR/easy-rsa
 ./easyrsa init-pki >/dev/null 2>&1
 CA_PASSWORD=$CA_PASS EASYRSA_BATCH=1 /home/$TAILSCALE_OPERATOR/easy-rsa/installeasyrsa.sh >/dev/null 2>&1
+cp $EASYRSA_LOC/ca.crt $CA_CERT_LOC
+cp $EASYRSA_LOC/private/ca.key $CA_KEY_LOC
 
-echo "# Generate db server cert"
-# mv $PROJECT_DIR/bin/installcert.sh /home/$TAILSCALE_OPERATOR/easy-rsa/installcert.sh
-# chmod +x /home/$TAILSCALE_OPERATOR/easy-rsa/installcert.sh
-# export EASYRSA_REQ_CN="$DB_HOST"
-# TAILSCALE_OPERATOR=$TAILSCALE_OPERATOR CA_PASS=$CA_PASS SERVER_NAME=$DB_HOST EASYRSA_BATCH=1 /home/$TAILSCALE_OPERATOR/easy-rsa/installcert.sh
+echo "# Generating db-host cert"
+SERVER_NAME=$DB_HOST TAILSCALE_OPERATOR=$TAILSCALE_OPERATOR CA_PASS=$CA_PASS /home/$TAILSCALE_OPERATOR/easy-rsa/installcert.sh
+echo "# copying db host certs"
+cp $EASYRSA_LOC/issued/$DB_HOST.crt $DB_CERT_LOC
+cp $EASYRSA_LOC/private/$DB_HOST.key $DB_KEY_LOC
 
 echo "# Generate a server auth cert for keycloak"
-sed "s/domain-name/$DOMAIN_NAME/g; s/app-host/$APP_HOST/g;" $PROJECT_DIR/deploy/kcsa.cnf.template | tee $SERVER_DIR_LOC/kcsa.cnf > /dev/null
-openssl req -x509 -newkey rsa:4096 -out $SERVER_DIR_LOC/keycloak_server_authority.crt -keyout $SERVER_DIR_LOC/keycloak_server_authority.key -days 365 -subj "/CN=$APP_HOST" -extensions v3_req -passout pass:$CA_PASS -config $SERVER_DIR_LOC/kcsa.cnf >/dev/null 2>&1
+sed "s/domain-name/$DOMAIN_NAME/g; s/app-host/$APP_HOST/g;" $PROJECT_DIR/deploy/kcsa.cnf.template | tee $CERTS_DIR/kcsa.cnf
+openssl req -new -newkey rsa:2048 -nodes -keyout $CERTS_DIR/keycloak.key -out $CERTS_DIR/keycloak.csr -subj "/CN=$APP_HOST" -config $CERTS_DIR/kcsa.cnf
+./easyrsa import-req $CERTS_DIR/keycloak.csr keycloak
+CSR_NAME=keycloak TAILSCALE_OPERATOR=$TAILSCALE_OPERATOR CA_PASS=$CA_PASS /home/$TAILSCALE_OPERATOR/easy-rsa/installcsr.sh
+cp $EASYRSA_LOC/issued/keycloak.crt $KC_CERT_LOC
 
-echo "# Generate P12 for db, exit and CA certs"
-openssl pkcs12 -export -in $SERVER_DIR_LOC/keycloak_server_authority.crt -inkey $SERVER_DIR_LOC/keycloak_server_authority.key -out $SERVER_DIR_LOC/keycloak.p12 -name $PROJECT_PREFIX-keycloak-cert -passin pass:$CA_PASS -passout pass:$CA_PASS >/dev/null 2>&1
-openssl pkcs12 -export -in $EXIT_FULLCHAIN_LOC -inkey $EXIT_KEY_LOC -out $SERVER_DIR_LOC/exit.p12 -name $PROJECT_PREFIX-exit-cert -passout pass:$CA_PASS  >/dev/null 2>&1
-openssl pkcs12 -export -in $CA_CERT_LOC -inkey $CA_KEY_LOC -out $SERVER_DIR_LOC/ca.p12 -name $PROJECT_PREFIX-ca-cert -passin pass:$CA_PASS -passout pass:$CA_PASS  >/dev/null 2>&1
-# openssl pkcs12 -export -in "$EASYRSA_LOC/issued/$DB_HOST.crt" -inkey "$EASYRSA_LOC/private/$DB_HOST.key" -out "$SERVER_DIR_LOC/$DB_HOST.p12" -name $PROJECT_PREFIX-db-cert -passout pass:$CA_PASS >/dev/null 2>&1
+keytool -import -trustcacerts -noprompt -alias letsencrypt -file $EXIT_FULLCHAIN_LOC -keystore $KEYSTORE_LOC -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS
+keytool -import -trustcacerts -noprompt -alias easyrsa -file $CA_CERT_LOC -keystore $KEYSTORE_LOC -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS
 
-echo "# Add certs p12 to JKS"
-keytool -importkeystore -srcstoretype PKCS12 -srckeystore $SERVER_DIR_LOC/keycloak.p12 -destkeystore $SERVER_DIR_LOC/KeyStore.jks -deststoretype JKS -srcalias $PROJECT_PREFIX-keycloak-cert -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS  >/dev/null 2>&1
-keytool -importkeystore -srcstoretype PKCS12 -srckeystore $SERVER_DIR_LOC/exit.p12 -destkeystore $SERVER_DIR_LOC/KeyStore.jks -deststoretype JKS -srcalias $PROJECT_PREFIX-exit-cert -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS  >/dev/null 2>&1
-keytool -importkeystore -srcstoretype PKCS12 -srckeystore $SERVER_DIR_LOC/ca.p12 -destkeystore $SERVER_DIR_LOC/KeyStore.jks -deststoretype JKS -srcalias $PROJECT_PREFIX-ca-cert -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS  >/dev/null 2>&1
-# keytool -importkeystore -srcstoretype PKCS12 -srckeystore $SERVER_DIR_LOC/$DB_HOST.p12 -destkeystore $SERVER_DIR_LOC/KeyStore.jks -deststoretype JKS -srcalias $PROJECT_PREFIX-db-cert -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS >/dev/null 2>&1
+# openssl req -x509 -newkey rsa:4096 -out $CERTS_DIR/keycloak_server_authority.crt -keyout $CERTS_DIR/keycloak_server_authority.key -days 365 -subj "/CN=$APP_HOST" -extensions v3_req -passout pass:$CA_PASS -config $CERTS_DIR/kcsa.cnf >/dev/null 2>&1
 
-rm $SERVER_DIR_LOC/exit.p12
-rm $SERVER_DIR_LOC/ca.p12
+# echo "# Generate P12 for db, exit and CA certs"
+# openssl pkcs12 -export -in $CERTS_DIR/keycloak_server_authority.crt -inkey $CERTS_DIR/keycloak_server_authority.key -out $CERTS_DIR/keycloak.p12 -name $PROJECT_PREFIX-keycloak-cert -passin pass:$CA_PASS -passout pass:$CA_PASS >/dev/null 2>&1
+# openssl pkcs12 -export -in $EXIT_FULLCHAIN_LOC -inkey $EXIT_KEY_LOC -out $CERTS_DIR/exit.p12 -name $PROJECT_PREFIX-exit-cert -passout pass:$CA_PASS  >/dev/null 2>&1
+# openssl pkcs12 -export -in $CA_CERT_LOC -inkey $CA_KEY_LOC -out $CERTS_DIR/ca.p12 -name $PROJECT_PREFIX-ca-cert -passin pass:$CA_PASS -passout pass:$CA_PASS  >/dev/null 2>&1
+# openssl pkcs12 -export -in "$EASYRSA_LOC/issued/$DB_HOST.crt" -inkey "$EASYRSA_LOC/private/$DB_HOST.key" -out "$CERTS_DIR/$DB_HOST.p12" -name $PROJECT_PREFIX-db-cert -passout pass:$CA_PASS >/dev/null 2>&1
+
+# echo "# Add certs p12 to JKS"
+# keytool -importkeystore -srcstoretype PKCS12 -srckeystore $CERTS_DIR/keycloak.p12 -destkeystore $KEYSTORE_LOC -deststoretype JKS -srcalias $PROJECT_PREFIX-keycloak-cert -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS  >/dev/null 2>&1
+# keytool -importkeystore -srcstoretype PKCS12 -srckeystore $CERTS_DIR/exit.p12 -destkeystore $KEYSTORE_LOC -deststoretype JKS -srcalias $PROJECT_PREFIX-exit-cert -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS  >/dev/null 2>&1
+# keytool -importkeystore -srcstoretype PKCS12 -srckeystore $CERTS_DIR/ca.p12 -destkeystore $KEYSTORE_LOC -deststoretype JKS -srcalias $PROJECT_PREFIX-ca-cert -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS  >/dev/null 2>&1
+# keytool -importkeystore -srcstoretype PKCS12 -srckeystore $CERTS_DIR/$DB_HOST.p12 -destkeystore $KEYSTORE_LOC -deststoretype JKS -srcalias $PROJECT_PREFIX-db-cert -deststorepass $CA_PASS -destkeypass $CA_PASS -srcstorepass $CA_PASS >/dev/null 2>&1
+
+# rm $CERTS_DIR/exit.p12
+# rm $CERTS_DIR/ca.p12
 
 echo $CA_PASS > $PASS_LOC
-
-# echo "# Configuring certs"
-cp $EXIT_FULLCHAIN_LOC $API_FULLCHAIN_LOC
-cp $EXIT_KEY_LOC $API_KEY_LOC
-cp $EXIT_CERT_LOC $API_CERT_LOC
-
-cp $EXIT_KEY_LOC $SOCK_KEY_LOC
-cp $EXIT_CERT_LOC $SOCK_CERT_LOC
-
-cp $EXIT_KEY_LOC $TURN_KEY_LOC
-cp $EXIT_CERT_LOC $TURN_CERT_LOC
 
 echo "# Cert generation complete!"
 EOF
@@ -142,7 +126,7 @@ EOF
 # EOF
 
 # # Put cert files on the build server
-# scp "./sites/$PROJECT_PREFIX/fullchain.pem" "$TAILSCALE_OPERATOR@$BUILD_HOST:$SERVER_DIR_LOC/server.crt"
-# scp "./sites/$PROJECT_PREFIX/privkey.pem" "$TAILSCALE_OPERATOR@$BUILD_HOST:$SERVER_DIR_LOC/server.key"
+# scp "./sites/$PROJECT_PREFIX/fullchain.pem" "$TAILSCALE_OPERATOR@$BUILD_HOST:$CERTS_DIR/server.crt"
+# scp "./sites/$PROJECT_PREFIX/privkey.pem" "$TAILSCALE_OPERATOR@$BUILD_HOST:$CERTS_DIR/server.key"
 
 

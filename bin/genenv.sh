@@ -139,6 +139,31 @@ NS2_HOST=$PROJECT_PREFIX-ns2
 EOF
   fi
 
+  cat << EOF >> ./.env
+
+PROJECT_DIR="/home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX"
+EASYRSA_LOC="/home/$TAILSCALE_OPERATOR/easy-rsa/pki"
+
+CERTS_DIR="$PROJECT_DIR/certs"
+PASS_LOC="$CERTS_DIR/server.pass"
+
+EXIT_FULLCHAIN_LOC="$CERTS_DIR/exit_fullchain.pem"
+EXIT_CERT_LOC="$CERTS_DIR/exit_cert.pem"
+EXIT_KEY_LOC="$CERTS_DIR/exit_privkey.pem"
+
+CA_CERT_LOC="$CERTS_DIR/ca.crt"
+CA_KEY_LOC="$CERTS_DIR/ca.key"
+
+KC_CERT_LOC="$CERTS_DIR/keycloak.crt"
+KC_KEY_LOC="$CERTS_DIR/keycloak.key"
+
+DB_CERT_LOC="$CERTS_DIR/$DB_HOST.crt"
+DB_KEY_LOC="$CERTS_DIR/$DB_HOST.key"
+
+KEYSTORE_LOC="$CERTS_DIR/KeyStore.jks"
+
+EOF
+
   echo ".env file generated successfully!"
 
 else
