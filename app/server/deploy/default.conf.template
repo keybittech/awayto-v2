@@ -48,6 +48,7 @@ server {
   }
 
   location /auth/ {
+    limit_req zone=primary burst=10 nodelay;
     proxy_read_timeout 300s;
     proxy_connect_timeout 75s;
 
@@ -81,7 +82,7 @@ server {
   }
   
   location /join {
-    limit_req zone=primary burst=0 nodelay;
+    limit_req zone=primary;
 
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 
@@ -92,7 +93,7 @@ server {
   }
 
   location /sock/ {
-    limit_req zone=primary burst=10 nodelay;
+    limit_req zone=primary;
 
     proxy_read_timeout 300s;
     proxy_connect_timeout 75s;
