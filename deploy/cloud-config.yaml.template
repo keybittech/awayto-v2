@@ -3,6 +3,8 @@ bootcmd:
   - echo 'disable_root: 0' >> /etc/cloud/cloud.cfg
   - echo 'PasswordAuthentication no' >> /etc/ssh/sshd_config
   - echo 'PermitRootLogin no' >> /etc/ssh/sshd_config
+  - echo 'X11Forwarding no' >> /etc/ssh/sshd_config
+  - echo 'AllowUsers' >> /etc/ssh/sshd_config
 users:
   - name: root
     lock_passwd: true
@@ -13,5 +15,23 @@ users:
     sudo: ALL=(ALL) NOPASSWD:ALL
     shell: /bin/bash
     ssh_authorized_keys: []
+packages:
+  - fail2ban
+  - ufw
+package_update: true
+package_upgrade: true
 runcmd:
-  - su -c 'curl -fsSL cloud-init-location -o /tmp/bootstrap.sh && chmod +x /tmp/bootstrap.sh && TS_OPERATOR=dummyuser TS_AUTH_KEY=ts-auth-key /tmp/bootstrap.sh' - dummyuser
+  - cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+  - sed -i '/^[^#]*\[sshd\]/a enabled = true' /etc/fail2ban/jail.local
+  - systemctl enable fail2ban
+  - ufw default deny incoming
+  - ufw default allow outgoing
+  - ufw default deny routed
+  - ufw allow 41641/udp
+  - ufw enable
+  - curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/jammy.noarmor.gpg | tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
+  - curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/jammy.tailscale-keyring.list | tee /etc/apt/sources.list.d/tailscale.list
+  - apt-get update
+  - apt-get install -y tailscale
+  - tailscale up --operator=dummyuser --authkey=ts-auth-key --ssh
+  - reboot

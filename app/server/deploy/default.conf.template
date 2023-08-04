@@ -41,7 +41,7 @@ server {
   }
   
   location /app/ {
-    limit_req zone=app burst=100 nodelay;
+    limit_req zone=app burst=30 nodelay;
 
     alias /usr/share/nginx/html/app/;
     try_files $uri $uri/ /app/index.html;
@@ -56,7 +56,8 @@ server {
     proxy_pass https://auth/;
   }
 
-  #location /auth/admin/ {
+  location /auth/admin/ {
+    return 404;
   #  satisfy any;
 
   #  allow 100.64.0.0/10;
@@ -66,7 +67,7 @@ server {
   #  proxy_connect_timeout 75s;
 
   #  proxy_pass http://auth/admin/;
-  #}
+  }
 
   location /api/ {
     limit_req zone=primary burst=10 nodelay;
@@ -80,7 +81,7 @@ server {
   }
   
   location /join {
-    limit_req zone=primary burst=5 nodelay;
+    limit_req zone=primary burst=0 nodelay;
 
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 

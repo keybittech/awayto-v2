@@ -35,7 +35,7 @@ if [ ! -f ./.env ]; then
   prompt_user "CONFIGURE_NAMESERVERS" "Enter CONFIGURE_NAMESERVERS (y/n): "
   prompt_user "ADMIN_EMAIL" "Enter ADMIN_EMAIL: "
   prompt_user "PROJECT_REPO" "Enter PROJECT_REPO (Leave blank for default): " "https://github.com/jcmccormick/wc.git"
-  prompt_user "CLOUD_INIT_LOCATION" "Enter CLOUD_INIT_LOCATION (Leave blank for default): " "https://gist.githubusercontent.com/jcmccormick/820ad1cf61df4650825a00ea275edfa0/raw/9cafe1b26c400307bb5ad4788cf07a70b37f5261/gistfile1.txt"
+  prompt_user "CLOUD_INIT_LOCATION" "Enter CLOUD_INIT_LOCATION (Leave blank for default): " "https://gist.githubusercontent.com/jcmccormick/820ad1cf61df4650825a00ea275edfa0/raw/dbebd4b8a574748f5fa64467fbd1ec0cc21120ae/gistfile1.txt"
 
   cat << EOF > ./.env
 SITE_NAME="$SITE_NAME"
