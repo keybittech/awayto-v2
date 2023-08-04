@@ -45,7 +45,6 @@ if [ ! "$DEPLOYMENT_LOCATION" = "local" ]; then
     # Configure the cloud-config file for first-run deployment
     echo "# Configure the cloud-config file for first-run deployment"
     sed "s#dummyuser#$TAILSCALE_OPERATOR#g; \
-      s#cloud-init-location#$CLOUD_INIT_LOCATION#g; \
       s#ts-auth-key#$TAILSCALE_AUTH_KEY#g" ./deploy/cloud-config.yaml.template > "./sites/$PROJECT_PREFIX/cloud-config.yaml"
     
     # # Create private network

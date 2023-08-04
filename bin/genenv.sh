@@ -35,14 +35,12 @@ if [ ! -f ./.env ]; then
   prompt_user "CONFIGURE_NAMESERVERS" "Enter CONFIGURE_NAMESERVERS (y/n): "
   prompt_user "ADMIN_EMAIL" "Enter ADMIN_EMAIL: "
   prompt_user "PROJECT_REPO" "Enter PROJECT_REPO (Leave blank for default): " "https://github.com/jcmccormick/wc.git"
-  prompt_user "CLOUD_INIT_LOCATION" "Enter CLOUD_INIT_LOCATION (Leave blank for default): " "https://gist.githubusercontent.com/jcmccormick/820ad1cf61df4650825a00ea275edfa0/raw/dbebd4b8a574748f5fa64467fbd1ec0cc21120ae/gistfile1.txt"
 
   cat << EOF > ./.env
 SITE_NAME="$SITE_NAME"
 PROJECT_PREFIX=$PROJECT_PREFIX
 
 PROJECT_REPO=$PROJECT_REPO
-CLOUD_INIT_LOCATION=$CLOUD_INIT_LOCATION
 WIZAPP_VERSION=${WIZAPP_VERSION:-"0.2.0-beta.2"}
 
 DEPLOYMENT_LOCATION=$DEPLOYMENT_LOCATION
