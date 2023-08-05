@@ -1,18 +1,18 @@
 @font-face {
   font-family: 'Roboto';
-  src: local('Roboto'), url('./fonts/roboto/Roboto-Regular.ttf');
+  src: local('Roboto'), url('https://fonts.googleapis.com/css?family=Roboto:regular');
   font-weight: 400; /* normal */
   font-style: normal;
 }
 @font-face {
   font-family: 'Roboto';
-  src: local('Roboto'), url('./fonts/roboto/Roboto-Medium.ttf');
+  src: local('Roboto'), url('https://fonts.googleapis.com/css?family=Roboto:medium');
   font-weight: 500;
   font-style: normal;
 }
 @font-face {
   font-family: 'Roboto';
-  src: local('Roboto'), url('./fonts/roboto/Roboto-Bold.ttf');
+  src: local('Roboto'), url('https://fonts.googleapis.com/css?family=Roboto:bold');
   font-weight: 700;
   font-style: normal;
 }
