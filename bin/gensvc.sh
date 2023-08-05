@@ -10,6 +10,8 @@ BUILD_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "sh /home/$TAILSCALE_OPER
 ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST << EOF
 cd /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX
 
+git pull
+
 echo "# Creating volume for building"
 sudo docker volume create graylogdata
 

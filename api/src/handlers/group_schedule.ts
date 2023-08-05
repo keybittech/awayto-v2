@@ -13,7 +13,7 @@ export default createHandlers({
 
     const { sub: groupSub } = await props.tx.one<IUserProfile>(`
       SELECT sub
-      FROM dbview_schema.enabled_users
+      FROM dbtable_schema.users
       WHERE username = $1
     `, ['system_group_' + groupName]);
 
