@@ -2,5 +2,5 @@ FROM coturn/coturn
 
 WORKDIR /app
 
-COPY ./turn/server.crt /app
-COPY ./turn/server.key /app
+COPY ./certs/db_fullchain.pem /app/server.crt
+COPY ./certs/db_host.key /app/server.key

@@ -32,7 +32,7 @@ sudo bash -c 'echo -e "[Definition]\nfailregex = ^<HOST> -.*POST.*\/auth\/realms
 sudo bash -c 'echo -e "[keycloak]\nenabled = true\nfilter = keycloak\naction = iptables-multiport[name=Keycloak, port=\"http,https\", protocol=tcp]\nlogpath = /var/log/nginx/access.log\nmaxretry = 5\nbantime = 600\nfindtime = 600\n" >> /etc/fail2ban/jail.local'
 
 echo "# Configure fail2ban for repeated errors"
-sudo bash -c 'echo -e "[Definition]\nfailregex = ^<HOST> -.*\"(POST|GET|HEAD).*\" (404|400) .*\nignoreregex =" > /etc/fail2ban/filter.d/nginx-http-errors.conf'
+sudo bash -c 'echo -e "[Definition]\nfailregex = ^<HOST> -.*\"(POST|GET|HEAD).*\" (404|400) .*\nignoreregex = /auth/resources/.*|keycloak-bg.png|theme.png" > /etc/fail2ban/filter.d/nginx-http-errors.conf'
 sudo bash -c 'echo -e "[nginx-http-errors]\nenabled = true\nfilter = nginx-http-errors\naction = iptables-multiport[name=NginxHTTPErrors, port=\"http,https\", protocol=tcp]\nlogpath = /var/log/nginx/access.log\nmaxretry = 5\nbantime = 600\nfindtime = 600\n" >> /etc/fail2ban/jail.local'
 
 sudo systemctl restart fail2ban
