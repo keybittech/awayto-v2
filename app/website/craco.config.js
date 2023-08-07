@@ -146,6 +146,13 @@ module.exports = {
       });
 
       webpackConfig.plugins.push(
+        new CompressionWebpackPlugin({
+          filename: '[path][base].gz',
+          algorithm: 'gzip',
+          test: /\.(js|css|html|svg)$/,
+          threshold: 10240,
+          minRatio: 0.8
+        }),
         new CircularDependencyPlugin({
           exclude: /a\.js|node_modules/,
           include: /src/,
