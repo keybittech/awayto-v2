@@ -12,6 +12,7 @@ const glob = require('glob');
 
 const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin');
 const CircularDependencyPlugin = require('circular-dependency-plugin');
+const CompressionWebpackPlugin = require('compression-webpack-plugin');
 
 const CracoEsbuildPlugin = require('craco-esbuild');
 
