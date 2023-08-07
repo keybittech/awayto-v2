@@ -15,6 +15,7 @@ git pull
 
 chmod +x ./build-deps && sudo ./build-deps
 
+echo "yo"
 echo "# Building app image"
 sudo docker compose build --build-arg ENVIRONMENT=deploy app
 
