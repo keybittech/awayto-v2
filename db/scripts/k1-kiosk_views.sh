@@ -59,6 +59,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     WHERE egs."groupId" = g.id AND dcsc.slots IS NOT NULL
     GROUP BY s.name, s.slot_duration, sbss.services, scheduleTimeUnit.name, bracketTimeUnit.name, slotTimeUnit.name
   ) as schedules ON true
+  WHERE schedules.name IS NOT NULL
   GROUP BY g.name, g.code;
 
   CREATE UNIQUE INDEX ON dbview_schema.kiosk_schedule (name);

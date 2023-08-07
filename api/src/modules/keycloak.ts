@@ -90,7 +90,7 @@ keycloak.regroup = async function (groupId?: string): Promise<void> {
                   actions: [...(m.actions || []), { id: actionId, name }]
                 }), {} as IGroupRoleAuthActions);    
             } else {
-              console.log(' using cache for ', path);
+              // console.log(' using cache for ', path);
               newGroupRoleActions[path] = oldGroupRoleActions[path];
             }
           }

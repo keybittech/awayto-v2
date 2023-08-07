@@ -5,7 +5,7 @@ echo "Configuring app server..."
 until ping -c1 $APP_HOST; do sleep 5; done
 until ssh-keyscan -H $APP_HOST >> ~/.ssh/known_hosts; do sleep 5; done
 
-BUILD_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "sh /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/bin/getversion.sh -g")
+BUILD_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "sh /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/bin/getversion.sh -i")
 
 # Build wcapp on the build server
 ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST << EOF
@@ -41,6 +41,9 @@ fi
 
 echo "# Allowing app port 443 (app) on $APP_HOST"
 sudo ufw allow 443
+
+sudo docker stop wcapp
+sudo docker rm wcapp
 
 echo "# Starting app container"
 sudo docker run -d --restart always --name wcapp --network="host" \
