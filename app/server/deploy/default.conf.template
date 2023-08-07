@@ -13,6 +13,13 @@ upstream api {
 limit_req_zone $binary_remote_addr zone=app:10m rate=30r/s;
 limit_req_zone $binary_remote_addr zone=primary:10m rate=10r/s;
 
+gzip on;
+gzip_types application/javascript application/json text/javascript;
+gzip_vary on;
+gzip_min_length 10240;
+gzip_proxied expired no-cache no-store private auth;
+gzip_disable "MSIE [1-6]\.";
+
 server {
 
   # listen 80;
@@ -38,6 +45,8 @@ server {
 
     alias /usr/share/nginx/html/;
     try_files $uri $uri/ =404;
+
+    gzip_static on;
   }
   
   location /app/ {
@@ -45,6 +54,8 @@ server {
 
     alias /usr/share/nginx/html/app/;
     try_files $uri $uri/ /app/index.html;
+    
+    gzip_static on;
   }
 
   location /auth/ {
