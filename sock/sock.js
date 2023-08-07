@@ -88,7 +88,7 @@ server.on('upgrade', async function (req, socket, head) {
     
     console.log('4');
     const subscriber = subscribers.find(s => {
-      console.log('5');
+      console.log('5', s, subscribers);
       ticketIndex = s.tickets.indexOf(ticket);
       return ticketIndex > -1;
     });
