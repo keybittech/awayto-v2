@@ -61,6 +61,9 @@ sudo sed -i 's/SecRuleEngine DetectionOnly/SecRuleEngine On/g' /etc/nginx/modsec
 
 sudo touch /etc/nginx/modsec/main.conf
 
+echo 'SecAction "id:900200, phase:1, pass, t:none, nolog, setvar:\'tx.allowed_methods=GET HEAD POST OPTIONS PUT\'"'
+echo "\n# Allow PUT Method\nSecAction \"id:900200, phase:1, pass, t:none, nolog, setvar:'tx.allowed_methods=GET HEAD POST OPTIONS PUT'\""
+
 sudo bash -c 'echo "Include /etc/nginx/modsec/modsecurity.conf
 Include /usr/local/modsecurity-crs/crs-setup.conf
 Include /usr/local/modsecurity-crs/rules/*.conf" >> /etc/nginx/modsec/main.conf'
