@@ -7,7 +7,7 @@ read -p "Type the project prefix to confirm deletion of the entire stack includi
 if [ ! $PROJECT_PREFIX = $PREFIX_CONFIRM ]; then
   echo "Bad entry."
   exit 0
-else
+fi
 
 # Define an array of servers to delete
 SERVERS="ns1 ns2 exit app db svc build"

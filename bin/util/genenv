@@ -84,6 +84,10 @@ GRAYLOG_ROOT_PASSWORD_SHA2=$(echo -n "${PROJECT_PREFIX}changeme1" | sha256sum | 
 GRAYLOG_PASSWORD_SECRET=$(genid)
 
 EOF
+
+  # Load Env
+  . "./sites/$PROJECT_PREFIX/.env"
+
   # Local deployments should specify existing tailscale ips and the operator
   if [ $DEPLOYMENT_LOCATION = "local" ]; then
     echo "In a local deployment, you need to provide information for existing servers that you control. The machines should be ssh accessible using the Tailscale operator account. The host names should be accessible on the tailnet you provided earlier. Only provide the machine name, for example 'db.tailnet.ts.net' would yield 'db'."
