@@ -1,25 +1,12 @@
 #!/bin/sh
 
-if [ -f ./.env ]; then
-  . ./.env
-  if [ -f "./sites/$PROJECT_PREFIX" ]; then
-    echo "Project exists."
-    exit 1
-  fi
-fi
-
-. ./bin/genenv.sh
-. ./.env
-
-mkdir -p "sites/$PROJECT_PREFIX"
-
-TIMESTAMP=$(date +%Y%m%d)
+. ./bin/util/genenv
 
 # If not local, we need to deploy servers.
 if [ ! "$DEPLOYMENT_LOCATION" = "local" ]; then
 
   # Check if all required options are set
-  . ./bin/getopts.sh ts-auth-key
+  . ./bin/util/getopts ts-auth-key
   if [ -z "$TAILSCALE_AUTH_KEY" ]; then
     echo "Non-local deployments require --ts-auth-key. Or, export TAILSCALE_AUTH_KEY." >&2
     exit 1
@@ -103,7 +90,7 @@ if [ ! "$DEPLOYMENT_LOCATION" = "local" ]; then
       NS1_PUBLIC_IP=$(hcloud server describe "$PROJECT_PREFIX-ns1" -o=format="{{.PublicNet.IPv4.IP}}")
       NS2_PUBLIC_IP=$(hcloud server describe "$PROJECT_PREFIX-ns2" -o=format="{{.PublicNet.IPv4.IP}}")
 
-      cat << EOF >> ./.env
+      cat << EOF >> "./sites/$PROJECT_PREFIX/.env"
 # Server Listings
 NS1_PUBLIC_IP=$NS1_PUBLIC_IP
 NS2_PUBLIC_IP=$NS2_PUBLIC_IP
@@ -113,35 +100,35 @@ EOF
 
     EXIT_PUBLIC_IP=$(hcloud server describe "$PROJECT_PREFIX-exit" -o=format="{{.PublicNet.IPv4.IP}}")
     
-    cat << EOF >> ./.env
+    cat << EOF >> "./sites/$PROJECT_PREFIX/.env"
 EXIT_PUBLIC_IP=$EXIT_PUBLIC_IP
 
 EOF
   fi #end if hetzner
 fi #end if not local
 
-. ./.env
+. "./sites/$PROJECT_PREFIX/.env"
 
 # First we deploy the exit server to get an ip for use with the nameservers
-. ./bin/genexit.sh
+. ./bin/up/exit
 
 # Deploy the nameservers
-. ./bin/genns.sh
+. ./bin/up/ns
 
 # Deploy the build server/internal CA
-. ./bin/genbuild.sh
+. ./bin/up/build
 
 # Deploy the db/redis/file system
-. ./bin/gendb.sh
+. ./bin/up/db
 
 # Deploy keycloak
-. ./bin/genauth.sh
+. ./bin/up/auth
 
 # Deploy svc host
-. ./bin/gensvc.sh
+. ./bin/up/svc
 
 # Deploy api
-. ./bin/genapi.sh
+. ./bin/up/api
 
 # Deploy app
-. ./bin/genapp.sh
+. ./bin/up/app

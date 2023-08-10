@@ -4,7 +4,7 @@ echo "Configuring exit server..."
 until ping -c1 $EXIT_HOST; do sleep 5; done
 until ssh-keyscan -H $EXIT_HOST >> ~/.ssh/known_hosts; do sleep 5; done
 
-scp "./bin/installmodsec.sh" "$TAILSCALE_OPERATOR@$EXIT_HOST:/home/$TAILSCALE_OPERATOR/installmodsec.sh"
+scp "./bin/install/modsec" "$TAILSCALE_OPERATOR@$EXIT_HOST:/home/$TAILSCALE_OPERATOR/installmodsec"
 
 # Generate exit nginx config
 echo "# Generate exit nginx config"
@@ -43,7 +43,7 @@ sudo mv /home/$TAILSCALE_OPERATOR/exit.nginx.conf /etc/nginx/sites-available/exi
 # Hides version numbers
 sudo sed -i '/http {/a server_tokens off;' /etc/nginx/nginx.conf
 
-chmod +x /home/$TAILSCALE_OPERATOR/installmodsec.sh && /home/$TAILSCALE_OPERATOR/installmodsec.sh
+chmod +x /home/$TAILSCALE_OPERATOR/installmodsec && /home/$TAILSCALE_OPERATOR/installmodsec
 
 sudo ufw allow "Nginx Full"
 sudo rm /etc/nginx/sites-enabled/default

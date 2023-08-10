@@ -7,12 +7,13 @@ if ! command -v jq >/dev/null 2>&1; then
   echo "Please install jq."
 fi
 
+read -p "Enter PROJECT_PREFIX (ex. mp): " PROJECT_PREFIX
+
 if [ ! -f ./.env ]; then
 
   echo "Generating .env file..."
 
   read -p "Enter SITE_NAME (ex. My Project): " SITE_NAME
-  read -p "Enter PROJECT_PREFIX (ex. mp): " PROJECT_PREFIX
 
   cat << EOF > ./.env
 SITE_NAME=$SITE_NAME
@@ -129,6 +130,6 @@ docker compose up -d --build auth
 
 docker compose build
 
-. ./bin/installauth.sh
+. ./bin/install/auth
 
 docker compose up -d

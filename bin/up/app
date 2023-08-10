@@ -1,11 +1,11 @@
 #!/bin/sh
-. ./.env
+. ./bin/util/genenv
 
 echo "Configuring app server..."
 until ping -c1 $APP_HOST; do sleep 5; done
 until ssh-keyscan -H $APP_HOST >> ~/.ssh/known_hosts; do sleep 5; done
 
-BUILD_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "sh /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/bin/getversion.sh -i")
+BUILD_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "sh /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/bin/util/getversion -i")
 
 # Build wcapp on the build server
 ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST << EOF
@@ -13,7 +13,7 @@ cd /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX
 
 git pull
 
-chmod +x ./build-deps && sudo ./build-deps
+chmod +x ./bin/install/deps && sudo ./bin/install/deps
 
 echo "# Building app image"
 sudo docker compose build --build-arg ENVIRONMENT=deploy app

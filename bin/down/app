@@ -1,0 +1,16 @@
+#!/bin/sh
+. ./bin/util/genenv
+
+echo "Undoing app server configuration..."
+
+# Stop and remove the running wcapp container on app server
+ssh -T $TAILSCALE_OPERATOR@$APP_HOST << EOF
+echo "# Stopping wcapp container"
+sudo docker stop wcapp
+
+echo "# Removing wcapp container"
+sudo docker rm wcapp
+
+sudo ufw deny 443
+
+EOF

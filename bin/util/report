@@ -1,0 +1,13 @@
+#!/bin/sh
+
+. ./.env
+
+echo "# Generating report"
+
+SYSTEMS=${DB_HOST APP_HOST SVC_HOST}
+
+for SYSTEM in $SYSTEMS; do
+
+  echo $SYSTEM
+
+done;

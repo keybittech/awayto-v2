@@ -1,5 +1,7 @@
 #!/bin/sh
 
+TIMESTAMP=$(date +%Y%m%d)
+
 genid() {
   openssl rand -base64 32 | shasum | cut -d " " -f1
 }
@@ -22,29 +24,36 @@ prompt_user() {
   done
 }
 
-if [ ! -f ./.env ]; then
+if [ ! $PROJECT_PREFIX ]; then
+  prompt_user "PROJECT_PREFIX" "Enter PROJECT_PREFIX (ex: abc123): "
+fi
+
+if [ ! -f "./sites/$PROJECT_PREFIX" ]; then
+  mkdir -p "sites/$PROJECT_PREFIX"
+fi
+
+if [ ! -f "./sites/$PROJECT_PREFIX/.env" ]; then
 
   echo "Generating .env file..."
 
   echo "All of the following are required."
   prompt_user "SITE_NAME" "Enter SITE_NAME (ex. My Project): "
   prompt_user "DOMAIN_NAME" "Enter DOMAIN_NAME (ex. myproject.com): "
-  prompt_user "PROJECT_PREFIX" "Enter PROJECT_PREFIX (ex. mp): "
-  prompt_user "DEPLOYMENT_LOCATION" "Enter DEPLOYMENT_LOCATION (local/hetzner/aws): "
-  prompt_user "DEPLOYMENT_METHOD" "Enter DEPLOYMENT_METHOD (compose/kubernetes): "
+  # prompt_user "DEPLOYMENT_LOCATION" "Enter DEPLOYMENT_LOCATION (local/hetzner/aws): "
+  # prompt_user "DEPLOYMENT_METHOD" "Enter DEPLOYMENT_METHOD (compose/kubernetes): "
   prompt_user "CONFIGURE_NAMESERVERS" "Enter CONFIGURE_NAMESERVERS (y/n): "
   prompt_user "ADMIN_EMAIL" "Enter ADMIN_EMAIL: "
   prompt_user "PROJECT_REPO" "Enter PROJECT_REPO (Leave blank for default): " "https://github.com/jcmccormick/wc.git"
 
-  cat << EOF > ./.env
+  cat << EOF > "./sites/$PROJECT_PREFIX/.env"
 SITE_NAME="$SITE_NAME"
 PROJECT_PREFIX=$PROJECT_PREFIX
 
 PROJECT_REPO=$PROJECT_REPO
 WIZAPP_VERSION=${WIZAPP_VERSION:-"0.2.0-beta.2"}
 
-DEPLOYMENT_LOCATION=$DEPLOYMENT_LOCATION
-DEPLOYMENT_METHOD=$DEPLOYMENT_METHOD
+DEPLOYMENT_LOCATION=${DEPLOYMENT_LOCATION:-"hetzner"}
+DEPLOYMENT_METHOD=${DEPLOYMENT_METHOD:-"compose"}
 CONFIGURE_NAMESERVERS=$CONFIGURE_NAMESERVERS
 ADMIN_EMAIL=$ADMIN_EMAIL
 
@@ -79,7 +88,7 @@ EOF
   if [ $DEPLOYMENT_LOCATION = "local" ]; then
     echo "In a local deployment, you need to provide information for existing servers that you control. The machines should be ssh accessible using the Tailscale operator account. The host names should be accessible on the tailnet you provided earlier. Only provide the machine name, for example 'db.tailnet.ts.net' would yield 'db'."
 
-    cat << EOF >> ./.env
+    cat << EOF >> "./sites/$PROJECT_PREFIX/.env"
 TAILSCALE_OPERATOR=${TAILSCALE_OPERATOR:-$(read -p "Enter TAILSCALE_OPERATOR: " var; echo "$var")}
 
 BUILD_HOST=${BUILD_HOST:-$(read -p "Enter BUILD_HOST: " var; echo "$var";)}
@@ -92,7 +101,7 @@ EOF
 
     if [ $CONFIGURE_NAMESERVERS = "y" ]; then
       echo "In order to configure nameservers, provide host names and public IPv4 addresses for two name servers, and the public IPv4 of the Tailscale exit node. Bind9 will be installed and configured on the name servers; Nginx will be installed on the exit server."
-      cat << EOF >> ./.env
+      cat << EOF >> "./sites/$PROJECT_PREFIX/.env"
 NS1_HOST=${NS1_HOST:-$(read -p "Enter NS1_HOST: " var; echo "$var";)}
 NS1_PUBLIC_IP=${NS1_PUBLIC_IP:-$(read -p "Enter NS1_PUBLIC_IP: " var; echo "$var";)}
 NS2_HOST=${NS2_HOST:-$(read -p "Enter NS2_HOST: " var; echo "$var";)}
@@ -103,14 +112,14 @@ EOF
     fi
 
   elif [ $DEPLOYMENT_LOCATION = "aws" ]; then
-    cat << EOF >> ./.env
+    cat << EOF >> "./sites/$PROJECT_PREFIX/.env"
 AWS_AMI_ID=${AWS_AMI_ID:-$(read -p "Enter AWS_AMI_ID: " var; echo ${var:-"aws-ami-id"})}
 AWS_INSTANCE_TYPE=${AWS_INSTANCE_TYPE:-$(read -p "Enter AWS_INSTANCE_TYPE: " var; echo ${var:-"aws-instance-type"})}
 AWS_KEY_NAME=${AWS_KEY_NAME:-$(read -p "Enter AWS_KEY_NAME: " var; echo ${var:-"aws-key-name"})}
 
 EOF
   elif [ $DEPLOYMENT_LOCATION = "hetzner" ]; then
-    cat << EOF >> ./.env
+    cat << EOF >> "./sites/$PROJECT_PREFIX/.env"
 HETZNER_DATACENTER=${HETZNER_DATACENTER:-$(read -p "Enter HETZNER_DATACENTER (Leave blank for default): " var; echo ${var:-"hil-dc1"})}
 HETZNER_NS_TYPE=${HETZNER_NS_TYPE:-$(read -p "Enter HETZNER_NS_TYPE (Leave blank for default): " var; echo ${var:-"cpx11"})}
 HETZNER_EXIT_TYPE=${HETZNER_EXIT_TYPE:-$(read -p "Enter HETZNER_EXIT_TYPE (Leave blank for default): " var; echo ${var:-"cpx11"})}
@@ -124,7 +133,7 @@ EOF
   fi
 
   if [ ! $DEPLOYMENT_LOCATION = "local" ]; then
-    cat << EOF >> ./.env
+    cat << EOF >> "./sites/$PROJECT_PREFIX/.env"
 TAILSCALE_OPERATOR=${PROJECT_PREFIX}oper
 BUILD_HOST=$PROJECT_PREFIX-build
 EXIT_HOST=$PROJECT_PREFIX-exit
@@ -137,13 +146,13 @@ NS2_HOST=$PROJECT_PREFIX-ns2
 EOF
   fi
 
-  . ./.env
+  . "./sites/$PROJECT_PREFIX/.env"
 
   PROJECT_DIR="/home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX"
   EASYRSA_LOC="/home/$TAILSCALE_OPERATOR/easy-rsa/pki"
   CERTS_DIR="$PROJECT_DIR/certs"
 
-  cat << EOF >> ./.env
+  cat << EOF >> "./sites/$PROJECT_PREFIX/.env"
 
 PROJECT_DIR="$PROJECT_DIR"
 EASYRSA_LOC="$EASYRSA_LOC"
@@ -175,6 +184,8 @@ EOF
 else
 
   echo "Using existing env file"
-  sed -i '/# Server Listings/,/^$/d' ./.env
+  # sed -i '/# Server Listings/,/^$/d' "./sites/$PROJECT_PREFIX/.env"
 
 fi
+
+. "./sites/$PROJECT_PREFIX/.env"

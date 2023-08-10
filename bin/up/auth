@@ -1,5 +1,5 @@
 #!/bin/sh
-. ./.env
+. ./bin/util/genenv
 
 echo "Configuring auth server..."
 until ping -c1 $APP_HOST; do sleep 5; done
@@ -7,7 +7,7 @@ until ssh-keyscan -H $APP_HOST >> ~/.ssh/known_hosts; do sleep 5; done
 
 # Once the DB and redis are deployed, we can create the auth server
 
-BUILD_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "sh /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/bin/getversion.sh -g")
+BUILD_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "sh /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/bin/util/getversion -i")
 
 ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST << EOF
 
@@ -32,7 +32,7 @@ sudo docker push localhost:5000/wcauth:$BUILD_VERSION
 sudo docker push localhost:5000/wcauth:latest
 EOF
 
-scp "./bin/installauth.sh" "$TAILSCALE_OPERATOR@$APP_HOST:/home/$TAILSCALE_OPERATOR/installauth.sh"
+scp "./bin/install/auth" "$TAILSCALE_OPERATOR@$APP_HOST:/home/$TAILSCALE_OPERATOR/installauth"
 
 ssh -T $TAILSCALE_OPERATOR@$APP_HOST << EOF
 
@@ -65,7 +65,7 @@ sudo docker run -d --restart=always --name=wcauth --network="host" \
   -e KC_SPI_TRUSTSTORE_FILE_PASSWORD=$CA_PASS \
   -e KC_SPI_TRUSTSTORE_FILE_HOSTNAME_VERIFICATION_POLICY=ANY \
   -e API_HOST=$DB_HOST:9443/api \
-  -e KC_HOSTNAME_ADMIN_URL=https://$CUST_APP_HOSTNAME/auth \
+  -e KC_HOSTNAME_ADMIN_URL=https://$APP_HOST:8443 \
   -e KC_HOSTNAME_URL=https://$CUST_APP_HOSTNAME/auth \
   -e KEYCLOAK_ADMIN=$KC_ADMIN \
   -e KEYCLOAK_ADMIN_PASSWORD=$KC_PASS \
@@ -77,7 +77,7 @@ sudo docker run -d --restart=always --name=wcauth --network="host" \
   -e KC_REDIS_PASS=$REDIS_PASS \
   -e KC_REGISTRATION_RATE_LIMIT=10 $BUILD_HOST:5000/wcauth:$BUILD_VERSION
 
-chmod +x /home/$TAILSCALE_OPERATOR/installauth.sh
-sudo KC_ADMIN=$KC_ADMIN KC_PASS=$KC_PASS KC_CLIENT=$KC_CLIENT KC_REALM=$KC_REALM PROJECT_PREFIX=$PROJECT_PREFIX CUST_APP_HOSTNAME=$CUST_APP_HOSTNAME KC_API_CLIENT_ID=$KC_API_CLIENT_ID KC_API_CLIENT_SECRET=$KC_API_CLIENT_SECRET /home/$TAILSCALE_OPERATOR/installauth.sh
+chmod +x /home/$TAILSCALE_OPERATOR/installauth
+sudo KC_ADMIN=$KC_ADMIN KC_PASS=$KC_PASS KC_CLIENT=$KC_CLIENT KC_REALM=$KC_REALM PROJECT_PREFIX=$PROJECT_PREFIX CUST_APP_HOSTNAME=$CUST_APP_HOSTNAME KC_API_CLIENT_ID=$KC_API_CLIENT_ID KC_API_CLIENT_SECRET=$KC_API_CLIENT_SECRET /home/$TAILSCALE_OPERATOR/installauth
 
 EOF

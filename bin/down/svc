@@ -1,0 +1,34 @@
+#!/bin/sh
+. ./bin/util/genenv
+
+ssh -T $TAILSCALE_OPERATOR@$SVC_HOST << EOF
+echo "# Stopping sock, turn, mongo, elasticsearch, and graylog containers"
+sudo docker stop wcsock
+sudo docker stop wcturn
+sudo docker stop mongo
+sudo docker stop elasticsearch
+sudo docker stop graylog
+
+echo "# Removing sock, turn, mongo, elasticsearch, and graylog containers"
+sudo docker rm wcsock
+sudo docker rm wcturn
+sudo docker rm mongo
+sudo docker rm elasticsearch
+sudo docker rm graylog
+
+echo "# Pruning docker system"
+sudo docker system prune -a -f
+
+echo "# Removing docker volumes"
+sudo docker volume rm graylogdata
+
+echo "# Closing ports 8888 (sock), 9000 (graylog), 1514 (syslog), 12201 (gelf) on $SVC_HOST"
+sudo ufw deny 8888
+sudo ufw deny 9000
+sudo ufw deny 1514
+sudo ufw deny 1514/udp
+sudo ufw deny 12201
+sudo ufw deny 12201/udp
+EOF
+
+echo "Tear down of svc server complete."

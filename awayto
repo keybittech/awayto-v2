@@ -1,0 +1,37 @@
+#!/bin/sh
+
+execute_action() {
+  action="$1"
+  subaction="$2"
+  
+  if [ -f "bin/$action/$subaction" ]; then
+    sh "bin/$action/$subaction"
+  elif [ "$action" = "up" -o "$action" = "down" ]; then
+    echo "$action"
+    sh "bin/$action.sh"
+  else
+    echo "Command not found: $action $subaction"
+  fi
+}
+
+if [ $# -eq 1 ]; then
+  execute_action "$1" "$2"
+  exit 0
+fi
+
+echo "Welcome to Awayto!"
+echo "Type 'exit' to leave the console."
+
+while true; do
+  read -p "> " action subaction
+
+  if [ "$action" = "exit" ]; then
+    break
+  elif [ "$action" = "up" -o "$action" = "down" ]; then
+    sh "bin/$action.sh"
+  else
+    execute_action "$action" "$subaction"
+  fi
+done
+
+echo "Exiting console"

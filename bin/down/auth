@@ -1,0 +1,17 @@
+#!/bin/sh
+. ./bin/util/genenv
+
+# Undo operations at app host
+ssh -T $TAILSCALE_OPERATOR@$APP_HOST << EOF
+echo "# Stopping and removing auth container"
+sudo docker stop wcauth
+sudo docker rm wcauth
+
+echo "# Removing pulled image"
+sudo docker rmi $BUILD_HOST:5000/wcauth:$BUILD_VERSION
+
+sudo ufw deny 8080
+sudo ufw deny 8443
+
+rm /home/$TAILSCALE_OPERATOR/installauth
+EOF

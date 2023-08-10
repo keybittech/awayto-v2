@@ -1,6 +1,13 @@
 #!/bin/sh
 
-. ./.env
+. ./bin/util/genenv
+
+read -p "Type the project prefix to confirm deletion of the entire stack including all data sources generated during installation:" PREFIX_CONFIRM
+
+if [ ! $PROJECT_PREFIX = $PREFIX_CONFIRM ]; then
+  echo "Bad entry."
+  exit 0
+else
 
 # Define an array of servers to delete
 SERVERS="ns1 ns2 exit app db svc build"
@@ -8,7 +15,7 @@ SERVERS="ns1 ns2 exit app db svc build"
 if [ ! "$DEPLOYMENT_LOCATION" = "local" ]; then
 
   # Check if all required options are set
-  . ./bin/getopts.sh ts-api-token ts-organization
+  . ./bin/util/getopts ts-api-token ts-organization
   if [ -z "$TAILSCALE_API_TOKEN" ] || [ -z "$TAILSCALE_ORGANIZATION" ]; then
     echo "Non-local deployments require --ts-api-token and --ts-organization. Or, export TAILSCALE_API_TOKEN and TAILSCALE_ORGANIZATION." >&2
     exit 1

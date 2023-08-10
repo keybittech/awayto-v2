@@ -1,0 +1,40 @@
+#!/bin/sh
+echo "Reverting exit server configuration..."
+
+ssh -T $TAILSCALE_OPERATOR@$EXIT_HOST << EOF
+
+NGINX_VERSION=\$(nginx -v 2>&1)
+NGINX_VERSION=\${NGINX_VERSION#*/}
+NGINX_VERSION=\${NGINX_VERSION% (*}
+
+sudo rm -f /home/$TAILSCALE_OPERATOR/installmodsec
+sudo rm -rf /opt/modsecurity-v3.0.8
+sudo rm -rf /opt/ModSecurity-nginx
+sudo rm -rf /opt/nginx-\$NGINX_VERSION
+sudo rm -rf /usr/local/modsecurity-crs
+sudo rm -rf /etc/nginx/modules
+sudo rm -rf /etc/nginx/modsec
+
+sudo sed -i '/net.ipv4.ip_forward/s/^/#/g' /etc/sysctl.conf
+sudo sed -i '/net.ipv6.conf.all.forwarding/s/^/#/g' /etc/sysctl.conf
+sudo sysctl -p /etc/sysctl.conf
+
+sudo apt-get remove --purge nginx certbot python3-certbot-nginx -y > /dev/null
+
+sudo sed -i '/\/etc\/nginx\/modules\/ngx_http_modsecurity_module.so;/d' /etc/nginx/nginx.conf
+sudo sed -i '/server_tokens off;/d' /etc/nginx/nginx.conf
+sudo sed -i '/^[^#]*\[nginx-http-auth\]/{n; /enabled = true/d}' /etc/fail2ban/jail.local
+
+sudo rm -f /etc/fail2ban/filter.d/keycloak.conf
+sudo sed -i '/\[keycloak\]/,/^$/d' /etc/fail2ban/jail.local
+
+sudo rm -f /etc/fail2ban/filter.d/nginx-http-errors.conf
+sudo sed -i '/\[nginx-http-errors\]/,/^$/d' /etc/fail2ban/jail.local
+
+sudo rm -f /etc/nginx/sites-available/exit.nginx.conf
+sudo rm -f /etc/nginx/sites-enabled/exit.nginx.conf
+sudo ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
+
+EOF
