@@ -70,6 +70,11 @@ export default function App (props: IProps): React.JSX.Element {
     setSnack({ snackOn: '', snackRequestId: '' })
   }
 
+  useEffect(() => {
+    // @ts-ignore
+    window.INT_SITE_LOAD = true;
+  }, []);
+
   return <>
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <ThemeProvider theme={'light' === theme ? lightTheme : darkTheme}>

@@ -139,6 +139,7 @@ pre {
 }
 
 #loading_site_root #site_root_message {
+  color: white;
   position: relative;
   /* Other styles as needed */
 }
@@ -150,7 +151,7 @@ pre {
   height: 2px; /* Thickness of the bottom border */
   bottom: 0;
   left: 0;
-  background-color: #f00; /* Color of the bottom border */
+  background-color: white; /* Color of the bottom border */
   animation: loading-animation 2s linear infinite;
 }
 
