@@ -57,6 +57,11 @@ export function Kiosk(): React.JSX.Element {
     }
   }, []);
 
+  useEffect(() => {
+    // @ts-ignore
+    window.INT_SITE_LOAD = true;
+  }, []);
+
   return <Box sx={{ display: 'flex', placeContent: 'center', width: '100%', height: '100vh' }}>
     {!kiosk?.schedules || !scheduleId ? <Alert sx={{ placeSelf: 'center' }} severity="info">
       No schedules are currently active.

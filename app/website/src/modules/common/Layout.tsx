@@ -1,4 +1,4 @@
-import React, { Suspense, useMemo } from 'react';
+import React, { Suspense, useMemo, useEffect } from 'react';
 import { Route, Outlet, Routes } from 'react-router-dom';
 
 import Grid from '@mui/material/Unstable_Grid2';
@@ -13,6 +13,11 @@ import Topbar from './Topbar';
 const Layout = (props: IProps): React.JSX.Element => {
 
   const { Home, Exchange, ExchangeSummary, ExchangeProvider, TopLevelProviders, Profile, GroupPaths, ServiceHome, ScheduleHome, RequestQuote } = useComponents();
+
+  useEffect(() => {
+    // @ts-ignore
+    window.INT_SITE_LOAD = true;
+  }, []);
 
   return useMemo(() => <>
     <CssBaseline />
