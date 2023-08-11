@@ -29,6 +29,10 @@ dayjs.extend(timezone);
 
 declare global {
 
+  interface Window {
+    INT_SITE_LOAD: boolean;
+  }
+
   /**
    * @category Awayto React
    */

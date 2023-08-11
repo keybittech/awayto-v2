@@ -58,7 +58,6 @@ export function Kiosk(): React.JSX.Element {
   }, []);
 
   useEffect(() => {
-    // @ts-ignore
     window.INT_SITE_LOAD = true;
   }, []);
 

@@ -34,7 +34,6 @@ export function Onboard(props: IProps): React.JSX.Element {
   }, [groupCode]);
 
   useEffect(() => {
-    // @ts-ignore
     window.INT_SITE_LOAD = true;
   }, []);
 
