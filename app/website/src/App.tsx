@@ -82,9 +82,7 @@ export default function App (props: IProps): React.JSX.Element {
           </Alert>
         </Snackbar>}
 
-        <Suspense fallback={<CircularProgress color="inherit" />}>
-          <ConfirmAction {...props} />
-        </Suspense>
+        <ConfirmAction {...props} />
 
         {!!isLoading && <Backdrop sx={{ zIndex: 9999, color: '#fff' }} open={!!isLoading}>
           <Grid container direction="column" alignItems="center">
