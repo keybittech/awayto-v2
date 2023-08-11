@@ -72,7 +72,7 @@ export function Onboard(props: IProps): React.JSX.Element {
             </Grid>
 
             <Grid item xs={12}>
-              <Typography color="primary" variant="body1">It's a pleasure to welcome you! This application is designed to enhance the connection between an organization and its members. We provide a general platform, packed with functionality, which allows groups of all kinds to support different services related to their domain. Our users enjoy a great many niceties, such as a sleek desktop and mobile user interface, customizable features and profile, and even a hint of artificial intelligence!</Typography>
+              <Typography color="primary" variant="body1">It's a pleasure to welcome you! This application is designed to enhance the connection between an organization and its members. We provide a general platform, packed with functionality, which allows groups of all kinds to support different services related to their domain. Enjoy the app on both desktop and mobile browsers; customize your services to include lots of detail, or keep things simple; and even make use of a bit of artificial intelligence!</Typography>
             </Grid>
 
             <Grid item xs={12}>
