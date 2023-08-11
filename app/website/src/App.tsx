@@ -73,9 +73,7 @@ export default function App (props: IProps): React.JSX.Element {
   return <>
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <ThemeProvider theme={'light' === theme ? lightTheme : darkTheme}>
-        {onboarding && <Suspense fallback={<CircularProgress color="inherit" />}>
-          <Onboard {...props} />
-        </Suspense>}
+        {onboarding && <Onboard {...props} />}
         {ready && <Layout {...props} />}
         {!!snackOn && <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center' }} open={!!snackOn} autoHideDuration={15000} onClose={hideSnack}>
           <Alert onClose={hideSnack} severity={snackType || "info"}>
