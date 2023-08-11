@@ -47,6 +47,10 @@ sudo sed -i '/http {/a server_tokens off;' /etc/nginx/nginx.conf
 
 chmod +x /home/$TAILSCALE_OPERATOR/installmodsec && /home/$TAILSCALE_OPERATOR/installmodsec
 
+sudo mkdir -p /var/cache/nginx
+sudo chown -R $TAILSCALE_OPERATOR:$TAILSCALE_OPERATOR /var/cache/nginx/
+sudo chmod 700 /var/cache/nginx/
+
 sudo ufw allow "Nginx Full"
 sudo rm /etc/nginx/sites-enabled/default
 sudo ln -s /etc/nginx/sites-available/exit.nginx.conf /etc/nginx/sites-enabled/
