@@ -33,6 +33,11 @@ export function Onboard(props: IProps): React.JSX.Element {
     }
   }, [groupCode]);
 
+  useEffect(() => {
+    // @ts-ignore
+    window.INT_SITE_LOAD = true;
+  }, []);
+
   return <>
 
     <Dialog fullScreen open={dialog === 'create_group'} fullWidth maxWidth="sm">
