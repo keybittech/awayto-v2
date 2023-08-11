@@ -10,6 +10,7 @@ scp "./bin/install/modsec" "$TAILSCALE_OPERATOR@$EXIT_HOST:/home/$TAILSCALE_OPER
 # Generate exit nginx config
 echo "# Generate exit nginx config"
 sed "s/domain-name/$DOMAIN_NAME/g; \
+  s/svc-host/$SVC_HOST/g; \
   s/host-ts-ip/$APP_HOST/g;" ./deploy/exit.nginx.conf | ssh -T $TAILSCALE_OPERATOR@$EXIT_HOST "sudo tee /home/$TAILSCALE_OPERATOR/exit.nginx.conf > /dev/null"
 
 ssh -T $TAILSCALE_OPERATOR@$EXIT_HOST << EOF
