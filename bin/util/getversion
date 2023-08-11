@@ -1,31 +1,42 @@
 #!/bin/sh
 
-# Function to get the current version
+# Function to get the current version of a specific service
 get_version() {
+  SERVICE=$1
   if [ -s VERSION ]; then
-    cat VERSION
+    grep "$SERVICE" VERSION | cut -d'=' -f2
   else
-    echo 0 > VERSION
+    echo "$SERVICE=0" > VERSION
     echo 0
   fi
 }
 
-# Function to increment the version
+# Function to increment the version of a specific service
 increment_version() {
-  NEW_VERSION=$(get_version)
-  VERS=$(($NEW_VERSION + 1))
-  echo $VERS > VERSION
-  echo $VERS
+  SERVICE=$1
+  CURRENT_VERSION=$(get_version $SERVICE)
+  NEW_VERSION=$(($CURRENT_VERSION + 1))
+  if grep -q "$SERVICE" VERSION; then
+    sed -i "s/$SERVICE=$CURRENT_VERSION/$SERVICE=$NEW_VERSION/" VERSION
+  else
+    echo "$SERVICE=$NEW_VERSION" >> VERSION
+  fi
+  echo $NEW_VERSION
 }
 
 # Process command-line options
+if [ $# -lt 2 ]; then
+  echo "Service name is missing" 1>&2
+  exit 1
+fi
+
 while getopts "gi" opt; do
   case ${opt} in
     g )
-      get_version
+      get_version $2
       ;;
     i )
-      increment_version
+      increment_version $2
       ;;
     \? )
       echo "Invalid option: $OPTARG" 1>&2
@@ -33,13 +44,3 @@ while getopts "gi" opt; do
       ;;
   esac
 done
-
-
-
-# VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "cat /path/to/VERSION")
-# MAJOR=$(echo $VERSION | cut -d. -f1)
-# MINOR=$(echo $VERSION | cut -d. -f2)
-# PATCH=$(echo $VERSION | cut -d. -f3)
-
-# NEW_PATCH=$((PATCH + 1))
-# NEW_VERSION="${MAJOR}.${MINOR}.${NEW_PATCH}"

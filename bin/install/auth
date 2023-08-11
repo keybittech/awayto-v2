@@ -1,5 +1,4 @@
 #!/bin/bash
-. ./bin/util/genenv
 
 # Default values
 KEYCLOAK_HOST="localhost"

@@ -6,15 +6,14 @@ execute_action() {
   
   if [ -f "bin/$action/$subaction" ]; then
     sh "bin/$action/$subaction"
-  elif [ "$action" = "up" -o "$action" = "down" ]; then
-    echo "$action"
+  elif [ "$action" = "up" -o "$action" = "down" ] && [ -z "$subaction" ]; then
     sh "bin/$action.sh"
   else
     echo "Command not found: $action $subaction"
   fi
 }
 
-if [ $# -eq 1 ]; then
+if [ $# -eq 1 -o $# -eq 2 ]; then
   execute_action "$1" "$2"
   exit 0
 fi
@@ -27,7 +26,7 @@ while true; do
 
   if [ "$action" = "exit" ]; then
     break
-  elif [ "$action" = "up" -o "$action" = "down" ]; then
+  elif [ "$action" = "up" -o "$action" = "down" ] && [ -z "$subaction" ]; then
     sh "bin/$action.sh"
   else
     execute_action "$action" "$subaction"

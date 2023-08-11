@@ -5,7 +5,7 @@ echo "Configuring app server..."
 until ping -c1 $APP_HOST; do sleep 5; done
 until ssh-keyscan -H $APP_HOST >> ~/.ssh/known_hosts; do sleep 5; done
 
-BUILD_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "sh /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/bin/util/getversion -i")
+APP_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "sh /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/bin/util/getversion -i app")
 
 # Build wcapp on the build server
 ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST << EOF
@@ -19,11 +19,11 @@ echo "# Building app image"
 sudo docker compose build --build-arg ENVIRONMENT=deploy app
 
 echo "# Tagging image"
-sudo docker tag wcapp localhost:5000/wcapp:$BUILD_VERSION
+sudo docker tag wcapp localhost:5000/wcapp:$APP_VERSION
 sudo docker tag wcapp localhost:5000/wcapp:latest
 
 echo "# Submitting image to registry"
-sudo docker push localhost:5000/wcapp:$BUILD_VERSION
+sudo docker push localhost:5000/wcapp:$APP_VERSION
 sudo docker push localhost:5000/wcapp:latest
 EOF
 
@@ -58,5 +58,5 @@ sudo docker run -d --restart always --name wcapp --network="host" \
   -e CUST_LAND_HOSTNAME=$CUST_LAND_HOSTNAME \
   -e KC_REALM=$KC_REALM \
   -e KC_CLIENT=$KC_CLIENT \
-  -e KC_PATH=/auth $BUILD_HOST:5000/wcapp:$BUILD_VERSION
+  -e KC_PATH=/auth $BUILD_HOST:5000/wcapp:$APP_VERSION
 EOF

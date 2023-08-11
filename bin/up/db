@@ -7,7 +7,8 @@ until ssh-keyscan -H $DB_HOST >> ~/.ssh/known_hosts; do sleep 5; done
 
 # In order to deploy the DB, we need to setup the build server for it, build it, then pull it to the db server
 
-BUILD_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "sh /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/bin/util/getversion -i")
+DB_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "sh /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/bin/util/getversion -i db")
+FS_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "sh /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/bin/util/getversion -i fs")
 
 ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST << EOF
 cd /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX
@@ -21,15 +22,15 @@ sudo docker compose build --build-arg ENVIRONMENT=deploy db
 sudo docker compose build fs
 
 echo "# Tagging image"
-sudo docker tag wcdb localhost:5000/wcdb:$BUILD_VERSION
+sudo docker tag wcdb localhost:5000/wcdb:$DB_VERSION
 sudo docker tag wcdb localhost:5000/wcdb:latest
-sudo docker tag wcfs localhost:5000/wcfs:$BUILD_VERSION
+sudo docker tag wcfs localhost:5000/wcfs:$FS_VERSION
 sudo docker tag wcfs localhost:5000/wcfs:latest
 
 echo "# Submitting image to registry"
-sudo docker push localhost:5000/wcdb:$BUILD_VERSION
+sudo docker push localhost:5000/wcdb:$DB_VERSION
 sudo docker push localhost:5000/wcdb:latest
-sudo docker push localhost:5000/wcfs:$BUILD_VERSION
+sudo docker push localhost:5000/wcfs:$FS_VERSION
 sudo docker push localhost:5000/wcfs:latest
 EOF
 
@@ -68,7 +69,7 @@ sudo docker run -d --restart always --name wcdb --network="host" \
   -e POSTGRES_DB=$PG_DB \
   -e POSTGRES_USER=$PG_USER \
   -e POSTGRES_PASSWORD=$PG_PASS \
-  -v pg15store:/var/lib/postgresql/data $BUILD_HOST:5000/wcdb:$BUILD_VERSION
+  -v pg15store:/var/lib/postgresql/data $BUILD_HOST:5000/wcdb:$DB_VERSION
 
 echo "# Starting redis container"
 sudo docker run -d --restart always --name wcredis --network="host" \
@@ -78,5 +79,5 @@ sudo docker run -d --restart always --name wcredis --network="host" \
 echo "# Starting files container"
 sudo docker run -d --restart always --name wcfs --network="host" \
   -e SQLITE_DATA=/app/data/sqlite-db.db \
-  -v sqlitedata:/app/data $BUILD_HOST:5000/wcfs:$BUILD_VERSION
+  -v sqlitedata:/app/data $BUILD_HOST:5000/wcfs:$FS_VERSION
 EOF

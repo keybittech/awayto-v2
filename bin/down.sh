@@ -10,7 +10,7 @@ if [ ! $PROJECT_PREFIX = $PREFIX_CONFIRM ]; then
 fi
 
 # Define an array of servers to delete
-SERVERS="ns1 ns2 exit app db svc build"
+SERVERS="ns1 ns2 exit app db svc builder"
 
 if [ ! "$DEPLOYMENT_LOCATION" = "local" ]; then
 

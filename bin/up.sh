@@ -52,24 +52,24 @@ if [ ! "$DEPLOYMENT_LOCATION" = "local" ]; then
     echo "# Generating exit server"
 
     # Create exit, app, db, svc, build machines
-    hcloud server create --name "$PROJECT_PREFIX-exit" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_EXIT_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./sites/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" --firewall "$PROJECT_PREFIX-public-firewall" >/dev/null
-    hcloud server describe "$PROJECT_PREFIX-exit" -o json > "./sites/$PROJECT_PREFIX/exit.json"
+    hcloud server create --name "$EXIT_HOST" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_EXIT_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./sites/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" --firewall "$PROJECT_PREFIX-public-firewall" >/dev/null
+    hcloud server describe "$EXIT_HOST" -o json > "./sites/$PROJECT_PREFIX/exit.json"
 
     echo "# Generating app server"
-    hcloud server create --name "$PROJECT_PREFIX-app" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_APP_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./sites/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" >/dev/null
-    hcloud server describe "$PROJECT_PREFIX-app" -o json > "./sites/$PROJECT_PREFIX/app.json"
+    hcloud server create --name "$APP_HOST" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_APP_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./sites/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" >/dev/null
+    hcloud server describe "$APP_HOST" -o json > "./sites/$PROJECT_PREFIX/app.json"
 
     echo "# Generating db server"
-    hcloud server create --name "$PROJECT_PREFIX-db" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_DB_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./sites/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" >/dev/null
-    hcloud server describe "$PROJECT_PREFIX-db" -o json > "./sites/$PROJECT_PREFIX/db.json"
+    hcloud server create --name "$DB_HOST" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_DB_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./sites/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" >/dev/null
+    hcloud server describe "$DB_HOST" -o json > "./sites/$PROJECT_PREFIX/db.json"
 
     echo "# Generating svc server"
-    hcloud server create --name "$PROJECT_PREFIX-svc" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_SVC_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./sites/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" >/dev/null
-    hcloud server describe "$PROJECT_PREFIX-svc" -o json > "./sites/$PROJECT_PREFIX/svc.json"
+    hcloud server create --name "$SVC_HOST" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_SVC_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./sites/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" >/dev/null
+    hcloud server describe "$SVC_HOST" -o json > "./sites/$PROJECT_PREFIX/svc.json"
 
     echo "# Generating build server"
-    hcloud server create --name "$PROJECT_PREFIX-build" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_BUILD_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./sites/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" >/dev/null
-    hcloud server describe "$PROJECT_PREFIX-build" -o json > "./sites/$PROJECT_PREFIX/build.json"
+    hcloud server create --name "$BUILD_HOST" --datacenter "$HETZNER_DATACENTER" --type "$HETZNER_BUILD_TYPE" --image "$HETZNER_IMAGE" --user-data-from-file "./sites/$PROJECT_PREFIX/cloud-config.yaml" --firewall "$PROJECT_PREFIX-ts-firewall" >/dev/null
+    hcloud server describe "$BUILD_HOST" -o json > "./sites/$PROJECT_PREFIX/build.json"
 
     echo "# Servers generated"
 
@@ -98,7 +98,7 @@ EOF
       echo "# Nameservers generated"
     fi
 
-    EXIT_PUBLIC_IP=$(hcloud server describe "$PROJECT_PREFIX-exit" -o=format="{{.PublicNet.IPv4.IP}}")
+    EXIT_PUBLIC_IP=$(hcloud server describe "$EXIT_HOST" -o=format="{{.PublicNet.IPv4.IP}}")
     
     cat << EOF >> "./sites/$PROJECT_PREFIX/.env"
 EXIT_PUBLIC_IP=$EXIT_PUBLIC_IP

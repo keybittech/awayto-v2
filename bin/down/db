@@ -3,7 +3,8 @@
 
 echo "Reverting db server configuration..."
 
-BUILD_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "sh /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/bin/util/getversion -g")
+DB_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "sh /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/bin/util/getversion -g db")
+FS_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "sh /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/bin/util/getversion -g fs")
 
 ssh -T $TAILSCALE_OPERATOR@$DB_HOST << EOF
 echo "# Stopping and removing Docker containers"
@@ -11,8 +12,8 @@ sudo docker stop wcdb wcredis wcfs
 sudo docker rm wcdb wcredis wcfs
 
 echo "# Removing Docker images"
-sudo docker rmi $BUILD_HOST:5000/wcdb:$BUILD_VERSION
-sudo docker rmi $BUILD_HOST:5000/wcfs:$BUILD_VERSION
+sudo docker rmi $BUILD_HOST:5000/wcdb:$DB_VERSION
+sudo docker rmi $BUILD_HOST:5000/wcfs:$FS_VERSION
 
 echo "# Removing Docker volumes from db host"
 sudo docker volume rm pg15store redisdata sqlitedata
@@ -20,8 +21,8 @@ EOF
 
 ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST << EOF
 echo "# Removing Docker images from build host"
-sudo docker rmi localhost:5000/wcdb:$BUILD_VERSION localhost:5000/wcdb:latest
-sudo docker rmi localhost:5000/wcfs:$BUILD_VERSION localhost:5000/wcfs:latest
+sudo docker rmi localhost:5000/wcdb:$DB_VERSION localhost:5000/wcdb:latest
+sudo docker rmi localhost:5000/wcfs:$FS_VERSION localhost:5000/wcfs:latest
 
 echo "# Removing Docker volumes from build host"
 sudo docker volume rm pg15store sqlitedata
