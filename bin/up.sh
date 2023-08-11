@@ -116,7 +116,7 @@ fi #end if not local
 . ./bin/up/ns
 
 # Deploy the build server/internal CA
-. ./bin/up/build
+. ./bin/up/builder
 
 # Deploy the db/redis/file system
 . ./bin/up/db

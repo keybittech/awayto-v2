@@ -2,7 +2,7 @@
 
 . ./bin/util/genenv
 
-read -p "Type the project prefix to confirm deletion of the entire stack including all data sources generated during installation:" PREFIX_CONFIRM
+read -p "Type the project prefix to confirm deletion of the entire stack including all data sources generated during installation: " PREFIX_CONFIRM
 
 if [ ! $PROJECT_PREFIX = $PREFIX_CONFIRM ]; then
   echo "Bad entry."
