@@ -27,11 +27,14 @@
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
-    Loading stuff 1.
     
-    <div id="root">
-      Loading stuff 2.
+    <div id="loading_site_root">
+      <div id="site_root_message">
+        Welcome! Please wait while we load up...
+      </div>
     </div>
+
+    <div id="root"></div>
     <!--
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.
@@ -42,5 +45,15 @@
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
+    <script type="application/javascript">
+      window.INT_SITE_LOAD = false;
+
+      const checkLoadingInterval = setInterval(() => {
+        if (window.INT_SITE_LOAD) {
+          document.getElementById("loading_site_root").style.display = "none";
+          clearInterval(checkLoadingInterval);
+        }
+      }, 100); // Interval in milliseconds
+    </script>
   </body>
 </html>
