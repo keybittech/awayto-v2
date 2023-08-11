@@ -62,7 +62,7 @@ kcadm update authentication/flows/custom%20registration/executions -r $KC_REALM 
 kcadm update realms/$KC_REALM -b '{ "registrationFlow": "custom registration", "attributes": { "userProfileEnabled": true } }'
 
 echo "# Configuring front-end auth client"
-SITE_CLIENT_ID=$(kcadm create clients -r $KC_REALM -s clientId=$KC_CLIENT -s 'redirectUris=["https://'"$CUST_APP_HOSTNAME/*"'"]' -s rootUrl=https://$CUST_APP_HOSTNAME -s baseUrl=https://$CUST_APP_HOSTNAME -s publicClient=true -s standardFlowEnabled=true -s directAccessGrantsEnabled=true -s attributes='{ "post.logout.redirect.uris": "https://'"$CUST_APP_HOSTNAME"'", "access.token.lifespan": 60 }' -i)
+SITE_CLIENT_ID=$(kcadm create clients -r $KC_REALM -s clientId=$KC_CLIENT -s 'redirectUris=["https://'"$CUST_APP_HOSTNAME/*"'"]' -s rootUrl=https://$CUST_APP_HOSTNAME/ -s baseUrl=https://$CUST_APP_HOSTNAME/ -s publicClient=true -s standardFlowEnabled=true -s directAccessGrantsEnabled=true -s attributes='{ "post.logout.redirect.uris": "https://'"$CUST_APP_HOSTNAME/"'", "access.token.lifespan": 60 }' -i)
 
 echo "# Attaching roles"
 SITE_ROLES="GROUP_ADMIN GROUP_BOOKINGS GROUP_FEATURES GROUP_MATRIX GROUP_ROLES GROUP_SCHEDULES GROUP_SERVICES GROUP_USERS ROLE_CALL"
