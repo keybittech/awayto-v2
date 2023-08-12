@@ -238,8 +238,9 @@ export function ManageScheduleBracketsModal({ editSchedule, closeModal }: IProps
               if (schedule && bracket.duration && Object.keys(bracket.services).length) {
                 bracket.id = (new Date()).getTime().toString();
                 bracket.scheduleId = schedule.id;
-                schedule.brackets[bracket.id] = bracket;
-                setSchedule({ ...schedule, brackets: schedule.brackets })
+                const newBrackets = { ...schedule.brackets };
+                newBrackets[bracket.id] = bracket;
+                setSchedule({ ...schedule, brackets: newBrackets })
                 setBracket({ ...bracketSchema, services: {}, slots: {} } as IScheduleBracket);
                 setViewStep(2);
               } else {
