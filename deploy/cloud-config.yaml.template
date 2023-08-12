@@ -1,10 +1,4 @@
 #cloud-config
-bootcmd:
-  - echo 'disable_root: 0' >> /etc/cloud/cloud.cfg
-  - echo 'PasswordAuthentication no' >> /etc/ssh/sshd_config
-  - echo 'PermitRootLogin no' >> /etc/ssh/sshd_config
-  - echo 'X11Forwarding no' >> /etc/ssh/sshd_config
-  - echo 'AllowUsers' >> /etc/ssh/sshd_config
 users:
   - name: root
     lock_passwd: true
@@ -21,6 +15,12 @@ packages:
 package_update: true
 package_upgrade: true
 runcmd:
+  - echo 'PasswordAuthentication no' >> /etc/ssh/sshd_config
+  - echo 'AllowUsers' >> /etc/ssh/sshd_config
+  - sed -i 's/PermitRootLogin yes/PermitRootLogin no/g' /etc/ssh/sshd_config
+  - sed -i 's/X11Forwarding yes/X11Forwarding no/g' /etc/ssh/sshd_config
+  - sed -i 's/UsePAM yes/UsePAM no/g' /etc/ssh/sshd_config
+  - systemctl restart sshd
   - cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
   - sed -i '/^[^#]*\[sshd\]/a enabled = true' /etc/fail2ban/jail.local
   - systemctl enable fail2ban
