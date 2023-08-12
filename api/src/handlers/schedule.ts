@@ -21,7 +21,7 @@ export default createHandlers({
       const { constraint } = error as DbError;
       
       if ('unique_enabled_name_created_sub' === constraint) {
-        throw { reason: 'You can only join a master schedule once.' }
+        throw { reason: 'You can only join a master schedule once. Instead, edit that schedule, then add another bracket to it.' }
       }
 
       throw error;
