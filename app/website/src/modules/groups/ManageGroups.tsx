@@ -45,18 +45,12 @@ export function ManageGroups(props: IProps): React.JSX.Element {
   const { data: profile, refetch: getUserProfileDetails } = sh.useGetUserProfileDetailsQuery();
 
   const { groups } = profile || {};
-  const grldr = useMemo(() => {
-    if (groups) {
-      const gr = groups[selected[0]];
-      const grldr = gr?.ldr;
-      return grldr;
-    }
-  }, [groups, selected])
 
   const actions = useMemo(() => {
     if (!groups) return [];
     const { length } = selected;
     const gr = groups[selected[0]];
+    const grldr = gr?.ldr;
     const acts = length == 1 ? [
       !grldr && <Tooltip key={'leave_group'} title="Leave">
         <Button onClick={() => {
@@ -118,23 +112,17 @@ export function ManageGroups(props: IProps): React.JSX.Element {
       { flex: 1, headerName: 'Code', field: 'code' },
       { flex: 1, headerName: 'Users', field: 'usersCount', renderCell: ({ row }) => row.usersCount || 0 },
       { flex: 1, headerName: 'Created', field: 'createdOn', renderCell: ({ row }) => dayjs().to(dayjs.utc(row.createdOn)) },
-      ...(grldr && hasRole([SiteRoles.APP_GROUP_ADMIN]) ? 
-        [{ flex: 1, headerName: '', field: '', renderCell: ({ row }: { row: IGroup }) =>  <Tooltip key={'delete_group'} title="Delete">
+      ...(hasRole([SiteRoles.APP_GROUP_ADMIN]) ? [
+        { flex: 1, headerName: '', field: '', renderCell: ({ row }: { row: IGroup }) => <Tooltip key={'view_group_details'} title="Details">
             <Button onClick={() => {
-              openConfirm({
-                isConfirming: true,
-                confirmEffect: 'Delete the group ' + row.name + ' and refresh the session.',
-                confirmAction: () => {
-                  deleteGroup({ ids: selected.join(',') }).unwrap().then(() => keycloak.clearToken()).catch(console.error);
-                }
-              });
+              navigate(`/group/${row.name}/manage/users`)
             }}>
-              <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Delete</Typography>
-              <DeleteIcon className={classes.variableButtonIcon} />
+              <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Details</Typography>
+              <ManageAccountsIcon className={classes.variableButtonIcon} />
             </Button>
           </Tooltip>
-        }] : []
-      )
+        }
+      ] : [])
     ],
     selected,
     onSelected: p => setSelected(p as string[]),
