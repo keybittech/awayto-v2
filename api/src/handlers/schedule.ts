@@ -1,20 +1,31 @@
-import { ApiProps, ISchedule, IScheduleBracket, ScheduledParts, buildUpdate, utcNowString, AnyRecord, asyncForEach, createHandlers } from 'awayto/core';
+import { ApiProps, ISchedule, IScheduleBracket, ScheduledParts, buildUpdate, utcNowString, AnyRecord, asyncForEach, createHandlers, DbError } from 'awayto/core';
 
 export default createHandlers({
   postSchedule: async props => {
-    const { schedule } = props.event.body;
+    try {
+      const { schedule } = props.event.body;
 
-    const { name, scheduleTimeUnitId, bracketTimeUnitId, slotTimeUnitId, slotDuration, startTime, endTime, timezone } = schedule;
+      const { name, scheduleTimeUnitId, bracketTimeUnitId, slotTimeUnitId, slotDuration, startTime, endTime, timezone } = schedule;
 
-    const { id } = await props.tx.one<ISchedule>(`
-      INSERT INTO dbtable_schema.schedules (name, created_sub, slot_duration, schedule_time_unit_id, bracket_time_unit_id, slot_time_unit_id, start_time, end_time, timezone)
-      VALUES ($1, $2::uuid, $3::integer, $4::uuid, $5::uuid, $6::uuid, $7, $8, $9)
-      RETURNING id, name, created_on as "createdOn"
-    `, [name, props.event.userSub, slotDuration, scheduleTimeUnitId, bracketTimeUnitId, slotTimeUnitId, startTime || null, endTime || null, timezone]);
+      const { id } = await props.tx.one<ISchedule>(`
+        INSERT INTO dbtable_schema.schedules (name, created_sub, slot_duration, schedule_time_unit_id, bracket_time_unit_id, slot_time_unit_id, start_time, end_time, timezone)
+        VALUES ($1, $2::uuid, $3::integer, $4::uuid, $5::uuid, $6::uuid, $7, $8, $9)
+        RETURNING id, name, created_on as "createdOn"
+      `, [name, props.event.userSub, slotDuration, scheduleTimeUnitId, bracketTimeUnitId, slotTimeUnitId, startTime || null, endTime || null, timezone]);
 
-    schedule.id = id;
+      schedule.id = id;
 
-    return schedule;
+      return schedule;
+          
+    } catch (error) {
+      const { constraint } = error as DbError;
+      
+      if ('unique_enabled_name_created_sub' === constraint) {
+        throw { reason: 'You can only join a master schedule once.' }
+      }
+
+      throw error;
+    }
   },
   postScheduleBrackets: async props => {
     const { scheduleId, brackets } = props.event.body;
