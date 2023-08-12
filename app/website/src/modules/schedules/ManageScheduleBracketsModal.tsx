@@ -124,7 +124,7 @@ export function ManageScheduleBracketsModal({ editSchedule, closeModal }: IProps
         setSnack({ snackOn: 'Successfully added your schedule to group schedule: ' + schedule.name, snackType: 'info' });
         if (closeModal) {
           firstLoad.current = true;
-          closeModal(!editSchedule);
+          closeModal();
         }
       } else {
         setSnack({ snackOn: 'A schedule should have a name, a duration, and at least 1 bracket.', snackType: 'info' });
@@ -220,7 +220,7 @@ export function ManageScheduleBracketsModal({ editSchedule, closeModal }: IProps
         <Button onClick={() => {
           if (closeModal) {
             firstLoad.current = true;
-            closeModal(false)
+            closeModal()
           }
         }}>Cancel</Button>
         {1 === viewStep ? <Grid item>

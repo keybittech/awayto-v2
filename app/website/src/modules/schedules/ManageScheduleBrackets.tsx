@@ -101,12 +101,10 @@ export function ManageScheduleBrackets(): React.JSX.Element {
   return <>
     <Dialog fullScreen open={dialog === 'manage_schedule' && (!scheduleId || scheduleDetails?.id === scheduleId)} fullWidth maxWidth="sm">
       <Suspense>
-        <ManageScheduleBracketsModal editSchedule={scheduleId ? scheduleDetails : undefined} closeModal={(added: boolean) => {
+        <ManageScheduleBracketsModal editSchedule={scheduleId ? scheduleDetails : undefined} closeModal={() => {
           setDialog('');
-          if (added) {
-            scheduleId && getScheduleById().catch(console.error);
-            getSchedules().catch(console.error);
-          }
+          scheduleId && getScheduleById().catch(console.error);
+          getSchedules().catch(console.error);
         }} />
       </Suspense>
     </Dialog>
