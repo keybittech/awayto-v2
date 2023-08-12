@@ -186,9 +186,9 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
 
       // Check if the user is speaking or not
       if (isFinal && transcript.length) {
-        getPrompt({ id: IPrompts.TRANSLATE, prompt: `English|Chinese Simplified|${transcript}`}).unwrap().then(({ promptResult: [translated] }) => {
-          sendMessage('text', { style: 'utterance', message: translated.split('Translation:')[1] });
-        }).catch(console.error);
+        // getPrompt({ id: IPrompts.TRANSLATE, prompt: `English|Chinese Simplified|${transcript}`}).unwrap().then(({ promptResult: [translated] }) => {
+          sendMessage('text', { style: 'utterance', message: transcript });
+        // }).catch(console.error);
       }
     });
 
