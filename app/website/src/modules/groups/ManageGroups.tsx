@@ -18,7 +18,7 @@ import Logout from '@mui/icons-material/Logout';
 
 import { DataGrid } from '@mui/x-data-grid';
 
-import { IGroup, IUserProfile, SiteRoles } from 'awayto/core';
+import { IGroup, SiteRoles } from 'awayto/core';
 import { useAppSelector, useSecure, useGrid, sh, useUtil, useStyles } from 'awayto/hooks';
 
 import ManageGroupModal from './ManageGroupModal';
@@ -45,12 +45,18 @@ export function ManageGroups(props: IProps): React.JSX.Element {
   const { data: profile, refetch: getUserProfileDetails } = sh.useGetUserProfileDetailsQuery();
 
   const { groups } = profile || {};
+  const grldr = useMemo(() => {
+    if (groups) {
+      const gr = groups[selected[0]];
+      const grldr = gr?.ldr;
+      return grldr;
+    }
+  }, [groups, selected])
 
   const actions = useMemo(() => {
     if (!groups) return [];
     const { length } = selected;
     const gr = groups[selected[0]];
-    const grldr = gr?.ldr;
     const acts = length == 1 ? [
       !grldr && <Tooltip key={'leave_group'} title="Leave">
         <Button onClick={() => {
@@ -66,14 +72,14 @@ export function ManageGroups(props: IProps): React.JSX.Element {
           <Logout className={classes.variableButtonIcon} />
         </Button>
       </Tooltip>,
-      grldr && hasRole([SiteRoles.APP_GROUP_ADMIN]) && <Tooltip key={'view_group_details'} title="Details">
-        <Button onClick={() => {
-          navigate(`/group/${gr.name}/manage/users`)
-        }}>
-          <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Details</Typography>
-          <ManageAccountsIcon className={classes.variableButtonIcon} />
-        </Button>
-      </Tooltip>,
+      // grldr && hasRole([SiteRoles.APP_GROUP_ADMIN]) && <Tooltip key={'view_group_details'} title="Details">
+      //   <Button onClick={() => {
+      //     navigate(`/group/${gr.name}/manage/users`)
+      //   }}>
+      //     <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Details</Typography>
+      //     <ManageAccountsIcon className={classes.variableButtonIcon} />
+      //   </Button>
+      // </Tooltip>,
       grldr && <Tooltip key={'manage_group'} title="Edit">
         <Button onClick={() => {
           setGroup(groups[selected[0]]);
@@ -111,7 +117,24 @@ export function ManageGroups(props: IProps): React.JSX.Element {
       { flex: 1, headerName: 'Name', field: 'name' },
       { flex: 1, headerName: 'Code', field: 'code' },
       { flex: 1, headerName: 'Users', field: 'usersCount', renderCell: ({ row }) => row.usersCount || 0 },
-      { flex: 1, headerName: 'Created', field: 'createdOn', renderCell: ({ row }) => dayjs().to(dayjs.utc(row.createdOn)) }
+      { flex: 1, headerName: 'Created', field: 'createdOn', renderCell: ({ row }) => dayjs().to(dayjs.utc(row.createdOn)) },
+      ...(grldr && hasRole([SiteRoles.APP_GROUP_ADMIN]) ? 
+        [{ flex: 1, headerName: '', field: '', renderCell: ({ row }: { row: IGroup }) =>  <Tooltip key={'delete_group'} title="Delete">
+            <Button onClick={() => {
+              openConfirm({
+                isConfirming: true,
+                confirmEffect: 'Delete the group ' + row.name + ' and refresh the session.',
+                confirmAction: () => {
+                  deleteGroup({ ids: selected.join(',') }).unwrap().then(() => keycloak.clearToken()).catch(console.error);
+                }
+              });
+            }}>
+              <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Delete</Typography>
+              <DeleteIcon className={classes.variableButtonIcon} />
+            </Button>
+          </Tooltip>
+        }] : []
+      )
     ],
     selected,
     onSelected: p => setSelected(p as string[]),
