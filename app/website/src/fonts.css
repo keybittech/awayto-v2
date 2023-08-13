@@ -1,7 +1,7 @@
-@font-face {
+/* @font-face {
   font-family: 'Roboto';
   src: local('Roboto'), url('https://fonts.googleapis.com/css?family=Roboto:regular');
-  font-weight: 400; /* normal */
+  font-weight: 400;
   font-style: normal;
 }
 @font-face {
@@ -15,4 +15,4 @@
   src: local('Roboto'), url('https://fonts.googleapis.com/css?family=Roboto:bold');
   font-weight: 700;
   font-style: normal;
-}
+} */

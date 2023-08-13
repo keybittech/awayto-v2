@@ -212,9 +212,9 @@ export const getBaseComponents: () => ThemeOptions = () => ({
 });
 
 export const getDesignTokens: (mode: PaletteMode) => ThemeOptions = (mode) => ({
-  typography: {
-    fontFamily: ['Roboto', 'sans-serif'].join(',')
-  },
+  // typography: {
+  //   fontFamily: ['Roboto', 'sans-serif'].join(',')
+  // },
   palette: {
     mode,
     ...(
