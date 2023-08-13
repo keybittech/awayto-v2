@@ -30,6 +30,7 @@ export function ManageRoles(): React.JSX.Element {
   const roleSet = useMemo(() => groupRoles?.length ? groupRoles : profile && Object.keys(profile.roles || {}).length ? Object.values(profile.roles) : [], [groupRoles, profile]);
 
   const [deleteRole] = sh.useDeleteRoleMutation();
+  const [deleteGroupRole] = sh.useDeleteGroupRoleMutation();
 
   const [role, setRole] = useState<IRole>();
   const [selected, setSelected] = useState<string[]>([]);
@@ -62,9 +63,12 @@ export function ManageRoles(): React.JSX.Element {
       <Tooltip key={'delete_role'} title="Delete">
         <Button onClick={() => {
           async function go() {
-            await deleteRole({ ids: selected.join(',') }).unwrap();
-            void getUserProfileDetails();
-            setSelected([]);
+            if (groupName) {
+              await deleteGroupRole({ groupName, ids: selected.join(',') }).unwrap();
+              await deleteRole({ ids: selected.join(',') }).unwrap();
+              await getUserProfileDetails().unwrap();
+              setSelected([]);
+            }
           }
           void go();
         }}>
