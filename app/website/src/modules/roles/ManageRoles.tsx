@@ -25,7 +25,7 @@ export function ManageRoles(): React.JSX.Element {
   const { ManageRoleModal } = useComponents();
 
   const { data: groupRoles, refetch: getGroupRoles } = sh.useGetGroupRolesQuery({ groupName: groupName || '' }, { skip: !groupName }); 
-  const { data: profile, refetch: getUserProfileDetails } = sh.useGetUserProfileDetailsQuery(undefined, { skip: !!groupName });
+  const { data: profile, refetch: getUserProfileDetails } = sh.useGetUserProfileDetailsQuery();
 
   const roleSet = useMemo(() => groupRoles?.length ? groupRoles : profile && Object.keys(profile.roles || {}).length ? Object.values(profile.roles) : [], [groupRoles, profile]);
 
@@ -66,7 +66,8 @@ export function ManageRoles(): React.JSX.Element {
             if (groupName) {
               await deleteGroupRole({ groupName, ids: selected.join(',') }).unwrap();
               await deleteRole({ ids: selected.join(',') }).unwrap();
-              await getUserProfileDetails().unwrap();
+              void getUserProfileDetails();
+              void getGroupRoles();
               setSelected([]);
             }
           }
