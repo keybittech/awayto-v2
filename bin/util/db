@@ -1,0 +1,5 @@
+#!/bin/sh
+
+. ./bin/util/genenv
+
+ssh "$TAILSCALE_OPERATOR@$DB_HOST" "sudo docker exec -i \$(sudo docker ps -aqf "name=wcdb") psql -U \"$PG_USER\" \"$PG_DB\""

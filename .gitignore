@@ -22,4 +22,5 @@ app/website/src/modules/generated
 *test*.json
 deployed
 sites/
+dev_reports/
 turn/turnserver.conf

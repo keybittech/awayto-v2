@@ -1,0 +1,81 @@
+#!/bin/sh
+
+. ./bin/util/genenv
+
+read -p "Column: " REPORT_COLUMN
+read -p "ID: " REPORT_ID
+
+mkdir -p dev_reports
+REPORT_LOC="./dev_reports/${REPORT_ID}_$(openssl rand -base64 32 | shasum | cut -d " " -f1)"
+
+{
+  ssh "$TAILSCALE_OPERATOR@$DB_HOST" "sudo docker exec -i \$(sudo docker ps -aqf "name=wcdb") psql -U \"$PG_USER\" \"$PG_DB\"" << EOF
+
+DROP FUNCTION IF EXISTS id_report(text,text,text);
+
+CREATE FUNCTION id_report(
+  schema_name text,
+  col_name text,
+  target_key text
+) RETURNS TABLE(table_name text, created_on timestamp, record json) AS \$PSQL\$ DECLARE table_record RECORD;
+
+column_check RECORD;
+
+BEGIN
+  CREATE TEMP TABLE temp_results (table_name text, created_on timestamp, record json);
+
+  FOR table_record IN
+    SELECT
+      information_schema.tables.table_name
+    FROM
+      information_schema.tables
+    WHERE
+      table_schema = schema_name 
+    LOOP
+      FOR column_check IN
+        SELECT
+          kcu.column_name
+        FROM
+          information_schema.key_column_usage AS kcu
+          JOIN information_schema.referential_constraints AS rc ON kcu.constraint_name = rc.constraint_name
+        WHERE
+          rc.unique_constraint_schema = schema_name
+          AND kcu.column_name = col_name
+          AND kcu.table_schema = schema_name
+          AND table_record.table_name = kcu.table_name
+        LOOP
+          EXECUTE format(
+            'INSERT INTO temp_results SELECT %L AS table_name, t.created_on, row_to_json(t) AS record FROM %I.%I t WHERE %I = %L',
+            table_record.table_name,
+            schema_name,
+            table_record.table_name,
+            col_name,
+            target_key
+          );
+        END LOOP;
+    END LOOP;
+
+  RETURN QUERY SELECT * FROM temp_results ORDER BY created_on;
+  DROP TABLE temp_results;
+END;
+
+\$PSQL\$ LANGUAGE plpgsql;
+
+SELECT
+  *
+FROM
+  id_report(
+    'dbtable_schema',
+    '$REPORT_COLUMN',
+    '$REPORT_ID'
+  );
+
+EOF
+} | tee $REPORT_LOC
+
+echo "\n$(date)" >> $REPORT_LOC
+echo "\n$(ls ./dev_reports | wc -l)" >> $REPORT_LOC
+
+echo "$REPORT_LOC generated."
+
+
