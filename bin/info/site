@@ -1,0 +1,45 @@
+#!/bin/sh
+
+. ./bin/util/genenv
+
+mkdir -p dev_reports
+REPORT_LOC="./dev_reports/$(ls ./dev_reports | wc -l)_${REPORT_COLUMN}__$(openssl rand -base64 32 | shasum | cut -d " " -f1)"
+
+echo "$(date)\n" >> $REPORT_LOC
+
+{
+  ssh "$TAILSCALE_OPERATOR@$EXIT_HOST" << 'EOF'
+
+for JAIL in $(sudo fail2ban-client status | awk '/Jail list:/ {gsub(",", ""); print $4, $5, $6, $7}')
+do
+  echo -e "\n---- Jail: $JAIL ----"
+  sudo fail2ban-client status $JAIL
+done
+
+EOF
+} | tee -a $REPORT_LOC
+
+REPORT_HOSTS="$NS1_HOST $NS2_HOST $EXIT_HOST $APP_HOST $BUILD_HOST $DB_HOST $SVC_HOST"
+
+for REPORT_HOST in $REPORT_HOSTS; do
+{
+
+  ssh "$TAILSCALE_OPERATOR@$REPORT_HOST" << 'EOF'
+  
+  echo "Host Information: $REPORT_HOST"
+  echo "System Load:"
+  uptime
+  echo "RAM Usage:"
+  free -h
+  echo "Disk Usage:"
+  df -h
+  echo "Active Processes:"
+  top -b -n 1 | head -n 10
+
+EOF
+} | tee -a $REPORT_LOC
+done
+
+
+
+echo "$REPORT_LOC generated."
