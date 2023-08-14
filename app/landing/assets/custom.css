@@ -11,11 +11,10 @@
 }
 
 .app-button {
-  border-radius: 4px;
-  padding: 8px 12px;
+  padding: 8px 52px;
   font-size: 32px;
-  background-color: rgb(92, 142, 192);
-  font-weight: bold;
+  background-color: #5c8ec0;
+  font-weight: 700;
   font-family: sans-serif;
 }
 

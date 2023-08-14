@@ -1,4 +1,4 @@
-<header class="header">
+<!-- <header class="header">
   <p class="logo">
     <a class="site-name" href="{{ `` | absURL }}">{{ site.Title }}</a>
     {{ with .Site.GetPage "faq" }}<a href="{{.RelPermalink}}">{{.Title}}</a>{{ end }}
@@ -24,14 +24,14 @@
     sysDark.addEventListener('change', (event) => setDark(event.matches));
   </script>
 
-  {{ $url := .RelPermalink }}<!---->
+  {{ $url := .RelPermalink }}
   {{ with site.Menus.main }}
   <nav class="menu">
     {{ range . }}
     <a class="{{ if eq .URL $url }}active{{ end }}" href="{{ .URL }}">{{ .Name }}</a>
     {{ end }}
   </nav>
-  {{ end }}<!---->
+  {{ end }}
 
   {{ with $.Scratch.Get "social-list" }}
   <nav class="social">
@@ -45,4 +45,4 @@
     {{ end }}
   </nav>
   {{ end }}
-</header>
+</header> -->
