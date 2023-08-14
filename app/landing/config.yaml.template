@@ -1,6 +1,7 @@
 title: $SITE_NAME
 baseURL: https://$CUST_LAND_HOSTNAME/
 languageCode: en-us
+enableRobotsTXT: true
 
 Params:
   appURL: https://$CUST_APP_HOSTNAME/app
