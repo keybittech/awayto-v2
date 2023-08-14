@@ -31,19 +31,20 @@ sudo sed -i '/^[^#]*\[nginx-http-auth\]/a enabled = true' /etc/fail2ban/jail.loc
 
 echo "# Configure fail2ban for keycloak"
 sudo bash -c 'echo -e "[Definition]\nfailregex = ^<HOST> -.*POST.*\/auth\/realms\/.*\/protocol\/openid-connect\/token HTTP\/.* 401\nignoreregex =" > /etc/fail2ban/filter.d/keycloak.conf'
-sudo bash -c 'echo -e "[keycloak]\nenabled = true\nfilter = keycloak\naction = iptables-multiport[name=Keycloak, port=\"http,https\", protocol=tcp]\nlogpath = /var/log/nginx/access.log\nmaxretry = 5\nbantime = 600\nfindtime = 600\n" >> /etc/fail2ban/jail.local'
+sudo bash -c 'echo -e "[keycloak]\nenabled = true\nfilter = keycloak\naction = iptables-multiport[name=Keycloak, port=\"http,https\", protocol=tcp]\nlogpath = /var/log/nginx/access.log\nmaxretry = 5\nbantime = 600\nfindtime = 600\n\n" >> /etc/fail2ban/jail.local'
+
+echo "# Configure fail2ban for modsec"
+sudo bash -c 'echo -e "[Definition]\nfailregex = \\[client <HOST>\\] ModSecurity: Access denied with code 403\nignoreregex =" > /etc/fail2ban/filter.d/modsec.conf'
+sudo bash -c 'echo -e "[modsec]\nenabled = true\nfilter = modsec\naction = iptables-multiport[name=ModSec, port=\"http,https\", protocol=tcp]\nlogpath = /var/log/nginx/error.log\nmaxretry = 3\nbantime = 600\nfindtime = 600\n\n" >> /etc/fail2ban/jail.local'
 
 echo "# Configure fail2ban for repeated errors"
 sudo bash -c 'echo -e "[Definition]\nfailregex = ^<HOST> -.*\"(POST|GET|HEAD).*\" (404|400) .*\nignoreregex = /auth/resources/.*|keycloak-bg.png|theme.png" > /etc/fail2ban/filter.d/nginx-http-errors.conf'
-sudo bash -c 'echo -e "[nginx-http-errors]\nenabled = true\nfilter = nginx-http-errors\naction = iptables-multiport[name=NginxHTTPErrors, port=\"http,https\", protocol=tcp]\nlogpath = /var/log/nginx/access.log\nmaxretry = 5\nbantime = 600\nfindtime = 600\n" >> /etc/fail2ban/jail.local'
+sudo bash -c 'echo -e "[nginx-http-errors]\nenabled = true\nfilter = nginx-http-errors\naction = iptables-multiport[name=NginxHTTPErrors, port=\"http,https\", protocol=tcp]\nlogpath = /var/log/nginx/access.log\nmaxretry = 5\nbantime = 600\nfindtime = 600\n\n" >> /etc/fail2ban/jail.local'
 
 sudo systemctl restart fail2ban
 
 echo "# Configure exit nginx"
 sudo mv /home/$TAILSCALE_OPERATOR/exit.nginx.conf /etc/nginx/sites-available/exit.nginx.conf
-
-# Hides version numbers
-sudo sed -i '/http {/a server_tokens off;' /etc/nginx/nginx.conf
 
 chmod +x /home/$TAILSCALE_OPERATOR/installmodsec && /home/$TAILSCALE_OPERATOR/installmodsec
 

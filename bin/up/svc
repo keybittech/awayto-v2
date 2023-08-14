@@ -65,7 +65,7 @@ sudo docker volume create graylogdata
 sudo docker network create graylognet
 
 echo "# Starting sock container"
-sudo docker run -d --restart always --name wcsock --memory=100m --network="host" \
+sudo docker run -d --restart always --name wcsock --network="host" \
   --add-host=$DB_HOST:$(tailscale ip -4 $DB_HOST) \
   --add-host=$CUST_APP_HOSTNAME:$(tailscale ip -4 $APP_HOST) \
   -e API_HOST=${DB_HOST}:9443/api \
@@ -79,16 +79,14 @@ sudo docker run -d --restart always --name wcsock --memory=100m --network="host"
 CUST_APP_HOSTNAME=$CUST_APP_HOSTNAME envsubst < /home/$TAILSCALE_OPERATOR/turnserver.conf.template > /home/$TAILSCALE_OPERATOR/turnserver.conf
 
 echo "# Starting turn container"
-sudo docker run -d --restart always --name wcturn --memory=50m --network="host" \
+sudo docker run -d --restart always --name wcturn --network="host" \
   -v /home/$TAILSCALE_OPERATOR/turnserver.conf:/etc/coturn/turnserver.conf:ro \
   $BUILD_HOST:5000/wcturn:$TURN_VERSION
 
 echo "# Starting graylog containers"
-sudo docker run -d --memory=200m --name=mongo --network="graylognet" mongo:5.0.13
+sudo docker run -d --restart always --network="graylognet" --name=mongo mongo:5.0.13
 
-sudo docker run -d --network="graylognet" --name=elasticsearch -e http.host=0.0.0.0 \
-  --ulimit memlock=-1:-1 \
-  --memory=1g \
+sudo docker run -d --restart always --network="graylognet" --name=elasticsearch -e http.host=0.0.0.0 \
   -e transport.host=localhost \
   -e network.host=0.0.0.0 \
   -e "ES_JAVA_OPTS=-Dlog4j2.formatMsgNoLookups=true -Xms512m -Xmx512m" \
