@@ -9,6 +9,6 @@
   },
   "scripts": {
     "start": "./server.sh",
-    "build": "hugo -s . -d ./build"
+    "build": "hugo --cleanDestinationDir -s . -d ./build"
   }
 }
