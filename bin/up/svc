@@ -33,7 +33,7 @@ sudo docker push localhost:5000/wcturn:$TURN_VERSION
 sudo docker push localhost:5000/wcturn:latest
 EOF
 
-scp "./turn/turnserver.conf.template" "$TAILSCALE_OPERATOR@$SVC_HOST:/home/$TAILSCALE_OPERATOR/turnserver.conf.template"
+scp "./turn/turnserver.conf.template" "./deploy/graylog-content-pack.json" "$TAILSCALE_OPERATOR@$SVC_HOST:/home/$TAILSCALE_OPERATOR/"
 
 ssh -T $TAILSCALE_OPERATOR@$SVC_HOST << EOF
 
@@ -53,12 +53,22 @@ sudo ufw allow 1514/udp
 sudo ufw allow 12201
 sudo ufw allow 12201/udp
 
+
+echo "# Resetting containers"
 sudo docker stop wcsock
 sudo docker stop wcturn
 sudo docker stop mongo
 sudo docker stop elasticsearch
 sudo docker stop graylog
-sudo docker system prune -a -f
+
+sudo docker rm wcsock
+sudo docker rm wcturn
+sudo docker rm mongo
+sudo docker rm elasticsearch
+sudo docker rm graylog
+
+sudo docker volume rm graylogdata
+sudo docker network rm graylognet
 
 echo "# Creating docker volumes/network"
 sudo docker volume create graylogdata
@@ -98,8 +108,12 @@ sudo docker run -d --restart always --network="graylognet" --name graylog \
   -p 1514:1514/udp \
   -p 12201:12201 \
   -p 12201:12201/udp \
+  -e GRAYLOG_CONTENT_PACKS_AUTO_INSTALL=graylog-content-pack.json \
+  -e GRAYLOG_CONTENT_PACKS_LOADER_ENABLED=true \
+  -e GRAYLOG_CONTENT_PACKS_DIR=data/contentpacks \
   -e GRAYLOG_PASSWORD_SECRET=$GRAYLOG_PASSWORD_SECRET \
   -e GRAYLOG_ROOT_PASSWORD_SHA2=$GRAYLOG_ROOT_PASSWORD_SHA2 \
   -e GRAYLOG_HTTP_EXTERNAL_URI=http://$SVC_HOST:9000/ \
+  -v /home/$TAILSCALE_OPERATOR/graylog-content-pack.json:/usr/share/graylog/data/contentpacks/graylog-content-pack.json \
   -v graylogdata:/usr/share/graylog/data graylog/graylog:5.0
 EOF

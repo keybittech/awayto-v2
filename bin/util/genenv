@@ -45,6 +45,8 @@ if [ ! -f "./sites/$PROJECT_PREFIX/.env" ]; then
   prompt_user "ADMIN_EMAIL" "Enter ADMIN_EMAIL: "
   prompt_user "PROJECT_REPO" "Enter PROJECT_REPO (Leave blank for default): " "https://github.com/jcmccormick/wc.git"
 
+  GRAYLOG_PASS=$(genid)
+
   cat << EOF > "./sites/$PROJECT_PREFIX/.env"
 SITE_NAME="$SITE_NAME"
 PROJECT_PREFIX=$PROJECT_PREFIX
@@ -80,7 +82,8 @@ KC_API_CLIENT_SECRET=$(genid)
 
 SOCK_SECRET=$(genid)
 
-GRAYLOG_ROOT_PASSWORD_SHA2=$(echo -n "${PROJECT_PREFIX}changeme1" | sha256sum | cut -d " " -f1)
+GRAYLOG_PASS=$GRAYLOG_PASS
+GRAYLOG_ROOT_PASSWORD_SHA2=$(echo -n "$GRAYLOG_PASS" | sha256sum | cut -d " " -f1)
 GRAYLOG_PASSWORD_SECRET=$(genid)
 
 EOF

@@ -144,32 +144,11 @@ services:
   # Elasticsearch: https://www.elastic.co/guide/en/elasticsearch/reference/7.10/docker.html
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2
-    environment:
-      - http.host=0.0.0.0 #NONSECRET
-      - transport.host=localhost #NONSECRET
-      - network.host=0.0.0.0 #NONSECRET
-      - "ES_JAVA_OPTS=-Dlog4j2.formatMsgNoLookups=true -Xms512m -Xmx512m" #NONSECRET
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    deploy:
-      resources:
-        limits:
-          memory: 1g
           
   # Graylog: https://hub.docker.com/r/graylog/graylog/
   graylog:
     image: graylog/graylog:5.0
-    environment:
-      - GRAYLOG_PASSWORD_SECRET=${GRAYLOG_PASSWORD_SECRET} #SECRET
-      - GRAYLOG_ROOT_PASSWORD_SHA2=${GRAYLOG_ROOT_PASSWORD_SHA2} #SECRET
-      - GRAYLOG_HTTP_EXTERNAL_URI=http://${SVC_HOST}:9000/ #NONSECRET
     entrypoint: /usr/bin/tini -- wait-for-it elasticsearch:9200 --  /docker-entrypoint.sh
-    restart: always
-    depends_on:
-      - mongo
-      - elasticsearch
     ports:
       # Graylog web interface and REST API
       - 9090:9000
@@ -183,6 +162,7 @@ services:
       - 12201:12201/udp
     volumes: # DONE
       - graylogdata:/usr/share/graylog/data
+      - ./deploy/graylog-content-pack.json:
 
 volumes:
   sqlitedata:
