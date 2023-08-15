@@ -53,18 +53,20 @@ keycloak.regroup = async function (groupId?: string): Promise<void> {
     const oldGroupRoleActions = (await groupRoleActions || {}) as Record<string, IGroupRoleAuthActions>;
 
     if (groupId) {
-      performance.mark("regroupOneGroupStart");
       const group = await keycloak.groups.findOne({ id: groupId });
       groups = group ? [group] : [];
     } else {
-      performance.mark("regroupAllGroupsStart");
+      performance.mark("regroupStart");
       groups = await keycloak.groups.find();
     }
 
     const newGroupRoleActions: Record<string, IGroupRoleAuthActions> = {};
 
+    let roleCount = 0;
+
     for (const group of groups) {
       if (group.subGroups) {
+        roleCount += group.subGroups.length;
         for (const { path, id: subgroupId } of group.subGroups) {
           if (path && subgroupId) {
             if (!oldGroupRoleActions[path] || oldGroupRoleActions[path].fetch as boolean || groupId) {
@@ -103,12 +105,9 @@ keycloak.regroup = async function (groupId?: string): Promise<void> {
       clearLocalCache('groupRoleActions');
     }
 
-    if (groupId) {
-      performance.mark("regroupOneGroupEnd");
-      performance.measure("regroupOneGroupStart to regroupOneGroupEnd", "regroupOneGroupStart", "regroupOneGroupEnd");
-    } else {
-      performance.mark("regroupAllGroupsEnd");
-      performance.measure("regroupAllGroupsStart to regroupAllGroupsEnd", "regroupAllGroupsStart", "regroupAllGroupsEnd");
+    if (!groupId) {
+      performance.mark("regroupEnd");
+      performance.measure(`regroup ${groups.length} ${roleCount}`, "regroupStart", "regroupEnd");
     }
   } catch (error) {
     console.log('regroup failed', error);
