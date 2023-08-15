@@ -126,6 +126,8 @@ fi
 
 CUST_APP_HOSTNAME=$CUST_APP_HOSTNAME envsubst < ./turn/turnserver.conf.template > ./turn/turnserver.conf
 
+. ./bin/dev/build-auth
+
 docker stop $(docker ps -aq)
 docker rm $(docker ps -aq)
 
