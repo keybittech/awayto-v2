@@ -7,12 +7,12 @@ if ! command -v jq >/dev/null 2>&1; then
   echo "Please install jq."
 fi
 
-read -p "Enter PROJECT_PREFIX (ex. mp): " PROJECT_PREFIX
 
 if [ ! -f ./.env ]; then
 
   echo "Generating .env file..."
 
+  read -p "Enter PROJECT_PREFIX (ex. mp): " PROJECT_PREFIX
   read -p "Enter SITE_NAME (ex. My Project): " SITE_NAME
 
   PROJECT_DIR=$(pwd)
@@ -33,22 +33,22 @@ CA_PASS=capass
 
 REDIS_PASS=redispass
 
-PG_DB=${PROJECT_PREFIX}db
-PG_USER=${PROJECT_PREFIX}postgres
+PG_DB=pgdblocal
+PG_USER=postgres
 PG_PASS=pgpass
 
 API_COOKIE=apicookie
 
-KC_ADMIN=${PROJECT_PREFIX}auth
+KC_ADMIN=kcauth
 KC_PASS=kcpass
-KC_REALM=${PROJECT_PREFIX}_realm
-KC_CLIENT=${PROJECT_PREFIX}_client
-KC_API_CLIENT_ID=${PROJECT_PREFIX}_api_client
-KC_API_CLIENT_SECRET=${PROJECT_PREFIX}_api_client_secret
+KC_REALM=kc_realm
+KC_CLIENT=kc_client
+KC_API_CLIENT_ID=kc_api_client
+KC_API_CLIENT_SECRET=kc_api_client_secret
 
 SOCK_SECRET=socksecret
 
-GRAYLOG_ROOT_PASSWORD_SHA2=$(echo -n "graylogpass" | sha256sum | cut -d " " -f1) # graylogpass
+GRAYLOG_ROOT_PASSWORD_SHA2=$(echo -n "graylogpass" | sha256sum | cut -d " " -f1)
 GRAYLOG_PASSWORD_SECRET=graylogpasswordsecret
 
 PROJECT_DIR=$PROJECT_DIR
@@ -95,7 +95,7 @@ if [ ! -f $KEYSTORE_LOC ]; then
 
   # Create a self-signed Certificate Authority
   echo "Creating self-signed CA..."
-  openssl req -new -x509 -keyout $EXIT_KEY_LOC -out $EXIT_FULLCHAIN_LOC -days $DAYS -passout pass:$CA_PASS -subj "/O=wcapp/OU=dev/CN=${CUST_APP_HOSTNAME}"
+  openssl req -nodes -new -x509 -keyout $EXIT_KEY_LOC -out $EXIT_FULLCHAIN_LOC -days 365 -subj "/CN=$CUST_APP_HOSTNAME"
 
   # Use decrypted key for API
   echo "Generating key for API..."
@@ -126,7 +126,8 @@ fi
 
 CUST_APP_HOSTNAME=$CUST_APP_HOSTNAME envsubst < ./turn/turnserver.conf.template > ./turn/turnserver.conf
 
-# docker compose down
+docker stop $(docker ps -aq)
+docker rm $(docker ps -aq)
 
 docker volume rm sqlitedata
 docker volume rm pg15store

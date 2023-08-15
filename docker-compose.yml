@@ -50,6 +50,10 @@ services:
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - API_COOKIE=${API_COOKIE}
+      - HOST_CERT_LOC=db_fullchain.pem
+      - HOST_KEY_LOC=db_host.key
+      - EXIT_FULLCHAIN_LOC=exit_fullchain.pem
+      - CA_CERT_LOC=ca.crt
       - KC_REALM=${KC_REALM}
       - KC_CLIENT=${KC_CLIENT}
       - KC_API_CLIENT_ID=${KC_API_CLIENT_ID}
@@ -58,7 +62,7 @@ services:
       - APP_HOST=${APP_HOST}
       - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
       - KC_HOST=auth
-      - KC_PORT=8080
+      - KC_PORT=8443
       - FS_HOST=fs
       - FS_PORT=8000
       - PG_HOST=db #NONSECRET
@@ -130,18 +134,19 @@ services:
     build:
       context: ./
       dockerfile: ./auth/Dockerfile
+    extra_hosts:
+      - ${CUST_APP_HOSTNAME}:${APP_HOST}
     environment:
       - KC_API_CLIENT_ID=${KC_API_CLIENT_ID}
-      - API_HOST=api:9443/api #pointing to reverse proxy or use =${DB_HOST}:9443/api for internal routing
+      - KC_PROXY=edge #NONSECRET
       - KC_HTTPS_KEY_STORE_FILE=/opt/keycloak/conf/KeyStore.jks
       - KC_HTTPS_KEY_STORE_PASSWORD=${CA_PASS}
       - KC_SPI_TRUSTSTORE_FILE_FILE=/opt/keycloak/conf/KeyStore.jks
       - KC_SPI_TRUSTSTORE_FILE_PASSWORD=${CA_PASS}
       - KC_SPI_TRUSTSTORE_FILE_HOSTNAME_VERIFICATION_POLICY=ANY
+      - API_HOST=api:9443/api #pointing to reverse proxy or use =${DB_HOST}:9443/api for internal routing
       - KC_HOSTNAME_ADMIN_URL=https://${CUST_APP_HOSTNAME}/auth #NONSECRET
       - KC_HOSTNAME_URL=https://${CUST_APP_HOSTNAME}/auth #NONSECRET
-      - KC_PROXY=edge #NONSECRET
-      - KC_HOSTNAME_STRICT_BACKCHANNEL=true #NONSECRET
       - KEYCLOAK_ADMIN=${KC_ADMIN} #SECRET
       - KEYCLOAK_ADMIN_PASSWORD=${KC_PASS} #SECRET
       - KC_DB_URL=jdbc:postgresql://db:5432/${PG_DB} #NONSECRET

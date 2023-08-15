@@ -35,17 +35,21 @@ import { setupMiddleware } from './middlewares';
 // Create Express app
 const app: Express = express();
 
-const key = fs.readFileSync('db_host.key', 'utf-8');
-const cert = fs.readFileSync('db_fullchain.pem', 'utf-8');
-const exitFullchain = fs.readFileSync('exit_fullchain.pem', 'utf-8');
-const caCert = fs.readFileSync('ca.crt', 'utf-8');
+if (!process.env.HOST_KEY_LOC || !process.env.HOST_CERT_LOC) {
+  throw 'Missing cert files.';
+}
 
-https.globalAgent.options.ca = [ ...tls.rootCertificates, exitFullchain, caCert ];
+const key = fs.readFileSync(process.env.HOST_KEY_LOC, 'utf-8');
+const cert = fs.readFileSync(process.env.HOST_CERT_LOC, 'utf-8');
+
+if (process.env.EXIT_FULLCHAIN_LOC && process.env.CA_CERT_LOC) {
+  const exitFullchain = fs.readFileSync(process.env.EXIT_FULLCHAIN_LOC, 'utf-8');
+  const caCert = fs.readFileSync(process.env.CA_CERT_LOC, 'utf-8');
+  https.globalAgent.options.ca = [ ...tls.rootCertificates, exitFullchain, caCert ];
+}
 
 const creds = { key, cert };
 const httpsServer = https.createServer(creds, app)
-
-// const httpServer = http.createServer();
 
 httpsServer.listen(9443, () => {
   console.log('Server listening on port 9443');
