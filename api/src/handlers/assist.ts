@@ -13,7 +13,7 @@ export default createHandlers({
     }
 
     const { id, prompt } = props.event.queryParameters;
-    const promptResult = (await props.ai.useAi<string>(id, ...prompt.split('%7C'))).message;
+    const promptResult = (await props.ai.useAi<string>(id, ...prompt.split('###'))).message;
     return { promptResult: promptResult.split('|').filter(a => !!a).map(a => a.trim()) };
   },
 });
