@@ -16,7 +16,7 @@ export const logger = new graylog({
 // Log all performance measurements
 const obs = new PerformanceObserver(items => {
   items.getEntries().forEach(measure => {
-    const payload: Record<string, unknown> = { ...measure };
+    const payload: Record<string, unknown> = { ...measure.toJSON() };
     const [measureType, ...data] = measure.name.split(' ');
     
     if ('regroup' === measureType) {
