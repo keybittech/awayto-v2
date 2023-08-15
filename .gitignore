@@ -4,6 +4,7 @@ landing_build
 web_build
 target
 .htpasswd
+certs/
 *.pass*
 *.env*
 *.cert*

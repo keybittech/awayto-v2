@@ -18,7 +18,20 @@ change feedback api to be group centric at the type name level
 do the delete lock unlock apis for group_users
 
 
+3/31 - 22649
 
+TWO PATHS
+
+
+#1 - i'm creating a writing center to derive functionality
+
+#2 - i'm creating a generic web application generation framework
+
+
+Can I allow my users to vote on the next thing to be developed?
+
+- limitations, (cant vote on next if voted) (2 week polling)
+- expectations, (functionality must be generic) 
 
 
 Write an explanation around the following with respect to the API:
@@ -599,3 +612,91 @@ Therefore you would configure services like this:
 
 SSLCertificateFile     /etc/letsencrypt/live/www.example.org/fullchain.pem
 SSLCertificateKeyFile  /etc/letsencrypt/live/www.example.org/privkey.pem
+
+
+-- Schedule bracket slot relationship example
+
+SELECT 
+	count("schedule".*) as schedulesCount,
+	count("bracket".*) as bracketsCount,
+	count("slot".*) as slotCount,
+	count("service".*) as serviceCount
+FROM
+	dbtable_schema.schedules schedule
+	JOIN dbtable_schema.schedule_brackets bracket ON bracket.schedule_id = schedule.id
+	JOIN dbtable_schema.schedule_bracket_services "service" ON "service".schedule_bracket_id = bracket.id
+	JOIN dbtable_schema.schedule_bracket_slots slot ON slot.schedule_bracket_id = bracket.id;
+
+
+
+
+		-- can use this to get orphaned items by time
+    SELECT service.id
+    FROM dbtable_schema.schedule_bracket_services sbs
+    JOIN dbtable_schema.services service ON service.id = sbs.service_id
+    JOIN dbtable_schema.service_tiers tier ON tier.service_id = service.id
+    JOIN dbtable_schema.quotes quote ON quote.service_tier_id = tier.id
+    JOIN dbtable_schema.schedule_bracket_slots slot ON slot.id = quote.schedule_bracket_slot_id
+    LEFT JOIN dbtable_schema.bookings booking ON booking.quote_id = quote.id
+    WHERE
+    TIMEZONE('America/Los_Angeles', (DATE_TRUNC('week', quote.slot_date::DATE) + slot.start_time)::TIMESTAMP) < TIMEZONE('America/Los_Angeles', NOW())
+    AND booking.id IS NOT NULL
+    UNION
+    SELECT service.id
+    FROM dbtable_schema.schedule_bracket_services sbs
+    JOIN dbtable_schema.services service ON service.id = sbs.service_id
+    JOIN dbtable_schema.service_tiers tier ON tier.service_id = service.id
+    LEFT JOIN dbtable_schema.quotes quote ON quote.service_tier_id = tier.id
+    JOIN dbtable_schema.schedule_bracket_slots slot ON slot.id = quote.schedule_bracket_slot_id
+    WHERE
+    TIMEZONE('America/Los_Angeles', (DATE_TRUNC('week', quote.slot_date::DATE) + slot.start_time)::TIMESTAMP) < TIMEZONE('America/Los_Angeles', NOW())
+    AND quote.id IS NOT NULL
+
+
+
+
+
+
+    ------------------------------
+
+
+
+    -- Locking example
+
+	CREATE OR REPLACE FUNCTION enforce_photo_count() RETURNS trigger AS $$
+	DECLARE
+			max_photo_count INTEGER := 10;
+			photo_count INTEGER := 0;
+			must_check BOOLEAN := false;
+	BEGIN
+			IF TG_OP = 'INSERT' THEN
+					must_check := true;
+			END IF;
+
+			IF TG_OP = 'UPDATE' THEN
+					IF (NEW.owner != OLD.owner) THEN
+							must_check := true;
+					END IF;
+			END IF;
+
+			IF must_check THEN
+					-- prevent concurrent inserts from multiple transactions
+					LOCK TABLE photos IN EXCLUSIVE MODE;
+
+					SELECT INTO photo_count COUNT(*) 
+					FROM photos 
+					WHERE owner = NEW.owner;
+
+					IF photo_count >= max_photo_count THEN
+							RAISE EXCEPTION 'Cannot insert more than % photos for each user.', max_photo_count;
+					END IF;
+			END IF;
+
+			RETURN NEW;
+	END;
+	$$ LANGUAGE plpgsql;
+
+
+	CREATE TRIGGER enforce_photo_count 
+			BEFORE INSERT OR UPDATE ON photos
+			FOR EACH ROW EXECUTE PROCEDURE enforce_photo_count();

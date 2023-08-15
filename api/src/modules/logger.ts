@@ -15,9 +15,8 @@ export const logger = new graylog({
 
 // Log all performance measurements
 const obs = new PerformanceObserver(items => {
-  logger.log('performance', { body: items.getEntries() });
-
   items.getEntries().forEach(measure => {
+    logger.log('performance', { body: measure });
     measure.name.split(' to ').forEach(mark => performance.clearMarks(mark));
   });
 });

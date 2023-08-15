@@ -15,8 +15,11 @@ if [ ! -f ./.env ]; then
 
   read -p "Enter SITE_NAME (ex. My Project): " SITE_NAME
 
+  PROJECT_DIR=$(pwd)
+  CERTS_DIR="$PROJECT_DIR/certs"
+
   cat << EOF > ./.env
-SITE_NAME=$SITE_NAME
+SITE_NAME="$SITE_NAME"
 PROJECT_PREFIX=$PROJECT_PREFIX
 WIZAPP_VERSION=${WIZAPP_VERSION:-"0.2.0-beta.2"}
 
@@ -48,32 +51,43 @@ SOCK_SECRET=socksecret
 GRAYLOG_ROOT_PASSWORD_SHA2=$(echo -n "graylogpass" | sha256sum | cut -d " " -f1) # graylogpass
 GRAYLOG_PASSWORD_SECRET=graylogpasswordsecret
 
+PROJECT_DIR=$PROJECT_DIR
+CERTS_DIR=$CERTS_DIR
+
+KEYSTORE_LOC="$CERTS_DIR/KeyStore.jks"
+
+PASS_LOC="$CERTS_DIR/server.pass"
+
+EXIT_FULLCHAIN_LOC="$CERTS_DIR/exit_fullchain.pem"
+EXIT_KEY_LOC="$CERTS_DIR/exit_privkey.pem"
+
+CA_CERT_LOC="$CERTS_DIR/ca.crt"
+
+DB_FULLCHAIN_LOC="$CERTS_DIR/db_fullchain.pem"
+DB_KEY_LOC="$CERTS_DIR/db_host.key"
+
+KC_FULLCHAIN_LOC="$CERTS_DIR/keycloak_fullchain.pem"
+KC_KEY_LOC="$CERTS_DIR/keycloak.key"
+
+CSR_LOC="$CERTS_DIR/server.csr"
+
+ALIAS=$(hostname)
+CA_ALIAS="CARoot"
+DAYS="365"
+
 EOF
 
 fi
 
 . ./.env
 
-SERVER_DIR="./app/server"
-KEYSTORE_LOC="$SERVER_DIR/KeyStore.jks"
-PASS_LOC="$SERVER_DIR/server.pass"
-CSR_LOC="$SERVER_DIR/server.csr"
-CERT_LOC="$SERVER_DIR/server.crt"
-CERT_KEY_LOC="$SERVER_DIR/server.key"
-API_CERT_LOC="./api/server.crt"
-API_KEY_LOC="./api/server.key"
-SOCK_CERT_LOC="./sock/server.crt"
-SOCK_KEY_LOC="./sock/server.key"
-TURN_CERT_LOC="./turn/server.crt"
-TURN_KEY_LOC="./turn/server.key"
-ALIAS="${CUST_APP_HOSTNAME}"
-DAYS="365"
-CA_ALIAS="InternalCA"
-
 if [ ! -f $KEYSTORE_LOC ]; then
+
+  mkdir -p $CERTS_DIR
+
   # Generate a keystore and self-signed certificate
   echo "Generating keystore and self-signed certificate..."
-  keytool -genkeypair -alias $ALIAS -keyalg RSA -keystore $KEYSTORE_LOC -storetype PKCS12 -keysize 2048 -storepass $CA_PASS -keypass $CA_PASS -noprompt -dname "CN=${CUST_APP_HOSTNAME}" -ext "SAN:c=DNS:${CUST_APP_HOSTNAME},IP:127.0.0.1"
+  keytool -genkeypair -alias $ALIAS -keyalg RSA -keystore $KEYSTORE_LOC -storetype PKCS12 -keysize 2048 -storepass $CA_PASS -keypass $CA_PASS -noprompt -dname "CN=$CUST_APP_HOSTNAME" -ext "SAN:c=DNS:$CUST_APP_HOSTNAME,IP:127.0.0.1"
 
   # Create a Certificate Signing Request
   echo "Creating CSR..."
@@ -81,30 +95,29 @@ if [ ! -f $KEYSTORE_LOC ]; then
 
   # Create a self-signed Certificate Authority
   echo "Creating self-signed CA..."
-  openssl req -new -x509 -keyout $CERT_KEY_LOC -out $CERT_LOC -days $DAYS -passout pass:$CA_PASS -subj "/O=wcapp/OU=dev/CN=${CUST_APP_HOSTNAME}"
+  openssl req -new -x509 -keyout $EXIT_KEY_LOC -out $EXIT_FULLCHAIN_LOC -days $DAYS -passout pass:$CA_PASS -subj "/O=wcapp/OU=dev/CN=${CUST_APP_HOSTNAME}"
 
   # Use decrypted key for API
   echo "Generating key for API..."
-  echo $CA_PASS | openssl rsa -passin stdin -in $CERT_KEY_LOC -out $API_KEY_LOC
-  cp $CERT_LOC $API_CERT_LOC
+  cp $EXIT_FULLCHAIN_LOC $DB_FULLCHAIN_LOC
+  cp $EXIT_KEY_LOC $DB_KEY_LOC
 
-  cp $API_KEY_LOC $SOCK_KEY_LOC
-  cp $CERT_LOC $SOCK_CERT_LOC
+  cp $EXIT_FULLCHAIN_LOC $KC_FULLCHAIN_LOC
+  cp $EXIT_KEY_LOC $KC_KEY_LOC
 
-  cp $API_KEY_LOC $TURN_KEY_LOC
-  cp $CERT_LOC $TURN_CERT_LOC
+  cp $EXIT_FULLCHAIN_LOC $CA_CERT_LOC
 
   # Sign the CSR with the CA
   echo "Signing CSR with CA..."
-  openssl x509 -req -CA $CERT_LOC -CAkey $CERT_KEY_LOC -in $CSR_LOC -out "$CERT_LOC.signed" -days $DAYS -CAcreateserial -passin "pass:$CA_PASS"
+  openssl x509 -req -CA $EXIT_FULLCHAIN_LOC -CAkey $EXIT_KEY_LOC -in $CSR_LOC -out "$EXIT_FULLCHAIN_LOC.signed" -days $DAYS -CAcreateserial -passin "pass:$CA_PASS"
 
   # Import the CA to the keystore
   echo "Importing CA to the keystore..."
-  keytool -keystore $KEYSTORE_LOC -alias CARoot -import -file $CERT_LOC -noprompt -storepass $CA_PASS -keypass $CA_PASS
+  keytool -keystore $KEYSTORE_LOC -alias $CA_ALIAS -import -file $EXIT_FULLCHAIN_LOC -noprompt -storepass $CA_PASS -keypass $CA_PASS
 
   # Import the signed certificate to the keystore
   echo "Importing signed certificate to the keystore..."
-  keytool -keystore $KEYSTORE_LOC -alias $ALIAS -import -file "$CERT_LOC.signed" -noprompt -storepass $CA_PASS -keypass $CA_PASS
+  keytool -keystore $KEYSTORE_LOC -alias $ALIAS -import -file "$EXIT_FULLCHAIN_LOC.signed" -noprompt -storepass $CA_PASS -keypass $CA_PASS
 
   echo $CA_PASS > $PASS_LOC
 
