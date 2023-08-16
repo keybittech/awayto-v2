@@ -26,6 +26,8 @@ services:
     ports:
       - 80:80
       - 443:443
+    extra_hosts:
+      - ${CUST_APP_HOSTNAME}:${APP_HOST}
     environment:
       - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
       - CUST_LAND_HOSTNAME=${CUST_LAND_HOSTNAME}
@@ -34,7 +36,7 @@ services:
       - KC_PATH=/auth
       - APP_HOST=${APP_HOST}
     depends_on:
-      - api
+      # - api
       - sock
       - auth
 
@@ -121,6 +123,8 @@ services:
     build:
       context: ./
       dockerfile: ./fs/Dockerfile
+    extra_hosts:
+      - ${CUST_APP_HOSTNAME}:${APP_HOST}
     environment:
       - SQLITE_DATA=/app/data/sqlite-db.db
     volumes:
@@ -144,12 +148,12 @@ services:
       - KC_SPI_TRUSTSTORE_FILE_FILE=/opt/keycloak/conf/KeyStore.jks
       - KC_SPI_TRUSTSTORE_FILE_PASSWORD=${CA_PASS}
       - KC_SPI_TRUSTSTORE_FILE_HOSTNAME_VERIFICATION_POLICY=ANY
-      - API_HOST=api:9443/api #pointing to reverse proxy or use =${DB_HOST}:9443/api for internal routing
+      - API_HOST=${CUST_APP_HOSTNAME}/api #pointing to reverse proxy or use =${DB_HOST}:9443/api for internal routing
       - KC_HOSTNAME_ADMIN_URL=https://${CUST_APP_HOSTNAME}/auth #NONSECRET
       - KC_HOSTNAME_URL=https://${CUST_APP_HOSTNAME}/auth #NONSECRET
       - KEYCLOAK_ADMIN=${KC_ADMIN} #SECRET
       - KEYCLOAK_ADMIN_PASSWORD=${KC_PASS} #SECRET
-      - KC_DB_URL=jdbc:postgresql://db:5432/${PG_DB} #NONSECRET
+      - KC_DB_URL=jdbc:postgresql://${CUST_APP_HOSTNAME}:5432/${PG_DB} #NONSECRET
       - KC_DB_USERNAME=${PG_USER} #SECRET
       - KC_DB_PASSWORD=${PG_PASS} #SECRET
       - KC_REDIS_HOST=redis
@@ -162,6 +166,8 @@ services:
   sock: # 8888 websocket server
     image: wcsock
     build: ./sock
+    ports:
+      - 8888:8888
     extra_hosts:
       - ${CUST_APP_HOSTNAME}:${APP_HOST}
     environment:
@@ -180,6 +186,8 @@ services:
     build:
       context: ./
       dockerfile: ./turn/Dockerfile
+    extra_hosts:
+      - ${CUST_APP_HOSTNAME}:${APP_HOST}
     restart: always
     volumes:
       - ./turn/turnserver.conf:/etc/coturn/turnserver.conf:ro
