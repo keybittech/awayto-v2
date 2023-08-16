@@ -81,6 +81,7 @@ export function FeedbackMenu ({ handleMenuClose, feedbackAnchorEl, feedbackMenuI
             helperText={`${300 - message.length}/300`}
             value={message}
             onChange={e => setMessage(e.target.value)}
+            onKeyDown={e => e.stopPropagation()}
           />
         </Grid>
         <Grid item xs={12}>
