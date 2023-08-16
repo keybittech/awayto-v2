@@ -14,7 +14,7 @@ import Grid from '@mui/material/Grid';
 import Chip from '@mui/material/Chip';
 
 import { IPrompts } from '@keybittech/wizapp/dist/lib';
-import { IService, IServiceTier } from 'awayto/core';
+import { IService, IServiceTier, IAssist } from 'awayto/core';
 import { useComponents, useStyles, sh, useUtil } from 'awayto/hooks';
 
 const serviceSchema = {
@@ -74,7 +74,7 @@ export function ServiceHome(props: IProps): React.JSX.Element {
     async function go() {
       if (groupsValues.length) {
         const gr = groupsValues[0];
-        const { promptResult } = await getPrompt({ id: IPrompts.SUGGEST_SERVICE, prompt: [gr.purpose] }).unwrap();
+        const { promptResult } = await getPrompt({ id: IPrompts.SUGGEST_SERVICE, prompt: gr.purpose } as IAssist).unwrap();
         if (promptResult.length) setServiceSuggestions(promptResult.join(', '));
         setGroup(gr);
       }
@@ -112,7 +112,7 @@ export function ServiceHome(props: IProps): React.JSX.Element {
                   onChange={e => setNewService({ ...newService, name: e.target.value })}
                   onBlur={() => {
                     // When this service name changes, let's get a new prompt for tier name suggestions
-                    getPrompt({ id: IPrompts.SUGGEST_TIER, prompt: [`${newService.name.toLowerCase()} at ${group.name.replaceAll('_', ' ')}`] }).unwrap().then(({ promptResult }) => {
+                    getPrompt({ id: IPrompts.SUGGEST_TIER, prompt: `${newService.name.toLowerCase()} at ${group.name.replaceAll('_', ' ')}` } as IAssist).unwrap().then(({ promptResult }) => {
                       if (promptResult.length) setTierSuggestions(promptResult.join(', '));
                     }).catch(console.error);
                   }}
@@ -182,7 +182,7 @@ export function ServiceHome(props: IProps): React.JSX.Element {
                   value={newServiceTier.name}
                   onBlur={() => {
                     // When this tier name changes, let's get a new prompt for feature name suggestions
-                    getPrompt({ id: IPrompts.SUGGEST_FEATURE, prompt: [`${newServiceTier.name} ${newService.name}`] }).unwrap().then(({ promptResult }) => {
+                    getPrompt({ id: IPrompts.SUGGEST_FEATURE, prompt: `${newServiceTier.name} ${newService.name}` } as IAssist).unwrap().then(({ promptResult }) => {
                       if (promptResult.length) setFeatureSuggestions(promptResult.join(', '));
                     }).catch(console.error);
                   }}
