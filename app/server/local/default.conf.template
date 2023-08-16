@@ -33,7 +33,7 @@ server {
   error_log /var/log/nginx/80.error.log;
   
   location / {
-    limit_req zone=primary burst=20 nodelay;
+    #limit_req zone=primary burst=20 nodelay;
 
     alias /usr/share/nginx/html/;
     try_files $uri $uri/ =404;
@@ -44,7 +44,7 @@ server {
   }
   
   location /app/ {
-    limit_req zone=app burst=30 nodelay;
+    #limit_req zone=app burst=30 nodelay;
 
     #alias /usr/share/nginx/html/app/;
     #try_files $uri $uri/ /app/index.html;
@@ -81,7 +81,7 @@ server {
   }
 
   location /api/ {
-    limit_req zone=primary burst=10 nodelay;
+    #limit_req zone=primary burst=10 nodelay;
 
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 
@@ -92,7 +92,7 @@ server {
   }
   
   location /join {
-    limit_req zone=primary burst=5 nodelay;
+    #limit_req zone=primary burst=5 nodelay;
 
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 
@@ -103,7 +103,7 @@ server {
   }
 
   location /sock/ {
-    limit_req zone=primary burst=10 nodelay;
+    #limit_req zone=primary burst=10 nodelay;
 
     proxy_read_timeout 300s;
     proxy_connect_timeout 75s;

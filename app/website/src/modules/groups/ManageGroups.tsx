@@ -150,12 +150,6 @@ export function ManageGroups(props: IProps): React.JSX.Element {
     </>
   });
 
-  useEffect(() => {
-    if (groups && Object.keys(groups).length === 1 && Object.keys(profile?.availableUserGroupRoles || {}).length && util.isLoading) {
-      setLoading({ isLoading: false, loadingMessage: '' });
-    }
-  }, [groups, profile?.availableUserGroupRoles, util.isLoading]);
-
   return <>
     <Dialog open={dialog === 'create_group'} fullWidth maxWidth="sm">
       <Suspense>

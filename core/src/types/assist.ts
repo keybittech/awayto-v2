@@ -28,7 +28,8 @@ export default {
     url: 'assist/prompt?id=:id&prompt=:prompt',
     method: 'GET',
     opts: {
-      cache: null
+      cache: null,
+      load: true
     } as ApiOptions,
     queryArg: {
       id: '' as string,
