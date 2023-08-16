@@ -210,6 +210,9 @@ services:
   graylog:
     image: graylog/graylog:5.0
     environment:
+      - GRAYLOG_CONTENT_PACKS_AUTO_INSTALL=graylog-content-pack.json
+      - GRAYLOG_CONTENT_PACKS_LOADER_ENABLED=true
+      - GRAYLOG_CONTENT_PACKS_DIR=data/contentpacks
       - GRAYLOG_PASSWORD_SECRET=${GRAYLOG_PASSWORD_SECRET} #SECRET
       - GRAYLOG_ROOT_PASSWORD_SHA2=${GRAYLOG_ROOT_PASSWORD_SHA2} #SECRET
       - GRAYLOG_HTTP_EXTERNAL_URI=http://${SVC_HOST}:9000/ #NONSECRET
@@ -220,7 +223,7 @@ services:
       - elasticsearch
     ports:
       # Graylog web interface and REST API
-      - 9090:9000
+      - 9000:9000
       # Syslog TCP
       - 1514:1514
       # Syslog UDP
@@ -231,6 +234,7 @@ services:
       - 12201:12201/udp
     volumes: # DONE
       - graylogdata:/usr/share/graylog/data
+      - ./deploy/graylog-content-pack.json:/usr/share/graylog/data/contentpacks/graylog-content-pack.json
 
   # mail:
   #   image: bytemark/smtp

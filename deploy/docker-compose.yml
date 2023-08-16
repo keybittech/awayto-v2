@@ -162,7 +162,7 @@ services:
       - 12201:12201/udp
     volumes: # DONE
       - graylogdata:/usr/share/graylog/data
-      - ./deploy/graylog-content-pack.json:
+      - ./deploy/graylog-content-pack.json:/usr/share/graylog/data/contentpacks/graylog-content-pack.json
 
 volumes:
   sqlitedata:
