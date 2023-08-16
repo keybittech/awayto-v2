@@ -15,7 +15,7 @@ export const ChatPrompts = Object.assign(IPrompts, { TRANSLATE: 'translate' });
  */
 export type IAssist = {
   id: string;
-  prompt: string;
+  prompt: string[];
   promptResult: string[];
 };
 
@@ -32,7 +32,7 @@ export default {
     } as ApiOptions,
     queryArg: {
       id: '' as string,
-      prompt: '' as string
+      prompt: [] as string[]
     },
     resultType: { promptResult: [] as string[] }
   },

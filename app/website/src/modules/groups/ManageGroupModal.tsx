@@ -114,7 +114,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): R
   }, [group, editGroup]);
 
   const handleContinue = useCallback(() => {
-    getPrompt({ id: IPrompts.SUGGEST_ROLE, prompt: `${group.name}%7C${group.purpose}` }).unwrap().then(res => {
+    getPrompt({ id: IPrompts.SUGGEST_ROLE, prompt: [group.name, group.purpose] }).unwrap().then(res => {
       setRoleSuggestions(res.promptResult);
       setViewStep(2);
     }).catch(console.error);
