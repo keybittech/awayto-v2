@@ -83,7 +83,6 @@ for (const apiRefId in siteApiRef) {
       return res.status(429).send({ reason: 'Rate limit exceeded.', requestId });
     }
 
-    const { groupRoleActions } = await redisProxy('groupRoleActions');
     let response = {} as typeof resultType;
     let wasCached = false;
     const cacheKey = user.sub + req.originalUrl.slice(5); // remove /api/
@@ -101,6 +100,7 @@ for (const apiRefId in siteApiRef) {
       res.header('X-Cache-Status', 'MISS');
 
       try {
+        const { groupRoleActions } = await redisProxy('groupRoleActions');
 
         const xfwd = (req.headers['x-forwarded-for'] as string).split('.');
         const sourceIp = xfwd.filter((a, i) => i !== xfwd.length - 1).join('.') + '.000';

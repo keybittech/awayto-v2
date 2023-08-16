@@ -42,7 +42,7 @@ export function ServiceHome(props: IProps): React.JSX.Element {
 
   const { setSnack } = useUtil();
 
-  const { SelectLookup } = useComponents();
+  const { SelectLookup, ServiceTierAddons } = useComponents();
 
   const [postServiceAddon] = sh.usePostServiceAddonMutation();
   const [postGroupServiceAddon] = sh.usePostGroupServiceAddonMutation();
@@ -284,6 +284,7 @@ export function ServiceHome(props: IProps): React.JSX.Element {
             newService.tiers[newServiceTier.id] = newServiceTier;
             setNewServiceTier({ ...serviceTierSchema, addons: {} } as IServiceTier);
             setServiceTierAddonIds([]);
+            setNewService({ ...newService });
           } else {
             void setSnack({ snackOn: 'Provide a tier name and at least 1 feature.', snackType: 'info' });
           }
@@ -292,25 +293,25 @@ export function ServiceHome(props: IProps): React.JSX.Element {
             <Typography color="secondary" variant="button">Add Tier to Service</Typography>
           </Box>
         </CardActionArea>
+        <CardContent>
+          {Object.keys(newService.tiers).length > 0 && <Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+            {Object.values(newService.tiers).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime()).map((tier, i) => {
+              const addons = Object.values(tier.addons);
+              return <Box key={`service-tier-chip${i + 1}new`} m={1}><Chip classes={{ root: classes.chipRoot, label: classes.chipLabel }} label={<Typography>{`#${i + 1} ` + tier.name + ' (' + tier.multiplier + 'x)'}</Typography>} onDelete={() => {
+                delete newService.tiers[tier.id];
+                setNewService({ ...newService, tiers: { ...newService.tiers } });
+              }} /></Box>
+            })}
+          </Box>}
+        </CardContent>
       </Card>
     </Grid>
-
+    
     <Grid item xs={12}>
-      <Card>
+      <Card style={{ display: 'flex', flexDirection: 'column' }}>
+        <CardHeader title="Tiers" subheader='The following table will be shown during booking.' />
         <CardContent sx={{ padding: '0 15px' }}>
-          <Box>
-            <Typography variant="h6">Tiers</Typography>
-            <Typography variant="body2">The order that tiers appear here is the order they will be listed during booking.</Typography>
-            {Object.keys(newService.tiers).length > 0 && <Box mt={4} sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-              {Object.values(newService.tiers).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime()).map((tier, i) => {
-                const addons = Object.values(tier.addons);
-                return <Box key={`service-tier-chip${i + 1}new`} m={1}><Chip classes={{ root: classes.chipRoot, label: classes.chipLabel }} label={<Typography>{`#${i + 1} ` + tier.name + ' (' + tier.multiplier + 'x): ' + (addons.length ? addons.map(a => a.name).join(', ') : 'No features.')}</Typography>} onDelete={() => {
-                  delete newService.tiers[tier.id];
-                  setNewService({ ...newService, tiers: { ...newService.tiers } });
-                }} /></Box>
-              })}
-            </Box>}
-          </Box>
+          <ServiceTierAddons service={newService} />
         </CardContent>
       </Card>
     </Grid>
@@ -327,7 +328,7 @@ export function ServiceHome(props: IProps): React.JSX.Element {
               setNewService({ ...serviceSchema, tiers: {} } as IService);
               setServiceTierAddonIds([]);
             } else {
-              void setSnack({ snackOn: 'Provide the service name, cost and at least 1 tier.', snackType: 'info' });
+              void setSnack({ snackOn: 'Provide the service name and at least 1 tier with at least 1 feature.', snackType: 'info' });
             }
           }
           void go();
