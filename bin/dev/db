@@ -1,0 +1,5 @@
+#!/bin/sh
+
+. ./.env
+
+docker exec -i $(sudo docker ps -aqf "name=wcdb") psql -U "$PG_USER" "$PG_DB"

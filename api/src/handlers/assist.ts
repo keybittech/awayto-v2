@@ -8,7 +8,7 @@ export default createHandlers({
   getPrompt: async props => {
     if (!process.env.OPENAI_API_KEY) return { promptResult: [] };
 
-    if (await rateLimitResource(props.event.userSub, 'prompt', 3, 8600)) { // limit n general api requests per second
+    if (await rateLimitResource(props.event.userSub, 'prompt', 25, 86400)) { // AI uses per day
       return { promptResult: [] };
     }
 
