@@ -92,12 +92,13 @@ for (const apiRefId in siteApiRef) {
       const value = await redis.get(cacheKey);
       if (value) {
         response = JSON.parse(value);
-        res.header('x-of-cache', 'true');
+        res.header('X-Cache-Status', 'HIT');
         wasCached = true;
       }
     }
 
     if (!wasCached) {
+      res.header('X-Cache-Status', 'MISS');
 
       try {
 
@@ -175,7 +176,6 @@ for (const apiRefId in siteApiRef) {
             } else {
               await redis.setEx(cacheKey, cache as number || 180, JSON.stringify(response));
             }
-            res.header('x-in-cache', 'true');
           } else {
             if (null !== cache) {
               await redis.del(cacheKey);
