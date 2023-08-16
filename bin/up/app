@@ -11,7 +11,9 @@ APP_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "sh /home/$TAILSCALE_OPERAT
 ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST << EOF
 cd /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX
 
+git reset --hard HEAD
 git pull
+cp ./deploy/docker-compose.yml .
 
 chmod +x ./bin/install/deps && sudo ./bin/install/deps
 
