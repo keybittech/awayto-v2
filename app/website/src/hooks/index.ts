@@ -11,6 +11,7 @@ export * from './useGroupSecure';
 export * from './useGroupForm';
 export * from './useSelectOne';
 export * from './useSchedule';
+export * from './useSuggestions';
 export * from './useGrid';
 export * from './useUtil';
 export * from './useTimeName';

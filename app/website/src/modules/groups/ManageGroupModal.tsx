@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, ChangeEvent, useMemo } from 'react';
+import React, { useState, useCallback, ChangeEvent, useMemo } from 'react';
 
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
@@ -10,7 +10,6 @@ import CardHeader from '@mui/material/CardHeader';
 import CardActions from '@mui/material/CardActions';
 import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
-import Link from '@mui/material/Link';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -21,7 +20,7 @@ import NotInterestedIcon from '@mui/icons-material/NotInterested';
 
 import { IPrompts } from '@keybittech/wizapp/dist/lib';
 import { IGroup, IRole } from 'awayto/core';
-import { useComponents, sh, useDebounce, useUtil } from 'awayto/hooks';
+import { useComponents, sh, useDebounce, useUtil, useSuggestions } from 'awayto/hooks';
 
 import keycloak from '../../keycloak';
 
@@ -37,11 +36,16 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): R
 
   const { SelectLookup } = useComponents();
 
+  const {
+    comp: RoleSuggestions,
+    suggest: suggestRoles,
+    suggestions: roleSuggestions
+  } = useSuggestions();
+
   const { data : profile, refetch: getUserProfileDetails } = sh.useGetUserProfileDetailsQuery();
 
   const [putGroup] = sh.usePutGroupMutation();
   const [postGroup] = sh.usePostGroupMutation();
-  const [getPrompt] = sh.useLazyGetPromptQuery();
   const [postRole] = sh.usePostRoleMutation();
   const [deleteRole] = sh.useDeleteRoleMutation();
 
@@ -55,7 +59,6 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): R
   const [roleIds, setRoleIds] = useState<string[]>([]);
   const [viewStep, setViewStep] = useState(1);
   const [editedPurpose, setEditedPurpose] = useState(false);
-  const [roleSuggestions, setRoleSuggestions] = useState([] as string[]);
   const [allowedDomains, setAllowedDomains] = useState([] as string[]);
   const [allowedDomain, setAllowedDomain] = useState('');
 
@@ -114,8 +117,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): R
   }, [group, editGroup]);
 
   const handleContinue = useCallback(() => {
-    getPrompt({ id: IPrompts.SUGGEST_ROLE, prompt: `${group.name}!$${group.purpose}` }).unwrap().then(res => {
-      setRoleSuggestions(res.promptResult);
+    suggestRoles({ id: IPrompts.SUGGEST_ROLE, prompt: `${group.name}!$${group.purpose}` }).then(() => {
       setViewStep(2);
     }).catch(console.error);
   }, [group]);
@@ -127,31 +129,6 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): R
   if (roleIds.length && !defaultRoleId) {
     setDefaultRoleId(roleIds[0]);
   }
-
-  const roleSuggestionLinks = <>
-    AI: {roleSuggestions.filter(s => s.toLowerCase() !== 'admin').map((s, i) => {
-      return <span key={`role-selection-${i}`}>
-        <Link sx={{ cursor: 'pointer' }} onClick={() => {
-          // The currently suggested role in the user detail's role list
-          const existingId = roleValues.find(r => r.name === s)?.id;
-
-          // If the role is not in the user detail roles list, or it is, but it doesn't exist in the current list, continue
-          if (!existingId || (existingId && !roleIds.includes(existingId))) {
-
-            // If the role is in the user details roles list
-            if (existingId) {
-              setRoleIds([...roleIds, existingId])
-            } else {
-              postRole({ name: s }).unwrap().then(async newRole => {
-                await getUserProfileDetails();
-                !roleIds.includes(newRole.id) && setRoleIds([...roleIds, newRole.id]);
-              }).catch(console.error);
-            }
-          }
-        }}>{s}</Link>{i !== roleSuggestions.length - 1 ? ',' : ''}&nbsp;
-      </span>
-    })}
-  </>
 
   return <>
     <Card>
@@ -255,7 +232,27 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): R
             <Grid item xs={12}>
               <SelectLookup
                 multiple
-                helperText={!roleSuggestions.length ? 'Ex: Consultant, Project Manager, Advisor, Business Analyst' : roleSuggestionLinks}
+                helperText={!roleSuggestions.length ? 
+                  'Ex: Consultant, Project Manager, Advisor, Business Analyst' : 
+                  <RoleSuggestions handleSuggestion={suggestedRole => {
+                    // The currently suggested role in the user detail's role list
+                    const existingId = roleValues.find(r => r.name === suggestedRole)?.id;
+          
+                    // If the role is not in the user detail roles list, or it is, but it doesn't exist in the current list, continue
+                    if (!existingId || (existingId && !roleIds.includes(existingId))) {
+          
+                      // If the role is in the user details roles list
+                      if (existingId) {
+                        setRoleIds([...roleIds, existingId])
+                      } else {
+                        postRole({ name: suggestedRole }).unwrap().then(async newRole => {
+                          await getUserProfileDetails();
+                          !roleIds.includes(newRole.id) && setRoleIds([...roleIds, newRole.id]);
+                        }).catch(console.error);
+                      }
+                    }
+                  }} />
+                }
                 lookupName='Group Role'
                 lookups={roleValues}
                 lookupChange={setRoleIds}

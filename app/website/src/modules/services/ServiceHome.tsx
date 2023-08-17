@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
-import FormHelperText from '@mui/material/FormHelperText';
 import TextField from '@mui/material/TextField';
 import Slider from '@mui/material/Slider';
 import Box from '@mui/material/Box';
@@ -14,8 +13,8 @@ import Grid from '@mui/material/Grid';
 import Chip from '@mui/material/Chip';
 
 import { IPrompts } from '@keybittech/wizapp/dist/lib';
-import { IService, IServiceTier, IAssist } from 'awayto/core';
-import { useComponents, useStyles, sh, useUtil } from 'awayto/hooks';
+import { IService, IServiceTier } from 'awayto/core';
+import { useComponents, useStyles, sh, useUtil, useSuggestions } from 'awayto/hooks';
 
 const serviceSchema = {
   name: '',
@@ -44,6 +43,24 @@ export function ServiceHome(props: IProps): React.JSX.Element {
 
   const { SelectLookup, ServiceTierAddons } = useComponents();
 
+  const {
+    comp: ServiceSuggestions,
+    suggest: suggestServices,
+    suggestions: serviceSuggestions
+  } = useSuggestions();
+
+  const {
+    comp: TierSuggestions,
+    suggest: suggestTiers,
+    suggestions: tierSuggestions
+  } = useSuggestions();
+
+  const {
+    comp: AddonSuggestions,
+    suggest: suggestAddon,
+    suggestions: addonSuggestions
+  } = useSuggestions();
+
   const [postServiceAddon] = sh.usePostServiceAddonMutation();
   const [postGroupServiceAddon] = sh.usePostGroupServiceAddonMutation();
   const [deleteGroupServiceAddon] = sh.useDeleteGroupServiceAddonMutation();
@@ -51,7 +68,6 @@ export function ServiceHome(props: IProps): React.JSX.Element {
   const [postGroupService] = sh.usePostGroupServiceMutation();
   const [getGroupFormById] = sh.useLazyGetGroupFormByIdQuery();
   const [getGroupServices] = sh.useLazyGetGroupServicesQuery();
-  const [getPrompt] = sh.useLazyGetPromptQuery();
 
   const { data: profile } = sh.useGetUserProfileDetailsQuery();
 
@@ -64,18 +80,13 @@ export function ServiceHome(props: IProps): React.JSX.Element {
   const [newServiceTier, setNewServiceTier] = useState({ ...serviceTierSchema, addons: {} } as IServiceTier);
   const [serviceTierAddonIds, setServiceTierAddonIds] = useState<string[]>([]);
 
-  const [serviceSuggestions, setServiceSuggestions] = useState('');
-  const [tierSuggestions, setTierSuggestions] = useState('');
-  const [featureSuggestions, setFeatureSuggestions] = useState('');
-
   const groupsValues = useMemo(() => Object.values(profile?.groups || {}), [profile]);
 
   useEffect(() => {
     async function go() {
       if (groupsValues.length) {
         const gr = groupsValues[0];
-        const { promptResult } = await getPrompt({ id: IPrompts.SUGGEST_SERVICE, prompt: gr.purpose } as IAssist).unwrap();
-        if (promptResult.length) setServiceSuggestions(promptResult.join(', '));
+        await suggestServices({ id: IPrompts.SUGGEST_SERVICE, prompt: gr.purpose });
         setGroup(gr);
       }
     }
@@ -112,12 +123,15 @@ export function ServiceHome(props: IProps): React.JSX.Element {
                   onChange={e => setNewService({ ...newService, name: e.target.value })}
                   onBlur={() => {
                     if (!newService.name) return;
-                    // When this service name changes, let's get a new prompt for tier name suggestions
-                    getPrompt({ id: IPrompts.SUGGEST_TIER, prompt: `${newService.name.toLowerCase()} at ${group.name.replaceAll('_', ' ')}` } as IAssist).unwrap().then(({ promptResult }) => {
-                      if (promptResult.length) setTierSuggestions(promptResult.join(', '));
-                    }).catch(console.error);
+                    void suggestTiers({ id: IPrompts.SUGGEST_TIER, prompt: `${newService.name.toLowerCase()} at ${group.name.replaceAll('_', ' ')}` });
                   }}
-                  helperText={`${serviceSuggestions ? `AI: ${serviceSuggestions}` : 'Ex: Website Hosting, Yard Maintenance, Automotive Repair'}`}
+                  helperText={!serviceSuggestions.length ? 
+                    'Ex: Website Hosting, Yard Maintenance, Automotive Repair' :
+                    <ServiceSuggestions handleSuggestion={suggestedService => {
+                      void suggestTiers({ id: IPrompts.SUGGEST_TIER, prompt: `${suggestedService.toLowerCase()} at ${group.name.replaceAll('_', ' ')}` });
+                      setNewService({ ...newService, name: suggestedService });
+                    }} />
+                  }
                 />
               </Box>
 
@@ -181,15 +195,18 @@ export function ServiceHome(props: IProps): React.JSX.Element {
                   fullWidth
                   label="Name"
                   value={newServiceTier.name}
+                  onChange={e => setNewServiceTier({ ...newServiceTier, name: e.target.value })}
                   onBlur={() => {
                     if (!newServiceTier.name || !newService.name) return;
-                    // When this tier name changes, let's get a new prompt for feature name suggestions
-                    getPrompt({ id: IPrompts.SUGGEST_FEATURE, prompt: `${newServiceTier.name} ${newService.name}` } as IAssist).unwrap().then(({ promptResult }) => {
-                      if (promptResult.length) setFeatureSuggestions(promptResult.join(', '));
-                    }).catch(console.error);
+                    void suggestAddon({ id: IPrompts.SUGGEST_FEATURE, prompt: `${newServiceTier.name} ${newService.name}` });
                   }}
-                  onChange={e => setNewServiceTier({ ...newServiceTier, name: e.target.value })}
-                  helperText={`${tierSuggestions.length ? `AI: ${tierSuggestions}` : 'Ex: Basic, Mid-Tier, Advanced'}`}
+                  helperText={!tierSuggestions.length ?
+                    'Ex: Basic, Mid-Tier, Advanced' :
+                    <TierSuggestions handleSuggestion={suggestedTier => {
+                      void suggestAddon({ id: IPrompts.SUGGEST_FEATURE, prompt: `${suggestedTier} ${newService.name}` });
+                      setNewServiceTier({ ...newServiceTier, name: suggestedTier })
+                    }} />
+                  }
                 />
               </Box>
 
@@ -199,6 +216,27 @@ export function ServiceHome(props: IProps): React.JSX.Element {
                   lookupName='Feature'
                   lookups={groupServiceAddons}
                   lookupValue={serviceTierAddonIds}
+                  helperText={!addonSuggestions.length ?
+                    'Ex: 24-Hour Support, Premium Access, Domain Registration, 20GB Storage' :
+                    <AddonSuggestions handleSuggestion={suggestedAddon => {
+                      if (groupServiceAddons) {
+                        const existingId = groupServiceAddons.find(gsa => gsa.name === suggestedAddon)?.id;
+                        if (!existingId || (existingId && !serviceTierAddonIds.includes(existingId))) {
+                          if (existingId) {
+                            setServiceTierAddonIds([...serviceTierAddonIds, existingId])
+                          } else {
+                            postServiceAddon({ name: suggestedAddon }).unwrap().then(newAddon => {
+                              postGroupServiceAddon({ groupName: group.name, serviceAddonId: newAddon.id }).unwrap().then(async () => {
+                                await getGroupServiceAddons();
+                                !serviceTierAddonIds.includes(newAddon.id) && setServiceTierAddonIds([...serviceTierAddonIds, newAddon.id]);
+                              }).catch(console.error);
+                            }).catch(console.error);
+                          }
+                        }
+
+                      }
+                    }} />
+                  }
                   parentUuid={group.name}
                   parentUuidName='groupName'
                   lookupChange={(val: string[]) => {
@@ -220,9 +258,6 @@ export function ServiceHome(props: IProps): React.JSX.Element {
                   attachName='serviceAddonId'
                   {...props}
                 />
-                <Box pl={2}>
-                  <FormHelperText>{featureSuggestions.length ? `AI: ${featureSuggestions}` : 'Ex: 24-Hour Support, Premium Access, Domain Registration, 20GB Storage'}</FormHelperText>
-                </Box>
               </Box>}
 
               {groupFormsLoaded && <Box mb={4}>
@@ -274,7 +309,7 @@ export function ServiceHome(props: IProps): React.JSX.Element {
           </Grid>
         </CardContent>
         <CardActionArea onClick={() => {
-          if (newServiceTier.name && serviceTierAddonIds.length) {
+          if (newServiceTier.name && serviceTierAddonIds.length && !Object.values(newService.tiers).some(ti => ti.name === newServiceTier.name)) {
             const created = (new Date()).getTime().toString();
             newServiceTier.id = created;
             newServiceTier.createdOn = created;
@@ -295,7 +330,7 @@ export function ServiceHome(props: IProps): React.JSX.Element {
             setServiceTierAddonIds([]);
             setNewService({ ...newService });
           } else {
-            void setSnack({ snackOn: 'Provide a tier name and at least 1 feature.', snackType: 'info' });
+            void setSnack({ snackOn: 'Provide a unique tier name and at least 1 feature.', snackType: 'info' });
           }
         }}>
           <Box m={2} sx={{ display: 'flex', alignItems: 'center' }}>

@@ -69,7 +69,7 @@ export function ManageFormModal({ editForm, closeModal, ...props }: IProps): Rea
     const { id, name } = form;
 
     if (!name || !Object.keys(version.form).length || Object.values(version.form).some(v => v.some(f => !f.l))) {
-      setSnack({ snackType: 'error', snackOn: 'Forms must have a name, and at least 1 field. All fields mus have a label.' });
+      setSnack({ snackType: 'error', snackOn: 'Forms must have a name, and at least 1 field. All fields must have a label.' });
       setEditable(true);
       return;
     }
