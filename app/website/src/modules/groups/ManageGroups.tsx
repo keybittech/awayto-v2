@@ -113,7 +113,7 @@ export function ManageGroups(props: IProps): React.JSX.Element {
       { flex: 1, headerName: 'Users', field: 'usersCount', renderCell: ({ row }) => row.usersCount || 0 },
       { flex: 1, headerName: 'Created', field: 'createdOn', renderCell: ({ row }) => dayjs().to(dayjs.utc(row.createdOn)) },
       ...(hasRole([SiteRoles.APP_GROUP_ADMIN]) ? [
-        { flex: 1, headerName: '', field: '', renderCell: ({ row }: { row: IGroup }) => <Tooltip key={'view_group_details'} title="Details">
+        { flex: 1, headerName: '', field: 'id', renderCell: ({ row }: { row: IGroup }) => <Tooltip key={'view_group_details'} title="Details">
             <Button onClick={() => {
               navigate(`/group/${row.name}/manage/users`)
             }}>

@@ -104,7 +104,7 @@ export const useStyles = makeStyles((theme: Theme) => {
         fontSize: '24px',
       },
       [theme.breakpoints.up('md')]: {
-        marginTop: '-4px',
+        // marginTop: '-4px',
         fontSize: '12px !important',
       },
     },
@@ -138,7 +138,7 @@ export const getBaseComponents: () => ThemeOptions = () => ({
         root: {
           '&:not(.Mui-disabled)': {
             backgroundColor: 'rgb(64 64 64)',
-            color: 'rgb(0 191 255)'
+            color: 'rgb(100 150 200)'
           },
           '&.Mui-selected': {
             backgroundColor: 'rgb(128 128 128) !important'
@@ -160,7 +160,7 @@ export const getBaseComponents: () => ThemeOptions = () => ({
       styleOverrides: {
         root: {
           '&:not(.Mui-disabled)': {
-            color: 'rgb(0 191 255)'
+            color: 'rgb(100 150 200)'
           }
         }
       }
@@ -225,7 +225,7 @@ export const getDesignTokens: (mode: PaletteMode) => ThemeOptions = (mode) => ({
           dark: '#ddeeff',
           contrastText: '#333'
         },
-        secondary: { main: 'rgb(0 191 255)' }
+        secondary: { main: 'rgb(100 150 200)' }
       }
         : mode === 'dark' ? {
           // palette values for dark mode
@@ -245,7 +245,7 @@ export const getDesignTokens: (mode: PaletteMode) => ThemeOptions = (mode) => ({
               main: '#000',
               dark: '#121f31'
             },
-            secondary: { main: 'rgb(0 191 255)' }
+            secondary: { main: 'rgb(100 150 200)' }
           })
   },
 });
@@ -282,6 +282,20 @@ export const getThemedComponents: (mode: PaletteMode) => ThemeOptions = (mode) =
               }
             }
           }
+        },
+        MuiIconButton: {
+          styleOverrides: {
+            root: {
+              color: 'rgb(100 150 200)'
+            }
+          }
+        },
+        MuiButton: {
+          styleOverrides: {
+            root: {
+              color: 'rgb(100 150 200)'
+            }
+          }
         }
       } : mode === 'dark' ? {
         // Dark theme components
@@ -291,6 +305,20 @@ export const getThemedComponents: (mode: PaletteMode) => ThemeOptions = (mode) =
               '&:before': {
                 borderBottom: '1px solid #333'
               }
+            }
+          }
+        },
+        MuiIconButton: {
+          styleOverrides: {
+            root: {
+              color: 'rgb(100 150 200)'
+            }
+          }
+        },
+        MuiButton: {
+          styleOverrides: {
+            root: {
+              color: 'rgb(100 150 200)'
             }
           }
         }
@@ -321,7 +349,7 @@ export const getThemedComponents: (mode: PaletteMode) => ThemeOptions = (mode) =
                 borderBottom: '1px solid #aaa'
               },
               '&:hover:not(.Mui-disabled):before': {
-                borderBottom: '2px solid rgb(0 191 255)'
+                borderBottom: '2px solid rgb(100 150 200)'
               },
               '&.Mui-focused:after': {
                 borderBottom: '2px solid rgb(39 109 129)'

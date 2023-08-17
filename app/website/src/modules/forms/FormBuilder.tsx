@@ -3,10 +3,12 @@ import Grid from '@mui/material/Grid';
 import Switch from '@mui/material/Switch';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-import ButtonBase from '@mui/material/ButtonBase';
 import Divider from '@mui/material/Divider';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
+import IconButton from '@mui/material/IconButton';
+
+import SettingsIcon from '@mui/icons-material/Settings';
 
 // text
 
@@ -87,7 +89,7 @@ import MenuItem from '@mui/material/MenuItem';
 
 import { IField, IFormVersion, deepClone } from 'awayto/core';
 
-import Field from './Field';
+import { useComponents } from 'awayto/hooks';
 
 export type FormBuilderProps = {
   version?: IFormVersion;
@@ -100,6 +102,8 @@ declare global {
 }
 
 export default function FormBuilder({ version, setVersion, editable = true }: IProps & Required<FormBuilderProps>): React.JSX.Element {
+
+  const { Field } = useComponents();
 
   const [rows, setRows] = useState({} as Record<string, IField[]>);
   const [cell, setCell] = useState({} as IField);
@@ -179,19 +183,17 @@ export default function FormBuilder({ version, setVersion, editable = true }: IP
               <Grid container spacing={2}>
                 {rows[rowId].map((field, j) => {
                   return <Grid item xs={12 / rows[rowId].length} key={`form_fields_cell_${i + 1}_${j}`}>
-                    <ButtonBase
-                      sx={{
-                        width: '100%',
-                        backgroundColor: position.row === rowId && position.col === j ? 'rgba(0, 150, 200, .1)' : 'rgba(0, 0, 0, .1)',
-                        cursor: 'pointer !important'
-                      }}
-                      onClick={() => {
-                        setCell(field);
-                        setPosition({ row: rowId, col: j })
-                      }}
-                    >
-                      <Field field={field} />
-                    </ButtonBase>
+                    <Field
+                      field={field}
+                      endAdornment={
+                        <IconButton onClick={() => {
+                          setCell(field);
+                          setPosition({ row: rowId, col: j })
+                        }}>
+                          <SettingsIcon />
+                        </IconButton>
+                      }
+                    />
                   </Grid>
                 })}
               </Grid>

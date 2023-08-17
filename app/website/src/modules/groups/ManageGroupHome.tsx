@@ -6,6 +6,7 @@ import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Link from '@mui/material/Link';
+import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 
 import Card from '@mui/material/Card';
@@ -46,15 +47,17 @@ export function ManageGroupHome(props: IProps): React.JSX.Element {
     const selected = comp === component;
     return group.name && component && <GroupSecure key={`menu_${comp}`} contentGroupRoles={menuRoles[comp]}>
       <Grid item>
-        <Link
-          variant="button"
-          color={selected ? "secondary" : "primary"}
-          sx={{ cursor: 'pointer' }}
-          style={selected ? { textDecoration: 'underline' } : undefined}
+        <Button
+          variant="text"
+          color={selected ? "primary" : "secondary"}
+          sx={{
+            cursor: 'pointer',
+            textDecoration: selected ? 'underline' : undefined
+          }}
           onClick={() => navigate(`/group/${group.name}/manage/${comp}`)}
         >
           {comp}
-        </Link>
+        </Button>
       </Grid>
     </GroupSecure>
   });
