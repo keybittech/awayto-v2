@@ -111,6 +111,7 @@ export function ServiceHome(props: IProps): React.JSX.Element {
                   value={newService.name}
                   onChange={e => setNewService({ ...newService, name: e.target.value })}
                   onBlur={() => {
+                    if (!newService.name) return;
                     // When this service name changes, let's get a new prompt for tier name suggestions
                     getPrompt({ id: IPrompts.SUGGEST_TIER, prompt: `${newService.name.toLowerCase()} at ${group.name.replaceAll('_', ' ')}` } as IAssist).unwrap().then(({ promptResult }) => {
                       if (promptResult.length) setTierSuggestions(promptResult.join(', '));
@@ -181,6 +182,7 @@ export function ServiceHome(props: IProps): React.JSX.Element {
                   label="Name"
                   value={newServiceTier.name}
                   onBlur={() => {
+                    if (!newServiceTier.name || !newService.name) return;
                     // When this tier name changes, let's get a new prompt for feature name suggestions
                     getPrompt({ id: IPrompts.SUGGEST_FEATURE, prompt: `${newServiceTier.name} ${newService.name}` } as IAssist).unwrap().then(({ promptResult }) => {
                       if (promptResult.length) setFeatureSuggestions(promptResult.join(', '));
@@ -206,6 +208,13 @@ export function ServiceHome(props: IProps): React.JSX.Element {
                   createAction={postServiceAddon}
                   deleteAction={deleteGroupServiceAddon}
                   deleteActionIdentifier='serviceAddonId'
+                  deleteComplete={(val: string) => {
+                    const tiers = { ...newService.tiers };
+                    Object.values(tiers).forEach(tier => {
+                      delete tier.addons[val];
+                    })
+                    setNewService({ ...newService, tiers });
+                  }}
                   refetchAction={getGroupServiceAddons}
                   attachAction={postGroupServiceAddon}
                   attachName='serviceAddonId'
@@ -296,10 +305,10 @@ export function ServiceHome(props: IProps): React.JSX.Element {
         <CardContent>
           {Object.keys(newService.tiers).length > 0 && <Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
             {Object.values(newService.tiers).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime()).map((tier, i) => {
-              const addons = Object.values(tier.addons);
               return <Box key={`service-tier-chip${i + 1}new`} m={1}><Chip classes={{ root: classes.chipRoot, label: classes.chipLabel }} label={<Typography>{`#${i + 1} ` + tier.name + ' (' + tier.multiplier + 'x)'}</Typography>} onDelete={() => {
-                delete newService.tiers[tier.id];
-                setNewService({ ...newService, tiers: { ...newService.tiers } });
+                const tiers = { ...newService.tiers };
+                delete tiers[tier.id];
+                setNewService({ ...newService, tiers });
               }} /></Box>
             })}
           </Box>}

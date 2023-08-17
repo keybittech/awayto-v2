@@ -28,6 +28,7 @@ declare global {
     attachAction?: MutationTrigger<SiteMutation<{ [prop: string]: string }, ILookup>>;
     createAction?: MutationTrigger<SiteMutation<{ readonly name: string; }, ILookup>>;
     deleteAction?: MutationTrigger<SiteMutation<{ [prop: string]: string }, ILookup[]>>;
+    deleteComplete?(value: string | string[]): void;
     parentUuidName?: string;
     parentUuid?: string;
     attachName?: string;
@@ -39,7 +40,7 @@ function isStringArray(str?: string | string[]): str is string[] {
   return (str as string[]).forEach !== undefined;
 }
 
-export function SelectLookup({ lookupChange, disabled = false, invalidValues = [], attachAction, attachName, refetchAction, parentUuidName, parentUuid, lookups, lookupName, helperText, lookupValue, multiple = false, noEmptyValue = false, createAction, deleteAction, deleteActionIdentifier }: IProps): React.JSX.Element {
+export function SelectLookup({ lookupChange, disabled = false, invalidValues = [], attachAction, attachName, refetchAction, parentUuidName, parentUuid, lookups, lookupName, helperText, lookupValue, multiple = false, noEmptyValue = false, createAction, deleteAction, deleteComplete, deleteActionIdentifier }: IProps): React.JSX.Element {
   
   const { setSnack } = useUtil();
 
@@ -174,12 +175,15 @@ export function SelectLookup({ lookupChange, disabled = false, invalidValues = [
               lookupChange('');
             }
 
-            if (parentUuidName && parentUuid && attachName) {
-              deleteAction({ [parentUuidName]: parentUuid, [attachName]: lookup.id }).unwrap().then(() => refresh()).catch(console.error);
-            }
-
-            if (deleteActionIdentifier) {
-              deleteAction({ [deleteActionIdentifier]: lookup.id }).unwrap().then(() => refresh()).catch(console.error);
+            if ((parentUuidName && parentUuid && attachName) || deleteActionIdentifier) {
+              deleteAction(
+                parentUuidName && parentUuid && attachName ? { [parentUuidName]: parentUuid, [attachName]: lookup.id } :
+                deleteActionIdentifier ? { [deleteActionIdentifier]: lookup.id } :
+                {}
+              ).unwrap().then(() => {
+                deleteComplete && deleteComplete(lookup.id);
+                refresh()
+              }).catch(console.error);
             }
 
           }} />}
