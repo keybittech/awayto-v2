@@ -50,7 +50,7 @@ input(type=\"imfile\"
   Tag=\"modsec\"
   Severity=\"info\"
   Facility=\"local7\")
-if $(echo "\$syslogfacility")-text == \"local7\" and $(echo "\$msg") contains \"ModSecurity: Warning.\" then @$SVC_HOST:1514
+if \$(echo "\\\$syslogfacility")-text == \"local7\" and \$(echo "\\\$msg") contains \"ModSecurity: Warning.\" then @$SVC_HOST:1514
 & ~" | sudo tee /etc/rsyslog.d/modsec.conf
 
 sudo systemctl restart rsyslog
