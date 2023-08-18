@@ -36,11 +36,11 @@ if echo $DEPLOYED_SERVICE | grep -q "turn"; then
 fi
 EOF
 
-scp "./turn/turnserver.conf.template" "./deploy/graylog-content-pack.json" "$TAILSCALE_OPERATOR@$SVC_HOST:/home/$TAILSCALE_OPERATOR/"
+scp "./bin/util/getdocker" "./turn/turnserver.conf.template" "./deploy/graylog-content-pack.json" "$TAILSCALE_OPERATOR@$SVC_HOST:/home/$TAILSCALE_OPERATOR/"
 
 ssh -T $TAILSCALE_OPERATOR@$SVC_HOST << EOF
 
-BUILD_HOST=$BUILD_HOST . ./bin/util/getdocker
+BUILD_HOST=$BUILD_HOST . /home/$TAILSCALE_OPERATOR/getdocker
 
 echo "# Allowing ports 8888 (sock), 9000 (graylog), 1514 (syslog), 12201 (gelf) on $SVC_HOST"
 sudo ufw allow 8888
