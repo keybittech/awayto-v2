@@ -1,6 +1,7 @@
 #!/bin/sh
 
-cd /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX
+cd $PWD
+
 git reset --hard HEAD
 git pull
 cp ./deploy/docker-compose.yml .
