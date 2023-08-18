@@ -20,21 +20,28 @@ declare global {
 
 export function FeedbackMenu ({ handleMenuClose, feedbackAnchorEl, feedbackMenuId, isFeedbackOpen }: IProps): React.JSX.Element {
 
-  const [postFeedback] = sh.usePostGroupFeedbackMutation();
+  const [postGroupFeedback] = sh.usePostGroupFeedbackMutation();
+  const [postSiteFeedback] = sh.usePostSiteFeedbackMutation();
 
   const { data: profile } = sh.useGetUserProfileDetailsQuery();
   
   const groupsValues = useMemo(() => Object.values(profile?.groups || {}), [profile]);
   
-  const [group, setGroup] = useState(groupsValues[0]);
   const [feedbackTarget, setFeedbackTarget] = useState('site');
   const [message, setMessage] = useState('');
 
   const handleSubmit = useCallback(function() {
-    if (message && handleMenuClose) {
-      postFeedback({ message, groupName: group.name }).catch(console.error);
+    if (message) {
+      if ('site' === feedbackTarget) {
+        postSiteFeedback({ message }).catch(console.error);
+      } else {
+        const gr = groupsValues.find(g => g.id === feedbackTarget);
+        if (gr) {
+          postGroupFeedback({ message, groupName: gr.name }).catch(console.error);
+        }
+      }
       setMessage('');
-      handleMenuClose();
+      handleMenuClose && handleMenuClose();
     }
   }, [message])
 

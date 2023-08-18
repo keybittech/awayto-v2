@@ -1,4 +1,4 @@
-import { IFeedback, IGroup, createHandlers } from 'awayto/core';
+import { IGroupFeedback, IGroup, createHandlers } from 'awayto/core';
 
 export default createHandlers({
   postGroupFeedback: async props => {
@@ -24,7 +24,7 @@ export default createHandlers({
       WHERE name = $1
     `, [groupName]);
 
-    const feedback = await props.db.manyOrNone<IFeedback>(`
+    const feedback = await props.db.manyOrNone<IGroupFeedback>(`
       SELECT f.id, f.message, f.created_on as "createdOn"
       FROM dbtable_schema.group_feedback f
       JOIN dbtable_schema.users u ON u.sub = f.created_sub

@@ -364,6 +364,16 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     enabled BOOLEAN NOT NULL DEFAULT true
   );
 
+  CREATE TABLE dbtable_schema.feedback (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    message TEXT,
+    created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
+    created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
+    updated_on TIMESTAMP,
+    updated_sub uuid REFERENCES dbtable_schema.users (sub),
+    enabled BOOLEAN NOT NULL DEFAULT true
+  );
+
   CREATE TABLE dbtable_schema.group_feedback (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     group_id uuid NOT NULL REFERENCES dbtable_schema.groups (id),
