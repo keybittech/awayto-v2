@@ -9,8 +9,13 @@ SERVICES="sock turn graylog"
 read -p "Service to deploy (Leave blank to deploy $SERVICES): " DEPLOYED_SERVICE
 DEPLOYED_SERVICE=${DEPLOYED_SERVICE:-$SERVICES}
 
-SOCK_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "sh /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/bin/util/getversion -i sock")
-TURN_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "sh /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/bin/util/getversion -i turn")
+if echo $DEPLOYED_SERVICE | grep -q "sock"; then
+  SOCK_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "sh /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/bin/util/getversion -i sock")
+fi
+
+if echo $DEPLOYED_SERVICE | grep -q "turn"; then
+  TURN_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "sh /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/bin/util/getversion -i turn")
+fi
 
 ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST << EOF
 cd /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX
