@@ -75,7 +75,20 @@ export default function App (props: IProps): React.JSX.Element {
       <ThemeProvider theme={'light' === theme ? lightTheme : darkTheme}>
         {onboarding && <Onboard {...props} />}
         {ready && <Layout {...props} />}
-        {!!snackOn && <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center' }} open={!!snackOn} autoHideDuration={15000} onClose={hideSnack}>
+        {!!snackOn && <Snackbar
+          sx={{
+            '.MuiSvgIcon-root': {
+              color: 'black'
+            }
+          }}
+          anchorOrigin={{
+            vertical: 'top',
+            horizontal: 'center'
+          }}
+          open={!!snackOn}
+          autoHideDuration={15000}
+          onClose={hideSnack}
+        >
           <Alert onClose={hideSnack} severity={snackType || "info"}>
             <Box>{snackOn}</Box>
             <Box><sub>{snackRequestId}</sub></Box>

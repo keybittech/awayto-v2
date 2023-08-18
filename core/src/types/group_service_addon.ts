@@ -40,7 +40,9 @@ export default {
     kind: EndpointType.MUTATION,
     url: 'group/:groupName/service_addons/:serviceAddonId',
     method: 'DELETE',
-    opts: {} as ApiOptions,
+    opts: {
+      throttle: 1
+    } as ApiOptions,
     queryArg: {
       groupName: '' as string,
       serviceAddonId: '' as string
