@@ -12,8 +12,6 @@ const server = createServer().listen(8888);
 // Catch any request coming into the http server for inter-socket connectivity
 // Define connection endpoints between containers where needed here
 server.on('request', function (req, res) {
-  console.log('ticket creation received');
-
   if ('POST' === req.method) {
 
     // User wants to get a ticket to open a socket
@@ -56,7 +54,7 @@ server.on('request', function (req, res) {
 
             setTimeout(() => {
               subscriber.tickets.splice(subscriber.tickets.indexOf(ticket), 1);
-            }, 2000);
+            }, 10000);
           } catch (error) {
             console.error('issue handling ticket assignment', error)
           }
@@ -75,26 +73,18 @@ server.on('request', function (req, res) {
 
 // Proxy pass from nginx sets http upgrade request, caught here
 server.on('upgrade', async function (req, socket, head) {
-  console.log('upgrade received');
-
   try {
-    console.log('1');
     const ticket = req.url.slice(1); // <auth>:<connectionID>
-    console.log('2');
     const connectionId = ticket.split(':')[1];
 
-    console.log('3');
     let ticketIndex = -1;
     
-    console.log('4');
     const subscriber = subscribers.find(s => {
-      console.log('5', s, subscribers);
       ticketIndex = s.tickets.indexOf(ticket);
       return ticketIndex > -1;
     });
 
     if (ticketIndex > -1) {
-      console.log('6');
       subscriber.tickets.splice(ticketIndex, 1);
       wss.handleUpgrade(req, socket, head, async ws => {
         // subscriber holds all the user's allowed topics for the connected context
@@ -103,20 +93,17 @@ server.on('upgrade', async function (req, socket, head) {
         // could be multiple browser tabs, etc, all tied to the same sub
         ws.connectionId = connectionId;
         subscriber.connectionIds.push(connectionId);
-        console.log('7');
-
         
         // send a request to the db to establish a sock_connection
         await connect(subscriber.sub, connectionId);
         
-        console.log('8');
         // assign this connection id to this server's connections
         await redis.sAdd(`socket_servers:${serverUuid}:connections`, `${subscriber.sub}:${connectionId}`);
 
         wss.emit('connection', ws, req);
       });
 
-    } else if (checkBackchannel(req.headers['authorization'])) {
+    } else if (req.headers['authorization'] && checkBackchannel(req.headers['authorization'])) {
       wss.handleUpgrade(req, socket, head, async ws => {
         ws.backchannel = true;
         wss.backchannel = ws;

@@ -1,0 +1,9 @@
+#!/bin/sh
+
+if ! command -v docker >/dev/null 2>&1; then
+  echo "# Installing Docker"
+  sudo mkdir -p /etc/docker
+  curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh
+  echo '{ "insecure-registries": ["'"$BUILD_HOST"':5000"] }' | sudo tee /etc/docker/daemon.json > /dev/null
+  sudo systemctl restart docker
+fi
