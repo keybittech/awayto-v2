@@ -318,7 +318,9 @@ export const getThemedComponents: (mode: PaletteMode) => ThemeOptions = (mode) =
         MuiButton: {
           styleOverrides: {
             root: {
-              color: 'rgb(100 150 200)'
+              ':not(.MuiButton-*Secondary)': {
+                color: 'rgb(100 150 200)'
+              }
             }
           }
         }
