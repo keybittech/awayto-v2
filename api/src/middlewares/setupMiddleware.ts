@@ -31,7 +31,7 @@ export const setupMiddleware = async (app: Express) => {
   app.use(cookieParser());
 
   console.log('Setting express JSON');
-  app.use(express.json());
+  app.use(express.json({ limit: '5mb' }));
 
   console.log('Setting passport session regen workaround');
   // Fix for passport/express cookie issue

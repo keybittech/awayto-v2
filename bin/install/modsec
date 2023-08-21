@@ -61,7 +61,13 @@ sudo sed -i 's/SecRuleEngine DetectionOnly/SecRuleEngine On/g' /etc/nginx/modsec
 
 sudo touch /etc/nginx/modsec/main.conf
 
-echo -e "\n# Allow PUT Method\nSecAction \"id:900200, phase:1, pass, t:none, nolog, setvar:'tx.allowed_methods=GET HEAD POST OPTIONS PUT DELETE'\"" | sudo tee -a /etc/nginx/modsec/modsecurity.conf
+echo -e "\n# Set Paranoia 1\nSecAction \"id:900000, phase:1, pass, t:none, nolog, setvar:tx.paranoia_level=1\"\n\n" | sudo tee -a /etc/nginx/modsec/modsecurity.conf
+echo -e "\n# Set Executing Paranoia 2\nSecAction \"id:900001, phase:1, pass, t:none, nolog, setvar:tx.executing_paranoia_level=1\"\n\n" | sudo tee -a /etc/nginx/modsec/modsecurity.conf
+echo -e "\n# Allow PUT Method\nSecAction \"id:900200, phase:1, pass, t:none, nolog, setvar:'tx.allowed_methods=GET HEAD POST OPTIONS PUT DELETE'\"\n\n" | sudo tee -a /etc/nginx/modsec/modsecurity.conf
+echo -e "\n# Allow Modern HTTP\nSecAction \"id:900230, phase:1, pass, t:none, nolog, setvar:'tx.allowed_http_versions=HTTP/1.1 HTTP/2 HTTP/2.0'\"\n\n" | sudo tee -a /etc/nginx/modsec/modsecurity.conf
+echo -e "\n# Allow octet-stream content\nSecRule REQUEST_URI \"^/api/files/content\" \"id:1200,phase:1,t:none,nolog,chain\"\n" | sudo tee -a /etc/nginx/modsec/modsecurity.conf
+echo -e "SecRule REQUEST_HEADERS:Content-Type \"application/octet-stream\" \"t:none,ctl:ruleRemoveById=920420\"\n\n" | sudo tee -a /etc/nginx/modsec/modsecurity.conf
+
 
 sudo bash -c 'echo "Include /etc/nginx/modsec/modsecurity.conf
 Include /usr/local/modsecurity-crs/crs-setup.conf
