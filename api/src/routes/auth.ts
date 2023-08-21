@@ -26,9 +26,9 @@ const router = express.Router();
 router.post('/register/validate', checkBackchannel, async (req, res) => {
   try {
     const group = await db.one<IGroup>(`
-      SELECT "allowedDomains", name
-      FROM dbview_schema.enabled_groups
-      WHERE code = $1
+      SELECT allowed_domains "allowedDomains", name
+      FROM dbtable_schema.groups
+      WHERE enabled = true AND code = $1
     `, [req.body.groupCode.toLowerCase()]);
     if (!group) throw new Error('BAD_GROUP');
     res.status(200).send(JSON.stringify(group));

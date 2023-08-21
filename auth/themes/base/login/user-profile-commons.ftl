@@ -46,7 +46,7 @@
 						${kcSanitize(messagesPerField.get('${attribute.name}'))?no_esc}
 					</span>
 				</#if>
-				<#if 'email' == attribute.name && allowedDomains??><span>Valid Email Domains: ${allowedDomains}</span></#if>
+				<!-- <#if 'email' == attribute.name && allowedDomains??><span>Valid Email Domains: ${allowedDomains}</span></#if> -->
 				<#if attribute.annotations.inputHelperTextAfter??>
 					<div class="${properties.kcInputHelperTextAfterClass!}" id="form-help-text-after-${attribute.name}" aria-live="polite">${kcSanitize(advancedMsg(attribute.annotations.inputHelperTextAfter))?no_esc}</div>
 				</#if>

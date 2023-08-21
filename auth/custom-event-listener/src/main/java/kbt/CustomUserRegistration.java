@@ -160,8 +160,7 @@ public class CustomUserRegistration extends RegistrationUserCreation {
 
         if (allowedDomains != null) {
           List<String> domains = List.of(allowedDomains.split(","));
-
-          if (email == null || email.contains("@") && !domains.contains(email.split("@")[1])) {
+          if (email == null || email.contains("@") && allowedDomains.length() > 0 && !domains.contains(email.split("@")[1])) {
             validationErrors.add(new FormMessage("email", "invalidEmail"));
           }
         } else if (suppliedCode) {
