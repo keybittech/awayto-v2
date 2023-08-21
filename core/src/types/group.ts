@@ -148,5 +148,13 @@ export default {
     opts: { cache: 'skip' } as ApiOptions,
     queryArg: { code: '' as string },
     resultType: { success: true as boolean }
+  },
+  attachUser: {
+    kind: EndpointType.MUTATION,
+    url: 'group/attach/user',
+    method: 'POST',
+    opts: { cache: 'skip' } as ApiOptions,
+    queryArg: { code: '' as string },
+    resultType: { success: true }
   }
 } as const;

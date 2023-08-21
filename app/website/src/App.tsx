@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import keycloak from './keycloak';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 import Box from '@mui/material/Box';
@@ -34,7 +35,10 @@ export default function App (props: IProps): React.JSX.Element {
   const { setSnack, setTheme } = useUtil();
   const { Onboard, ConfirmAction } = useComponents();
   const { theme, snackOn, snackType, snackRequestId, isLoading, loadingMessage } = useAppSelector(state => state.util);
-  const { data: profile, refetch } = sh.useGetUserProfileDetailsQuery();
+  const { data: profile, refetch: getUserProfileDetails } = sh.useGetUserProfileDetailsQuery();
+  const [attachUser] = sh.useAttachUserMutation();
+  const loc = useLocation();
+  const navigate = useNavigate();
   
   const [ready, setReady] = useState(false);
   const [onboarding, setOnboarding] = useState(false);
@@ -47,7 +51,7 @@ export default function App (props: IProps): React.JSX.Element {
     const interval: NodeJS.Timeout = setInterval(() => {
       const resources = keycloak.tokenParsed?.resource_access;
       if (resources && resources[REACT_APP_KC_CLIENT]?.roles.includes(SiteRoles.APP_ROLE_CALL)) {
-        void refetch();
+        void getUserProfileDetails();
       }
     }, 58 * 1000);
 
@@ -57,17 +61,25 @@ export default function App (props: IProps): React.JSX.Element {
   }, []);
 
   useEffect(() => {
-    if (profile) {
-      if (Object.keys(profile.groups || {}).length) {
+    if (!profile) return;
+
+    if (loc.pathname === "/registration/code/success") {
+      const code = loc.search.split('?code=')[1].split('&')[0];
+      attachUser({ code }).unwrap().then(() => {
         setReady(true);
-      } else {
-        setOnboarding(true)
-      }
+        navigate('/');
+        keycloak.clearToken();
+      }).catch(console.error);
+    } else if (!Object.keys(profile.groups || {}).length) {
+      setOnboarding(true);
+      return;
+    } else {
+      setReady(true);
     }
   }, [profile]);
 
   const hideSnack = (): void => {
-    setSnack({ snackOn: '', snackRequestId: '' })
+    setSnack({ snackOn: '', snackRequestId: '' });
   }
 
   return <>

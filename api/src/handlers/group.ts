@@ -377,8 +377,8 @@ export default createHandlers({
       const { code } = props.event.body;
 
       // Get group id and default role based on the group code
-      const { id: groupId, allowedDomains, externalId: kcGroupExternalId, defaultRoleId, createdSub } = await props.tx.one<IGroup>(`
-        SELECT id, allowed_domains as "allowedDomains", external_id as "externalId", default_role_id as "defaultRoleId", created_sub as "createdSub"
+      const { id: groupId, allowedDomains, defaultRoleId } = await props.tx.one<IGroup>(`
+        SELECT id, allowed_domains as "allowedDomains", default_role_id as "defaultRoleId"
         FROM dbtable_schema.groups WHERE code = $1
       `, [code]);
 
@@ -403,26 +403,6 @@ export default createHandlers({
         INSERT INTO dbtable_schema.group_users (user_id, group_id, external_id, created_sub)
         VALUES ($1, $2, $3, $4::uuid);
       `, [userId, groupId, kcRoleSubgroupExternalId, props.event.userSub]);
-
-      // Attach the user to the role's subgroup in keycloak
-      await props.keycloak.users.addToGroup({
-        id: props.event.userSub,
-        groupId: kcRoleSubgroupExternalId
-      });
-
-      // Attach role call so the joining member's roles update
-      const { appClient, roleCall } = await props.redisProxy('appClient', 'roleCall');
-      await props.keycloak.users.addClientRoleMappings({
-        id: props.event.userSub,
-        clientUniqueId: appClient.id!,
-        roles: roleCall
-      });
-
-      // Refresh redis cache of group users/roles
-      await props.keycloak.regroup(kcGroupExternalId);
-      
-      await props.redis.del(props.event.userSub + 'profile/details');
-      await props.redis.del(createdSub + 'profile/details');
 
       return { success: true };
     } catch (error) {
@@ -467,6 +447,44 @@ export default createHandlers({
     await props.keycloak.regroup(kcGroupExternalId);
     
     await props.redis.del(props.event.userSub + 'profile/details');
+
+    return { success: true };
+  },
+  attachUser: async props => {
+    const { code } = props.event.body;
+
+    // Get group id and default role based on the group code
+    const { id: groupId, externalId: kcGroupExternalId, defaultRoleId, createdSub } = await props.tx.one<IGroup>(`
+      SELECT id, external_id as "externalId", default_role_id as "defaultRoleId", created_sub as "createdSub"
+      FROM dbtable_schema.groups WHERE code = $1
+    `, [code]);
+
+    // Get the role's subgroup external id
+    const { externalId: kcRoleSubgroupExternalId } = await props.tx.one<IGroupRole>(`
+      SELECT external_id as "externalId"
+      FROM dbtable_schema.group_roles
+      WHERE group_id = $1 AND role_id = $2
+    `, [groupId, defaultRoleId]);
+
+    // Attach the user to the role's subgroup in keycloak
+    await props.keycloak.users.addToGroup({
+      id: props.event.userSub,
+      groupId: kcRoleSubgroupExternalId
+    });
+
+    // Attach role call so the joining member's roles update
+    const { appClient, roleCall } = await props.redisProxy('appClient', 'roleCall');
+    await props.keycloak.users.addClientRoleMappings({
+      id: props.event.userSub,
+      clientUniqueId: appClient.id!,
+      roles: roleCall
+    });
+
+    // Refresh redis cache of group users/roles
+    await props.keycloak.regroup(kcGroupExternalId);
+      
+    await props.redis.del(props.event.userSub + 'profile/details');
+    await props.redis.del(createdSub + 'profile/details');
 
     return { success: true };
   }

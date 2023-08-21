@@ -15,6 +15,7 @@ import keycloak from '../../keycloak';
 export function Onboard(props: IProps): React.JSX.Element {
 
   const [joinGroup] = sh.useJoinGroupMutation();
+  const [attachUser] = sh.useAttachUserMutation();
 
   const { setSnack } = useUtil();
 
@@ -23,14 +24,14 @@ export function Onboard(props: IProps): React.JSX.Element {
   const [groupCode, setGroupCode] = useState('');
   const [dialog, setDialog] = useState('');
 
-  const joinGroupCb = useCallback(() => {
-    if (groupCode) {
-      if (/^[a-zA-Z0-9]{8}$/.test(groupCode)) {
-        joinGroup({ code: groupCode }).unwrap().then(() => keycloak.clearToken()).catch(console.error);
-      } else {
-        setSnack({ snackType: 'warning', snackOn: 'Invalid group code.' });
-      }
+  const joinGroupCb = useCallback(async () => {
+    if (!groupCode || !/^[a-zA-Z0-9]{8}$/.test(groupCode)) {
+      setSnack({ snackType: 'warning', snackOn: 'Invalid group code.' });
     }
+
+    await joinGroup({ code: groupCode }).unwrap().catch(console.error);
+    await attachUser({ code: groupCode }).unwrap().catch(console.error);
+    keycloak.clearToken()
   }, [groupCode]);
 
   useEffect(() => {

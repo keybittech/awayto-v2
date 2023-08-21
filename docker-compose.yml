@@ -159,7 +159,7 @@ services:
       - KC_REDIS_HOST=redis
       - KC_REDIS_PORT=6379
       - KC_REDIS_PASS=${REDIS_PASS}
-      - KC_REGISTRATION_RATE_LIMIT=10
+      - KC_REGISTRATION_RATE_LIMIT=100
     depends_on:
       - db
 

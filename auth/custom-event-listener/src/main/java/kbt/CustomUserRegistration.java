@@ -151,6 +151,7 @@ public class CustomUserRegistration extends RegistrationUserCreation {
               } else {
                 groupName = registrationValidationResponse.getString("name");
                 allowedDomains = registrationValidationResponse.getString("allowedDomains");
+                session.setAttribute("groupCode", groupCode);
                 session.setAttribute("groupName", groupName);
                 session.setAttribute("allowedDomains", allowedDomains);
               }
@@ -184,5 +185,19 @@ public class CustomUserRegistration extends RegistrationUserCreation {
 
       super.validate(context);
     }
+  }
+
+  @Override
+  public void success(FormContext context) {
+    
+    KeycloakSession session = context.getSession();
+
+    String groupCode = (String) session.getAttribute("groupCode");
+
+    if (groupCode != null) {
+      context.getAuthenticationSession().setRedirectUri(context.getAuthenticationSession().getRedirectUri() + "registration/code/success?code=" + groupCode);
+    }
+    
+    super.success(context);
   }
 }

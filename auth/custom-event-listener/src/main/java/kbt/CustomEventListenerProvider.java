@@ -41,7 +41,7 @@ public class CustomEventListenerProvider implements EventListenerProvider {
       JSONObject eventPayload = new JSONObject(event);
       RealmModel realm = session.realms().getRealm(event.getRealmId());
 
-      log.infof("CustomEventListenerProvider New Event: ", event.getType() + " " + eventPayload.toString());
+      log.info("CustomEventListenerProvider New Event: " + event.getType() + " " + eventPayload.toString());
 
       JSONObject response = BackchannelAuth.postApi("/auth/webhook", eventPayload,
           realm, session);
