@@ -168,7 +168,7 @@ export async function connect() {
 export async function getGroupRegistrationRedirectParts(groupCode: string): Promise<[string, string[]]> {
   try {
     // Make a request to the Keycloak login page to retrieve the tab_id parameter
-    const loginUrl = `https://${CUST_APP_HOSTNAME}/auth/realms/${KC_REALM}/protocol/openid-connect/auth?client_id=${KC_CLIENT}&redirect_uri=https://${CUST_APP_HOSTNAME}/api/auth/login/callback&response_type=code&scope=openid`;
+    const loginUrl = `https://${CUST_APP_HOSTNAME}/auth/realms/${KC_REALM}/protocol/openid-connect/auth?client_id=${KC_CLIENT}&redirect_uri=https://${CUST_APP_HOSTNAME}/app/&response_type=code&scope=openid`;
     const loginPageResponse = await fetch(loginUrl, { redirect: 'manual' });
 
     // Extract tab_id from response body using regex
