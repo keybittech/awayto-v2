@@ -700,3 +700,101 @@ FROM
 	CREATE TRIGGER enforce_photo_count 
 			BEFORE INSERT OR UPDATE ON photos
 			FOR EACH ROW EXECUTE PROCEDURE enforce_photo_count();
+
+
+
+
+
+
+  const trackStream = (mediaStream: MediaStream) => {
+
+    const mediaRecorder = new MediaRecorder(mediaStream);
+    const chunks: BlobPart[] = [];
+
+    // Listen for dataavailable event to obtain the recorded data
+    mediaRecorder.addEventListener('dataavailable', (event: BlobEvent) => {
+      chunks.push(event.data);
+    });
+
+    // Set the recording duration to 10 seconds
+    const RECORDING_DURATION_MS = 10000;
+    mediaRecorder.start(RECORDING_DURATION_MS);
+
+    const stopChecking = function (lang: string) {
+      Object.keys(potentialLanguages).forEach(pl => {
+        if (pl !== lang) {
+          potentialLanguages[pl].stop();
+          delete potentialLanguages[pl];
+        } else {
+          console.log(potentialLanguages[lang]);
+          speechRecognizer.current = potentialLanguages[lang];
+        }
+      })
+    }
+
+    const langs = ['en', 'en-US', 'en-UK', 'de', 'es'];
+
+    const potentialLanguages: Record<string, SpeechRecognition> = langs.reduce((m, l) => {
+
+
+      const newLang = new window.webkitSpeechRecognition();
+      newLang.maxAlternatives = 5;
+      newLang.continuous = true;
+      newLang.interimResults = true;
+      newLang.lang = l;
+
+      newLang.addEventListener('result', (event: SpeechRecognitionEvent) => {
+        const lastResult = event.results[event.results.length - 1];
+        const { transcript } = lastResult[0];
+  
+        const isFinal = lastResult.isFinal;
+  
+        isFinal && console.log({ l, transcript })
+
+        // Check if the user is speaking or not
+        if (enableRace.current && isFinal && transcript.length) {
+          enableRace.current = false;
+          console.log('got a transcript from ', l, transcript);
+          stopChecking(l);
+          let target = '';
+          switch (l) {
+            case 'en':
+              target = 'English';
+              break;
+            case 'en-US':
+              target = 'English';
+              break;
+            case 'en-UK':
+              target = 'English';
+              break;
+            case 'de':
+              target = 'German';
+              break;
+            case 'es':
+              target = 'Spanish';
+              break;
+          }
+
+          console.log({ target })
+
+          getPrompt({ id: IPrompts.TRANSLATE, prompt: `${target}|Chinese Simplified|${transcript}`}).unwrap().then(({ promptResult: [translated] }) => {
+            sendMessage('text', { style: 'utterance', message: translated.split('Translation:')[1] });
+          }).catch(console.error);
+          getPrompt({ id: IPrompts.TRANSLATE, prompt: `${target}|English|${transcript}`}).unwrap().then(({ promptResult: [translated] }) => {
+            sendMessage('text', { style: 'utterance', message: translated.split('Translation:')[1] });
+          }).catch(console.error);
+          // sendMessage('text', { style: 'utterance', message: transcript });
+        }
+      });
+
+      return {
+        ...m,
+        [l]: newLang
+      }
+    }, {});
+
+    for (const lang of langs) {
+      potentialLanguages[lang].start();
+    }
+
+  };

@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
+
+import dayjs from 'dayjs';
 
 import TextField, { TextFieldProps } from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
 import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
 import CardContent from '@mui/material/CardContent';
@@ -10,6 +11,7 @@ import { IField } from 'awayto/core';
 
 type FieldProps = {
   field?: IField;
+  defaultDisplay?: boolean;
   editable?: boolean;
   endAdornment?: React.JSX.Element;
 };
@@ -18,30 +20,34 @@ declare global {
   interface IProps extends FieldProps {}
 }
 
-function Field ({ endAdornment, field, editable = false }: IProps): React.JSX.Element {
+function Field ({ endAdornment, defaultDisplay, field, editable = false }: IProps): React.JSX.Element {
   if (!field) return <></>;
-  let FieldElement: (props: TextFieldProps) => JSX.Element;
 
-  switch (field.t) {
-    case 'date':
-      FieldElement = TextField;
-      break;
-    case 'time':
-      FieldElement = TextField;
-      break;
-    case 'text':
-      FieldElement = TextField;
-      break;
-    case 'labelntext':
-      FieldElement = () => <Card sx={{ flex: 1 }}>
-        <CardHeader title={field.l || 'Label'} variant="h6" />
-        <CardContent>{field.x || 'Text'}</CardContent>
-      </Card>
-      break;
-    default:
-      FieldElement = () => <></>;
-      break;
-  }
+  const FieldElement: (props: TextFieldProps) => JSX.Element = useMemo(() => {
+    switch (field.t) {
+      case 'date':
+      case 'time':
+      case 'text':
+        return TextField;
+      case 'labelntext':
+        return () => <Card sx={{ flex: 1 }}>
+          <CardHeader title={field.l || 'Label'} variant="h6" />
+          <CardContent>{field.x || 'Text'}</CardContent>
+        </Card>
+      default:
+        return () => <></>;
+    }
+  }, [field]);
+
+  const defaultValue = useMemo(() => {
+    switch (field.t) {
+      case 'date':
+      case 'time':
+        return dayjs().format('YYYY-MM-DD');
+      default:
+        return defaultDisplay ? ' ' : '';
+    }
+  }, [field]);
 
   return <FieldElement
     fullWidth
@@ -49,7 +55,7 @@ function Field ({ endAdornment, field, editable = false }: IProps): React.JSX.El
     label={field.l}
     type={field.t}
     helperText={`${field.r ? 'Required. ' : ''}${field.h || ''}`}
-    value={String(field.v || '')}
+    value={field.v ? field.v : defaultValue}
     InputProps={{
       endAdornment
     }}

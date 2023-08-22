@@ -159,7 +159,11 @@ export default function FormBuilder({ version, setVersion, editable = true }: IP
         return oldRows;
       });
     }
-  }, [rows, cell]);  
+  }, [rows, cell]);
+
+  const CurrentLabelInput = useCallback(() => <Grid item>
+    <TextField fullWidth autoFocus id={`row_${position.row}_col_${position.col}_label_input`} label="Label" type="text" helperText="Required." value={cell.l} onChange={e => setCellAttr(e.target.value, 'l')} />
+  </Grid>, [cell]);
 
   return <Grid container spacing={2}>
 
@@ -169,7 +173,7 @@ export default function FormBuilder({ version, setVersion, editable = true }: IP
           <Button variant="outlined" fullWidth onClick={addRow}>add row</Button>
         </Grid>}
         {Object.keys(rows).length > 0 && <Grid item xs={12}>
-          <Typography variant="subtitle1">Start by editing the field and adding a label.</Typography>
+          <Typography variant="subtitle1">Add a field. Give it a label. Any example values shown on this screen are for display purposes only while editing.</Typography>
         </Grid>}
         {rowKeys.map((rowId, i) => <Grid key={`form_fields_row_${i}`} item xs={12}>
           <Grid container spacing={2}>
@@ -184,9 +188,10 @@ export default function FormBuilder({ version, setVersion, editable = true }: IP
                 {rows[rowId].map((field, j) => {
                   return <Grid item xs={12 / rows[rowId].length} key={`form_fields_cell_${i + 1}_${j}`}>
                     <Field
+                      defaultDisplay
                       field={field}
                       endAdornment={
-                        <IconButton onClick={() => {
+                        <IconButton sx={{  color: position.row == rowId && position.col == j ? 'secondary' : 'inherit'}} onClick={() => {
                           setCell(field);
                           setPosition({ row: rowId, col: j })
                         }}>
@@ -232,9 +237,7 @@ export default function FormBuilder({ version, setVersion, editable = true }: IP
           }}>Delete</Button>
         </Grid>
 
-        <Grid item>
-          <TextField fullWidth label="Label" type="text" helperText="Required." value={cell.l} onChange={e => setCellAttr(e.target.value, 'l')} />
-        </Grid>
+        <CurrentLabelInput />
 
         {'labelntext' === cell.t && <Grid item>
           <TextField fullWidth label="Text" type="text" value={cell.x} onChange={e => setCellAttr(e.target.value, 'x')} />
@@ -257,6 +260,10 @@ export default function FormBuilder({ version, setVersion, editable = true }: IP
 
         <Grid item>
           <TextField fullWidth label="Helper Text" type="text" value={cell.h} onChange={e => setCellAttr(e.target.value, 'h')} />
+        </Grid>
+
+        <Grid item>
+          <TextField fullWidth label="Default Value" type={cell.t} value={cell.v} onChange={e => setCellAttr(e.target.value, 'v')} />
         </Grid>
 
         <Grid item>

@@ -169,7 +169,7 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
     speechRecognizer.current.maxAlternatives = 5;
     speechRecognizer.current.continuous = true;
     speechRecognizer.current.interimResults = true;
-    speechRecognizer.current.lang = 'en-US';
+    speechRecognizer.current.lang = navigator.language;
 
     // const isSpeaking = false;
     // const silenceStartTime = 0;
@@ -183,9 +183,12 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
 
       // Check if the user is speaking or not
       if (isFinal && transcript.length) {
-        // getPrompt({ id: IPrompts.TRANSLATE, prompt: `English|Chinese Simplified|${transcript}`}).unwrap().then(({ promptResult: [translated] }) => {
-          sendMessage('text', { style: 'utterance', message: transcript });
+        
+        // getPrompt({ id: IPrompts.TRANSLATE, prompt: `${target}|Chinese Simplified|${transcript}`}).unwrap().then(({ promptResult: [translated] }) => {
+        //   sendMessage('text', { style: 'utterance', message: translated.split('Translation:')[1] });
         // }).catch(console.error);
+
+        sendMessage('text', { style: 'utterance', message: transcript });
       }
     });
 

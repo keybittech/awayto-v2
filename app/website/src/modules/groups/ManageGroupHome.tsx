@@ -103,7 +103,7 @@ export function ManageGroupHome(props: IProps): React.JSX.Element {
 
         <Box mb={2}>
           <Alert sx={{ py: 0 }} icon={false} severity="info">
-            <Typography fontWeight={500}>Group Code:</Typography>
+            <Typography fontWeight={500}>Group Code</Typography>
             <Tooltip title="Copy Group Code">
               <Link sx={{ cursor: 'pointer' }} onClick={copyCode}>{group.code}</Link>
 
