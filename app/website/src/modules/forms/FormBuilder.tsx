@@ -110,32 +110,33 @@ export default function FormBuilder({ version, setVersion, editable = true }: IP
   const [position, setPosition] = useState({ row: '', col: 0 });
 
   useEffect(() => {
-    if (Object.keys(rows).length) {
-      setVersion({ ...version, form: rows });
-    }
-  }, [rows]);
-
-  useEffect(() => {
     if (Object.keys(version.form).length) {
       setRows({ ...version.form });
     }
   }, [version]);
 
+  const updateData = useCallback((newRows: typeof rows) => {
+    const rowSet = { ...rows, ...newRows };
+    setRows(rowSet);
+    setVersion({ ...version, form: rowSet });
+
+  }, [rows, version]);
+
   const rowKeys = useMemo(() => Object.keys(rows), [rows]);
 
-  const addRow = useCallback(() => setRows({ ...rows, [(new Date()).getTime().toString()]: [makeField()] }), [rows]);
+  const addRow = useCallback(() => updateData({ ...rows, [(new Date()).getTime().toString()]: [makeField()] }), [rows]);
 
   // const delRow = useCallback((row: string) => {
   //   delete rows[row];
   //   setRows({ ...rows });
   // }, [rows]);
 
-  const addCol = useCallback((row: string) => setRows({ ...rows, [row]: Array.prototype.concat(rows[row], [makeField()]) }), [rows]);
+  const addCol = useCallback((row: string) => updateData({ ...rows, [row]: Array.prototype.concat(rows[row], [makeField()]) }), [rows]);
 
   const delCol = useCallback((row: string, col: number) => {
     rows[row].splice(col, 1);
     if (!rows[row].length) delete rows[row];
-    setRows({ ...rows });
+    updateData({ ...rows });
   }, [rows]);
 
   const makeField = useCallback((): IField => ({ l: '', t: 'text', h: '', r: false, v: '', x: '' }), []);
@@ -148,16 +149,16 @@ export default function FormBuilder({ version, setVersion, editable = true }: IP
       };
 
       setCell(newCell);
-      setRows((oldRows) => {
-        if (oldRows && position && position.row !== undefined && position.col !== undefined) {
-          const newRows = deepClone(oldRows);
-          if (newRows[position.row] && newRows[position.row][position.col]) {
-            newRows[position.row][position.col] = newCell;
-          }
-          return newRows;
-        }
-        return oldRows;
-      });
+
+      if (position.row !== undefined && position.col !== undefined) {
+        return;
+      }
+
+      const newRows = deepClone(rows);
+      if (newRows[position.row] && newRows[position.row][position.col]) {
+        newRows[position.row][position.col] = newCell;
+        updateData({ ...newRows });
+      }
     }
   }, [rows, cell]);
 
@@ -270,7 +271,7 @@ export default function FormBuilder({ version, setVersion, editable = true }: IP
           <Typography variant="body1">Required</Typography>
           <Switch value={cell.r} checked={cell.r} onChange={() => {
             rows[position.row][position.col].r = !cell.r;
-            setRows({ ...rows })
+            updateData({ ...rows })
           }} />
         </Grid>
 
