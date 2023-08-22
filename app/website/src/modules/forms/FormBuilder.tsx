@@ -150,11 +150,8 @@ export default function FormBuilder({ version, setVersion, editable = true }: IP
 
       setCell(newCell);
 
-      if (position.row !== undefined && position.col !== undefined) {
-        return;
-      }
-
       const newRows = deepClone(rows);
+
       if (newRows[position.row] && newRows[position.row][position.col]) {
         newRows[position.row][position.col] = newCell;
         updateData({ ...newRows });
