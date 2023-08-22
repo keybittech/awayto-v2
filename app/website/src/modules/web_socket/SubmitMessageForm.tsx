@@ -31,6 +31,12 @@ export function SubmitMessageForm({ sendTextMessage }: IProps): React.JSX.Elemen
         name="message"
         onChange={e => setTextMessage(e.target.value)}
         InputProps={{
+          sx: {
+            'textarea': {
+              overflow: 'auto !important',
+              maxHeight: '60px'
+            }
+          },
           onKeyDown: e => {
             if ('Enter' === e.key && !e.shiftKey) {
               e.preventDefault();

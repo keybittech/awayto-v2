@@ -76,26 +76,22 @@ export function Exchange(): React.JSX.Element {
       </Suspense>
     </Dialog>
 
-    <Stack sx={{ height: '100%' }} direction="row">
-      <Box sx={{
-        backgroundColor: theme.palette.primary.dark,
-        padding: 1,
-        display: chatOpen ? 'flex' : 'none',
-        height: '100%', width: chatOpen ? '30%' : '100%'
-      }}>
-        <Grid container direction="column" sx={{ flex: 1, flexWrap: 'nowrap' }}>
+
+    <Grid container sx={{ height: '100%' }}>
+
+      <Grid item xs={3} sx={{ display: chatOpen ? 'block' : 'none', height: '100%' }}>
+
+        <Grid container direction="column" sx={{ backgroundColor: 'black', position: 'relative', maxHeight: '390px', flex: 1 }}>
           {/* ---------- Video ---------- */}
-          {localStreamElement && <Grid item xs={12} sx={{ backgroundColor: 'black', position: 'relative', maxHeight: '390px', display: 'flex', flex: '1' }}>
-            <Grid container justifyContent="flex-end" sx={{ position: 'absolute' }}>
-              {localStreamElement}
-            </Grid>
-            {!!Object.keys(senderStreamsElements).length && senderStreamsElements}
+          {localStreamElement && <Grid item xs={12} sx={{ position: senderStreamsElements.length ? 'absolute' : 'inherit', right: 0, width: senderStreamsElements.length ? '25%' : '100%' }}>
+            {localStreamElement}
           </Grid>}
+          {!!Object.keys(senderStreamsElements).length && senderStreamsElements}
         </Grid>
 
         {/* ---------- Chat ---------- */}
-        <Grid container direction="column">
-          <Grid item pr={1} sx={{ flex: '1', overflow: 'auto' }}>
+        <Grid container direction="column" sx={{ flex: 1, padding: 1, flexWrap: 'nowrap', height: localStreamElement || senderStreamsElements.length ? 'calc(100% - 390px)' : '100%' }}>
+          <Grid item sx={{ flex: '1', overflow: 'auto' }}>
             {chatLog}
             {messagesEnd}
           </Grid>
@@ -104,9 +100,9 @@ export function Exchange(): React.JSX.Element {
             {submitMessageForm}
           </Grid>
         </Grid>
-      </Box>
 
-      <Box sx={{ height: '100%', width: chatOpen ? '70%' : '100%' }}>
+      </Grid>
+      <Grid item xs={chatOpen ? 9 : 12} sx={{ height: '100%' }}>
         <Whiteboard
           topicId={`exchange/whiteboard:${exchangeId}`}
           sharedFile={sharedFile}
@@ -149,8 +145,8 @@ export function Exchange(): React.JSX.Element {
             </List>
           }
         />
-      </Box>
-    </Stack>
+      </Grid>
+    </Grid>
   </>;
 }
 

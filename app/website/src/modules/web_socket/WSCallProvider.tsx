@@ -1,8 +1,7 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 
-import { sh, useComponents, useContexts, useUtil, useWebSocketSubscribe } from 'awayto/hooks';
+import { useComponents, useContexts, useUtil, useWebSocketSubscribe } from 'awayto/hooks';
 import { ExchangeSessionAttributes, SenderStreams, SocketMessage } from 'awayto/core';
-import { IPrompts } from '@keybittech/wizapp/dist/lib';
 
 const peerConnectionConfig = {
   'iceServers': [
@@ -28,8 +27,6 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
   const { Video } = useComponents();
 
   const speechRecognizer = useRef<SpeechRecognition>();
-
-  const [getPrompt] = sh.useLazyGetPromptQuery();
   
   const [localStream, setLocalStream] = useState<MediaStream>();
   const [connected, setConnected] = useState(false);
@@ -155,7 +152,7 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
 
   const trackStream = (mediaStream: MediaStream) => {
 
-    const mediaRecorder = new MediaRecorder(mediaStream, { mimeType: 'audio/webm' });
+    const mediaRecorder = new MediaRecorder(mediaStream);
     const chunks: BlobPart[] = [];
 
     // Listen for dataavailable event to obtain the recorded data
@@ -267,8 +264,8 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
       if (senderStreams[sender].mediaStream) {
         return <Video key={sender} autoPlay srcObject={senderStreams[sender].mediaStream} />
       }
-    }), [senderStreams]),
-    localStreamElement: useMemo(() => !localStream ? undefined : <video key={'local-video'} style={{ width: '25%' }} autoPlay controls ref={localStreamRef} />, [localStream, localStreamRef])
+    }), [senderStreams, localStream, localStreamRef]),
+    localStreamElement: useMemo(() => localStream && !senderStreams.length ? <video key={'local-video'} style={{ width: '100%' }} autoPlay controls ref={localStreamRef} /> : undefined, [localStream, localStreamRef])
   } as WSCallContextType | null;
 
   return useMemo(() => !WSCallContext ? <></> :
