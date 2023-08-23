@@ -20,22 +20,12 @@ router.post('/ticket', checkAuthenticated, async (req, res, next) => {
   try {
     const user = req.user as IUserProfile;
 
-    const bookings = (await db.manyOrNone<IBooking>(`
-      SELECT b.id FROM dbtable_schema.bookings b
-      JOIN dbtable_schema.quotes q ON q.id = b.quote_id
-      JOIN dbtable_schema.schedule_bracket_slots sbs ON sbs.id = b.schedule_bracket_slot_id
-      WHERE q.created_sub = $1 OR sbs.created_sub = $1
-    `, [user.sub])).map(b => b.id);
-
     const proxyMiddleware = createProxyMiddleware({
       timeout: 5000,
       target: `http://${SOCK_HOST}:${SOCK_PORT}/create_ticket/${user.sub}`,
       onProxyReq: proxyReq => {
-        const bodyData = JSON.stringify({ bookings });
-        proxyReq.setHeader('Content-Type', 'application/json');
-        proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
         proxyReq.setHeader('x-backchannel-id', SOCK_SECRET.slice(0, 5) + charCount(SOCK_SECRET));
-        proxyReq.write(bodyData);
+        proxyReq.end();
       },
       onProxyRes: () => {
         console.log('[HPM] Proxy resolving');
@@ -48,6 +38,19 @@ router.post('/ticket', checkAuthenticated, async (req, res, next) => {
     logger.log('sockProxy', err.message)
   }
 });
+
+router.post('/allowances', async (req, res ) => {
+  const { sub } = req.body as { [prop: string]: string };
+
+  const bookings = (await db.manyOrNone<IBooking>(`
+    SELECT b.id FROM dbtable_schema.bookings b
+    JOIN dbtable_schema.quotes q ON q.id = b.quote_id
+    JOIN dbtable_schema.schedule_bracket_slots sbs ON sbs.id = b.schedule_bracket_slot_id
+    WHERE q.created_sub = $1 OR sbs.created_sub = $1
+  `, [sub])).map(b => b.id);
+
+  res.send(JSON.stringify({ allowances: { bookings } }))
+})
 
 router.post('/connect', async (req, res) => {
   const { sub, connectionId } = req.body as { [prop: string]: string };

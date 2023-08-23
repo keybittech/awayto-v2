@@ -1,6 +1,7 @@
 
 import redis from '../redis.js';
 import { exchangeHandler } from './exchange.js';
+import { allowances } from './allowances.js';
 
 const handlers = [
   exchangeHandler
@@ -9,6 +10,8 @@ const handlers = [
 export async function subscribe(bc, parsed, ws) {
   
   let subbed = false;
+
+  ws.subscriber.allowances = { ...await allowances(ws.subscriber.sub) };
 
   for (let i = 0; i < handlers.length; i++) { 
     const handler = handlers[i];
