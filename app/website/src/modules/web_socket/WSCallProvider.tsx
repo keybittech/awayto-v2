@@ -26,7 +26,7 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
 
   const { Video } = useComponents();
 
-  const speechRecognizer = useRef<SpeechRecognition>();
+  // const speechRecognizer = useRef<SpeechRecognition>();
   
   const [localStream, setLocalStream] = useState<MediaStream>();
   const [connected, setConnected] = useState(false);
@@ -150,50 +150,50 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
     }
   });
 
-  const trackStream = (mediaStream: MediaStream) => {
+  // const trackStream = (mediaStream: MediaStream) => {
 
-    const mediaRecorder = new MediaRecorder(mediaStream);
-    const chunks: BlobPart[] = [];
+  //   const mediaRecorder = new MediaRecorder(mediaStream);
+  //   const chunks: BlobPart[] = [];
 
-    // Listen for dataavailable event to obtain the recorded data
-    mediaRecorder.addEventListener('dataavailable', (event: BlobEvent) => {
-      chunks.push(event.data);
-    });
+  //   // Listen for dataavailable event to obtain the recorded data
+  //   mediaRecorder.addEventListener('dataavailable', (event: BlobEvent) => {
+  //     chunks.push(event.data);
+  //   });
 
-    // Set the recording duration to 10 seconds
-    const RECORDING_DURATION_MS = 10000;
-    mediaRecorder.start(RECORDING_DURATION_MS);
+  //   // Set the recording duration to 10 seconds
+  //   const RECORDING_DURATION_MS = 10000;
+  //   mediaRecorder.start(RECORDING_DURATION_MS);
 
-    // Speech recognition setup
-    speechRecognizer.current = new window.webkitSpeechRecognition();
-    speechRecognizer.current.maxAlternatives = 5;
-    speechRecognizer.current.continuous = true;
-    speechRecognizer.current.interimResults = true;
-    speechRecognizer.current.lang = navigator.language;
+  //   // Speech recognition setup
+  //   speechRecognizer.current = new window.webkitSpeechRecognition();
+  //   speechRecognizer.current.maxAlternatives = 5;
+  //   speechRecognizer.current.continuous = true;
+  //   speechRecognizer.current.interimResults = true;
+  //   speechRecognizer.current.lang = navigator.language;
 
-    // const isSpeaking = false;
-    // const silenceStartTime = 0;
+  //   // const isSpeaking = false;
+  //   // const silenceStartTime = 0;
 
-    // Handle speech recognition results
-    speechRecognizer.current.addEventListener('result', (event: SpeechRecognitionEvent) => {
-      const lastResult = event.results[event.results.length - 1];
-      const { transcript } = lastResult[0];
+  //   // Handle speech recognition results
+  //   speechRecognizer.current.addEventListener('result', (event: SpeechRecognitionEvent) => {
+  //     const lastResult = event.results[event.results.length - 1];
+  //     const { transcript } = lastResult[0];
 
-      const isFinal = lastResult.isFinal;
+  //     const isFinal = lastResult.isFinal;
 
-      // Check if the user is speaking or not
-      if (isFinal && transcript.length) {
+  //     // Check if the user is speaking or not
+  //     if (isFinal && transcript.length) {
         
-        // getPrompt({ id: IPrompts.TRANSLATE, prompt: `${target}|Chinese Simplified|${transcript}`}).unwrap().then(({ promptResult: [translated] }) => {
-        //   sendMessage('text', { style: 'utterance', message: translated.split('Translation:')[1] });
-        // }).catch(console.error);
+  //       // getPrompt({ id: IPrompts.TRANSLATE, prompt: `${target}|Chinese Simplified|${transcript}`}).unwrap().then(({ promptResult: [translated] }) => {
+  //       //   sendMessage('text', { style: 'utterance', message: translated.split('Translation:')[1] });
+  //       // }).catch(console.error);
 
-        sendMessage('text', { style: 'utterance', message: transcript });
-      }
-    });
+  //       sendMessage('text', { style: 'utterance', message: transcript });
+  //     }
+  //   });
 
-    speechRecognizer.current.start();
-  };
+  //   speechRecognizer.current.start();
+  // };
 
   const setLocalStreamAndBroadcast = useCallback((video: boolean): void => {
     async function go() {
@@ -216,7 +216,7 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
             };
           }
           const mediaStream = await navigator.mediaDevices.getUserMedia(callOptions);
-          trackStream(mediaStream);
+          // trackStream(mediaStream); -- TODO: Check support for this in browsers some day
           setLocalStream(mediaStream);
           sendMessage('join-call', { formats: Object.keys(callOptions) });
           setCanStartStop('stop');
@@ -259,8 +259,8 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
         setLocalStream(undefined);
         setCanStartStop('start');
         setConnected(false);
-        speechRecognizer.current?.stop();
-        speechRecognizer.current = undefined;
+        // speechRecognizer.current?.stop();
+        // speechRecognizer.current = undefined;
       }
     },
     senderStreamsElements: useMemo(() => Object.keys(senderStreams).map(sender => {
