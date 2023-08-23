@@ -12,7 +12,7 @@ const server = createServer().listen(8888);
 // Catch any request coming into the http server for inter-socket connectivity
 // Define connection endpoints between containers where needed here
 server.on('request', function (req, res) {
-  if ('POST' === req.method) {
+  if ('POST' === req.method && req.headers['x-backchannel-id'] && checkBackchannel(req.headers['x-backchannel-id'])) {
 
     // User wants to get a ticket to open a socket
     // Proxied from front end through api for kc auth check
@@ -103,7 +103,7 @@ server.on('upgrade', async function (req, socket, head) {
         wss.emit('connection', ws, req);
       });
 
-    } else if (req.headers['authorization'] && checkBackchannel(req.headers['authorization'])) {
+    } else if (req.headers['x-backchannel-id'] && checkBackchannel(req.headers['x-backchannel-id'])) {
       wss.handleUpgrade(req, socket, head, async ws => {
         ws.backchannel = true;
         wss.backchannel = ws;

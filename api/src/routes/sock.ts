@@ -5,11 +5,12 @@ import { db } from '../modules/db';
 import logger from '../modules/logger';
 
 import { checkAuthenticated, checkBackchannel } from '../middlewares';
-import { IBooking, IUserProfile } from 'awayto/core';
+import { IBooking, IUserProfile, charCount } from 'awayto/core';
 
 const {
   SOCK_HOST,
-  SOCK_PORT
+  SOCK_PORT,
+  SOCK_SECRET
 } = process.env as { [prop: string]: string };
 
 const router = express.Router();
@@ -27,12 +28,17 @@ router.post('/ticket', checkAuthenticated, async (req, res, next) => {
     `, [user.sub])).map(b => b.id);
 
     const proxyMiddleware = createProxyMiddleware({
+      timeout: 5000,
       target: `http://${SOCK_HOST}:${SOCK_PORT}/create_ticket/${user.sub}`,
       onProxyReq: proxyReq => {
         const bodyData = JSON.stringify({ bookings });
         proxyReq.setHeader('Content-Type', 'application/json');
         proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+        proxyReq.setHeader('x-backchannel-id', SOCK_SECRET.slice(0, 5) + charCount(SOCK_SECRET));
         proxyReq.write(bodyData);
+      },
+      onProxyRes: () => {
+        console.log('[HPM] Proxy resolving');
       }
     })
 

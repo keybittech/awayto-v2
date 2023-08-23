@@ -19,8 +19,7 @@ export async function sendBackchannel(path, body) {
 }
 
 export function checkBackchannel(auth) {
-  const parsed = Buffer.from(auth.split(' ')[1], 'base64').toString();
-  const match = parsed.slice(0, 5) === SOCK_SECRET.slice(0, 5);
-  const length = parseInt(parsed.slice(5, parsed.length)) === charCount(SOCK_SECRET);
+  const match = auth.slice(0, 5) === SOCK_SECRET.slice(0, 5);
+  const length = parseInt(auth.slice(5, auth.length)) === charCount(SOCK_SECRET);
   return match && length;
 }

@@ -40,7 +40,9 @@ async function go() {
   async function connect() {
     try {
       const ws = new WebSocket(`ws://${SOCK_HOST}:${SOCK_PORT}`, {
-        auth: SOCK_SECRET.slice(0, 5) + charCount(SOCK_SECRET)
+        headers: {
+          'x-backchannel-id': SOCK_SECRET.slice(0, 5) + charCount(SOCK_SECRET)
+        }
       });
 
       ws.onopen = () => {
