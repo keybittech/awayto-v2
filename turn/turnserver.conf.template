@@ -9,7 +9,7 @@ fingerprint
 listening-ip=0.0.0.0
 
 # External IP-Address of the TURN server
-external-ip=$EXIT_PUBLIC_IP
+external-ip=$CUST_APP_HOSTNAME
 
 # Main listening port
 listening-port=3478
