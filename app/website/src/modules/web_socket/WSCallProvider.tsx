@@ -3,9 +3,14 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useComponents, useContexts, useUtil, useWebSocketSubscribe } from 'awayto/hooks';
 import { ExchangeSessionAttributes, SenderStreams, SocketMessage } from 'awayto/core';
 
+const {
+  REACT_APP_TURN_NAME,
+  REACT_APP_TURN_PASS
+} = process.env as { [prop: string]: string };
+
 const peerConnectionConfig = {
   'iceServers': [
-    { urls: `turn:${location.hostname}:3478`, credential: 'test123', username: 'test' },
+    { urls: `turn:${location.hostname}:3478`, credential: REACT_APP_TURN_PASS, username: REACT_APP_TURN_NAME },
     { urls: `stun:${location.hostname}:3478` },
   ]
 };

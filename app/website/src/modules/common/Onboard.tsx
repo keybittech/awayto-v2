@@ -24,14 +24,17 @@ export function Onboard(props: IProps): React.JSX.Element {
   const [groupCode, setGroupCode] = useState('');
   const [dialog, setDialog] = useState('');
 
-  const joinGroupCb = useCallback(async () => {
+  const joinGroupCb = useCallback(() => {
     if (!groupCode || !/^[a-zA-Z0-9]{8}$/.test(groupCode)) {
       setSnack({ snackType: 'warning', snackOn: 'Invalid group code.' });
     }
 
-    await joinGroup({ code: groupCode }).unwrap().catch(console.error);
-    await attachUser({ code: groupCode }).unwrap().catch(console.error);
-    keycloak.clearToken()
+    async function go() {
+      await joinGroup({ code: groupCode }).unwrap().catch(console.error);
+      await attachUser({ code: groupCode }).unwrap().catch(console.error);
+      keycloak.clearToken()
+    }
+    void go();
   }, [groupCode]);
 
   useEffect(() => {
