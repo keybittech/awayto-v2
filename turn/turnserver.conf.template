@@ -15,8 +15,8 @@ external-ip=$CUST_APP_HOSTNAME
 listening-port=3478
 
 # Further ports that are open for communication
-min-port=10000
-max-port=20000
+min-port=44400
+max-port=44500
 
 # Log file path
 log-file=/var/log/turnserver.log
