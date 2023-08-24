@@ -25,17 +25,17 @@ log-file=/var/log/turnserver.log
 verbose
 
 # Specify the user for the TURN authentification
-user=test:test123
+user=$TURN_NAME:$TURN_PASS
 
 # Enable long-term credential mechanism
 lt-cred-mech
 
 # SSL certificates
-cert=/app/server.crt
-pkey=/app/server.key
+# cert=/app/server.crt
+# pkey=/app/server.key
 
 # 443 for TURN over TLS, which can bypass firewalls
-tls-listening-port=443
+# tls-listening-port=443
 
 # If running coturn version older than 4.5.2, uncomment these rules and ensure
 # that you have listening-ip set to ipv4 addresses only.
