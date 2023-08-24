@@ -19,7 +19,7 @@ min-port=44400
 max-port=44500
 
 # Log file path
-log-file=/var/log/turnserver.log
+log-file=/app/logs/turnserver.log
 
 # Enable verbose logging
 verbose
