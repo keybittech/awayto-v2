@@ -82,7 +82,7 @@ if echo $DEPLOYED_SERVICE | grep -q "turn"; then
   sudo docker stop wcturn
   sudo docker rm wcturn
 
-  CUST_APP_HOSTNAME=$CUST_APP_HOSTNAME TURN_NAME=$TURN_NAME TURN_PASS=$TURN_PASS envsubst < /home/$TAILSCALE_OPERATOR/turnserver.conf.template > /home/$TAILSCALE_OPERATOR/turnserver.conf
+  CUST_APP_HOSTNAME=$CUST_APP_HOSTNAME EXIT_PUBLIC_IP=$EXIT_PUBLIC_IP TURN_NAME=$TURN_NAME TURN_PASS=$TURN_PASS envsubst < /home/$TAILSCALE_OPERATOR/turnserver.conf.template > /home/$TAILSCALE_OPERATOR/turnserver.conf
 
   sudo docker run -d --restart always --name wcturn --network="host" \
     -v /home/$TAILSCALE_OPERATOR/turnserver.conf:/etc/coturn/turnserver.conf:ro \
