@@ -29,6 +29,8 @@ sudo ufw deny 1514
 sudo ufw deny 1514/udp
 sudo ufw deny 12201
 sudo ufw deny 12201/udp
+
+sudo ufw deny 3478/udp
 EOF
 
 echo "Tear down of svc server complete."

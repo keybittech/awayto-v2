@@ -48,6 +48,9 @@ KC_API_CLIENT_SECRET=kc_api_client_secret
 
 SOCK_SECRET=socksecret
 
+TURN_NAME=turnname
+TURN_PASS=turnpass
+
 GRAYLOG_ROOT_PASSWORD_SHA2=$(echo -n "graylogpass" | sha256sum | cut -d " " -f1)
 GRAYLOG_PASSWORD_SECRET=graylogpasswordsecret
 
@@ -124,7 +127,7 @@ if [ ! -f $KEYSTORE_LOC ]; then
   echo "Finished keystore and certificate generation."
 fi
 
-CUST_APP_HOSTNAME=$CUST_APP_HOSTNAME envsubst < ./turn/turnserver.conf.template > ./turn/turnserver.conf
+CUST_APP_HOSTNAME=$CUST_APP_HOSTNAME TURN_NAME=$TURN_NAME TURN_PASS=$TURN_PASS envsubst < ./turn/turnserver.conf.template > ./turn/turnserver.conf
 
 . ./bin/dev/build-auth
 

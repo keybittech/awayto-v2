@@ -23,9 +23,12 @@ services:
         - KC_CLIENT=${KC_CLIENT}
         - KC_PATH=/auth
         - CA_PASS=${CA_PASS}
+        - TURN_NAME=${TURN_NAME}
+        - TURN_PASS=${TURN_PASS}
     ports:
       - 80:80
       - 443:443
+      - 3478:3478/udp
     extra_hosts:
       - ${CUST_APP_HOSTNAME}:${APP_HOST}
     environment:
@@ -35,6 +38,8 @@ services:
       - KC_CLIENT=${KC_CLIENT}
       - KC_PATH=/auth
       - APP_HOST=${APP_HOST}
+      - TURN_NAME=${TURN_NAME}
+      - TURN_PASS=${TURN_PASS}
     depends_on:
       # - api
       - sock
@@ -183,6 +188,9 @@ services:
 
   turn: # STUN/TURN server for WebRTC
     image: wcturn
+    ports:
+      - 3479:3479/tcp
+      - 3479:3479/udp
     build:
       context: ./
       dockerfile: ./turn/Dockerfile
