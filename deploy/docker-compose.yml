@@ -13,6 +13,8 @@ services:
         - KC_CLIENT=${KC_CLIENT}
         - KC_PATH=/auth
         - CA_PASS=${CA_PASS}
+        - TURN_NAME=${TURN_NAME}
+        - TURN_PASS=${TURN_PASS}
     environment:
       - SVC_HOST=${SVC_HOST}
       - APP_HOST=${APP_HOST}
