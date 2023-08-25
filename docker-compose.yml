@@ -188,9 +188,7 @@ services:
 
   turn: # STUN/TURN server for WebRTC
     image: wcturn
-    ports:
-      - 3479:3479/tcp
-      - 3479:3479/udp
+    network_mode: host
     build:
       context: ./
       dockerfile: ./turn/Dockerfile

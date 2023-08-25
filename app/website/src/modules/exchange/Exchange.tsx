@@ -8,11 +8,9 @@ import Grid from '@mui/material/Grid';
 import Tooltip from '@mui/material/Tooltip';
 import Dialog from '@mui/material/Dialog';
 import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
 import List from '@mui/material/List';
 import ListSubheader from '@mui/material/ListSubheader';
 import ListItem from '@mui/material/ListItem';
-import useTheme from '@mui/material/styles/useTheme';
 
 import ChatBubbleIcon from '@mui/icons-material/ChatBubble';
 import VideocamIcon from '@mui/icons-material/Videocam';
@@ -31,8 +29,6 @@ export function Exchange(): React.JSX.Element {
   const [chatOpen, setChatOpen] = useState(true);
   const [fileGroups, setFileGroups] = useState<OrderedFiles[]>([])
   const [sharedFile, setSharedFile] = useState<IFile | undefined>();
-
-  const theme = useTheme();
 
   const {
     exchangeId,
@@ -81,7 +77,7 @@ export function Exchange(): React.JSX.Element {
 
       <Grid item xs={3} sx={{ display: chatOpen ? 'block' : 'none', height: '100%' }}>
 
-        <Grid container direction="column" sx={{ backgroundColor: 'black', position: 'relative', maxHeight: '390px', flex: 1 }}>
+        <Grid container direction="column" sx={{ backgroundColor: 'black', position: 'relative', minHeight: localStreamElement || senderStreamsElements.length ? '390px' : '0px', maxHeight: '390px', flex: 1 }}>
           {/* ---------- Video ---------- */}
           {localStreamElement && <Grid item xs={12} sx={{ position: senderStreamsElements.length ? 'absolute' : 'inherit', right: 0, width: senderStreamsElements.length ? '25%' : '100%' }}>
             {localStreamElement}

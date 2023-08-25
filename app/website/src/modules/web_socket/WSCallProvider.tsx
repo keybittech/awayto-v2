@@ -1,7 +1,7 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 
 import { useComponents, useContexts, useUtil, useWebSocketSubscribe } from 'awayto/hooks';
-import { ExchangeSessionAttributes, SenderStreams, SocketMessage } from 'awayto/core';
+import { ExchangeSessionAttributes, Sender, SenderStreams, SocketMessage } from 'awayto/core';
 
 const {
   REACT_APP_TURN_NAME,
@@ -44,9 +44,12 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
     connectionId,
     sendMessage
   } = useWebSocketSubscribe<ExchangeSessionAttributes>(topicId, ({ sender, topic, type, payload }) => {
-    console.log('RECEIVED A NEW CALL MESSAGE', { connectionId, sender, topic, type }, JSON.stringify(payload));
     const timestamp = (new Date()).toString();
-    const { formats, sdp, ice, message, style } = payload;
+    const { formats, target, sdp, ice, message, style } = payload;
+
+    if (sender === connectionId || (target !== connectionId && !(formats || sdp || ice || message))) {
+      return;
+    }
 
     if ('text' === type && setTopicMessages && message && style) {
       for (const user of userList.values()) {
@@ -77,69 +80,63 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
         }
       }
 
-      const senders = Object.keys(senderStreams).filter(sender => !senderStreams[sender].pc);
-      const startedSenders: SenderStreams = {};
+      const startedSender: Sender = {
+        peerResponse: 'peer-response' === type ? true : false
+      };
 
-      for (const senderId of senders) {
-        const startedSender = senderStreams[senderId];
+      startedSender.pc = new RTCPeerConnection(peerConnectionConfig)
 
-
-        startedSender.pc = new RTCPeerConnection(peerConnectionConfig)
-
-        startedSender.pc.onicecandidate = event => {
-          if (event.candidate !== null) {
-            sendMessage('rtc', { ice: event.candidate, target: senderId });
-          }
-        };
-
-        startedSender.pc.ontrack = event => {
-          startedSender.mediaStream = startedSender.mediaStream ? startedSender.mediaStream : new MediaStream();
-          startedSender.mediaStream.addTrack(event.track);
-          setSenderStreams(Object.assign({}, senderStreams, { [senderId]: startedSender }));
-        };
-
-        startedSender.pc.oniceconnectionstatechange = () => {
-          if (startedSender.pc && ['failed', 'closed', 'disconnected'].includes(startedSender.pc.iceConnectionState)) {
-            const streams = { ...senderStreams };
-            delete streams[senderId];
-            setSenderStreams(streams);
-          }
+      startedSender.pc.onicecandidate = event => {
+        if (event.candidate !== null) {
+          sendMessage('rtc', { ice: event.candidate, target: sender });
         }
+      };
 
-        if (localStream) {
-          const tracks = localStream.getTracks();
-          tracks.forEach(track => startedSender.pc?.addTrack(track));
+      startedSender.pc.ontrack = event => {
+        startedSender.mediaStream = startedSender.mediaStream ? startedSender.mediaStream : new MediaStream();
+        startedSender.mediaStream.addTrack(event.track);
+        setSenderStreams(Object.assign({}, senderStreams, { [sender]: startedSender }));
+      };
+
+      startedSender.pc.oniceconnectionstatechange = () => {
+        if (startedSender.pc && ['failed', 'closed', 'disconnected'].includes(startedSender.pc.iceConnectionState)) {
+          const streams = { ...senderStreams };
+          delete streams[sender];
+          setSenderStreams(streams);
         }
-
-        if ('peer-response' === type) {
-          const { createOffer, setLocalDescription, localDescription } = startedSender.pc;
-          createOffer().then(description => {
-            setLocalDescription(description).then(() => {
-              sendMessage('rtc', {
-                sdp: localDescription,
-                target: senderId
-              });
-            }).catch(console.error);
-          }).catch(console.error);
-        } else {
-          sendMessage('peer-response', {
-            target: senderId
-          });
-        }
-
-        startedSenders[senderId] = startedSender;
       }
+
+      if (localStream) {
+        const tracks = localStream.getTracks();
+        tracks.forEach(track => startedSender.pc?.addTrack(track));
+      }
+
+      if (startedSender.peerResponse) {
+        startedSender.pc.createOffer().then(description => {
+          startedSender.pc?.setLocalDescription(description).then(() => {
+            sendMessage('rtc', {
+              sdp: startedSender.pc?.localDescription,
+              target: sender
+            });
+          }).catch(console.error);
+        }).catch(console.error);
+      } else {
+        sendMessage('peer-response', {
+          target: sender
+        });
+      }
+
+      setSenderStreams({ ...senderStreams, [sender]: startedSender });
     } else if (sdp) {
       const senderStream = senderStreams[sender];
 
       if (senderStream && senderStream.pc) {
-        const { createAnswer, setRemoteDescription, setLocalDescription, localDescription } = senderStream.pc;
-        setRemoteDescription(new RTCSessionDescription(sdp)).then(() => {
+        senderStream.pc?.setRemoteDescription(new RTCSessionDescription(sdp)).then(() => {
           if ('offer' === sdp.type) {
-            createAnswer().then(description => {
-              setLocalDescription(description).then(() => {
+            senderStream.pc?.createAnswer().then(description => {
+              senderStream.pc?.setLocalDescription(description).then(() => {
                 sendMessage('rtc', {
-                  sdp: localDescription,
+                  sdp: senderStream.pc?.localDescription,
                   target: sender
                 });
               }).catch(console.error);
