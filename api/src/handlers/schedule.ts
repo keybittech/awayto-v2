@@ -30,6 +30,10 @@ export default createHandlers({
   postScheduleBrackets: async props => {
     const { scheduleId, brackets } = props.event.body;
 
+    if (Object.values(brackets).some(b => !Object.keys(b.services).length)) {
+      throw { reason: 'All brackets must have a service attached. If you continue having this error, notify an admin and then please start over.' }
+    }
+
     // Handle old brackets
     await removeScheduleBrackets(scheduleId, props);
 
