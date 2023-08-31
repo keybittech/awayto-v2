@@ -52,12 +52,39 @@ export const passwordGen = (): string => {
   return pass.join('');
 }
 
+export function obfuscate(input: string): string {
+  const allChars = sets.join('');
+  const base = allChars.length;
+  let output = '';
+
+  for (const char of input) {
+    let index = allChars.indexOf(char);
+    if (index === -1) continue;  // Skip characters not in sets
+    
+    // Apply a transformation to index
+    index = (index + 13) % base; // Rotate index by 13
+
+    // Convert to base-N where N is base of all characters in sets
+    let encoded = '';
+    let tempIndex = index;
+    do {
+      const remainder = tempIndex % base;
+      encoded = allChars[remainder] + encoded;
+      tempIndex = Math.floor(tempIndex / base);
+    } while (tempIndex > 0);
+
+    output += encoded;
+  }
+
+  return output;
+}
+
 export const toSnakeCase = (name: string): string => {
-  return name.substr(1).replace(/[A-Z]/g, (match) => `_${match.toLowerCase()}`).slice(1);
+  return name.substring(1).replace(/[A-Z]/g, (match) => `_${match.toLowerCase()}`).slice(1);
 };
 
 export const toTitleCase = (name: string): string => {
-  return name.substr(1).replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase());
+  return name.substring(1).replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase());
 };
 
 export function generateLightBgColor(): string {

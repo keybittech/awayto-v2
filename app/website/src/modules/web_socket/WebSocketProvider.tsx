@@ -13,6 +13,7 @@ function WebSocketProvider({ children }: IProps): React.JSX.Element {
   const [socket, setSocket] = useState<WebSocket | undefined>();
   const [connectionId, setConnectionId] = useState('');
   const reconnectSnackShown = useRef(false);
+  const initialConnectionMade = useRef(false);
 
   const messageListeners = useRef(new Map<string, Set<SocketResponseHandler<unknown>>>());
 
@@ -37,6 +38,7 @@ function WebSocketProvider({ children }: IProps): React.JSX.Element {
           }
           setConnectionId(cid);
           setSocket(ws);
+          initialConnectionMade.current = true;
         };
     
         ws.onclose = () => {
@@ -109,11 +111,11 @@ function WebSocketProvider({ children }: IProps): React.JSX.Element {
     },
   } as WebSocketContextType;
 
-  return useMemo(() => !WebSocketContext ? <></> : 
+  return useMemo(() => !initialConnectionMade.current ||  !WebSocketContext ? <></> : 
     <WebSocketContext.Provider value={webSocketContext}>
       {children}
     </WebSocketContext.Provider>, 
-    [WebSocketContext, webSocketContext]
+    [WebSocketContext, webSocketContext, initialConnectionMade.current]
   );
 }
 

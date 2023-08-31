@@ -1,4 +1,4 @@
-import logger from 'redux-logger';
+import { createLogger } from 'redux-logger';
 import thunk from 'redux-thunk';
 
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
@@ -9,7 +9,7 @@ import { RootState as ApiRootState } from '@reduxjs/toolkit/dist/query/core/apiS
 import { QueryArgFrom, ResultTypeFrom, QueryDefinition, MutationDefinition, QueryLifecycleApi, EndpointDefinitions } from '@reduxjs/toolkit/dist/query/endpointDefinitions';
 import { MutationTrigger, LazyQueryTrigger, UseLazyQueryLastPromiseInfo, UseQuery, UseLazyQuery, UseMutation } from '@reduxjs/toolkit/dist/query/react/buildHooks';
 
-import { ConfirmActionProps, EndpointType, IUtil, RemoveNever, ReplaceVoid, siteApiRef, utilConfig } from 'awayto/core';
+import { ConfirmActionProps, EndpointType, IUtil, RemoveNever, ReplaceVoid, obfuscate, siteApiRef, utilConfig } from 'awayto/core';
 
 export const getQueryAuth = fetchBaseQuery({
   baseUrl: '/api',
@@ -264,7 +264,7 @@ const customUtilMiddleware: Middleware = _ => next => (action: { type: string, p
   if (action.type.includes('openConfirm')) {
     const { confirmEffect, confirmAction } = action.payload;
     if (confirmEffect && confirmAction) {
-      registerAction(btoa(confirmEffect), confirmAction)
+      registerAction(obfuscate(confirmEffect), confirmAction)
       action.payload.confirmAction = undefined;
     }
   }
@@ -272,18 +272,26 @@ const customUtilMiddleware: Middleware = _ => next => (action: { type: string, p
   return next(action);
 }
 
+const middlewares = [
+  sh.middleware as Middleware,
+  customErrorMiddleware,
+  customUtilMiddleware,
+  thunk
+];
+
+if (process.env.NODE_ENV === 'development') {
+  const logger = createLogger({
+    collapsed: (getState, action, logEntry) => !logEntry?.error
+  })
+  middlewares.push(logger);
+}
+
 export const store = configureStore({
   reducer: {
     [sh.reducerPath]: sh.reducer as Reducer,
     util: utilSlice.reducer
   },
-  middleware: getDefaultMiddleware => getDefaultMiddleware().concat(
-    sh.middleware as Middleware,
-    customErrorMiddleware,
-    customUtilMiddleware,
-    thunk,
-    logger
-  )
+  middleware: getDefaultMiddleware => getDefaultMiddleware().concat(middlewares)
 });
 
 setupListeners(store.dispatch);
