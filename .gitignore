@@ -25,3 +25,5 @@ deployed
 sites/
 dev_reports/
 turn/turnserver.conf
+.git
+.vscode
