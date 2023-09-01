@@ -30,7 +30,7 @@ declare global {
   }
 }
 
-export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): React.JSX.Element {
+export function ManageGroupModal({ children, editGroup, closeModal, ...props }: IProps): React.JSX.Element {
 
   const { setSnack } = useUtil();
 
@@ -134,12 +134,14 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): R
     <Card>
       <CardHeader title={(editGroup ? 'Manage' : 'Create') + ' Group'}></CardHeader>
       <CardContent>
+        {!!children && children}
+
         {1 === viewStep ? <Grid container spacing={4}>
           <Grid item xs={12}>
             <TextField
               fullWidth
               id="name"
-              label="Name"
+              label="Group Name"
               value={group.name}
               name="name"
               onChange={handleName}
@@ -180,7 +182,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): R
               fullWidth
               inputProps={{ minLength: 25, maxLength: 100 }}
               helperText={'Enter a short phrase about the function of your group (25 to 100 characters).'}
-              label={`Group Purpose`}
+              label={`Group Description`}
               error={editedPurpose && !!group.purpose && group.purpose.length < 25}
               onBlur={() => setEditedPurpose(true)}
               onFocus={() => setEditedPurpose(false)}
@@ -192,8 +194,8 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): R
             <TextField
               id={`group-allowed-domains-entry`}
               fullWidth
-              helperText={`These domains will be allowed to join the group. Remove all for unrestricted access.`}
-              label={`Allowed Domains`}
+              helperText={`These email domains will be allowed to join the group. Leaving this empty means anyone can join.`}
+              label={`Allowed Email Domains`}
               onChange={e => setAllowedDomain(e.target.value)}
               value={allowedDomain}
               InputProps={{
@@ -227,7 +229,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): R
           <Grid container spacing={4}>
             <Grid item>
               <Typography variant="h6">Roles</Typography>
-              <Typography variant="body2">Each group needs a set of roles to assign to its users. After creating this group, visit the Matrix page to assign site functionality to your roles.</Typography>
+              <Typography variant="body2">All activities across the site are determined by a user's role. The default role is automatically assigned to everyone who joins your group. After your group is created, an individual user's role can be changed on the Users tab, when viewing Group details. Site functionality can be assigned to Roles on the Matrix tab.</Typography>
             </Grid>
             <Grid item xs={12}>
               <SelectLookup
@@ -279,7 +281,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): R
               </TextField>
             </Grid>}
             <Grid item>
-              <Alert severity="info">An Admin group is created automatically. Only create groups for your members.</Alert>
+              <Alert severity="info">Your Admin role is created automatically. Only create roles for your members.</Alert>
             </Grid>
           </Grid>}
       </CardContent>
@@ -291,7 +293,7 @@ export function ManageGroupModal({ editGroup, closeModal, ...props }: IProps): R
               disabled={group.purpose.length < 25 || !isValid || checkingName || badName}
               onClick={handleContinue}
             >
-              Continue
+              Next: Roles
             </Button>
           </Grid> : <Grid container justifyContent="space-between">
             <Button onClick={() => { setViewStep(1); }}>Back</Button>

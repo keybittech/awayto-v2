@@ -3,6 +3,7 @@ import React, { useCallback, useState, useEffect, Suspense } from 'react';
 import Grid from '@mui/material/Grid';
 import Dialog from '@mui/material/Dialog';
 import Divider from '@mui/material/Divider';
+import Alert from '@mui/material/Alert';
 import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -53,7 +54,13 @@ export function Onboard(props: IProps): React.JSX.Element {
                 closeModal={() => {
                   setDialog('');
                 }}
-              />
+              >
+                <Alert sx={{ mb: 2 }} variant="outlined" severity="info">
+                  <Typography sx={{ mb: 1 }} >Onboarding Tips</Typography>
+                  <Typography sx={{ mb: 1 }} variant="body2">Group Details: Describing your group enables functionality across the site, providing suggestions based on what your group does. Domains allow you to restrict who can join your group. For example, the domain of user@site.com is <strong>site.com</strong>.</Typography>
+                  <Typography variant="body2">Roles: You are the admin of your group, so you have the Admin role; this cannot be changed. Your group description will generate some role suggestions for you, which you can click to use. Otherwise, click the role dropdown to add your own roles.</Typography>
+                </Alert>
+              </ManageGroupModal>
             </Suspense>
           </Grid>
         </Grid>

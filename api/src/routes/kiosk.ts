@@ -33,7 +33,7 @@ router.get('/gs/:name.json', async (req, res) => {
 
 setInterval(async () => {
   try {
-    console.log('refreshing kiosk view');
+    // console.log('refreshing kiosk view');
     updatedOn = (new Date()).toISOString();
     await db.none(`REFRESH MATERIALIZED VIEW dbview_schema.kiosk_schedule`);
   } catch (err) {
