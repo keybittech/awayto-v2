@@ -337,8 +337,8 @@ export function ServiceHome(props: IProps): React.JSX.Element {
             <Typography color="secondary" variant="button">Add Tier to Service</Typography>
           </Box>
         </CardActionArea>
-        <CardContent>
-          {Object.keys(newService.tiers).length > 0 && <Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+        {Object.keys(newService.tiers).length > 0 && <CardContent>
+          <Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
             {Object.values(newService.tiers).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime()).map((tier, i) => {
               return <Box key={`service-tier-chip${i + 1}new`} m={1}><Chip classes={{ root: classes.chipRoot, label: classes.chipLabel }} label={<Typography>{`#${i + 1} ` + tier.name + ' (' + tier.multiplier + 'x)'}</Typography>} onDelete={() => {
                 const tiers = { ...newService.tiers };
@@ -346,8 +346,8 @@ export function ServiceHome(props: IProps): React.JSX.Element {
                 setNewService({ ...newService, tiers });
               }} /></Box>
             })}
-          </Box>}
-        </CardContent>
+          </Box>
+        </CardContent>}
       </Card>
     </Grid>
     

@@ -54,7 +54,7 @@ export function Exchange(): React.JSX.Element {
   } = useContext(WSCallContext) as WSCallContextType;
 
   useEffect(() => {
-    setFileGroups(f => [
+    setFileGroups(() => [
       { name: 'Exchange', order: 1, files: bookingFiles || [] }
     ]);
   }, [bookingFiles]);

@@ -8,9 +8,9 @@ export function Home(props: IProps): React.JSX.Element {
   const { BookingHome, GroupHome, QuoteHome, PendingQuotesProvider } = useComponents();
   return (
     <>
-      <Box mb={2}>
+      {/* <Box mb={2}>
         <BookingHome {...props} />
-      </Box>
+      </Box> */}
       <Box mb={2}>
         <GroupHome {...props} />
       </Box>

@@ -74,16 +74,16 @@ export function ManageGroups(props: IProps): React.JSX.Element {
       //     <ManageAccountsIcon className={classes.variableButtonIcon} />
       //   </Button>
       // </Tooltip>,
-      grldr && <Tooltip key={'manage_group'} title="Edit">
-        <Button onClick={() => {
-          setGroup(groups[selected[0]]);
-          setDialog('manage_group');
-          setSelected([]);
-        }}>
-          <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Edit</Typography>
-          <CreateIcon className={classes.variableButtonIcon} />
-        </Button>
-      </Tooltip>
+      // grldr && <Tooltip key={'manage_group'} title="Edit">
+      //   <Button onClick={() => {
+      //     setGroup(groups[selected[0]]);
+      //     setDialog('manage_group');
+      //     setSelected([]);
+      //   }}>
+      //     <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Edit</Typography>
+      //     <CreateIcon className={classes.variableButtonIcon} />
+      //   </Button>
+      // </Tooltip>
     ] : [];
 
     return [
@@ -114,7 +114,7 @@ export function ManageGroups(props: IProps): React.JSX.Element {
       { flex: 1, headerName: 'Created', field: 'createdOn', renderCell: ({ row }) => dayjs().to(dayjs.utc(row.createdOn)) },
       ...(hasRole([SiteRoles.APP_GROUP_ADMIN]) ? [
         { flex: 1, headerName: '', field: 'id', renderCell: ({ row }: { row: IGroup }) => <Tooltip key={'view_group_details'} title="Details">
-            <Button onClick={() => {
+            <Button color="secondary" onClick={() => {
               navigate(`/group/${row.name}/manage/users`)
             }}>
               <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Details</Typography>
@@ -137,7 +137,7 @@ export function ManageGroups(props: IProps): React.JSX.Element {
           <DomainAddIcon className={classes.variableButtonIcon} />
         </Button>
       </Tooltip>
-      <Tooltip key={'create_group'} title="Create">
+      {/* <Tooltip key={'create_group'} title="Create">
         <Button key={'create_group_button'} onClick={() => {
           setGroup(undefined);
           setDialog('create_group');
@@ -145,7 +145,7 @@ export function ManageGroups(props: IProps): React.JSX.Element {
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Create</Typography>
           <GroupAddIcon className={classes.variableButtonIcon} />
         </Button>
-      </Tooltip>
+      </Tooltip> */}
       {!!selected.length && <Box sx={{ flexGrow: 1, textAlign: 'right' }}>{actions}</Box>}
     </>
   });

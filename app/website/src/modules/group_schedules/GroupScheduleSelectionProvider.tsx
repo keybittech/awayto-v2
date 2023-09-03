@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
 
-import { IGroupScheduleDateSlots, IQuote, TimeUnit, quotedDT, userTimezone } from 'awayto/core';
+import { IGroupScheduleDateSlots, IQuote, TimeUnit, quotedDT, userTimezone, encodeVal } from 'awayto/core';
 import { sh, useContexts } from 'awayto/hooks';
 
 export function GroupScheduleSelectionProvider({ children }: IProps): React.JSX.Element {
@@ -23,7 +23,7 @@ export function GroupScheduleSelectionProvider({ children }: IProps): React.JSX.
     groupName: group?.name || '',
     scheduleId: groupSchedule?.id || '',
     date: startOfMonth.format("YYYY-MM-DD"),
-    timezone: btoa(userTimezone)
+    timezone: encodeVal(userTimezone)
   }, { skip: !group || !groupSchedule });
 
   if (dateSlots?.length && !firstAvailable.scheduleBracketSlotId) {

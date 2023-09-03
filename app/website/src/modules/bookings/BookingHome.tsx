@@ -5,8 +5,6 @@ export function BookingHome(): React.JSX.Element {
 
   const { data: bookings } = sh.useGetBookingsQuery();
   
-  console.log({ bookings })
-
   return <></>;
 }
 

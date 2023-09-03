@@ -18,49 +18,43 @@ server.on('request', function (req, res) {
     // Proxied from front end through api for kc auth check
     // Create a temporary ticket that the host can use to create a socket later
     try {
-      
-      let body = '';
+      if (req.url.includes('create_ticket')) {
 
-      req.on('data', chunk => {
-        body += chunk.toString();
-      });
-
-      req.on('end', () => {
-        if (req.url.includes('create_ticket')) {
-
-          try {
-            const ticket = `${v4()}:${v4()}`
-            const parsed = JSON.parse(body || '{}');
-            const sub = req.url.split('/')[2];
-            let subscriber = subscribers.find(s => s.sub === sub);
-            
-            if (subscriber) {
-              subscriber.tickets.push(ticket);
-              subscriber.allowances = { ...parsed };
-            } else {
-              subscriber = {
-                sub,
-                connectionIds: [],
-                allowances: { ...parsed },
-                tickets: [ticket],
-                subscribedTopics: new Set()
-              };
-              subscribers.push(subscriber);
-            }
-
-            res.writeHead(200);
-            res.write(ticket);
-            res.end();
-
-            setTimeout(() => {
-              subscriber.tickets.splice(subscriber.tickets.indexOf(ticket), 1);
-            }, 10000);
-          } catch (error) {
-            console.error('issue handling ticket assignment', error)
+        console.log('creating ticket', req.url);
+        try {
+          const auth = v4();
+          const connectionId = v4();
+          const ticket = `${auth}:${connectionId}`
+          const sub = req.url.split('/')[2];
+          let subscriber = subscribers.find(s => s.sub === sub);
+          
+          if (subscriber) {
+            Object.assign(subscriber.tickets, { [auth]: connectionId });
+            console.log('pushed ticket', subscriber.tickets);
+          } else {
+            subscriber = {
+              sub,
+              connectionIds: [],
+              tickets: { [auth]: connectionId },
+              subscribedTopics: new Set()
+            };
+            subscribers.push(subscriber);
           }
-        }
-      })
 
+          res.writeHead(200);
+          res.write(ticket);
+          res.end();
+
+          console.log('ended ticket')
+
+          setTimeout(() => {
+            console.log('splicing old ticket', ticket)
+            delete subscriber.tickets[auth];
+          }, 15000);
+        } catch (error) {
+          console.error('issue handling ticket assignment', error)
+        }
+      }
     } catch (error) {
       console.log('Critical Error', error);
       res.writeHead(500);
@@ -73,19 +67,22 @@ server.on('request', function (req, res) {
 
 // Proxy pass from nginx sets http upgrade request, caught here
 server.on('upgrade', async function (req, socket, head) {
+  console.log('upgrading');
   try {
     const ticket = req.url.slice(1); // <auth>:<connectionID>
-    const connectionId = ticket.split(':')[1];
+    const [auth, connectionId] = ticket.split(':');
 
-    let ticketIndex = -1;
+    console.log('connecting a new user with current # of users', subscribers.length, ticket);
     
     const subscriber = subscribers.find(s => {
-      ticketIndex = s.tickets.indexOf(ticket);
-      return ticketIndex > -1;
+      console.log(s, auth)
+      return s.tickets.hasOwnProperty(auth);
     });
 
-    if (ticketIndex > -1) {
-      subscriber.tickets.splice(ticketIndex, 1);
+    console.log('found sub', subscriber);
+
+    if (subscriber) {
+      delete subscriber.tickets[auth];
       wss.handleUpgrade(req, socket, head, async ws => {
         // subscriber holds all the user's allowed topics for the connected context
         ws.subscriber = subscriber;

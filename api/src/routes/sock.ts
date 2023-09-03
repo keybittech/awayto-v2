@@ -26,11 +26,8 @@ router.post('/ticket', checkAuthenticated, async (req, res, next) => {
       onProxyReq: proxyReq => {
         proxyReq.setHeader('x-backchannel-id', SOCK_SECRET.slice(0, 5) + charCount(SOCK_SECRET));
         proxyReq.end();
-      },
-      onProxyRes: () => {
-        console.log('[HPM] Proxy resolving');
       }
-    })
+    });
 
     proxyMiddleware(req, res, next);
   } catch (error) {

@@ -35,7 +35,7 @@ const sets = [
   'abcdefghijklmnopqrstuvwxyz',
   'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
   '0123456789',
-  '!@#$%^&*'
+  '!@#$%^&*_/\\'
 ];
 
 export const passwordGen = (): string => {
@@ -78,6 +78,45 @@ export function obfuscate(input: string): string {
 
   return output;
 }
+
+
+type Mode = 'encode' | 'decode';
+
+export function decodeVal(input: string): string {
+  return processString(input, 'decode');
+}
+
+export function encodeVal(input: string): string {
+  return processString(input, 'encode');
+}
+
+export function processString(input: string, mode: Mode): string {
+  const allChars = sets.join('');
+  const base = allChars.length;
+  let output = '';
+
+  for (const char of input) {
+    let index = allChars.indexOf(char);
+    if (index === -1) continue;  // Skip characters not in sets
+    
+    // Apply or reverse the transformation to index based on mode
+    index = (mode === 'encode' ? (index + 13) : (index - 13 + base)) % base;
+
+    // Convert to base-N where N is base of all characters in sets
+    let processed = '';
+    let tempIndex = index;
+    do {
+      const remainder = tempIndex % base;
+      processed = allChars[remainder] + processed;
+      tempIndex = Math.floor(tempIndex / base);
+    } while (tempIndex > 0);
+
+    output += processed;
+  }
+
+  return output;
+}
+
 
 export const toSnakeCase = (name: string): string => {
   return name.substring(1).replace(/[A-Z]/g, (match) => `_${match.toLowerCase()}`).slice(1);

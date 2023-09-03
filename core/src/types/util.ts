@@ -1,3 +1,5 @@
+import { encodeVal } from "../util";
+
 export type ConfirmActionProps = [
   approval?: boolean,
 ]
@@ -52,7 +54,7 @@ export const utilConfig = {
         state.isConfirming = true;
         state.confirmEffect = confirmEffect;
         state.confirmSideEffect = confirmSideEffect;
-        state.confirmActionId = btoa(confirmEffect);
+        state.confirmActionId = encodeVal(confirmEffect);
       }
     },
     closeConfirm: (...[state]: UtilPayload) => {

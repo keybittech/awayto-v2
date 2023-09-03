@@ -1,4 +1,4 @@
-import { IGroup, IGroupSchedule, IGroupScheduleDateSlots, ISchedule, IUserProfile, asyncForEach, createHandlers } from 'awayto/core';
+import { IGroup, IGroupSchedule, IGroupScheduleDateSlots, ISchedule, IUserProfile, asyncForEach, createHandlers, decodeVal } from 'awayto/core';
 import scheduleApiHandler from './schedule';
 
 export default createHandlers({
@@ -18,7 +18,7 @@ export default createHandlers({
     `, ['system_group_' + groupName]);
 
     const newSchedule = await scheduleApiHandler.postSchedule({
-      ... props,
+      ...props,
       event: {
         ...props.event,
         userSub: groupSub,
@@ -82,7 +82,7 @@ export default createHandlers({
   },
   getGroupScheduleByDate: async props => {
     const { scheduleId, date } = props.event.pathParameters;
-    const timezone = Buffer.from(props.event.pathParameters.timezone, 'base64').toString();
+    const timezone = decodeVal(props.event.pathParameters.timezone);
     const scheduleDateSlots = await props.db.manyOrNone<IGroupScheduleDateSlots>(`
       SELECT * FROM dbfunc_schema.get_group_schedules($1, $2, $3);
     `, [date, scheduleId, timezone]);

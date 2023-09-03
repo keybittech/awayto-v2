@@ -9,7 +9,7 @@ import { RootState as ApiRootState } from '@reduxjs/toolkit/dist/query/core/apiS
 import { QueryArgFrom, ResultTypeFrom, QueryDefinition, MutationDefinition, QueryLifecycleApi, EndpointDefinitions } from '@reduxjs/toolkit/dist/query/endpointDefinitions';
 import { MutationTrigger, LazyQueryTrigger, UseLazyQueryLastPromiseInfo, UseQuery, UseLazyQuery, UseMutation } from '@reduxjs/toolkit/dist/query/react/buildHooks';
 
-import { ConfirmActionProps, EndpointType, IUtil, RemoveNever, ReplaceVoid, obfuscate, siteApiRef, utilConfig } from 'awayto/core';
+import { ConfirmActionProps, EndpointType, IUtil, RemoveNever, ReplaceVoid, siteApiRef, utilConfig, encodeVal } from 'awayto/core';
 
 export const getQueryAuth = fetchBaseQuery({
   baseUrl: '/api',
@@ -264,7 +264,7 @@ const customUtilMiddleware: Middleware = _ => next => (action: { type: string, p
   if (action.type.includes('openConfirm')) {
     const { confirmEffect, confirmAction } = action.payload;
     if (confirmEffect && confirmAction) {
-      registerAction(obfuscate(confirmEffect), confirmAction)
+      registerAction(encodeVal(confirmEffect), confirmAction)
       action.payload.confirmAction = undefined;
     }
   }
@@ -282,7 +282,7 @@ const middlewares = [
 if (process.env.NODE_ENV === 'development') {
   const logger = createLogger({
     collapsed: (getState, action, logEntry) => !logEntry?.error
-  })
+  });
   middlewares.push(logger);
 }
 
