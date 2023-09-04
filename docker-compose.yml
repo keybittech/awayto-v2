@@ -28,7 +28,6 @@ services:
     ports:
       - 80:80
       - 443:443
-      - 3478:3478/udp
     extra_hosts:
       - ${CUST_APP_HOSTNAME}:${APP_HOST}
     environment:

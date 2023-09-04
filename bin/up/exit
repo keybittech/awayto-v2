@@ -60,6 +60,20 @@ sudo mv /home/$TAILSCALE_OPERATOR/exit.nginx.conf /etc/nginx/sites-available/exi
 
 chmod +x /home/$TAILSCALE_OPERATOR/installmodsec && /home/$TAILSCALE_OPERATOR/installmodsec
 
+echo -e "### TURN STREAM
+stream {
+  upstream turn {
+    server $SVC_HOST:3478;
+  }
+
+  server {
+    listen [::]:3478 udp;
+    listen 3478 udp;
+    proxy_pass turn;
+    proxy_timeout 10s;
+  }
+}\n\n" | sudo tee -a /etc/nginx/nginx.conf
+
 sudo mkdir -p /var/cache/nginx
 sudo chown -R $TAILSCALE_OPERATOR:$TAILSCALE_OPERATOR /var/cache/nginx/
 sudo chmod 700 /var/cache/nginx/

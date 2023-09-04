@@ -22,7 +22,6 @@ sudo sysctl -p /etc/sysctl.conf
 sudo apt-get remove --purge nginx certbot python3-certbot-nginx -y > /dev/null
 
 sudo sed -i '/\/etc\/nginx\/modules\/ngx_http_modsecurity_module.so;/d' /etc/nginx/nginx.conf
-sudo sed -i '/server_tokens off;/d' /etc/nginx/nginx.conf
 sudo sed -i '/^[^#]*\[nginx-http-auth\]/{n; /enabled = true/d}' /etc/fail2ban/jail.local
 
 sudo rm -f /etc/fail2ban/filter.d/keycloak.conf
@@ -30,6 +29,8 @@ sudo sed -i '/\[keycloak\]/,/^$/d' /etc/fail2ban/jail.local
 
 sudo rm -f /etc/fail2ban/filter.d/nginx-http-errors.conf
 sudo sed -i '/\[nginx-http-errors\]/,/^$/d' /etc/fail2ban/jail.local
+
+sudo sed -i '/### TURN STREAM/,/^$/d' /etc/nginx/nginx.conf
 
 sudo rm -f /etc/nginx/sites-available/exit.nginx.conf
 sudo rm -f /etc/nginx/sites-enabled/exit.nginx.conf
