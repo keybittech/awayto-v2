@@ -39,13 +39,13 @@ router.get('/health', (req, res) => {
 });
 
 // default protected route /test
-router.get('/join/:groupCode', async (req, res) => {
+router.get(['/join', '/join/:groupCode'], async (req, res) => {
   if (await rateLimitResource(req.body.ipAddress, 'group/register')) {
     return res.status(429).send({ reason: 'Rate limit exceeded. Try again in a minute.' });
   }
 
   try {
-    const [registrationUrl, loginCookies] = await getGroupRegistrationRedirectParts(req.params.groupCode);
+    const [registrationUrl, loginCookies] = await getGroupRegistrationRedirectParts(req.params.groupCode || '');
     for (const cookie of loginCookies) {
       const [name, value] = cookie.split('=');
       res.cookie(name.trim(), value.trim());
