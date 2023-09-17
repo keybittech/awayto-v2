@@ -32,7 +32,6 @@ export function ManageScheduleBracketsModal({ editSchedule, closeModal }: IProps
   const { GroupContext, GroupScheduleContext } = useContexts();
 
   const {
-    group,
     groupServices,
     groupSchedules
   } = useContext(GroupContext) as GroupContextType;
@@ -87,7 +86,7 @@ export function ManageScheduleBracketsModal({ editSchedule, closeModal }: IProps
 
   const handleSubmit = useCallback(() => {
     async function go() {
-      if (schedule && group?.name && schedule.name && scheduleBracketsValues.length) {
+      if (schedule && schedule.name && scheduleBracketsValues.length) {
         const userSchedule = { ...schedule };
         if (!editSchedule) {
           const newSchedule = await postSchedule({ schedule }).unwrap();
@@ -115,7 +114,6 @@ export function ManageScheduleBracketsModal({ editSchedule, closeModal }: IProps
 
         if (!editSchedule) {
           await postGroupUserSchedule({
-            groupName: group.name,
             userScheduleId: userSchedule.id,
             groupScheduleId: schedule.id
           }).catch(console.error);
@@ -131,7 +129,7 @@ export function ManageScheduleBracketsModal({ editSchedule, closeModal }: IProps
       }
     }
     void go();
-  }, [group, schedule, scheduleBracketsValues]);
+  }, [schedule, scheduleBracketsValues]);
 
   return <>
     <DialogTitle>{!editSchedule?.id ? 'Create' : 'Manage'} Schedule Bracket</DialogTitle>

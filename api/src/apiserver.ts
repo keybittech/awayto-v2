@@ -53,20 +53,22 @@ const httpsServer = https.createServer(creds, app)
 
 httpsServer.listen(9443, () => {
   console.log('Server listening on port 9443');
-  setupMiddleware(app).then(() => {
-    console.log('Middleware setup');
-    console.log('Configuring routes');
-    app.use('/api', baseRoutes);
-    console.log('api configured');
-    app.use('/api/auth', authRoutes);
-    console.log('auth configured');
-    app.use('/api/sock', sockRoutes);
-    console.log('sock configured');
-    app.use('/api/kiosk', kioskRoutes);
-    console.log('kiosk configured');
     
-    redis.connect().then(() => {
-      console.log('Redis Connected');
+  redis.connect().then(() => {
+    console.log('Redis Connected');
+    
+    setupMiddleware(app).then(() => {
+      console.log('Middleware setup');
+      console.log('Configuring routes');
+      app.use('/api', baseRoutes);
+      console.log('api configured');
+      app.use('/api/auth', authRoutes);
+      console.log('auth configured');
+      app.use('/api/sock', sockRoutes);
+      console.log('sock configured');
+      app.use('/api/kiosk', kioskRoutes);
+      console.log('kiosk configured');
+
       connectDb().then(() => {
         console.log('Postgres Connected');
         connectKc().then(() => {

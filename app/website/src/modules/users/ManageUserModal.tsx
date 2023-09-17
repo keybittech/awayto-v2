@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { useParams } from 'react-router';
 
 import Grid from '@mui/material/Grid';
 import Card from '@mui/material/Card';
@@ -27,10 +26,7 @@ declare global {
 
 export function ManageUserModal({ editUser, closeModal }: IProps): React.JSX.Element {
 
-  const { groupName } = useParams();
-  if (!groupName) return <></>;
-
-  const { data: groupRoles } = sh.useGetGroupRolesQuery({ groupName });
+  const { data: groupRoles } = sh.useGetGroupRolesQuery();
 
   const [putGroupUser] = sh.usePutGroupUserMutation();
 
@@ -50,11 +46,11 @@ export function ManageUserModal({ editUser, closeModal }: IProps): React.JSX.Ele
 
   const handleSubmit = useCallback(() => {
     async function go() {
-      if (editUser?.id && groupName) {
+      if (editUser?.id) {
         const { id, roleId } = profile;
         const { name } = groupRoles?.find(gr => gr.id === roleId) || {};
         if (name) {
-          await putGroupUser({ groupName, userId: id, roleId, roleName: name }).unwrap();
+          await putGroupUser({ userId: id, roleId, roleName: name }).unwrap();
           if (closeModal)
             closeModal();
         }
@@ -101,7 +97,7 @@ export function ManageUserModal({ editUser, closeModal }: IProps): React.JSX.Ele
     // }
 
     // void submitUser();
-  }, [profile, password, groupName]);
+  }, [profile, password]);
 
   const passwordGenerator = useCallback(() => {
     setPassword(passwordGen());

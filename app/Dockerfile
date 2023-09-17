@@ -14,6 +14,11 @@ ARG KC_PATH
 ARG TURN_NAME
 ARG TURN_PASS
 
+WORKDIR /app/website
+
+COPY --from=awayto-deps /deps/node_modules /core/node_modules
+COPY --from=awayto-deps /deps/node_modules /app/website/node_modules
+
 COPY ./app/landing /land
 
 WORKDIR /land
@@ -24,9 +29,6 @@ RUN --mount=type=cache,target=/root/.cache/yarn yarn install &&\
 RUN mkdir -p /core/src && mkdir -p /app/website/src && mkdir -p /app/website/public
 
 WORKDIR /app/website
-
-COPY --from=awayto-deps /deps/node_modules /core/node_modules
-COPY --from=awayto-deps /deps/node_modules /app/website/node_modules
 
 COPY /core/src/ /core/src
 COPY /app/website/src/ /app/website/src

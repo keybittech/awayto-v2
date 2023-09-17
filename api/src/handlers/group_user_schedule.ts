@@ -2,7 +2,6 @@ import { IGroupUserSchedule, IGroupUserScheduleStub, ScheduledParts, buildUpdate
 
 export default createHandlers({
   postGroupUserSchedule: async props => {
-    const { groupName } = props.event.pathParameters;
     const { groupScheduleId, userScheduleId } = props.event.body;
 
     await props.tx.none(`
@@ -11,7 +10,7 @@ export default createHandlers({
       ON CONFLICT (group_schedule_id, user_schedule_id) DO NOTHING
     `, [groupScheduleId, userScheduleId, props.event.userSub]);
 
-    await props.redis.del(`${props.event.userSub}group/${groupName}/schedules/${groupScheduleId}/user`);
+    await props.redis.del(`${props.event.userSub}group/schedules/${groupScheduleId}/user`);
 
     return [];
   },
@@ -27,8 +26,6 @@ export default createHandlers({
     return groupUserSchedules;
   },
   getGroupUserScheduleStubs: async props => {
-    const { groupName } = props.event.pathParameters;
-
     const groupUserScheduleStubs = await props.db.manyOrNone<IGroupUserScheduleStub>(`
       SELECT guss.*, gus.group_schedule_id as "groupScheduleId"
       FROM dbview_schema.group_user_schedule_stubs guss
@@ -37,7 +34,7 @@ export default createHandlers({
       JOIN dbview_schema.enabled_users eu ON eu.sub = schedule.created_sub
       JOIN dbtable_schema.users u ON u.id = eu.id
       WHERE u.username = $1
-    `, ['system_group_' + groupName]);
+    `, ['system_group_' + props.event.group.id]);
 
     return groupUserScheduleStubs;
   },
@@ -51,7 +48,7 @@ export default createHandlers({
     return stubs;
   },
   putGroupUserScheduleStubReplacement: async props => {
-    const { quoteId, slotDate,  scheduleBracketSlotId, serviceTierId } = props.event.body;
+    const { quoteId, slotDate, scheduleBracketSlotId, serviceTierId } = props.event.body;
 
     const updateProps = buildUpdate({
       id: quoteId,
@@ -71,7 +68,7 @@ export default createHandlers({
     return { success: true };
   },
   deleteGroupUserScheduleByUserScheduleId: async props => {
-    const { groupName, ids } = props.event.pathParameters;
+    const { ids } = props.event.pathParameters;
     const idsSplit = ids.split(',');
 
     await asyncForEach(idsSplit, async userScheduleId => {
@@ -95,7 +92,7 @@ export default createHandlers({
       }
     });
 
-    await props.redis.del(props.event.userSub + `group/${groupName}/schedules`);
+    await props.redis.del(props.event.userSub + `group/schedules`);
 
     return idsSplit.map(id => ({ id }));
   }

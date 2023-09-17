@@ -1,5 +1,4 @@
 import React, { useState, useMemo, Suspense } from 'react';
-import { useParams } from 'react-router';
 import dayjs from 'dayjs';
 
 import Box from '@mui/material/Box';
@@ -21,12 +20,9 @@ import ManageFormModal from './ManageFormModal';
 
 export function ManageForms(props: IProps): React.JSX.Element {
   const classes = useStyles();
-
-  const { groupName } = useParams();
-  if (!groupName) return <></>;
   
   const [deleteGroupForm] = sh.useDeleteGroupFormMutation();
-  const { data: groupForms, refetch: getGroupForms } = sh.useGetGroupFormsQuery({ groupName });
+  const { data: groupForms, refetch: getGroupForms } = sh.useGetGroupFormsQuery();
 
   const [form, setForm] = useState<IGroupForm>();
   const [selected, setSelected] = useState<string[]>([]);
@@ -52,7 +48,7 @@ export function ManageForms(props: IProps): React.JSX.Element {
       <Tooltip key={'delete_group'} title="Delete">
         <Button onClick={() => {
           if (selected.length) {
-            deleteGroupForm({ groupName, ids: selected.join(',') }).unwrap().then(() => {
+            deleteGroupForm({ ids: selected.join(',') }).unwrap().then(() => {
               setSelected([]);
               void getGroupForms();
             }).catch(console.error);

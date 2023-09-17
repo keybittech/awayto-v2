@@ -24,7 +24,6 @@ export function ManageScheduleBrackets(): React.JSX.Element {
   const { setSnack, openConfirm } = useUtil();
 
   const {
-    group,
     GroupSelect,
     groupSchedules,
   } = useContext(useContexts().GroupContext) as GroupContextType;
@@ -54,24 +53,22 @@ export function ManageScheduleBrackets(): React.JSX.Element {
     return [
       ...acts,
       <Tooltip key={'delete_schedule'} title="Delete"><IconButton onClick={() => {
-        if (group.name) {
-          openConfirm({
-            isConfirming: true,
-            confirmEffect: `Remove ${plural(selected.length, 'schedule', 'schedules')}. This cannot be undone.`,
-            confirmAction: async () => {
-              const ids = selected.join(',');
-              await deleteGroupUserScheduleByUserScheduleId({ groupName: group.name, ids }).unwrap();
-              await deleteSchedule({ ids }).unwrap();
-              getSchedules().catch(console.error);
-              setSnack({ snackType: 'success', snackOn: 'Successfully removed schedule records.' });
-            }
-          });
-        }
+        openConfirm({
+          isConfirming: true,
+          confirmEffect: `Remove ${plural(selected.length, 'schedule', 'schedules')}. This cannot be undone.`,
+          confirmAction: async () => {
+            const ids = selected.join(',');
+            await deleteGroupUserScheduleByUserScheduleId({ ids }).unwrap();
+            await deleteSchedule({ ids }).unwrap();
+            getSchedules().catch(console.error);
+            setSnack({ snackType: 'success', snackOn: 'Successfully removed schedule records.' });
+          }
+        });
       }}>
         <DeleteIcon />
       </IconButton></Tooltip>
     ]
-  }, [selected, group]);
+  }, [selected]);
 
   const scheduleBracketGridProps = useGrid({
     rows: schedules || [],

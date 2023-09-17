@@ -1,9 +1,8 @@
+import { Void } from '../util';
 import { ApiOptions, EndpointType } from './api';
 import { IFeedback } from './feedback';
 
-export type IGroupFeedback = IFeedback & {
-  groupName: string;
-}
+export type IGroupFeedback = IFeedback;
 
 /**
  * @category Group Feedback
@@ -11,18 +10,18 @@ export type IGroupFeedback = IFeedback & {
 export default {
   postGroupFeedback: {
     kind: EndpointType.MUTATION,
-    url: 'group/:groupName/feedback',
+    url: 'group/feedback',
     method: 'POST',
     opts: {} as ApiOptions,
-    queryArg: { message: '' as string, groupName: '' as string },
+    queryArg: { message: '' as string },
     resultType: { success: true as boolean }
   },
   getGroupFeedback: {
     kind: EndpointType.QUERY,
-    url: 'group/:groupName/feedback',
+    url: 'group/feedback',
     method: 'GET',
     opts: {} as ApiOptions,
-    queryArg: { groupName: '' as string },
+    queryArg: {} as Void,
     resultType: [] as IGroupFeedback[]
   },
 } as const;

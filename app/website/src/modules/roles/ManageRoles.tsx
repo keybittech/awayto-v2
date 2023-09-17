@@ -1,5 +1,4 @@
 import React, { useState, useMemo, Suspense } from 'react';
-import { useParams } from 'react-router-dom';
 import dayjs from 'dayjs';
 
 import Box from '@mui/material/Box';
@@ -18,13 +17,12 @@ import { IRole } from 'awayto/core';
 import { sh, useComponents, useGrid, useStyles } from 'awayto/hooks';
 
 export function ManageRoles(): React.JSX.Element {
-  const { groupName } = useParams();
-  
+
   const classes = useStyles();
 
   const { ManageRoleModal } = useComponents();
 
-  const { data: groupRoles, refetch: getGroupRoles } = sh.useGetGroupRolesQuery({ groupName: groupName || '' }, { skip: !groupName }); 
+  const { data: groupRoles, refetch: getGroupRoles } = sh.useGetGroupRolesQuery(); 
   const { data: profile, refetch: getUserProfileDetails } = sh.useGetUserProfileDetailsQuery();
 
   const roleSet = useMemo(() => groupRoles?.length ? groupRoles : profile && Object.keys(profile.roles || {}).length ? Object.values(profile.roles) : [], [groupRoles, profile]);
@@ -42,7 +40,7 @@ export function ManageRoles(): React.JSX.Element {
       <Tooltip key={'manage_role'} title="Edit">
         <Button onClick={() => {
           const role = roleSet.find(r => r.id === selected[0]);
-          if (role && groupName) {
+          if (role) {
             const userRole = Object.values(profile?.roles || {}).find(r => r.name === role.name);
             if (userRole) {
               role.id = userRole.id;
@@ -63,13 +61,11 @@ export function ManageRoles(): React.JSX.Element {
       <Tooltip key={'delete_role'} title="Delete">
         <Button onClick={() => {
           async function go() {
-            if (groupName) {
-              await deleteGroupRole({ groupName, ids: selected.join(',') }).unwrap();
-              await deleteRole({ ids: selected.join(',') }).unwrap();
-              void getUserProfileDetails();
-              void getGroupRoles();
-              setSelected([]);
-            }
+            await deleteGroupRole({ ids: selected.join(',') }).unwrap();
+            await deleteRole({ ids: selected.join(',') }).unwrap();
+            void getUserProfileDetails();
+            void getGroupRoles();
+            setSelected([]);
           }
           void go();
         }}>

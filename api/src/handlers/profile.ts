@@ -54,6 +54,7 @@ export default createHandlers({
     `, [props.event.userSub]);
 
     for (const group of Object.values(profile.groups || {})) {
+      group.active = group.id === props.event.group.id;
       if (group.ldr) {
         const groupExt = await props.db.one<IGroup>(`
           SELECT * 

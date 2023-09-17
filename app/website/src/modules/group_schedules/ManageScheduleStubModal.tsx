@@ -22,11 +22,7 @@ declare global {
 
 export function ManageScheduleStubModal({ editGroupUserScheduleStub, closeModal }: Required<IProps>): React.JSX.Element {
   
-  const { GroupContext, GroupScheduleContext, GroupScheduleSelectionContext } = useContexts();
-
-  const {
-    group
-  } = useContext(GroupContext) as GroupContextType;
+  const { GroupScheduleContext, GroupScheduleSelectionContext } = useContexts();
 
   const {
     selectGroupSchedule: { item: groupSchedule },
@@ -53,7 +49,6 @@ export function ManageScheduleStubModal({ editGroupUserScheduleStub, closeModal 
       const { userScheduleId, tierName } = editGroupUserScheduleStub;
             
       getGroupUserScheduleStubReplacement({
-        groupName: group.name,
         userScheduleId,
         slotDate: quote.slotDate,
         startTime: quote.startTime,
@@ -67,7 +62,6 @@ export function ManageScheduleStubModal({ editGroupUserScheduleStub, closeModal 
 
   const handleSubmit = useCallback(() => {
     putGroupUserScheduleStubReplacement({
-      groupName: group.name,
       userScheduleId: editGroupUserScheduleStub.userScheduleId,
       quoteId: editGroupUserScheduleStub.quoteId,
       slotDate: (selectedDate || firstAvailable.time).format("YYYY-MM-DD"),

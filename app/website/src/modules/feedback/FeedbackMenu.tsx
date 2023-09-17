@@ -22,24 +22,13 @@ export function FeedbackMenu ({ handleMenuClose, feedbackAnchorEl, feedbackMenuI
 
   const [postGroupFeedback] = sh.usePostGroupFeedbackMutation();
   const [postSiteFeedback] = sh.usePostSiteFeedbackMutation();
-
-  const { data: profile } = sh.useGetUserProfileDetailsQuery();
-  
-  const groupsValues = useMemo(() => Object.values(profile?.groups || {}), [profile]);
   
   const [feedbackTarget, setFeedbackTarget] = useState('site');
   const [message, setMessage] = useState('');
 
   const handleSubmit = useCallback(function() {
     if (message) {
-      if ('site' === feedbackTarget) {
-        postSiteFeedback({ message }).catch(console.error);
-      } else {
-        const gr = groupsValues.find(g => g.id === feedbackTarget);
-        if (gr) {
-          postGroupFeedback({ message, groupName: gr.name }).catch(console.error);
-        }
-      }
+      ('site' === feedbackTarget ? postSiteFeedback : postGroupFeedback)({ message }).catch(console.error);
       setMessage('');
       handleMenuClose && handleMenuClose();
     }
@@ -72,12 +61,10 @@ export function FeedbackMenu ({ handleMenuClose, feedbackAnchorEl, feedbackMenuI
             onChange={e => setFeedbackTarget(e.target.value) }
           >
             <MenuItem key={`site-select-give-feedback`} value={'site'}>Site</MenuItem>
-            {groupsValues.map(group => <MenuItem key={`group-select${group.id}`} value={group.id}>{group.name}</MenuItem>)}
+            <MenuItem key={`group-select-give-feedback`} value={'group'}>Group</MenuItem>
           </TextField>
         </Grid>
-        {'site' !== feedbackTarget && profile?.groups && profile?.groups.length && <>
-          <pre>{JSON.stringify(profile?.groups[feedbackTarget], null, 2)}</pre>
-        </>}
+
         <Grid item xs={12}>
           <TextField
             fullWidth

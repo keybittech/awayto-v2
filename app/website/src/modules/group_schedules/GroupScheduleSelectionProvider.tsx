@@ -6,9 +6,7 @@ import { sh, useContexts } from 'awayto/hooks';
 
 export function GroupScheduleSelectionProvider({ children }: IProps): React.JSX.Element {
 
-  const { GroupContext, GroupScheduleContext, GroupScheduleSelectionContext } = useContexts();
-
-  const { group } = useContext(GroupContext) as GroupContextType;
+  const { GroupScheduleContext, GroupScheduleSelectionContext } = useContexts();
 
   const { selectGroupSchedule: { item: groupSchedule } } = useContext(GroupScheduleContext) as GroupScheduleContextType;
   
@@ -20,11 +18,10 @@ export function GroupScheduleSelectionProvider({ children }: IProps): React.JSX.
   const [quote, setQuote] = useState({} as IQuote);
 
   const { data: dateSlots } = sh.useGetGroupScheduleByDateQuery({
-    groupName: group?.name || '',
     scheduleId: groupSchedule?.id || '',
     date: startOfMonth.format("YYYY-MM-DD"),
     timezone: encodeVal(userTimezone)
-  }, { skip: !group || !groupSchedule });
+  }, { skip: !groupSchedule });
 
   if (dateSlots?.length && !firstAvailable.scheduleBracketSlotId) {
     const [slot] = dateSlots;

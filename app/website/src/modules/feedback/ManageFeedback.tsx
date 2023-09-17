@@ -4,14 +4,9 @@ import dayjs from 'dayjs';
 import { DataGrid } from '@mui/x-data-grid';
 
 import { useGrid, sh } from 'awayto/hooks';
-import { useParams } from 'react-router';
 
 export function ManageFeedbacks(): React.JSX.Element {
-
-  const { groupName } = useParams();
-  if (!groupName) return <></>;
-  
-  const { data: feedbacks } = sh.useGetGroupFeedbackQuery({ groupName });
+  const { data: feedbacks } = sh.useGetGroupFeedbackQuery();
 
   const feedbackGridProps  = useGrid({
     rows: feedbacks || [],

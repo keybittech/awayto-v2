@@ -1,19 +1,19 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { useParams } from 'react-router';
 
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogActions from '@mui/material/DialogActions';
+import Card from '@mui/material/Card';
+import CardHeader from '@mui/material/CardHeader';
+import CardContent from '@mui/material/CardContent';
+import CardActions from '@mui/material/CardActions';
 import Slider from '@mui/material/Slider';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import { Mark } from '@mui/base';
 
-import { ISchedule, ITimeUnit, TimeUnit, timeUnitOrder, getRelativeDuration, ITimeUnitNames, IGroupSchedule, scheduleSchema } from 'awayto/core';
+import { ISchedule, ITimeUnit, TimeUnit, timeUnitOrder, getRelativeDuration, IGroupSchedule, scheduleSchema } from 'awayto/core';
 import { useComponents, useUtil, sh, useTimeName } from 'awayto/hooks';
 
 declare global {
@@ -22,10 +22,7 @@ declare global {
   }
 }
 
-export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IProps): React.JSX.Element {
-
-  const { groupName } = useParams();
-  if (!groupName) return <></>;
+export function ManageSchedulesModal({ children, editSchedule, closeModal, ...props }: IProps): React.JSX.Element {
 
   const { setSnack } = useUtil();
 
@@ -34,14 +31,14 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
   const [getGroupScheduleMasterById] = sh.useLazyGetGroupScheduleMasterByIdQuery();
 
   const { data: lookups, isSuccess: lookupsRetrieved } = sh.useGetLookupsQuery();
-  
+
   const { SelectLookup } = useComponents();
-  
+
   const [schedule, setSchedule] = useState({ ...scheduleSchema, ...editSchedule } as ISchedule);
 
-  const scheduleTimeUnitName =  useTimeName(schedule?.scheduleTimeUnitId);
-  const bracketTimeUnitName =  useTimeName(schedule?.bracketTimeUnitId);
-  const slotTimeUnitName =  useTimeName(schedule?.slotTimeUnitId);
+  const scheduleTimeUnitName = useTimeName(schedule?.scheduleTimeUnitId);
+  const bracketTimeUnitName = useTimeName(schedule?.bracketTimeUnitId);
+  const slotTimeUnitName = useTimeName(schedule?.slotTimeUnitId);
 
   const setDefault = useCallback((type: string) => {
     const weekId = lookups?.timeUnits?.find(s => s.name === TimeUnit.WEEK)?.id;
@@ -87,33 +84,31 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
 
     async function go() {
       const { id, name, startTime, endTime } = schedule;
-      if (groupName) {
-        if (!id) {
-          if (name && startTime) {
-            schedule.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            await postGroupSchedule({ groupName, schedule }).unwrap();
-            setSnack({ snackOn: 'Successfully added ' + name + ' as a master schedule!', snackType: 'success' });
-          } else {
-            setSnack({ snackOn: 'Must have schedule name and start date.', snackType: 'warning' });
-            return;
-          }
-        } else {
-          await putGroupSchedule({ id, startTime, endTime, groupName } as IGroupSchedule).unwrap();
-          setSnack({ snackOn: 'Schedule updated!', snackType: 'info' });
-        }
-    
-        if (closeModal)
-          closeModal();
+
+      if (!name || !startTime) {
+        setSnack({ snackOn: 'Must have schedule name and start date.', snackType: 'warning' });
+        return;
       }
+
+      if (!id) {
+        schedule.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        await postGroupSchedule({ schedule }).unwrap();
+        setSnack({ snackOn: 'Successfully added ' + name + ' as a master schedule!', snackType: 'success' });
+      } else {
+        await putGroupSchedule({ id, startTime, endTime } as IGroupSchedule).unwrap();
+        setSnack({ snackOn: 'Schedule updated!', snackType: 'info' });
+      }
+
+      closeModal && closeModal(schedule);
     }
     void go();
-  }, [schedule, groupName]);
+  }, [schedule]);
 
   useEffect(() => {
     async function go() {
       if (lookupsRetrieved) {
-        if (groupName && editSchedule) {
-          const masterSchedule = await getGroupScheduleMasterById({ groupName, scheduleId: editSchedule.id }).unwrap();
+        if (editSchedule) {
+          const masterSchedule = await getGroupScheduleMasterById({ scheduleId: editSchedule.id }).unwrap();
           setSchedule(masterSchedule);
         } else {
           setDefault('40hoursweekly30minsessions');
@@ -122,11 +117,11 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
     }
     void go();
   }, [lookupsRetrieved]);
-  
-  return <>
-    <DialogTitle>{schedule.id ? 'Manage' : 'Create'} Schedule</DialogTitle>
-    <DialogContent>
-      <Box mt={2} />
+
+  return <Card>
+    <CardHeader title={`${schedule.id ? 'Manage' : 'Create'} Schedule`}></CardHeader>
+    <CardContent>
+      {!!children && children}
 
       <Box mb={4}>
         <TextField
@@ -142,7 +137,7 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
       <Box mb={4}>
         <Grid container spacing={2} direction="row">
           <Grid item xs={6}>
-            
+
             <TextField
               fullWidth
               label="Start Date"
@@ -155,17 +150,17 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
               }}
             />
             {/* <DesktopDatePicker
-              label="Start Date"
-              value={schedule.startTime ? schedule.startTime : null}
-              onChange={e => {
-                // if (e) {
-                //   console.log({ schedule, e, str: e ? nativeJs(new Date(e.toString())) : null })
-                //   setSchedule({ ...schedule, startTime: nativeJs(new Date(e.toString())).toString() })
-                //   // setSchedule({ ...schedule, startTime: e ? e.format(DateTimeFormatter.ofPattern("yyyy-mm-dd")) : '' });
-                // }
-              }}
-              renderInput={(params) => <TextField helperText="Bookings can be scheduled any time after this date. Removing this value and saving the schedule will deactivate it, preventing it from being seen during booking." {...params} />}
-            /> */}
+                label="Start Date"
+                value={schedule.startTime ? schedule.startTime : null}
+                onChange={e => {
+                  // if (e) {
+                  //   console.log({ schedule, e, str: e ? nativeJs(new Date(e.toString())) : null })
+                  //   setSchedule({ ...schedule, startTime: nativeJs(new Date(e.toString())).toString() })
+                  //   // setSchedule({ ...schedule, startTime: e ? e.format(DateTimeFormatter.ofPattern("yyyy-mm-dd")) : '' });
+                  // }
+                }}
+                renderInput={(params) => <TextField helperText="Bookings can be scheduled any time after this date. Removing this value and saving the schedule will deactivate it, preventing it from being seen during booking." {...params} />}
+              /> */}
           </Grid>
           <Grid item xs={6}>
             <TextField
@@ -211,18 +206,18 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
       </Box>
 
       {/* <Box mb={4}>
-        <TextField
-          fullWidth
-          type="number"
-          disabled={!!schedule.id}
-          label={`# of ${schedule.scheduleTimeUnitName}s`}
-          helperText="Provide a duration. After this duration, the schedule will reset, and all bookings will be available again."
-          value={schedule.duration}
-          onChange={e => {
-            setSchedule({ ...schedule, duration: Math.min(Math.max(0, parseInt(e.target.value || '', 10)), 999) })
-          }}
-        />
-      </Box> */}
+          <TextField
+            fullWidth
+            type="number"
+            disabled={!!schedule.id}
+            label={`# of ${schedule.scheduleTimeUnitName}s`}
+            helperText="Provide a duration. After this duration, the schedule will reset, and all bookings will be available again."
+            value={schedule.duration}
+            onChange={e => {
+              setSchedule({ ...schedule, duration: Math.min(Math.max(0, parseInt(e.target.value || '', 10)), 999) })
+            }}
+          />
+        </Box> */}
 
       <Box mb={4}>
         <SelectLookup
@@ -270,15 +265,14 @@ export function ManageScheduleModal({ editSchedule, closeModal, ...props }: IPro
           />
         </Box>
       </Box>
-
-    </DialogContent>
-    <DialogActions>
+    </CardContent>
+    <CardActions>
       <Grid container justifyContent="space-between">
         <Button onClick={closeModal}>{schedule.id ? 'Close' : 'Cancel'}</Button>
-        <Button onClick={handleSubmit}>Submit</Button>
+        <Button onClick={handleSubmit}>Done</Button>
       </Grid>
-    </DialogActions>
-  </>
+    </CardActions>
+  </Card>
 }
 
-export default ManageScheduleModal;
+export default ManageSchedulesModal;

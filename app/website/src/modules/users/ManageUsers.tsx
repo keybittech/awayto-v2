@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, Suspense } from 'react';
+import React, { useState, useMemo, Suspense } from 'react';
 import dayjs from 'dayjs';
 
 import Box from '@mui/material/Box';
@@ -14,14 +14,10 @@ import { IGroupUser } from 'awayto/core';
 import { sh, useGrid } from 'awayto/hooks';
 
 import ManageUserModal from './ManageUserModal';
-import { useParams } from 'react-router';
 
 export function ManageUsers(props: IProps): React.JSX.Element {
   
-  const { groupName } = useParams();
-  if (!groupName) return <></>;
-
-  const { data: groupUsers } = sh.useGetGroupUsersQuery({ groupName });
+  const { data: groupUsers } = sh.useGetGroupUsersQuery();
 
   const [user, setUser] = useState<IGroupUser>();
   const [selected, setSelected] = useState<string[]>([]);

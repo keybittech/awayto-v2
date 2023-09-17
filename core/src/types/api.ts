@@ -9,7 +9,7 @@ import type { graylog } from 'graylog2';
 import type { Dayjs } from 'dayjs';
 
 import { UserGroupRoles } from './profile';
-import { IGroupRoleAuthActions } from './group';
+import { IGroup, IGroupRoleAuthActions } from './group';
 import { AnyRecord, AnyRecordTypes, Void } from '../util';
 import { KcSiteOpts } from './auth';
 import fetch from 'node-fetch';
@@ -32,6 +32,7 @@ export type ApiEvent<T extends AnyRecord | AnyRecordTypes> = {
   public: boolean;
   userSub: string;
   sourceIp: string;
+  group: Partial<IGroup>;
   groups?: string[];
   availableUserGroupRoles: UserGroupRoles;
   pathParameters: Record<string, string>;

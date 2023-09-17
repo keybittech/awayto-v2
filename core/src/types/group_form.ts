@@ -1,3 +1,4 @@
+import { Void } from '../util';
 import { ApiOptions, EndpointType } from './api';
 import { IForm, IFormVersion } from './form';
 
@@ -9,7 +10,6 @@ export type IGroupForm = IForm & {
   id: string;
   groupId: string;
   formId: string;
-  groupName: string;
 };
 
 /**
@@ -18,23 +18,23 @@ export type IGroupForm = IForm & {
 export default {
   postGroupForm: {
     kind: EndpointType.MUTATION,
-    url: 'group/:groupName/forms',
+    url: 'group/forms',
     method: 'POST',
     opts: {} as ApiOptions,
-    queryArg: { groupName: '' as string, name: '' as string, version: {} as IFormVersion },
+    queryArg: { name: '' as string, version: {} as IFormVersion },
     resultType: [] as IGroupForm[]
   },
   postGroupFormVersion: {
     kind: EndpointType.MUTATION,
-    url: 'group/:groupName/forms/:formId',
+    url: 'group/forms/:formId',
     method: 'POST',
     opts: {} as ApiOptions,
-    queryArg: { formId: '' as string, groupName: '' as string, name: '' as string, version: {} as IFormVersion } as IGroupForm,
+    queryArg: { formId: '' as string, name: '' as string, version: {} as IFormVersion } as IGroupForm,
     resultType: [] as IGroupForm[]
   },
   putGroupForm: {
     kind: EndpointType.MUTATION,
-    url: 'group/:groupName/forms',
+    url: 'group/forms',
     method: 'PUT',
     opts: {} as ApiOptions,
     queryArg: {} as IGroupForm,
@@ -42,26 +42,26 @@ export default {
   },
   getGroupForms: {
     kind: EndpointType.QUERY,
-    url: 'group/:groupName/forms',
+    url: 'group/forms',
     method: 'GET',
     opts: {} as ApiOptions,
-    queryArg: { groupName: '' as string },
+    queryArg: {} as Void,
     resultType: [] as IGroupForm[]
   },
   getGroupFormById: {
     kind: EndpointType.QUERY,
-    url: 'group/:groupName/forms/:formId',
+    url: 'group/forms/:formId',
     method: 'GET',
     opts: {} as ApiOptions,
-    queryArg: { groupName: '' as string, formId: '' as string },
+    queryArg: { formId: '' as string },
     resultType: {} as IGroupForm
   },
   deleteGroupForm: {
     kind: EndpointType.MUTATION,
-    url: 'group/:groupName/forms/:ids',
+    url: 'group/forms/:ids',
     method: 'DELETE',
     opts: {} as ApiOptions,
-    queryArg: { groupName: '' as string, ids: '' as string },
+    queryArg: { ids: '' as string },
     resultType: [] as { id: string }[]
   },
 } as const;

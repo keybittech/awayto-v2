@@ -1,3 +1,4 @@
+import { Void } from '../util';
 import { ApiOptions, EndpointType } from './api';
 import { ISchedule } from './schedule';
 import { IService } from './service';
@@ -12,7 +13,6 @@ export type IGroupUserScheduleStubReplacement = {
   startTime: string;
   scheduleBracketSlotId: string;
   serviceTierId: string;
-  groupName: string;
   quoteId: string;
 }
 
@@ -40,7 +40,6 @@ export type IGroupUserSchedule = ISchedule & {
   groupScheduleId: string;
   userScheduleId: string;
   services: Record<string, IService>;
-  groupName: string;
 }
 
 /**
@@ -49,50 +48,50 @@ export type IGroupUserSchedule = ISchedule & {
 export default {
   postGroupUserSchedule: {
     kind: EndpointType.MUTATION,
-    url: 'group/:groupName/user_schedules',
+    url: 'group/user_schedules',
     method: 'POST',
     opts: {} as ApiOptions,
-    queryArg: { groupName: '' as string, groupScheduleId: '' as string, userScheduleId: '' as string },
+    queryArg: { groupScheduleId: '' as string, userScheduleId: '' as string },
     resultType: [] as IGroupUserSchedule[]
   },
   getGroupUserSchedules: {
     kind: EndpointType.QUERY,
-    url: 'group/:groupName/user_schedules/:groupScheduleId',
+    url: 'group/user_schedules/:groupScheduleId',
     method: 'GET',
     opts: {} as ApiOptions,
-    queryArg: { groupName: '' as string, groupScheduleId: '' as string },
+    queryArg: { groupScheduleId: '' as string },
     resultType: [] as IGroupUserSchedule[]
   },
   getGroupUserScheduleStubs: {
     kind: EndpointType.QUERY,
-    url: 'group/:groupName/user_schedules_stubs',
+    url: 'group/user_schedules_stubs',
     method: 'GET',
     opts: { cache: 'skip' } as ApiOptions,
-    queryArg: { groupName: '' as string },
+    queryArg: {} as Void,
     resultType: [] as IGroupUserScheduleStub[]
   },
   getGroupUserScheduleStubReplacement: {
     kind: EndpointType.QUERY,
-    url: 'group/:groupName/user_schedules/stub_replacement/:userScheduleId/sd/:slotDate/st/:startTime/tn/:tierName',
+    url: 'group/user_schedules/stub_replacement/:userScheduleId/sd/:slotDate/st/:startTime/tn/:tierName',
     method: 'GET',
     opts: {} as ApiOptions,
-    queryArg: { groupName: '' as string, userScheduleId: '' as string, slotDate: '' as string, startTime: '' as string, tierName: '' as string },
+    queryArg: { userScheduleId: '' as string, slotDate: '' as string, startTime: '' as string, tierName: '' as string },
     resultType: [] as IGroupUserScheduleStub[]
   },
   putGroupUserScheduleStubReplacement: {
     kind: EndpointType.MUTATION,
-    url: 'group/:groupName/user_schedules/stub_replacement',
+    url: 'group/user_schedules/stub_replacement',
     method: 'PUT',
     opts: {} as ApiOptions,
-    queryArg: { groupName: '' as string, quoteId: '' as string, scheduleBracketSlotId: '' as string, serviceTierId: '' as string, slotDate: '' as string, startTime: '' as string, userScheduleId: '' as string },
+    queryArg: { quoteId: '' as string, scheduleBracketSlotId: '' as string, serviceTierId: '' as string, slotDate: '' as string, startTime: '' as string, userScheduleId: '' as string },
     resultType: { success: true as boolean }
   },
   deleteGroupUserScheduleByUserScheduleId: {
     kind: EndpointType.MUTATION,
-    url: 'group/:groupName/user_schedules/:ids',
+    url: 'group/user_schedules/:ids',
     method: 'DELETE',
     opts: {} as ApiOptions,
-    queryArg: { groupName: '' as string, ids: '' as string },
+    queryArg: { ids: '' as string },
     resultType: [] as { id: string }[]
   },
 } as const;

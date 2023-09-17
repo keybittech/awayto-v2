@@ -1,11 +1,14 @@
 import cookieParser from 'cookie-parser';
-import cookieSession from 'cookie-session';
+import RedisStore from 'connect-redis';
+import session from 'express-session';
+
 import passport from 'passport';
 import express, { Request, Response, NextFunction, Express } from 'express';
 import { Strategy, StrategyVerifyCallbackUserInfo, Issuer } from 'openid-client';
 import { StrategyUser } from 'awayto/core';
 
 import { keycloakClientConfiguration, keycloakDiscoveryUrl } from '../modules/keycloak';
+import redis from '../modules/redis';
 
 const {
   API_COOKIE
@@ -16,15 +19,28 @@ export const setupMiddleware = async (app: Express) => {
   console.log('Setting trust proxy');
   app.set('trust proxy', true);
 
-  console.log('Setting cookie session secret');
+  // console.log('Setting cookie session secret');
   // Store keycloak token in session
-  app.use(cookieSession({
-    name: 'primary_session',
-    secret: API_COOKIE,
-    maxAge: 24 * 60 * 60 * 1000,
-    secure: true,
-    httpOnly: true
-  }));
+  // app.use(cookieSession({
+  //   name: 'primary_session',
+  //   secret: API_COOKIE,
+  //   maxAge: 24 * 60 * 60 * 1000,
+  //   secure: true,
+  //   httpOnly: true
+  // }));
+
+  // Use redis session
+  app.use(
+    session({
+      store: new RedisStore({
+        client: redis,
+        prefix: 'client_api:'
+      }),
+      resave: false,
+      saveUninitialized: false,
+      secret: API_COOKIE
+    })
+  )
 
   console.log('Setting cookie parser');
   // Enable cookie parsing to read keycloak token

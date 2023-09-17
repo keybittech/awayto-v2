@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import { ApiOptions, EndpointType } from './api';
 import { ISchedule } from './schedule';
+import { Void } from '../util';
 
 /**
  * @category Group Schedule
@@ -24,7 +25,6 @@ export type IGroupSchedule = ISchedule & {
   master: true;
   groupId: string;
   scheduleId: string;
-  groupName: string;
 };
 
 /**
@@ -33,15 +33,15 @@ export type IGroupSchedule = ISchedule & {
 export default {
   postGroupSchedule: {
     kind: EndpointType.MUTATION,
-    url: 'group/:groupName/schedules',
+    url: 'group/schedules',
     method: 'POST',
     opts: {} as ApiOptions,
-    queryArg: { groupName: '' as string, schedule: {} as ISchedule },
+    queryArg: { schedule: {} as ISchedule },
     resultType: {} as IGroupSchedule
   },
   putGroupSchedule: {
     kind: EndpointType.MUTATION,
-    url: 'group/:groupName/schedules',
+    url: 'group/schedules',
     method: 'PUT',
     opts: {} as ApiOptions,
     queryArg: {} as IGroupSchedule,
@@ -49,34 +49,34 @@ export default {
   },
   getGroupSchedules: {
     kind: EndpointType.QUERY,
-    url: 'group/:groupName/schedules',
+    url: 'group/schedules',
     method: 'GET',
     opts: {} as ApiOptions,
-    queryArg: { groupName: '' as string },
+    queryArg: {} as Void,
     resultType: [] as IGroupSchedule[]
   },
   getGroupScheduleMasterById: {
     kind: EndpointType.QUERY,
-    url: 'group/:groupName/schedules/master/:scheduleId',
+    url: 'group/schedules/master/:scheduleId',
     method: 'GET',
     opts: {} as ApiOptions,
-    queryArg: { groupName: '' as string, scheduleId: '' as string },
+    queryArg: { scheduleId: '' as string },
     resultType: {} as ISchedule
   },
   getGroupScheduleByDate: {
     kind: EndpointType.QUERY,
-    url: 'group/:groupName/schedules/:scheduleId/datetz/:date/:timezone',
+    url: 'group/schedules/:scheduleId/datetz/:date/:timezone',
     method: 'GET',
     opts: { cache: 'skip' } as ApiOptions,
-    queryArg: { groupName: '' as string, scheduleId: '' as string, date: '' as string, timezone: '' as string },
+    queryArg: { scheduleId: '' as string, date: '' as string, timezone: '' as string },
     resultType: [] as IGroupScheduleDateSlots[]
   },
   deleteGroupSchedule: {
     kind: EndpointType.MUTATION,
-    url: 'group/:groupName/schedules/:ids',
+    url: 'group/schedules/:ids',
     method: 'DELETE',
     opts: {} as ApiOptions,
-    queryArg: { groupName: '' as string, ids: '' as string },
+    queryArg: { ids: '' as string },
     resultType: [] as { id: string }[]
   },
 } as const;

@@ -5,14 +5,12 @@ import { sh, useComponents, useContexts, useSelectOne } from 'awayto/hooks';
 export function GroupScheduleProvider({ children }: IProps): React.JSX.Element {
   const { GroupScheduleSelectionProvider } = useComponents();
 
-  const { GroupContext, GroupScheduleContext } = useContexts();
+  const { GroupScheduleContext } = useContexts();
 
-  const { group } = useContext(GroupContext) as GroupContextType;
-
-  const getGroupSchedules = sh.useGetGroupSchedulesQuery({ groupName: group?.name || '' }, { skip: !group });
-  const getGroupUserScheduleStubs = sh.useGetGroupUserScheduleStubsQuery({ groupName: group?.name || '' }, { skip: !group });
+  const getGroupSchedules = sh.useGetGroupSchedulesQuery();
+  const getGroupUserScheduleStubs = sh.useGetGroupUserScheduleStubsQuery();
   const selectGroupSchedule = useSelectOne('Schedule', { data: getGroupSchedules.data });
-  const getGroupUserSchedules = sh.useGetGroupUserSchedulesQuery({ groupName: group?.name || '', groupScheduleId: selectGroupSchedule.item?.id || '' }, { skip: !group || !selectGroupSchedule.item });
+  const getGroupUserSchedules = sh.useGetGroupUserSchedulesQuery({ groupScheduleId: selectGroupSchedule.item?.id || '' }, { skip: !selectGroupSchedule.item });
   const selectGroupScheduleService = useSelectOne('Service', { data: getGroupUserSchedules.data?.flatMap(gus => Object.values(gus.brackets).flatMap(b => Object.values(b.services))) });
   const selectGroupScheduleServiceTier = useSelectOne('Tier', { data: Object.values(selectGroupScheduleService.item?.tiers || {}).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime()) });
 

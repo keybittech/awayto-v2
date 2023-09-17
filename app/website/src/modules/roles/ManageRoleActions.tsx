@@ -11,16 +11,13 @@ import { DataGrid, GridColDef } from '@mui/x-data-grid';
 
 import { SiteRoles, IGroupRoleAuthActions } from 'awayto/core';
 import { useGrid, useAppSelector, sh, useUtil } from 'awayto/hooks';
-import { useParams } from 'react-router';
 
 export function ManageRoleActions(): React.JSX.Element {
-  const { groupName } = useParams();
-  if (!groupName) return <></>;
 
   const { setSnack } = useUtil();
   const [putAssignments] = sh.usePutGroupAssignmentsMutation();
 
-  const { data: availableGroupAssignments } = sh.useGetGroupAssignmentsQuery({ groupName });
+  const { data: availableGroupAssignments } = sh.useGetGroupAssignmentsQuery();
 
   const { data: profile } = sh.useGetUserProfileDetailsQuery();
 
@@ -37,21 +34,21 @@ export function ManageRoleActions(): React.JSX.Element {
   }, [assignments]);
 
   const handleSubmit = useCallback(() => {
-    putAssignments({ groupName, assignments }).unwrap().then(() => {
+    putAssignments({ assignments }).unwrap().then(() => {
       setSnack({ snackType: 'success', snackOn: 'Assignments can be updated again in 1 minute.' });
     }).catch(console.error);
-  }, [groupName, assignments]);
+  }, [assignments]);
 
   const columns = useMemo(() => {
-    if (groupsValues.length && groupName) {
-      const group = groupsValues.find(g => g.name === groupName);
+    if (groupsValues.length) {
+      const group = groupsValues.find(g => g.active);
       if (group && Object.keys(group.roles).length) {
 
         const cols: GridColDef<{ name: string }>[] = [{ width: 200, field: 'id', headerName: '', renderCell: ({ row }) => row.name } as GridColDef<{ name: string }>];
         
         for (const roleId in group.roles) {
           const { name } = group.roles[roleId];
-          const subgroup = `/${groupName}/${name}`;
+          const subgroup = `/${group.name}/${name}`;
           cols.push({
             flex: 1,
             minWidth: 75,
@@ -70,7 +67,7 @@ export function ManageRoleActions(): React.JSX.Element {
       }
     }
     return [];
-  }, [groupsValues, assignments, groupName]);
+  }, [groupsValues, assignments]);
 
   const options = useMemo(() => Object.values(SiteRoles).filter(r => ![SiteRoles.APP_ROLE_CALL, SiteRoles.APP_GROUP_ADMIN].includes(r)).map((name, id) => ({ id, name })), []);
 

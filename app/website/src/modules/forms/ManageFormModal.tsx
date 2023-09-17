@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useParams } from 'react-router';
 
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
@@ -21,9 +20,6 @@ declare global {
 
 export function ManageFormModal({ editForm, closeModal, ...props }: IProps): React.JSX.Element {
 
-  const { groupName } = useParams();
-  if (!groupName) return <></>;
-
   const [postGroupFormVersion] = sh.usePostGroupFormVersionMutation();
   const [postGroupForm] = sh.usePostGroupFormMutation();
   const [getGroupFormById] = sh.useLazyGetGroupFormByIdQuery();
@@ -37,7 +33,7 @@ export function ManageFormModal({ editForm, closeModal, ...props }: IProps): Rea
 
   useEffect(() => {
     if (editForm) {
-      getGroupFormById({ formId: editForm.id, groupName }).unwrap().then(res => {
+      getGroupFormById({ formId: editForm.id }).unwrap().then(res => {
         setForm(res);
         if (res.version) {
           setVersion(res.version);
@@ -97,7 +93,7 @@ export function ManageFormModal({ editForm, closeModal, ...props }: IProps): Rea
       }
     } as IForm;
 
-    (id ? postGroupFormVersion : postGroupForm)((id ? { ...formVersion, groupName, formId: id } : { ...formVersion, groupName }) as IGroupForm).unwrap().then(() => closeModal && closeModal()).catch(console.error);
+    (id ? postGroupFormVersion : postGroupForm)((id ? { ...formVersion, formId: id } : { ...formVersion }) as IGroupForm).unwrap().then(() => closeModal && closeModal()).catch(console.error);
   }, [form, version.form]);
 
   return <Card sx={{ display: 'flex', flex: 1, flexDirection: 'column' }}>

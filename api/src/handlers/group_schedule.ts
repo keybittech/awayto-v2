@@ -3,19 +3,11 @@ import scheduleApiHandler from './schedule';
 
 export default createHandlers({
   postGroupSchedule: async props => {
-    const { groupName } = props.event.pathParameters;
-
-    const { id: groupId } = await props.tx.one<IGroup>(`
-      SELECT id
-      FROM dbview_schema.enabled_groups
-      WHERE name = $1
-    `, [groupName]);
-
     const { sub: groupSub } = await props.tx.one<IUserProfile>(`
       SELECT sub
       FROM dbtable_schema.users
       WHERE username = $1
-    `, ['system_group_' + groupName]);
+    `, ['system_group_' + props.event.group.id]);
 
     const newSchedule = await scheduleApiHandler.postSchedule({
       ...props,
@@ -28,55 +20,46 @@ export default createHandlers({
 
     const groupSchedule = {
       ...newSchedule,
-      groupId
+      groupId: props.event.group.id
     } as IGroupSchedule;
 
     // Attach schedule to group
     await props.tx.none(`
       INSERT INTO dbtable_schema.group_schedules (group_id, schedule_id, created_sub)
       VALUES ($1, $2, $3::uuid)
-      `, [groupId, groupSchedule.id, groupSub]);
+      `, [props.event.group.id, groupSchedule.id, groupSub]);
 
-    await props.redis.del(`${props.event.userSub}group/${groupName}/schedules`);
+    await props.redis.del(`${props.event.userSub}group/schedules`);
 
     return groupSchedule;
   },
   putGroupSchedule: async props => {
-    const { groupName } = props.event.pathParameters;
-
     const groupSchedule = scheduleApiHandler.putSchedule(props) as Partial<IGroupSchedule>;
 
-    await props.redis.del(`${props.event.userSub}group/${groupName}/schedules`);
-    await props.redis.del(`${props.event.userSub}group/${groupName}/schedulemaster/${groupSchedule.id}`);
+    await props.redis.del(`${props.event.userSub}group/schedules`);
+    await props.redis.del(`${props.event.userSub}group/schedulemaster/${groupSchedule.id}`);
 
     return groupSchedule;
   },
   getGroupSchedules: async props => {
-    const { groupName } = props.event.pathParameters;
-    const { id: groupId } = await props.db.one<IGroup>(`
-      SELECT id
-      FROM dbview_schema.enabled_groups
-      WHERE name = $1
-    `, [groupName])
-
     const groups = await props.db.manyOrNone<IGroupSchedule>(`
       SELECT es.*, eus."groupId"
       FROM dbview_schema.enabled_group_schedules eus
       LEFT JOIN dbview_schema.enabled_schedules es ON es.id = eus."scheduleId"
       WHERE eus."groupId" = $1
-    `, [groupId]);
+    `, [props.event.group.id]);
 
     return groups;
   },
   getGroupScheduleMasterById: async props => {
-    const { groupName, scheduleId } = props.event.pathParameters;
+    const { scheduleId } = props.event.pathParameters;
     const schedules = await props.db.one<ISchedule>(`
       SELECT ese.*
       FROM dbview_schema.enabled_schedules_ext ese
       JOIN dbtable_schema.schedules s ON s.id = ese.id
       JOIN dbtable_schema.users u ON u.sub = s.created_sub
       WHERE ese.id = $1 AND u.username = $2
-    `, [scheduleId, 'system_group_' + groupName]);
+    `, [scheduleId, 'system_group_' + props.event.group.id]);
 
     return schedules;
   },
@@ -89,22 +72,17 @@ export default createHandlers({
     return scheduleDateSlots;
   },
   deleteGroupSchedule: async props => {
-    const { groupName, ids } = props.event.pathParameters;
+    const { ids } = props.event.pathParameters;
     const idsSplit = ids.split(',');
-    const { id: groupId } = await props.tx.one<IGroup>(`
-      SELECT id
-      FROM dbview_schema.enabled_groups
-      WHERE name = $1
-    `, [groupName]);
 
     await asyncForEach(idsSplit, async scheduleId => {
       await props.tx.none(`
         DELETE FROM dbtable_schema.group_schedules
         WHERE group_id = $1 AND schedule_id = $2
-      `, [groupId, scheduleId]);
+      `, [props.event.group.id, scheduleId]);
     });
 
-    await props.redis.del(props.event.userSub + `group/${groupName}/schedules`);
+    await props.redis.del(props.event.userSub + `group/schedules`);
 
     return idsSplit.map(id => ({ id }));
   },

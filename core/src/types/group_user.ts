@@ -1,3 +1,4 @@
+import { Void } from '../util';
 import { ApiOptions, EndpointType } from './api';
 import { IUserProfile } from './profile';
 
@@ -13,7 +14,6 @@ export type IGroupUser = IUserProfile & {
   groupExternalId: string;
   roleId: string;
   roleName: string;
-  groupName: string;
 };
 
 /**
@@ -27,50 +27,50 @@ export type IGroupUsers = Record<string, IGroupUser>;
 export default {
   putGroupUser: {
     kind: EndpointType.MUTATION,
-    url: 'group/:groupName/users',
+    url: 'group/users',
     method: 'PUT',
     opts: {} as ApiOptions,
-    queryArg: { groupName: '' as string, userId: '' as string, roleId: '' as string, roleName: '' as string },
+    queryArg: { userId: '' as string, roleId: '' as string, roleName: '' as string },
     resultType: [{ id: '' as string, roleId: '' as string, roleName: '' as string }]
   },
   getGroupUsers: {
     kind: EndpointType.QUERY,
-    url: 'group/:groupName/users',
+    url: 'group/users',
     method: 'GET',
     opts: {} as ApiOptions,
-    queryArg: { groupName: '' as string },
+    queryArg: {} as Void,
     resultType: [] as IGroupUser[]
   },
   getGroupUserById: {
     kind: EndpointType.QUERY,
-    url: 'group/:groupName/users/:userId',
+    url: 'group/users/:userId',
     method: 'GET',
     opts: {} as ApiOptions,
-    queryArg: { groupName: '' as string, userId: '' as string },
+    queryArg: { userId: '' as string },
     resultType: {} as IGroupUser
   },
   deleteGroupUser: {
     kind: EndpointType.MUTATION,
-    url: 'group/:groupName/users/:ids',
+    url: 'group/users/:ids',
     method: 'DELETE',
     opts: {} as ApiOptions,
-    queryArg: { groupName: '' as string, ids: [] as string[] },
+    queryArg: { ids: [] as string[] },
     resultType: [] as { id: string }[]
   },
   lockGroupUser: {
     kind: EndpointType.MUTATION,
-    url: 'group/:groupName/users/:ids/lock',
+    url: 'group/users/:ids/lock',
     method: 'PUT',
     opts: {} as ApiOptions,
-    queryArg: { groupName: '' as string, ids: [] as string[] },
+    queryArg: { ids: [] as string[] },
     resultType: [] as { id: string }[]
   },
   unlockGroupUser: {
     kind: EndpointType.MUTATION,
-    url: 'group/:groupName/users/:ids/unlock',
+    url: 'group/users/:ids/unlock',
     method: 'PUT',
     opts: {} as ApiOptions,
-    queryArg: { groupName: '' as string, ids: [] as string[] },
+    queryArg: { ids: [] as string[] },
     resultType: [] as { id: string }[]
   }
 } as const;

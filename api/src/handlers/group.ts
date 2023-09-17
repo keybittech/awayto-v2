@@ -6,7 +6,7 @@ export default createHandlers({
     let kcGroupExternalId = '';
 
     try {
-      const { name, displayName, purpose, roles, allowedDomains, defaultRoleId } = props.event.body;
+      const { name, displayName, purpose, allowedDomains } = props.event.body;
 
       if (process.env.OPENAI_API_KEY && true === (await props.ai.useAi<boolean>(undefined, purpose)).flagged) {
         props.logger.log('moderation failure event', props.event.requestId);
@@ -16,10 +16,10 @@ export default createHandlers({
       // Do this first for now to check if user already made a group
       // Create a group in app db if user has no groups and name is unique
       const group = await props.tx.one<IGroup>(`
-        INSERT INTO dbtable_schema.groups (external_id, code, admin_external_id, default_role_id, name, purpose, allowed_domains, created_sub, display_name)
-        VALUES ($1, $2, $3, $4::uuid, $5, $6, $7, $8::uuid, $9)
+        INSERT INTO dbtable_schema.groups (external_id, code, admin_external_id, name, purpose, allowed_domains, created_sub, display_name)
+        VALUES ($1, $2, $3, $4::uuid, $5, $6, $7::uuid, $8)
         RETURNING id, name
-      `, [props.event.userSub, props.event.userSub, props.event.userSub, defaultRoleId, name, props.event.userSub, allowedDomains, props.event.userSub, displayName]);
+      `, [props.event.userSub, props.event.userSub, props.event.userSub, name, props.event.userSub, allowedDomains, props.event.userSub, displayName]);
 
       try {
         // Create a keycloak group if the previous operation was allowed
@@ -42,7 +42,7 @@ export default createHandlers({
       await props.tx.none(`
         INSERT INTO dbtable_schema.users (sub, username, created_on, created_sub)
         VALUES ($1::uuid, $2, $3, $1::uuid)
-      `, [nid('v4'), 'system_group_' + name, new Date()]);
+      `, [nid('v4'), 'system_group_' + group.id, new Date()]);
 
       // Create an Admin subgroup in keycloak for this group
       const { id: kcAdminSubgroupExternalId } = await props.keycloak.groups.setOrCreateChild({ id: kcGroupExternalId }, { name: 'Admin' });
@@ -75,16 +75,16 @@ export default createHandlers({
       `, [group.id, kcGroupExternalId, kcAdminSubgroupExternalId, purposeMission]);
 
       // For each group role, create a keycloak subgroup and attach to group_roles
-      for (const roleId in roles) {
-        const { name: roleName } = roles[roleId];
-        if (name.toLowerCase() === 'admin') continue;
-        const { id: kcSubgroupId } = await props.keycloak.groups.setOrCreateChild({ id: kcGroupExternalId }, { name: roleName });
-        await props.tx.none(`
-          INSERT INTO dbtable_schema.group_roles (group_id, role_id, external_id, created_on, created_sub)
-          VALUES ($1, $2, $3, $4, $5::uuid)
-          ON CONFLICT (group_id, role_id) DO NOTHING
-        `, [group.id, roleId, kcSubgroupId, utcNowString(), props.event.userSub]);
-      }
+      // for (const roleId in roles) {
+      //   const { name: roleName } = roles[roleId];
+      //   if (name.toLowerCase() === 'admin') continue;
+      //   const { id: kcSubgroupId } = await props.keycloak.groups.setOrCreateChild({ id: kcGroupExternalId }, { name: roleName });
+      //   await props.tx.none(`
+      //     INSERT INTO dbtable_schema.group_roles (group_id, role_id, external_id, created_on, created_sub)
+      //     VALUES ($1, $2, $3, $4, $5::uuid)
+      //     ON CONFLICT (group_id, role_id) DO NOTHING
+      //   `, [group.id, roleId, kcSubgroupId, utcNowString(), props.event.userSub]);
+      // }
 
       // Get the group admin's id
       const { id: userId } = await props.tx.one<IUserProfile>(`
@@ -110,7 +110,7 @@ export default createHandlers({
 
       await props.redis.del(props.event.userSub + 'profile/details');
 
-      return [{ ...group, roles }];
+      return [{ ...group }]; // roles
 
     } catch (error) {
       const { constraint } = error as DbError;
@@ -145,6 +145,8 @@ export default createHandlers({
       WHERE id = $1
       RETURNING id, name, external_id as "externalId"
     `, updateProps.array);
+
+    await props.keycloak.groups.update({ id: groupExternalId }, { name })
 
     // See if any roles have changed, "rolesIds"/"roles" are the new incoming roles
     const roleIds = Object.keys(roles);
@@ -185,6 +187,7 @@ export default createHandlers({
     // Reestablish subgroup namespaces in keycloak, and group role associations in app db
     for (const roleId in Object.keys(roles)) {
       const role = roles[roleId];
+      if (role.name.toLowerCase() === 'admin') continue;
       const { id: kcSubgroupId } = await props.keycloak.groups.setOrCreateChild({ id: groupExternalId }, { name: role.name });
       await props.tx.none(`
         INSERT INTO dbtable_schema.group_roles (group_id, role_id, external_id, created_on, created_sub)
@@ -203,6 +206,7 @@ export default createHandlers({
 
     const { assignments } = props.event.body;
 
+    // TODO: Part of RBAC upgrade
     // Get the group external ID for now by owner
     const { externalId: groupExternalId } = await props.tx.one<IGroup>(`
       SELECT external_id FROM dbtable_schema.groups WHERE created_sub = $1

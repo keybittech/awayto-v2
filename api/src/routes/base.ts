@@ -1,22 +1,18 @@
 import express, { RequestHandler, Request, Response } from 'express';
 import fetch from 'node-fetch';
-import jwtDecode from 'jwt-decode';
-import { IdTokenClaims } from 'openid-client';
 
 import { db } from '../modules/db';
 import logger from '../modules/logger';
-import redis, { redisProxy, rateLimitResource, DEFAULT_THROTTLE } from '../modules/redis';
+import redis, { redisProxy, rateLimitResource } from '../modules/redis';
 import { saveFile, putFile, getFile } from '../modules/fs';
 import keycloak from '../modules/keycloak';
 import { getGroupRegistrationRedirectParts } from '../modules/keycloak';
 
-import { checkAuthenticated, validateRequestBody } from '../middlewares';
+import { checkAuthenticated, validateRequestBody, rateLimit, checkToken } from '../middlewares';
 
 import { useAi } from '@keybittech/wizapp/dist/server';
 
 import {
-  DecodedJWTToken,
-  UserGroupRoles,
   StrategyUser,
   ApiErrorResponse,
   siteApiRef,
@@ -61,7 +57,11 @@ for (const apiRefId in siteApiRef) {
   const { method, url, queryArg, resultType, kind, opts: { cache, throttle, contentType } } = siteApiRef[apiRefId as keyof typeof siteApiRef];
   const isFileContent = 'application/octet-stream' === contentType;
 
-  const requestHandlers: RequestHandler[] = [ checkAuthenticated ];
+  const requestHandlers: RequestHandler[] = [
+    checkToken,
+    rateLimit(throttle, kind, method, url),
+    checkAuthenticated
+  ];
 
   if (isFileContent) {
     requestHandlers.push(express.raw({ type: contentType, limit: '4mb' }));
@@ -74,14 +74,6 @@ for (const apiRefId in siteApiRef) {
 
     const requestId = nid('v4');
     const user = req.user as StrategyUser;
-
-    if ('skip' !== throttle && ((throttle || EndpointType.MUTATION === kind) && await rateLimitResource(user.sub, `${method}/${url}`, 1, throttle))) {
-      return res.status(429).send({ reason: 'You must wait ' + (throttle || DEFAULT_THROTTLE) + ' seconds.', requestId });
-    }
-
-    if (await rateLimitResource(user.sub, 'api', 30, 1)) { // limit n general api requests per second
-      return res.status(429).send({ reason: 'Rate limit exceeded.', requestId });
-    }
 
     let response = {} as typeof resultType;
     let wasCached = false;
@@ -100,18 +92,9 @@ for (const apiRefId in siteApiRef) {
       res.header('X-Cache-Status', 'MISS');
 
       try {
-        const { groupRoleActions } = await redisProxy('groupRoleActions');
-
         const xfwd = (req.headers['x-forwarded-for'] as string).split('.');
         const sourceIp = xfwd.filter((a, i) => i !== xfwd.length - 1).join('.') + '.000';
-        const token = jwtDecode<DecodedJWTToken & IdTokenClaims>(req.headers.authorization || '');
-        const tokenGroupRoles = {} as UserGroupRoles;
 
-        for (const subgroupPath of token.groups) {
-          const [groupName, subgroupName] = subgroupPath.slice(1).split('/');
-          tokenGroupRoles[groupName] = tokenGroupRoles[groupName] || {};
-          tokenGroupRoles[groupName][subgroupName] = groupRoleActions[subgroupPath]?.actions.map(a => a.name) || []
-        }
 
         // Create trace event
         const requestParams = {
@@ -128,8 +111,9 @@ for (const apiRefId in siteApiRef) {
             method,
             url,
             public: false,
-            groups: token.groups,
-            availableUserGroupRoles: tokenGroupRoles,
+            group: req.session.group,
+            groups: req.session.groups,
+            availableUserGroupRoles: req.session.availableUserGroupRoles,
             userSub: user.sub,
             sourceIp,
             pathParameters: req.params as Record<string, string>,
@@ -142,7 +126,7 @@ for (const apiRefId in siteApiRef) {
 
         const txHandler = async <T, Q extends AnyRecord | AnyRecordTypes>(props: ApiProps<Q>): Promise<T> => {
           const eventLength = JSON.stringify(requestParams.event).length;
-          const handlerType = EndpointType.MUTATION === kind ? 'mutation': 'query';
+          const handlerType = EndpointType.MUTATION === kind ? 'mutation' : 'query';
           const { body, ...logged } = requestParams.event;
           logger.log(`Handling api ${handlerType} with size ` + eventLength, {
             ...logged,

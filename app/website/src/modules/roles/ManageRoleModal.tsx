@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
 
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
@@ -20,9 +19,6 @@ declare global {
 }
 
 export function ManageRoleModal ({ editRole, closeModal }: IProps): React.JSX.Element {
-
-  const { groupName } = useParams();
-
   const { setSnack } = useUtil();
   const [putRole] = sh.usePutRoleMutation();
   const [postRole] = sh.usePostRoleMutation();
@@ -42,9 +38,7 @@ export function ManageRoleModal ({ editRole, closeModal }: IProps): React.JSX.El
     }
     const newRole = await (id ? putRole : postRole)({ name, id } as IRole).unwrap();
 
-    if (groupName && !id) {
-      await postGroupRole({ groupName, role: newRole });
-    }
+    !id && await postGroupRole({ role: newRole });
 
     if (closeModal)
       closeModal();

@@ -1,3 +1,4 @@
+import { Void } from '../util';
 import { ApiOptions, EndpointType } from './api';
 import { IUserProfile } from './profile';
 import { IRole } from './role';
@@ -47,6 +48,8 @@ export type IGroup = {
   checkingName: boolean;
   checkedName: string;
   error: Error | string;
+
+  active: boolean;
 }
 
 /**
@@ -64,9 +67,7 @@ export default {
       name: '' as string,
       displayName: '' as string,
       purpose: '' as string,
-      roles: {} as Record<string, IRole>,
-      allowedDomains: '' as string,
-      defaultRoleId: '' as string,
+      allowedDomains: '' as string
     },
     resultType: [] as IGroup[]
   },
@@ -87,23 +88,20 @@ export default {
   },
   putGroupAssignments: {
     kind: EndpointType.MUTATION,
-    url: 'group/:groupName/assignments',
+    url: 'group/assignments',
     method: 'PUT',
     opts: {
       throttle: 60
     } as ApiOptions,
-    queryArg: {
-      groupName: '' as string,
-      assignments: {} as Record<string, { actions: { name: string }[] }>,
-    },
+    queryArg: { assignments: {} as Record<string, { actions: { name: string }[] }> },
     resultType: { success: true as boolean }
   },
   getGroupAssignments: {
     kind: EndpointType.QUERY,
-    url: 'group/:groupName/assignments',
+    url: 'group/assignments',
     method: 'GET',
     opts: {} as ApiOptions,
-    queryArg: { groupName: '' as string },
+    queryArg: {} as Void,
     resultType: {} as Record<string, IGroupRoleAuthActions>
   },
   deleteGroup: {

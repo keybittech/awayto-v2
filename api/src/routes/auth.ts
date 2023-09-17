@@ -26,7 +26,7 @@ const router = express.Router();
 router.post('/register/validate', checkBackchannel, async (req, res) => {
   try {
     const group = await db.one<IGroup>(`
-      SELECT allowed_domains "allowedDomains", name
+      SELECT allowed_domains "allowedDomains", display_name as name
       FROM dbtable_schema.groups
       WHERE enabled = true AND code = $1
     `, [req.body.groupCode.toLowerCase()]);
@@ -79,6 +79,7 @@ router.post('/webhook', checkBackchannel, async (req, res) => {
       public: false,
       userSub: userId,
       sourceIp: ipAddress,
+      group: {},
       availableUserGroupRoles: {},
       pathParameters: req.params,
       queryParameters: req.query as Record<string, string>,

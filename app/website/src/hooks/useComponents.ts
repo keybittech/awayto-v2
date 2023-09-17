@@ -1,5 +1,4 @@
 import { ComponentType, FunctionComponent, ReactNode, LazyExoticComponent, createElement, useMemo, lazy } from 'react';
-import { useParams } from 'react-router';
 
 import { hasGroupRole, SiteRoles, isExternal } from 'awayto/core';
 
@@ -56,14 +55,14 @@ const components = {} as IBaseComponents;
  * @category Hooks
  */
 export function useComponents(): IBaseComponents {
-  const { data: profile = { availableUserGroupRoles: {} } } = sh.useGetUserProfileDetailsQuery(undefined, { skip: isExternal(window.location.pathname) });
+  const { data: profile } = sh.useGetUserProfileDetailsQuery(undefined, { skip: isExternal(window.location.pathname) });
 
-  const { groupName } = useParams();
+  const group = useMemo(() => Object.values(profile?.groups || {}).find(g => g.active), [profile]);
 
   const comps = useMemo(() => {
     return new Proxy(components, {
       get: function (target: IBaseComponents, prop: string): LazyExoticComponent<IBaseComponent> | (() => JSX.Element) {
-        if (groupName && roles[views[prop]]?.length && !hasGroupRole(groupName, profile.availableUserGroupRoles, roles[views[prop]] )) {
+        if (profile && group && roles[views[prop]]?.length && !hasGroupRole(group.name, profile.availableUserGroupRoles, roles[views[prop]] )) {
           components[prop] = ((): React.JSX.Element => createElement('div'));
         }
       
@@ -74,7 +73,7 @@ export function useComponents(): IBaseComponents {
         return Reflect.get(target, prop);
       }
     });
-  }, [profile, groupName]);
+  }, [profile, group]);
 
   return comps;
 }

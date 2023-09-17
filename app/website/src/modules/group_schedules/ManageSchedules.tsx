@@ -17,21 +17,17 @@ import { ISchedule } from 'awayto/core';
 import { useComponents, useGrid, sh, useUtil, useStyles } from 'awayto/hooks';
 
 import ManageSchedulesModal from './ManageSchedulesModal';
-import { useParams } from 'react-router';
 
 // This is how group owners interact with the schedule
 export function ManageSchedules(props: IProps): React.JSX.Element {
   const classes = useStyles();
-
-  const { groupName } = useParams();
-  if (!groupName) return <></>;
 
   const { openConfirm } = useUtil();
   const { ManageScheduleStubs } = useComponents();
 
   const [deleteGroupSchedule] = sh.useDeleteGroupScheduleMutation();
   
-  const { data: groupSchedules, refetch: getGroupSchedules } = sh.useGetGroupSchedulesQuery({ groupName: groupName });
+  const { data: groupSchedules, refetch: getGroupSchedules } = sh.useGetGroupSchedulesQuery();
 
   const [schedule, setSchedule] = useState<ISchedule>();
   const [selected, setSelected] = useState<string[]>([]);
@@ -60,7 +56,7 @@ export function ManageSchedules(props: IProps): React.JSX.Element {
             isConfirming: true,
             confirmEffect: 'Are you sure you want to delete these schedules? This cannot be undone.',
             confirmAction: async () => {
-              await deleteGroupSchedule({ groupName, ids: selected.join(',') }).unwrap();
+              await deleteGroupSchedule({ ids: selected.join(',') }).unwrap();
               void getGroupSchedules();
               setSelected([]);
             }
@@ -71,7 +67,7 @@ export function ManageSchedules(props: IProps): React.JSX.Element {
         </Button>
       </Tooltip>
     ]
-  }, [selected, groupName]);
+  }, [selected]);
 
   const scheduleGridProps = useGrid({
     rows: groupSchedules || [],

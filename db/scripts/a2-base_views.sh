@@ -56,6 +56,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     name,
     display_name as "displayName",
     created_on as "createdOn",
+    purpose,
     row_number() OVER () as row
   FROM
     dbtable_schema.groups
@@ -146,7 +147,6 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
   OR REPLACE VIEW dbview_schema.enabled_groups_ext AS
   SELECT
     eg.*,
-    g.purpose,
     g.code,
     g.default_role_id as "defaultRoleId",
     g.allowed_domains as "allowedDomains",
