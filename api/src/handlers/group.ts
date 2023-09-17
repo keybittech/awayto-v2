@@ -17,7 +17,7 @@ export default createHandlers({
       // Create a group in app db if user has no groups and name is unique
       const group = await props.tx.one<IGroup>(`
         INSERT INTO dbtable_schema.groups (external_id, code, admin_external_id, name, purpose, allowed_domains, created_sub, display_name)
-        VALUES ($1, $2, $3, $4::uuid, $5, $6, $7::uuid, $8)
+        VALUES ($1, $2, $3, $4, $5, $6, $7::uuid, $8)
         RETURNING id, name
       `, [props.event.userSub, props.event.userSub, props.event.userSub, name, props.event.userSub, allowedDomains, props.event.userSub, displayName]);
 
@@ -110,7 +110,7 @@ export default createHandlers({
 
       await props.redis.del(props.event.userSub + 'profile/details');
 
-      return [{ ...group }]; // roles
+      return { id: group.id }; // roles
 
     } catch (error) {
       const { constraint } = error as DbError;
@@ -127,13 +127,13 @@ export default createHandlers({
     }
   },
   putGroup: async props => {
-    const { id, name, displayName, roles, defaultRoleId } = props.event.body;
+    const { id, name, displayName, purpose } = props.event.body;
 
     const updateProps = buildUpdate({
       id,
       name,
+      purpose,
       display_name: displayName,
-      default_role_id: defaultRoleId,
       updated_sub: props.event.userSub,
       updated_on: utcNowString()
     });
@@ -148,57 +148,9 @@ export default createHandlers({
 
     await props.keycloak.groups.update({ id: groupExternalId }, { name })
 
-    // See if any roles have changed, "rolesIds"/"roles" are the new incoming roles
-    const roleIds = Object.keys(roles);
-
-    // Get all the group_roles by the group's id
-    const diffs = (await props.tx.manyOrNone<IGroupRole>(`
-      SELECT id, "roleId" 
-      FROM dbview_schema.enabled_group_roles 
-      WHERE "groupId" = $1
-    `, [group.id])).filter(r => !roleIds.includes(r.roleId));
-
-    // Diffs is filtered, now unused roles
-    if (diffs.length) {
-
-      // Delete keycloak subgroups under the parent group which are no longer present
-      const externalGroup = await props.keycloak.groups.findOne({ id: groupExternalId });
-      if (externalGroup?.subGroups) {
-        const roleNames = (await props.tx.manyOrNone<IRole>(`
-          SELECT name 
-          FROM dbview_schema.enabled_roles 
-          WHERE id = ANY($1::uuid[])
-        `, [diffs.map(r => r.roleId)])).map(r => r.name) as string[];
-        for (const subGroupId in externalGroup.subGroups.filter(sg => roleNames.includes(sg.name as string))) {
-          const subGroup = externalGroup.subGroups[subGroupId];
-          if (subGroup.id) {
-            await props.keycloak.groups.del({ id: subGroup.id });
-          }
-        }
-      }
-
-      // Remove the role associations from the group
-      await props.tx.none(`
-        DELETE FROM dbtable_schema.group_roles
-        WHERE id = ANY($1::uuid[]) 
-      `, [diffs.map(r => r.id)]);
-    }
-
-    // Reestablish subgroup namespaces in keycloak, and group role associations in app db
-    for (const roleId in Object.keys(roles)) {
-      const role = roles[roleId];
-      if (role.name.toLowerCase() === 'admin') continue;
-      const { id: kcSubgroupId } = await props.keycloak.groups.setOrCreateChild({ id: groupExternalId }, { name: role.name });
-      await props.tx.none(`
-        INSERT INTO dbtable_schema.group_roles (group_id, role_id, external_id, created_on, created_sub)
-        VALUES ($1, $2, $3, $4, $5::uuid)
-        ON CONFLICT (group_id, role_id) DO NOTHING
-      `, [group.id, role.id, kcSubgroupId, utcNowString(), props.event.userSub]);
-    }
-
     await props.redis.del(props.event.userSub + 'profile/details');
 
-    return [{ ...group, roles }] as IGroup[];
+    return { id };
   },
   putGroupAssignments: async props => {
 

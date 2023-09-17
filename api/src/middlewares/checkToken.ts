@@ -20,7 +20,7 @@ export const checkToken = async (req: Request, res: Response, next: NextFunction
 
   const gNameSelect = req.headers['x-gid-select'];
 
-  if (!req.session.group || (gNameSelect && req.session.group.id !== gNameSelect)) {
+  if ((req.session.groups.length && !req.session.group) || (gNameSelect && req.session.group?.id !== gNameSelect)) {
     const groupNames = Object.keys(req.session.availableUserGroupRoles);
 
     const gid = gNameSelect ? gNameSelect : groupNames[0];

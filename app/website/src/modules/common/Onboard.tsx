@@ -1,29 +1,48 @@
-import React, { useCallback, useState, useEffect, Suspense } from 'react';
+import React, { useCallback, useState, useEffect, Suspense, useRef } from 'react';
 
 import Grid from '@mui/material/Grid';
-import Dialog from '@mui/material/Dialog';
+import Avatar from '@mui/material/Avatar';
 import Divider from '@mui/material/Divider';
-import Alert from '@mui/material/Alert';
 import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
+import SettingsIcon from '@mui/icons-material/Settings';
 
 import Icon from '../../img/kbt-icon.png';
-import { useComponents, useUtil, sh } from 'awayto/hooks';
+import { IGroup, ISchedule, IService } from 'awayto/core';
+import { useComponents, useUtil, useAccordion, sh } from 'awayto/hooks';
 import keycloak from '../../keycloak';
 
 export function Onboard(props: IProps): React.JSX.Element {
 
+  const { data: profile } = sh.useGetUserProfileDetailsQuery();
   const [joinGroup] = sh.useJoinGroupMutation();
   const [attachUser] = sh.useAttachUserMutation();
 
   const { setSnack } = useUtil();
 
-  const { ManageGroupModal } = useComponents();
+  const { ManageGroupModal, ManageGroupRolesModal, NewManageServiceModal, ManageSchedulesModal, AccordionWrap } = useComponents();
+
+  const [group, setGroup] = useState({} as IGroup);
+  const [service, setService] = useState<IService>();
+  const [schedule, setSchedule] = useState({} as ISchedule);
 
   const [groupCode, setGroupCode] = useState('');
-  const [dialog, setDialog] = useState('');
+  const [expanded, setExpanded] = useState<string | false>('create_group');
+
+  const openTip = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
+    if (panel) {
+      setExpanded(isExpanded ? panel : false);
+    }
+  };
+
+  const stepAvatar = (name: string, num: number) => () => <Avatar sx={{ bgcolor: expanded === name ? 'secondary.main' : 'primary.contrastText', color: 'white' }}>{num}</Avatar> ;
+
+  const CreateGroup = useAccordion('Create Group', false, expanded === 'create_group', openTip('create_group'), stepAvatar('create_group', 1));
+  const CreateRoles = useAccordion('Create Roles', false, expanded === 'create_roles', openTip(group.name ? 'create_roles' : ''), stepAvatar('create_roles', 2));
+  const CreateService = useAccordion('Create Service', false, expanded === 'create_service', openTip(group.defaultRoleId ? 'create_service' : ''), stepAvatar('create_service', 3));
+  const CreateSchedule = useAccordion('Create Schedule', false, expanded === 'create_schedule', openTip(service?.name ? 'create_schedule' : ''), stepAvatar('create_schedule', 4));
 
   const joinGroupCb = useCallback(() => {
     if (!groupCode || !/^[a-zA-Z0-9]{8}$/.test(groupCode)) {
@@ -42,67 +61,157 @@ export function Onboard(props: IProps): React.JSX.Element {
     window.INT_SITE_LOAD = true;
   }, []);
 
+  useEffect(() => {
+    if (profile?.groups) {
+      const gr = Object.values(profile?.groups)[0];
+      if (gr) {
+        setGroup(gr);
+      }
+    }
+  }, [profile]);
+
   return <>
 
-    <Dialog fullScreen open={dialog === 'create_group'} fullWidth maxWidth="sm">
-      <Box sx={{ bgcolor: 'primary.dark' }}>
-        <Grid container sx={{ placeContent: 'center', minHeight: '100vh', height: '100%' }}>
-          <Grid item xs={6}>
-            <Suspense>
-              <ManageGroupModal
+    {/* <Suspense>
+      <Dialog fullScreen open={!!expanded} fullWidth maxWidth="sm">
+        <Grid container sx={{ bgcolor: 'primary.dark', placeContent: 'center', height: '100vh' }}>
+          <Grid item xs={6} sx={{ maxHeight: '80vh', overflowY: 'scroll' }}>
+            {expanded === 'create_group' ? <ManageGroupModal
+              {...props}
+              closeModal={(editGroup: IGroup) => {
+                console.log(editGroup);
+                setGroup(editGroup);
+                setExpanded('create_roles');
+              }}
+            >
+              {createTip(
+                'Describing your group enables functionality across the site, providing suggestions based on what your group does.',
+                'Allowed Email Domains restrict who can join your group. For example, site.com is the domain for the email user@site.com.'
+              )}
+            </ManageGroupModal> :
+              expanded === 'create_roles' ? <ManageGroupRolesModal
                 {...props}
-                closeModal={() => {
-                  setDialog('');
+                editGroup={group}
+                closeModal={({ roles, defaultRoleId }: IGroup) => {
+                  setGroup({ ...group, roles, defaultRoleId });
+                  setExpanded('create_schedule');
+                  console.log({ groupMOD: { ...group, roles, defaultRoleId } })
                 }}
               >
-                <Alert sx={{ mb: 2 }} variant="outlined" severity="info">
-                  <Typography sx={{ mb: 1 }} >Onboarding Tips</Typography>
-                  <Typography sx={{ mb: 1 }} variant="body2">Group Details: Describing your group enables functionality across the site, providing suggestions based on what your group does. Domains allow you to restrict who can join your group. For example, the domain of user@site.com is <strong>site.com</strong>.</Typography>
-                  <Typography variant="body2">Roles: You are the admin of your group, so you have the Admin role; this cannot be changed. Your group description will generate some role suggestions for you, which you can click to use. Otherwise, click the role dropdown to add your own roles.</Typography>
-                </Alert>
-              </ManageGroupModal>
-            </Suspense>
+                {createTip(
+                  'Click the "Group Roles" dropdown box and select "Add..." to add new roles. The underlined suggestions have been generated for you based on your group description. Click them to add.'
+                )}
+              </ManageGroupRolesModal> :
+                expanded === 'create_schedule' ? <ManageSchedulesModal
+                  {...props}
+                  editGroup={group}
+                  closeModal={(editSchedule: ISchedule) => {
+                    setSchedule(editSchedule);
+                    setExpanded('');
+                    console.log({ scheduleMOD: editSchedule })
+                  }}
+                >
+                  {createTip(
+                    'Blah blah.'
+                  )}
+                </ManageSchedulesModal> : <></>}
           </Grid>
         </Grid>
-      </Box>
-    </Dialog>
+      </Dialog>
+    </Suspense> */}
 
-    <Box sx={{ bgcolor: 'primary.dark' }}>
+    <Box sx={{ bgcolor: 'primary.main' }}>
       <Grid container sx={{ placeItems: { xs: 'start', sm: 'center' }, minHeight: '100vh', height: '100%' }}>
 
-        <Grid p={4} item xs={12} sm={8} md={6}>
+        <Grid item xs={12} sm={8} md={6} p={4}>
           <Grid container spacing={2}>
-            <Grid item xs={4}>
+            {/* <Grid item xs={4}>
               <img src={Icon} alt="kbt-icon" width="100%" />
-            </Grid>
+            </Grid> */}
 
-            <Grid item xs={8}>
+            {/* <Grid item xs={8}>
               <Typography color="primary" variant="h5">Welcome to</Typography>
               <Typography color="primary" variant="h2" component="h1"><div>Awayto.</div><div>Exchange</div></Typography>
-            </Grid>
+            </Grid> */}
 
             <Grid item xs={12}>
-              <Typography color="primary" variant="body1">It's a pleasure to welcome you! This application is designed to enhance the connection between an organization and its members. We provide a general platform, packed with functionality, which allows groups of all kinds to support different services related to their domain. Enjoy the app on both desktop and mobile browsers; customize your services to include lots of detail, or keep things simple; and even make use of a bit of artificial intelligence!</Typography>
-            </Grid>
 
-            <Grid item xs={12}>
-              <Typography color="primary" variant="body1"><strong>AI:</strong> To get started, we need to know whether you're here to create a group for your organization, or join an existing group. From there, you'll be able to set up your services, create any necessary reporting forms and start scheduling appointments with your clients. You'll be meeting in one of our virtual sessions in no time!</Typography>
+              <AccordionWrap {...CreateGroup}>
+                <Typography variant="body1">Describing your group enables functionality across the site, providing suggestions based on what your group does.</Typography>
+                <Typography variant="body1">Allowed Email Domains restrict who can join your group. For example, site.com is the domain for the email user@site.com.</Typography>
+              </AccordionWrap>
+
+              <AccordionWrap {...CreateRoles}>
+                <Typography variant="body1">Click the "Group Roles" dropdown box and select "Add..." to add new roles. The underlined suggestions have been generated for you based on your group description. Click them to add.</Typography>
+              </AccordionWrap>
+
+              <AccordionWrap {...CreateService}>
+                <Typography variant="body1"></Typography>    
+              </AccordionWrap>
+
+              <AccordionWrap {...CreateSchedule}>
+                <Typography variant="body1"></Typography>
+              </AccordionWrap>
             </Grid>
 
           </Grid>
         </Grid>
 
         <Grid item xs={12} sm={4} md={6}>
-          <Grid container p={4} spacing={4}>
+          <Suspense>
 
-            <Grid item xs={12}>
-              <Typography color="primary" variant="h4" component="h2">Get Started!</Typography>
+            <Grid container sx={{ p:4, bgcolor: 'secondary.main', placeContent: 'center', height: '100vh' }}>
+              <Grid item xs={12} sx={{ maxHeight: '80vh', overflowY: 'scroll' }}>
 
-              <Typography color="primary" variant="body1">We're honored to be able to assist in your efforts, and ready to help you streamline your processes. Let's get started!</Typography>
+                {expanded === 'create_group' ? <ManageGroupModal
+                  {...props}
+                  editGroup={group}
+                  closeModal={(newGroup: IGroup) => {
+                    console.log(newGroup);
+                    setGroup(newGroup);
+                    setExpanded('create_roles');
+                  }}
+                /> :
+                expanded === 'create_roles' ? <ManageGroupRolesModal
+                  {...props}
+                  editGroup={group}
+                  closeModal={({ roles, defaultRoleId }: IGroup) => {
+                    setGroup({ ...group, roles, defaultRoleId });
+                    setExpanded('create_service');
+                    console.log({ groupMOD: { ...group, roles, defaultRoleId } })
+                  }}
+                />:
+                expanded === 'create_service' ? <NewManageServiceModal 
+                  {...props}
+                  editGroup={group}
+                  editService={service}
+                  closeModal={(service: IService) => {
+                    setService(service);
+                    setExpanded('create_schedule');
+                    console.log({ serviceMOD: service })
+                  }}
+                /> :
+                expanded === 'create_schedule' ? <ManageSchedulesModal
+                  {...props}
+                  editGroup={group}
+                  closeModal={(editSchedule: ISchedule) => {
+                    setSchedule(editSchedule);
+                    setExpanded('');
+                    console.log({ scheduleMOD: editSchedule })
+                  }}
+                /> : <></>}
+
+              </Grid>
             </Grid>
 
+          </Suspense>
+
+          {/* <Grid container p={4} spacing={4}>
+
             <Grid item xs={12}>
-              <Button fullWidth variant="contained" color="secondary" onClick={() => setDialog('create_group')}>Create a group</Button>
+              <Button fullWidth variant="contained" color="secondary" onClick={() => setExpanded('create_group')}>Create a group</Button>
+
+
             </Grid>
 
             <Grid item xs={12}>
@@ -133,7 +242,7 @@ export function Onboard(props: IProps): React.JSX.Element {
             <Grid item xs={12}>
               <Button fullWidth variant="contained" color="secondary" onClick={joinGroupCb}>Join a Group</Button>
             </Grid>
-          </Grid>
+          </Grid> */}
         </Grid>
       </Grid>
     </Box>

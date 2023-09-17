@@ -36,6 +36,7 @@ export default function App (props: IProps): React.JSX.Element {
   const { Onboard, ConfirmAction } = useComponents();
   const { theme, snackOn, snackType, snackRequestId, isLoading, loadingMessage } = useAppSelector(state => state.util);
   const { data: profile, refetch: getUserProfileDetails } = sh.useGetUserProfileDetailsQuery();
+  const { data: groupSchedules } = sh.useGetGroupSchedulesQuery();
   const [attachUser] = sh.useAttachUserMutation();
   const loc = useLocation();
   const navigate = useNavigate();
@@ -70,7 +71,7 @@ export default function App (props: IProps): React.JSX.Element {
         navigate('/');
         keycloak.clearToken();
       }).catch(console.error);
-    } else if (!Object.keys(profile.groups || {}).length) {
+    } else if (!groupSchedules?.length) {
       setOnboarding(true);
       return;
     } else {

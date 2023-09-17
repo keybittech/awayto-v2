@@ -82,7 +82,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     external_id TEXT NOT NULL UNIQUE,
     admin_external_id TEXT NOT NULL UNIQUE,
-    default_role_id uuid NOT NULL REFERENCES dbtable_schema.roles (id) ON DELETE CASCADE,
+    default_role_id uuid REFERENCES dbtable_schema.roles (id) ON DELETE CASCADE,
     display_name VARCHAR (100) NOT NULL UNIQUE,
     name VARCHAR (50) NOT NULL UNIQUE,
     purpose VARCHAR (200) NOT NULL UNIQUE,

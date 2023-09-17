@@ -24,6 +24,17 @@ export default {
     queryArg: { role: {} as IRole },
     resultType: { success: true as boolean }
   },
+  putGroupRoles: {
+    kind: EndpointType.MUTATION,
+    url: 'group/roles',
+    method: 'PUT',
+    opts: {} as ApiOptions,
+    queryArg: {
+      defaultRoleId: '' as string,
+      roles: {} as Record<string, IRole>,
+    },
+    resultType: { success: true as boolean }
+  },
   getGroupRoles: {
     kind: EndpointType.QUERY,
     url: 'group/roles',

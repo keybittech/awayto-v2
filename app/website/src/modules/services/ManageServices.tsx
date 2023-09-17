@@ -1,6 +1,5 @@
 import React, { useState, useMemo, Suspense } from 'react';
 import dayjs from 'dayjs';
-import { useNavigate, useParams } from 'react-router';
 
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -15,23 +14,18 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { DataGrid } from '@mui/x-data-grid';
 
 import { IService } from 'awayto/core';
-import { useGrid, sh, useUtil, useStyles } from 'awayto/hooks';
-
-import ManageServiceModal from './ManageServiceModal';
+import { useGrid, sh, useUtil, useStyles, useComponents } from 'awayto/hooks';
 
 export function ManageServices(props: IProps): React.JSX.Element {
   const classes = useStyles();
 
-  const { groupName } = useParams();
-  if (!groupName) return <></>;
-
   const { openConfirm } = useUtil();
+  const { ManageServiceModal, NewManageServiceModal } = useComponents();
 
   const [deleteGroupService] = sh.useDeleteGroupServiceMutation();
 
-  const { data: groupServices, refetch: getGroupServices } = sh.useGetGroupServicesQuery({ groupName });
+  const { data: groupServices, refetch: getGroupServices } = sh.useGetGroupServicesQuery();
   
-  const navigate = useNavigate();
   const [service, setService] = useState<IService>();
   const [selected, setSelected] = useState<string[]>([]);
   const [dialog, setDialog] = useState('');
@@ -59,7 +53,7 @@ export function ManageServices(props: IProps): React.JSX.Element {
             isConfirming: true,
             confirmEffect: 'Are you sure you want to delete these services? This cannot be undone.',
             confirmAction: () => {
-              deleteGroupService({ groupName, ids: selected.join(',') }).unwrap().then(() => {
+              deleteGroupService({ ids: selected.join(',') }).unwrap().then(() => {
                 void getGroupServices();
                 setSelected([]);
               }).catch(console.error);
@@ -84,7 +78,10 @@ export function ManageServices(props: IProps): React.JSX.Element {
     toolbar: () => <>
       <Typography variant="button">Services:</Typography>
       <Tooltip key={'create_service'} title="Create">
-        <Button onClick={() => navigate('/service')}>
+        <Button onClick={() => {
+          setService(undefined);
+          setDialog('manage_service');
+        }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Create</Typography>
           <DomainAddIcon className={classes.variableButtonIcon} />
         </Button>
@@ -94,9 +91,9 @@ export function ManageServices(props: IProps): React.JSX.Element {
   })
 
   return <>
-    <Dialog scroll="paper" open={dialog === 'manage_service'} fullWidth maxWidth="sm">
+    <Dialog fullScreen scroll="paper" open={dialog === 'manage_service'} fullWidth maxWidth="sm">
       <Suspense>
-        <ManageServiceModal {...props} editService={service} closeModal={() => {
+        <NewManageServiceModal {...props} editService={service} closeModal={() => {
           setDialog('')
           void getGroupServices();
         }} />

@@ -69,7 +69,7 @@ export default {
       purpose: '' as string,
       allowedDomains: '' as string
     },
-    resultType: [] as IGroup[]
+    resultType: { id: '' as string }
   },
   putGroup: {
     kind: EndpointType.MUTATION,
@@ -80,11 +80,10 @@ export default {
       id: '' as string,
       name: '' as string,
       displayName: '' as string,
-      roles: {} as Record<string, IRole>,
       allowedDomains: '' as string,
-      defaultRoleId: '' as string,
+      purpose: '' as string,
     },
-    resultType: [] as IGroup[]
+    resultType: { id: '' as string }
   },
   putGroupAssignments: {
     kind: EndpointType.MUTATION,
