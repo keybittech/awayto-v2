@@ -9,7 +9,9 @@ export const checkToken = async (req: Request, res: Response, next: NextFunction
 
   const { groupRoleActions } = await redisProxy('groupRoleActions');
 
-  req.session.groups = (jwtDecode<DecodedJWTToken>(req.headers.authorization || '')).groups;
+  const token = jwtDecode<DecodedJWTToken>(req.headers.authorization || '');
+
+  req.session.groups = token.groups;
   req.session.availableUserGroupRoles = {} as UserGroupRoles;
 
   for (const subgroupPath of req.session.groups) {
@@ -20,11 +22,13 @@ export const checkToken = async (req: Request, res: Response, next: NextFunction
 
   const gNameSelect = req.headers['x-gid-select'];
 
-  if ((req.session.groups.length && !req.session.group) || (gNameSelect && req.session.group?.id !== gNameSelect)) {
+  req.session.group = req.session.group || {} as IGroup;
+
+  if ((req.session.groups.length && !Object.keys(req.session.group).length) || (gNameSelect && req.session.group?.id !== gNameSelect)) {
     const groupNames = Object.keys(req.session.availableUserGroupRoles);
-
+    
     const gid = gNameSelect ? gNameSelect : groupNames[0];
-
+    
     try {
       
       const group = await db.one<IGroup>(`
@@ -36,7 +40,6 @@ export const checkToken = async (req: Request, res: Response, next: NextFunction
       `, [gid, user.sub]);
       req.session.group = group;
       req.session.nonce = nid('v4') as string;
-      
     } catch (error) {
       // TODO: Catch non-user error
       return res.status(400).send();

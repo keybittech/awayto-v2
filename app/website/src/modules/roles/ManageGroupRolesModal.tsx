@@ -35,7 +35,7 @@ export function ManageGroupRolesModal({ children, editGroup, closeModal, ...prop
 
   const { data : profile, refetch: getUserProfileDetails } = sh.useGetUserProfileDetailsQuery();
 
-  const [putGroup] = sh.usePutGroupMutation();
+  const [putGroupRoles] = sh.usePutGroupRolesMutation();
   const [postRole] = sh.usePostRoleMutation();
   const [deleteRole] = sh.useDeleteRoleMutation();
 
@@ -45,19 +45,20 @@ export function ManageGroupRolesModal({ children, editGroup, closeModal, ...prop
   const roleValues = useMemo(() => Object.values(profile?.roles || {}), [profile]);
 
   const handleSubmit = useCallback(() => {
-    if (!editGroup) return;
-    const { id, name, displayName, allowedDomains } = editGroup;
-
     if (!roleIds.length || !defaultRoleId) {
       setSnack({ snackType: 'error', snackOn: 'All fields are required.' });
       return;
     }
 
-    closeModal && closeModal({
+    const newRoles = {
       roles: Object.fromEntries(roleIds.map(id => [id, roleValues.find(r => r.id === id)] as [string, IRole])),
       defaultRoleId
+    }
+
+    void putGroupRoles(newRoles).unwrap().then(() => {
+      closeModal && closeModal(newRoles);
     });
-   
+
     // putGroup({
     //   id,
     //   name,

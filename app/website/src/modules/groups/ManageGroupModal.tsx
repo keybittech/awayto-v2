@@ -1,4 +1,4 @@
-import React, { useState, useCallback, ChangeEvent, useMemo } from 'react';
+import React, { useState, useRef, useCallback, useEffect, ChangeEvent, useMemo } from 'react';
 
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
@@ -28,17 +28,18 @@ declare global {
 export function ManageGroupModal({ children, editGroup, closeModal }: IProps): React.JSX.Element {
 
   const { setSnack } = useUtil();
-
+  
   const [group, setGroup] = useState({ name: '', displayName: '', purpose: '', allowedDomains: '', ...editGroup } as IGroup);
+  const initialized = useRef(false);
   const debouncedName = useDebounce(group.name, 1000);
+  const [skipQuery, setSkipQuery] = useState(true);
 
-  const { data: nameCheck } = sh.useCheckGroupNameQuery({ name: debouncedName }, { skip: !debouncedName });
+  const { data: nameCheck } = sh.useCheckGroupNameQuery({ name: debouncedName }, { skip: !debouncedName || skipQuery });
   const { isValid } = nameCheck || { isValid: false };
 
   const [editedPurpose, setEditedPurpose] = useState(false);
   const [allowedDomains, setAllowedDomains] = useState([] as string[]);
   const [allowedDomain, setAllowedDomain] = useState('');
-
   const [{ checkedName, checkingName }, setChecker] = useState<Partial<{
     checkedName: string,
     checkingName: boolean
@@ -81,14 +82,6 @@ export function ManageGroupModal({ children, editGroup, closeModal }: IProps): R
     (id ? putGroup : postGroup)(newGroup).unwrap().then(({ id: groupId }: { id: string }) => {
       closeModal && closeModal({ ...newGroup, id: groupId });
     }).catch(console.error);
-
-    // closeModal && closeModal({
-    //   displayName: name,
-    //   name: formatName(name),
-    //   purpose,
-    //   allowedDomains: allowedDomains.join(',')
-    // });
-
   }, [group]);
 
   const handleName = useCallback((event: ChangeEvent<HTMLTextAreaElement>) => {
@@ -101,6 +94,18 @@ export function ManageGroupModal({ children, editGroup, closeModal }: IProps): R
       setChecker({ checkingName: false });
     }
   }, [group, editGroup]);
+
+  if (!initialized.current) {
+    initialized.current = true;
+  }
+  
+  useEffect(() => {
+    if (initialized.current && editGroup && debouncedName !== editGroup.name) {
+      setSkipQuery(false);
+    } else if (!initialized.current) {
+      initialized.current = true;
+    }
+  }, [debouncedName, editGroup]);
 
   return <>
     <Card>
@@ -203,10 +208,10 @@ export function ManageGroupModal({ children, editGroup, closeModal }: IProps): R
         <Grid container justifyContent="space-between">
           <Button onClick={closeModal}>Cancel</Button>
           <Button
-            disabled={group.purpose.length < 25 || !isValid || checkingName || badName}
+            disabled={!editGroup && (group.purpose.length < 25 || !isValid || checkingName || badName)}
             onClick={handleSubmit}
           >
-            Done
+            {group.id ? 'Edit' : 'Create'} Group
           </Button>
         </Grid>
       </CardActions>

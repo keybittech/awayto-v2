@@ -75,7 +75,9 @@ export default {
     kind: EndpointType.MUTATION,
     url: 'group',
     method: 'PUT',
-    opts: {} as ApiOptions,
+    opts: {
+      throttle: 1
+    } as ApiOptions,
     queryArg: {
       id: '' as string,
       name: '' as string,
