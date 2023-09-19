@@ -43,9 +43,10 @@ export default createHandlers({
 
     // Get all the group_roles by the group's id
     const diffs = (await props.tx.manyOrNone<IGroupRole>(`
-      SELECT id, "roleId" 
-      FROM dbview_schema.enabled_group_roles 
-      WHERE "groupId" = $1
+      SELECT egr.id, egr."roleId" 
+      FROM dbview_schema.enabled_group_roles egr
+      JOIN dbview_schema.enabled_roles er ON er.id = egr."roleId"
+      WHERE er.name != 'Admin' AND egr."groupId" = $1
     `, [group.id])).filter(r => !roleIds.includes(r.roleId));
 
     // Diffs is filtered, now unused roles
@@ -75,7 +76,7 @@ export default createHandlers({
     }
 
     // Reestablish subgroup namespaces in keycloak, and group role associations in app db
-    for (const roleId in Object.keys(roles)) {
+    for (const roleId of Object.keys(roles)) {
       const role = roles[roleId];
       if (role.name.toLowerCase() === 'admin') continue;
       const { id: kcSubgroupId } = await props.keycloak.groups.setOrCreateChild({ id: groupExternalId }, { name: role.name });

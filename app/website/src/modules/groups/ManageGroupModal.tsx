@@ -64,32 +64,28 @@ export function ManageGroupModal({ children, editGroup, closeModal }: IProps): R
   const badName = !checkingName && !isValid && !!group?.name && formatName(group.name) == checkedName;
 
   const handleSubmit = useCallback(() => {
-    const { id, name, purpose } = group;
-
-    if (!name || !purpose) {
+    if (!group.name || !group.purpose) {
       setSnack({ snackType: 'error', snackOn: 'All fields are required.' });
       return;
     }
 
     const newGroup = {
-      id,
-      displayName: name,
-      name: formatName(name),
-      purpose,
+      ...group,
       allowedDomains: allowedDomains.join(',')
     };
 
-    (id ? putGroup : postGroup)(newGroup).unwrap().then(({ id: groupId }: { id: string }) => {
+    (group.id ? putGroup : postGroup)(newGroup).unwrap().then(({ id: groupId }: { id: string }) => {
       closeModal && closeModal({ ...newGroup, id: groupId });
     }).catch(console.error);
   }, [group]);
 
   const handleName = useCallback((event: ChangeEvent<HTMLTextAreaElement>) => {
     setChecker({ checkingName: true });
-    const name = event.target.value;
+    const displayName = event.target.value;
+    const name = formatName(displayName);
     if (name.length <= 50) {
-      setGroup({ ...group, name });
-      setChecker({ checkedName: formatName(name) });
+      setGroup({ ...group, displayName, name });
+      setChecker({ checkedName: name });
     } else if (isValid) {
       setChecker({ checkingName: false });
     }
@@ -119,7 +115,7 @@ export function ManageGroupModal({ children, editGroup, closeModal }: IProps): R
               fullWidth
               id="name"
               label="Group Name"
-              value={group.name}
+              value={group.displayName}
               name="name"
               onChange={handleName}
               multiline

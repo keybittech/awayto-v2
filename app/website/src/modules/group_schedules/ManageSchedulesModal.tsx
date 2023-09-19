@@ -46,7 +46,7 @@ export function ManageSchedulesModal({ children, editSchedule, closeModal, ...pr
     const dayId = lookups?.timeUnits?.find(s => s.name === TimeUnit.DAY)?.id;
     const minuteId = lookups?.timeUnits?.find(s => s.name === TimeUnit.MINUTE)?.id;
     const monthId = lookups?.timeUnits?.find(s => s.name === TimeUnit.MONTH)?.id;
-    if ('40hoursweekly30minsessions' === type) {
+    if ('hoursweekly30minsessions' === type) {
       setSchedule({
         ...schedule,
         scheduleTimeUnitId: weekId as string,
@@ -111,7 +111,7 @@ export function ManageSchedulesModal({ children, editSchedule, closeModal, ...pr
           const masterSchedule = await getGroupScheduleMasterById({ scheduleId: editSchedule.id }).unwrap();
           setSchedule(masterSchedule);
         } else {
-          setDefault('40hoursweekly30minsessions');
+          setDefault('hoursweekly30minsessions');
         }
       }
     }
@@ -181,8 +181,8 @@ export function ManageSchedulesModal({ children, editSchedule, closeModal, ...pr
       <Box mb={4}>
         {!schedule.id ? <>
           <Typography variant="body2">Use premade selections for this schedule.</Typography>
-          <Button color="secondary" onClick={() => setDefault('40hoursweekly30minsessions')}>40 hours per week, 30 minute slot</Button>
-          <Button color="secondary" onClick={() => setDefault('dailybookingpermonth')}>daily booking per month</Button>
+          <Button color="secondary" onClick={() => setDefault('hoursweekly30minsessions')}>weekly, 30 minute appointments</Button>
+          <Button color="secondary" onClick={() => setDefault('dailybookingpermonth')}>monthly, full-day booking</Button>
         </> : <>
           <Alert color="info">Schedule template durations are read-only after creation.</Alert>
         </>}

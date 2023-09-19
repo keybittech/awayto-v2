@@ -40,7 +40,7 @@ export function ManageGroupRolesModal({ children, editGroup, closeModal, ...prop
   const [deleteRole] = sh.useDeleteRoleMutation();
 
   const [defaultRoleId, setDefaultRoleId] = useState(editGroup?.defaultRoleId || '');
-  const [roleIds, setRoleIds] = useState<string[]>([]);
+  const [roleIds, setRoleIds] = useState<string[]>(Object.keys(editGroup?.roles || {}).filter(rid => editGroup?.roles[rid].name !== 'Admin'));
 
   const roleValues = useMemo(() => Object.values(profile?.roles || {}), [profile]);
 
@@ -58,23 +58,7 @@ export function ManageGroupRolesModal({ children, editGroup, closeModal, ...prop
     void putGroupRoles(newRoles).unwrap().then(() => {
       closeModal && closeModal(newRoles);
     });
-
-    // putGroup({
-    //   id,
-    //   name,
-    //   displayName,
-    //   allowedDomains,
-    //   roles: Object.fromEntries(roleIds.map(id => [id, roleValues.find(r => r.id === id)] as [string, IRole])),
-    //   defaultRoleId
-    // }).unwrap().then(() => {
-    //   id && setSnack({ snackType: 'success', snackOn: 'Group updated! Please allow up to a minute for any related permissions changes to persist.' })
-    //   !id && keycloak.clearToken();
-    // }).catch(console.error);
   }, [roleIds, defaultRoleId]);
-
-  if (!roleIds.length && roleValues?.length && editGroup?.roles && !defaultRoleId) {
-    setRoleIds(Object.keys(editGroup?.roles))
-  }
 
   if (roleIds.length && !defaultRoleId) {
     setDefaultRoleId(roleIds[0]);
@@ -93,10 +77,6 @@ export function ManageGroupRolesModal({ children, editGroup, closeModal, ...prop
         {!!children && children}
 
         <Grid container spacing={4}>
-          <Grid item>
-            <Typography variant="h6">Roles</Typography>
-            <Typography variant="body2">All activities across the site are determined by a user's role. The default role is automatically assigned to everyone who joins your group. After your group is created, an individual user's role can be changed on the Users tab, when viewing Group details. Site functionality can be assigned to Roles on the Matrix tab.</Typography>
-          </Grid>
           <Grid item xs={12}>
             <SelectLookup
               multiple

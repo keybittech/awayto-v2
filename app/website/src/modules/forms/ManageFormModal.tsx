@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { Suspense, useEffect, useState, useCallback } from 'react';
 
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
@@ -118,7 +118,9 @@ export function ManageFormModal({ editForm, closeModal, ...props }: IProps): Rea
         />
       </Box>
 
-      <FormBuilder {...props} editable={editable} version={version} setVersion={setVersion} />
+      <Suspense>
+        <FormBuilder {...props} editable={editable} version={version} setVersion={setVersion} />
+      </Suspense>
 
     </CardContent>
     <CardActions>
