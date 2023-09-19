@@ -64,17 +64,22 @@ export function ManageGroupModal({ children, editGroup, closeModal }: IProps): R
   const badName = !checkingName && !isValid && !!group?.name && formatName(group.name) == checkedName;
 
   const handleSubmit = useCallback(() => {
-    if (!group.name || !group.purpose) {
+    const { id, name, displayName, purpose } = group;
+
+    if (!name || !purpose) {
       setSnack({ snackType: 'error', snackOn: 'All fields are required.' });
       return;
     }
 
     const newGroup = {
-      ...group,
+      id,
+      displayName,
+      name,
+      purpose,
       allowedDomains: allowedDomains.join(',')
     };
 
-    (group.id ? putGroup : postGroup)(newGroup).unwrap().then(({ id: groupId }: { id: string }) => {
+    (id ? putGroup : postGroup)(newGroup).unwrap().then(({ id: groupId }: { id: string }) => {
       closeModal && closeModal({ ...newGroup, id: groupId });
     }).catch(console.error);
   }, [group]);

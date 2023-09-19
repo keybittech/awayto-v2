@@ -27,6 +27,7 @@ export function Onboard(props: IProps): React.JSX.Element {
   const [group, setGroup] = useState({} as IGroup);
   const [service, setService] = useState<IService>();
   const [schedule, setSchedule] = useState({} as ISchedule);
+  const [hasCode, setHasCode] = useState(false);
 
   const [groupCode, setGroupCode] = useState('');
   const [expanded, setExpanded] = useState<string | false>('create_group');
@@ -54,14 +55,12 @@ export function Onboard(props: IProps): React.JSX.Element {
   const joinGroupCb = useCallback(() => {
     if (!groupCode || !/^[a-zA-Z0-9]{8}$/.test(groupCode)) {
       setSnack({ snackType: 'warning', snackOn: 'Invalid group code.' });
+      return;
     }
-
-    async function go() {
-      await joinGroup({ code: groupCode }).unwrap().catch(console.error);
+    joinGroup({ code: groupCode }).unwrap().then(async () => {
       await attachUser({ code: groupCode }).unwrap().catch(console.error);
-      keycloak.clearToken()
-    }
-    void go();
+      keycloak.clearToken();
+    }).catch(console.error);
   }, [groupCode]);
 
   useEffect(() => {
@@ -188,15 +187,32 @@ export function Onboard(props: IProps): React.JSX.Element {
             <Grid container sx={{ p:4, bgcolor: 'secondary.main', placeContent: 'center', height: '100vh' }}>
               <Grid item xs={12} sx={{ maxHeight: '80vh', overflowY: 'scroll' }}>
                 <Box ref={onboardTop} />
-                {expanded === 'create_group' ? <ManageGroupModal
-                  {...props}
-                  editGroup={group}
-                  closeModal={(newGroup: IGroup) => {
-                    console.log(newGroup);
-                    setGroup(newGroup);
-                    setStep('create_roles');
-                  }}
-                /> :
+                {hasCode ? <Grid item xs={12} p={2}>
+                  <TextField
+                    fullWidth
+                    sx={{ mb: 2 }}
+                    value={groupCode}
+                    onChange={e => setGroupCode(e.target.value)}
+                    label="Group Code"
+                  />
+
+                  <Grid container justifyContent="space-between">
+                    <Button onClick={() => setHasCode(false)}>Cancel</Button>
+                    <Button onClick={joinGroupCb}>Join Group</Button>
+                  </Grid>
+                </Grid> :
+                expanded === 'create_group' ? <>
+                  <ManageGroupModal
+                    {...props}
+                    editGroup={group}
+                    closeModal={(newGroup: IGroup) => {
+                      console.log(newGroup);
+                      setGroup(newGroup);
+                      setStep('create_roles');
+                    }}
+                  />
+                  <Button sx={{ mt: 2 }} fullWidth onClick={() => setHasCode(true)}>I have a group code</Button>
+                </> :
                 expanded === 'create_roles' ? <ManageGroupRolesModal
                   {...props}
                   editGroup={group}
@@ -264,9 +280,6 @@ export function Onboard(props: IProps): React.JSX.Element {
               />
             </Grid>
 
-            <Grid item xs={12}>
-              <Button fullWidth variant="contained" color="secondary" onClick={joinGroupCb}>Join a Group</Button>
-            </Grid>
           </Grid> */}
         </Grid>
       </Grid>

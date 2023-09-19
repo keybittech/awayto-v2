@@ -42,12 +42,12 @@ export default createHandlers({
     const roleIds = Object.keys(roles);
 
     // Get all the group_roles by the group's id
-    const diffs = (await props.tx.manyOrNone<IGroupRole>(`
-      SELECT egr.id, egr."roleId" 
+    const diffs = await props.tx.manyOrNone<IGroupRole>(`
+      SELECT egr.id, egr."roleId", er.name
       FROM dbview_schema.enabled_group_roles egr
       JOIN dbview_schema.enabled_roles er ON er.id = egr."roleId"
-      WHERE er.name != 'Admin' AND egr."groupId" = $1
-    `, [group.id])).filter(r => !roleIds.includes(r.roleId));
+      WHERE er.name != 'Admin' AND egr."groupId" = $1 AND egr."roleId" != ANY($2::uuid[])
+    `, [group.id, roleIds]);
 
     // Diffs is filtered, now unused roles
     if (diffs.length) {

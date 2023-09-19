@@ -168,17 +168,25 @@ for (const apiRefId in siteApiRef) {
         }
 
       } catch (error) {
-        const { message, reason, requestId: _, ...actionProps } = error as Error & ApiErrorResponse;
+        try {
+          const { message, reason, requestId: _, ...actionProps } = error as Error & ApiErrorResponse;
+  
+          console.log('protected error', message || reason);
+          logger.log('error response', { requestId, message, reason });
+  
+          res.status(500).send({
+            requestId,
+            reason: reason || message,
+            ...actionProps
+          });
+        } catch (error) {
+          const { message, reason } = error as Error & ApiErrorResponse;
 
-        console.log('protected error', message || reason);
-        logger.log('error response', { requestId, message, reason });
-
-        // Handle failures
-        res.status(500).send({
-          requestId,
-          reason: reason || message,
-          ...actionProps
-        });
+          res.status(500).send({
+            requestId,
+            reason: reason || message
+          });
+        }
         return;
       }
     }

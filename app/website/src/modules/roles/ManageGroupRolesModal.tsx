@@ -39,12 +39,13 @@ export function ManageGroupRolesModal({ children, editGroup, closeModal, ...prop
   const [postRole] = sh.usePostRoleMutation();
   const [deleteRole] = sh.useDeleteRoleMutation();
 
-  const [defaultRoleId, setDefaultRoleId] = useState(editGroup?.defaultRoleId || '');
   const [roleIds, setRoleIds] = useState<string[]>(Object.keys(editGroup?.roles || {}).filter(rid => editGroup?.roles[rid].name !== 'Admin'));
+  const [defaultRoleId, setDefaultRoleId] = useState(editGroup && roleIds.includes(editGroup.defaultRoleId) ? editGroup.defaultRoleId : '');
 
   const roleValues = useMemo(() => Object.values(profile?.roles || {}), [profile]);
 
   const handleSubmit = useCallback(() => {
+    console.log({ roleIds, defaultRoleId })
     if (!roleIds.length || !defaultRoleId) {
       setSnack({ snackType: 'error', snackOn: 'All fields are required.' });
       return;
@@ -59,10 +60,6 @@ export function ManageGroupRolesModal({ children, editGroup, closeModal, ...prop
       closeModal && closeModal(newRoles);
     });
   }, [roleIds, defaultRoleId]);
-
-  if (roleIds.length && !defaultRoleId) {
-    setDefaultRoleId(roleIds[0]);
-  }
 
   useEffect(() => {
     if (editGroup) {
@@ -103,7 +100,12 @@ export function ManageGroupRolesModal({ children, editGroup, closeModal, ...prop
               }
               lookupName='Group Role'
               lookups={roleValues}
-              lookupChange={setRoleIds}
+              lookupChange={(newIds: string[]) => {
+                if (!newIds.length || !newIds.includes(defaultRoleId)) {
+                  setDefaultRoleId('');
+                }
+                setRoleIds(newIds);
+              }}
               lookupValue={roleIds}
               invalidValues={['admin']}
               refetchAction={getUserProfileDetails}
@@ -113,7 +115,7 @@ export function ManageGroupRolesModal({ children, editGroup, closeModal, ...prop
               {...props}
             />
           </Grid>
-          {defaultRoleId && <Grid item xs={12}>
+          {roleIds.length && <Grid item xs={12}>
             <TextField
               select
               id={`group-default-role-selection`}

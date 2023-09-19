@@ -142,11 +142,12 @@ export type AuthBody = {
  * @category API
  */
 export type DbError = Error & {
-  schema: string,
-  table: string,
-  column: string,
-  dataType: string,
-  constraint: string
+  schema: string;
+  table: string;
+  column: string;
+  dataType: string;
+  constraint: string;
+  received: number;
 };
 
 /**

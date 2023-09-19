@@ -333,34 +333,44 @@ export default createHandlers({
       const { code } = props.event.body;
 
       // Get group id and default role based on the group code
-      const { id: groupId, allowedDomains, defaultRoleId } = await props.tx.one<IGroup>(`
-        SELECT id, allowed_domains as "allowedDomains", default_role_id as "defaultRoleId"
-        FROM dbtable_schema.groups WHERE code = $1
-      `, [code]);
+      try {
+        
+        const { id: groupId, allowedDomains, defaultRoleId } = await props.tx.one<IGroup>(`
+          SELECT id, allowed_domains as "allowedDomains", default_role_id as "defaultRoleId"
+          FROM dbtable_schema.groups WHERE code = $1
+        `, [code]);
+  
+        // Get joining user's id
+        const { id: userId, email } = await props.tx.one<IUserProfile>(`
+          SELECT id, email FROM dbtable_schema.users WHERE sub = $1
+        `, [props.event.userSub]);
+  
+        if (allowedDomains && !allowedDomains.split(',').includes(email.split('@')[1])) {
+          throw { reason: 'Group access is restricted.'}
+        }
+  
+        // Get the role's subgroup external id
+        const { externalId: kcRoleSubgroupExternalId } = await props.tx.one<IGroupRole>(`
+          SELECT external_id as "externalId"
+          FROM dbtable_schema.group_roles
+          WHERE group_id = $1 AND role_id = $2
+        `, [groupId, defaultRoleId]);
+  
+        // Add the joining user to the group in the app db
+        await props.tx.none(`
+          INSERT INTO dbtable_schema.group_users (user_id, group_id, external_id, created_sub)
+          VALUES ($1, $2, $3, $4::uuid);
+        `, [userId, groupId, kcRoleSubgroupExternalId, props.event.userSub]);
+  
+        return { success: true };
+      } catch (error) {
+        const { received } = error as DbError;
+        if (!received) {
+          throw { reason: 'Group not found.' }
+        }
 
-      // Get joining user's id
-      const { id: userId, email } = await props.tx.one<IUserProfile>(`
-        SELECT id, email FROM dbtable_schema.users WHERE sub = $1
-      `, [props.event.userSub]);
-
-      if (allowedDomains && !allowedDomains.split(',').includes(email.split('@')[1])) {
-        throw { reason: 'Group access is restricted.'}
+        throw error;
       }
-
-      // Get the role's subgroup external id
-      const { externalId: kcRoleSubgroupExternalId } = await props.tx.one<IGroupRole>(`
-        SELECT external_id as "externalId"
-        FROM dbtable_schema.group_roles
-        WHERE group_id = $1 AND role_id = $2
-      `, [groupId, defaultRoleId]);
-
-      // Add the joining user to the group in the app db
-      await props.tx.none(`
-        INSERT INTO dbtable_schema.group_users (user_id, group_id, external_id, created_sub)
-        VALUES ($1, $2, $3, $4::uuid);
-      `, [userId, groupId, kcRoleSubgroupExternalId, props.event.userSub]);
-
-      return { success: true };
     } catch (error) {
       const { constraint } = error as DbError;
 
