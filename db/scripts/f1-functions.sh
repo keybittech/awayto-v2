@@ -5,6 +5,21 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
   DROP SCHEMA IF EXISTS dbfunc_schema CASCADE;
   CREATE SCHEMA dbfunc_schema;
 
+  CREATE OR REPLACE FUNCTION dbfunc_schema.delete_group(
+    sub UUID  
+  ) RETURNS TABLE (
+    id UUID
+  ) AS $$
+  BEGIN
+
+    RETURN QUERY
+    DELETE FROM dbtable_schema.groups WHERE created_sub = sub
+    RETURNING id;
+
+  END;
+
+  $$ LANGUAGE PLPGSQL;
+
   CREATE OR REPLACE FUNCTION dbfunc_schema.get_group_schedules(
     p_month_start_date DATE, 
     p_schedule_id UUID, 
