@@ -3,13 +3,13 @@ import thunk from 'redux-thunk';
 
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import { fetchBaseQuery, SkipToken } from '@reduxjs/toolkit/dist/query';
-import { configureStore, AnyAction, createSlice, Middleware, Reducer, Store, ThunkDispatch } from '@reduxjs/toolkit';
+import { configureStore, AnyAction, createSlice, Middleware, Reducer, Store, ThunkDispatch, Action } from '@reduxjs/toolkit';
 import { createApi, setupListeners } from '@reduxjs/toolkit/query/react';
 import { RootState as ApiRootState } from '@reduxjs/toolkit/dist/query/core/apiState';
 import { QueryArgFrom, ResultTypeFrom, QueryDefinition, MutationDefinition, QueryLifecycleApi, EndpointDefinitions } from '@reduxjs/toolkit/dist/query/endpointDefinitions';
 import { MutationTrigger, LazyQueryTrigger, UseLazyQueryLastPromiseInfo, UseQuery, UseLazyQuery, UseMutation } from '@reduxjs/toolkit/dist/query/react/buildHooks';
 
-import { ConfirmActionProps, EndpointType, IUtil, RemoveNever, ReplaceVoid, siteApiRef, utilConfig, encodeVal } from 'awayto/core';
+import { ConfirmActionProps, EndpointType, IUtil, RemoveNever, ReplaceVoid, siteApiRef, utilConfig, encodeVal, authConfig } from 'awayto/core';
 
 export const getQueryAuth = fetchBaseQuery({
   baseUrl: '/api',
@@ -165,6 +165,7 @@ export type SiteEndpointDefinitions = {
 };
 
 export const utilSlice = createSlice(utilConfig);
+export const authSlice = createSlice(authConfig);
 
 let currentlyLoading = 0;
 
@@ -235,7 +236,22 @@ export const sh = createApi({
 
 console.log({ loadedup: Object.keys(sh) });
 
-export const customErrorMiddleware: Middleware = storeApi => next => (action: { type: string, payload: { data: { reason: string } } }) => {
+const customAuthMiddleware: Middleware = storeApi => next => (action: Action<string>) => {
+  
+  if (['setAuthenticated', 'middlewareRegistered'].some(t => action.type.includes(t))) {
+    return next(action);
+  }
+
+  const { auth } = store.getState();
+
+  if (!auth.authenticated) {
+    return;
+  }
+  
+  return next(action);
+}
+
+const customErrorMiddleware: Middleware = storeApi => next => (action: { type: string, payload: { data: { reason: string } } }) => {
   if (action.type.endsWith('/rejected')) {
     const { data } = action.payload;
 
@@ -274,6 +290,7 @@ const customUtilMiddleware: Middleware = _ => next => (action: { type: string, p
 
 const middlewares = [
   sh.middleware as Middleware,
+  customAuthMiddleware,
   customErrorMiddleware,
   customUtilMiddleware,
   thunk
@@ -289,6 +306,7 @@ if (process.env.NODE_ENV === 'development') {
 export const store = configureStore({
   reducer: {
     [sh.reducerPath]: sh.reducer as Reducer,
+    auth: authSlice.reducer,
     util: utilSlice.reducer
   },
   middleware: getDefaultMiddleware => getDefaultMiddleware().concat(middlewares)

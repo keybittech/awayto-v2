@@ -1,4 +1,5 @@
 export * from './store';
+export * from './useAuth';
 export * from './useDebounce';
 export * from './useComponents';
 export * from './useContexts';

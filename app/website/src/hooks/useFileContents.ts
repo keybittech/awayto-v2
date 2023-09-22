@@ -1,8 +1,12 @@
-import { useCallback,  useMemo,  useState } from 'react';
-import keycloak from '../keycloak';
+import { useCallback,  useMemo,  useState, useContext } from 'react';
 import { IFile, UseFileContents } from 'awayto/core';
+import { useContexts } from './useContexts';
 
 export const useFileContents: UseFileContents = () => {
+
+  const { AuthContext } = useContexts();
+  const { keycloak } = useContext(AuthContext) as AuthContextType;
+  
   const [fileDetails, setFileDetails] = useState<IFile | undefined>();
 
   const getFileContents = useCallback<ReturnType<UseFileContents>['getFileContents']>(async (fileRef, download) => {

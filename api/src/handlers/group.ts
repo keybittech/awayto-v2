@@ -256,7 +256,7 @@ export default createHandlers({
     return assignments;
   },
   deleteGroup: async props => {
-    const { ids } = props.event.pathParameters;
+    const { ids } = props.event.body;
     const idsSplit = ids.split(',');
 
     await asyncForEach(idsSplit, async id => {

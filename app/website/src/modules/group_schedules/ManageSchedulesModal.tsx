@@ -93,10 +93,8 @@ export function ManageSchedulesModal({ children, editSchedule, closeModal, ...pr
       if (!id) {
         schedule.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
         await postGroupSchedule({ schedule }).unwrap();
-        setSnack({ snackOn: 'Successfully added ' + name + ' as a master schedule!', snackType: 'success' });
       } else {
         await putGroupSchedule({ id, startTime, endTime } as IGroupSchedule).unwrap();
-        setSnack({ snackOn: 'Schedule updated!', snackType: 'info' });
       }
 
       closeModal && closeModal(schedule);

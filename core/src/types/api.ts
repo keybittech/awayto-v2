@@ -164,7 +164,9 @@ export type ApiErrorResponse = Partial<Error> & {
  */
 export type ApiInternalError = Error & {
   response: {
-    status: number
+    status: number,
+    data: Record<string, string>,
+    statusText: string
   };
   data: {
     errorMessage: string;

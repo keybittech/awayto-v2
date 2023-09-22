@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import keycloak from './keycloak';
+import React, { useContext, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
@@ -14,11 +13,9 @@ import ThemeProvider from '@mui/material/styles/ThemeProvider';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 
 import { SiteRoles } from 'awayto/core';
-import { useUtil, sh, useAppSelector, useComponents, lightTheme, darkTheme } from 'awayto/hooks';
+import { useUtil, sh, useAppSelector, useComponents, lightTheme, darkTheme, useContexts } from 'awayto/hooks';
 
-import './App.css';
-
-import Layout from './modules/common/Layout';
+import Layout from './Layout';
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
   props,
@@ -32,6 +29,11 @@ const {
 } = process.env as { [prop: string]: string };
 
 export default function App (props: IProps): React.JSX.Element {
+  console.log(" in app ")
+
+  const { AuthContext } = useContexts();
+  const { keycloak } = useContext(AuthContext) as AuthContextType;
+
   const { setSnack, setTheme } = useUtil();
   const { Onboard, ConfirmAction } = useComponents();
   const { theme, snackOn, snackType, snackRequestId, isLoading, loadingMessage } = useAppSelector(state => state.util);

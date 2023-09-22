@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect, Suspense, useRef } from 'react';
+import React, { useCallback, useState, useEffect, Suspense, useRef, useContext } from 'react';
 
 import Grid from '@mui/material/Grid';
 import Avatar from '@mui/material/Avatar';
@@ -11,29 +11,35 @@ import SettingsIcon from '@mui/icons-material/Settings';
 
 import Icon from '../../img/kbt-icon.png';
 import { IGroup, ISchedule, IService } from 'awayto/core';
-import { useComponents, useUtil, useAccordion, sh } from 'awayto/hooks';
-import keycloak from '../../keycloak';
+import { useComponents, useUtil, useAccordion, useContexts, sh } from 'awayto/hooks';
 
 export function Onboard(props: IProps): React.JSX.Element {
 
-  const { data: profile } = sh.useGetUserProfileDetailsQuery();
-  const [joinGroup] = sh.useJoinGroupMutation();
-  const [attachUser] = sh.useAttachUserMutation();
+  
+  const { setSnack, openConfirm } = useUtil();
 
-  const { setSnack } = useUtil();
+  const { AuthContext } = useContexts();
+  const { keycloak } = useContext(AuthContext) as AuthContextType;
 
   const { ManageGroupModal, ManageGroupRolesModal, NewManageServiceModal, ManageSchedulesModal, AccordionWrap } = useComponents();
 
   const [group, setGroup] = useState({} as IGroup);
-  const [service, setService] = useState<IService>();
+  const [service, setService] = useState({} as IService);
   const [schedule, setSchedule] = useState({} as ISchedule);
   const [hasCode, setHasCode] = useState(false);
-
+  
   const [groupCode, setGroupCode] = useState('');
   const [expanded, setExpanded] = useState<string | false>('create_group');
-
+  
   const onboardTop = useRef<HTMLDivElement>(null);
-
+  
+  const { data: profile } = sh.useGetUserProfileDetailsQuery();
+  const [joinGroup] = sh.useJoinGroupMutation();
+  const [attachUser] = sh.useAttachUserMutation();
+  const [postService] = sh.usePostServiceMutation();
+  const [postGroupService] = sh.usePostGroupServiceMutation();
+  const [postGroupSchedule] = sh.usePostGroupScheduleMutation();
+  
   const setStep = (panel: string | false) => {
     setExpanded(panel);
     onboardTop.current?.scrollIntoView({ behavior: 'auto', block: 'end', inline: 'nearest' })
@@ -235,9 +241,20 @@ export function Onboard(props: IProps): React.JSX.Element {
                 expanded === 'create_schedule' ? <ManageSchedulesModal
                   {...props}
                   editGroup={group}
+                  editSchedule={schedule}
                   closeModal={(editSchedule: ISchedule) => {
                     setSchedule(editSchedule);
-                    setStep('');
+                    openConfirm({
+                      isConfirming: true,
+                      confirmEffect: `Create the group ${group.displayName}.`,
+                      confirmAction: () => {
+                        void postService(service).unwrap().then(async (postedService: IService) => {
+                          await postGroupService({ serviceId: postedService.id }).unwrap();
+                          schedule.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                          await postGroupSchedule({ schedule }).unwrap();
+                        });
+                      }
+                    });
                     console.log({ scheduleMOD: editSchedule })
                   }}
                 /> : <></>}

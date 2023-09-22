@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 import Grid from '@mui/material/Grid';
@@ -18,8 +18,7 @@ import EventNoteIcon from '@mui/icons-material/EventNote';
 
 import Icon from '../../img/kbt-icon.png';
 
-import keycloak from '../../keycloak';
-import { useSecure, useStyles } from 'awayto/hooks';
+import { useSecure, useStyles, useContexts } from 'awayto/hooks';
 import { SiteRoles } from 'awayto/core';
 
 export function Sidebar(): React.JSX.Element {
@@ -27,6 +26,9 @@ export function Sidebar(): React.JSX.Element {
   const navigate = useNavigate();
   const classes = useStyles();
   const location = useLocation();
+
+  const { AuthContext } = useContexts();
+  const { keycloak } = useContext(AuthContext) as AuthContextType;
 
   return <Grid container style={{ height: '100vh' }} alignContent="space-between">
     <Grid item xs={12} style={{ marginTop: '20px' }}>

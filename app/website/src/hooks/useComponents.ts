@@ -4,7 +4,7 @@ import { hasGroupRole, SiteRoles, isExternal } from 'awayto/core';
 
 import buildOutput from '../build.json';
 import rolesOutput from '../roles.json';
-import { sh } from './store';
+import { sh, useAppSelector } from './store';
 
 const { views } = buildOutput as Record<string, Record<string, string>>;
 const { roles } = rolesOutput as {
@@ -55,7 +55,10 @@ const components = {} as IBaseComponents;
  * @category Hooks
  */
 export function useComponents(): IBaseComponents {
-  const { data: profile } = sh.useGetUserProfileDetailsQuery(undefined, { skip: isExternal(window.location.pathname) });
+
+  const { authenticated } = useAppSelector(state => state.auth);
+
+  const { data: profile } = sh.useGetUserProfileDetailsQuery(undefined, { skip: !authenticated || isExternal(window.location.pathname) });
 
   const group = useMemo(() => Object.values(profile?.groups || {}).find(g => g.active), [profile]);
 

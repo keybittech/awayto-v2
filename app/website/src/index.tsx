@@ -17,7 +17,6 @@ import timezone from 'dayjs/plugin/timezone';
 import 'dayjs/locale/en';
 
 import reportWebVitals from './reportWebVitals';
-import { initKeycloak } from './keycloak';
 
 import './App.css';
 import './fonts.css';
@@ -77,22 +76,20 @@ if (window.location.pathname.startsWith('/app/ext/')) {
     }
   })().catch(console.error);
 } else {
-  void initKeycloak.call({
-    cb: async function () {
-      try {
-        const App = (await import('./App')).default;
-        root.render(
-          <Provider store={store}>
-            <BrowserRouter basename="/app">
-              <App />
-            </BrowserRouter>
-          </Provider>
-        );
-        reportWebVitals(console.log);
-      } catch (error) {
-        console.log('the final error', error)
-      }
+  (async function() {
+    try {
+      const AuthProvider = (await import('./modules/auth/AuthProvider')).default;
+      root.render(
+        <Provider store={store}>
+          <BrowserRouter basename="/app">
+            <AuthProvider />
+          </BrowserRouter>
+        </Provider>
+      );
+      reportWebVitals(console.log);
+    } catch (error) {
+      console.log('the final error', error)
     }
-  });
+  })().catch(console.error);
 }
 

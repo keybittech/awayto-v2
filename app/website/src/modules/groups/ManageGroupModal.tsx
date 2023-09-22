@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect, ChangeEvent, useMemo } from 'react';
+import React, { useState, useRef, useCallback, useContext, useEffect, ChangeEvent, useMemo } from 'react';
 
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
@@ -17,7 +17,7 @@ import ArrowRightAlt from '@mui/icons-material/ArrowRightAlt';
 import NotInterestedIcon from '@mui/icons-material/NotInterested';
 
 import { IGroup, } from 'awayto/core';
-import { sh, useDebounce, useUtil } from 'awayto/hooks';
+import { sh, useDebounce, useUtil, useContexts } from 'awayto/hooks';
 
 declare global {
   interface IProps {
@@ -28,6 +28,9 @@ declare global {
 export function ManageGroupModal({ children, editGroup, closeModal }: IProps): React.JSX.Element {
 
   const { setSnack } = useUtil();
+
+  const { AuthContext } = useContexts();
+  const { refreshToken } = useContext(AuthContext) as AuthContextType;
   
   const [group, setGroup] = useState({ name: '', displayName: '', purpose: '', allowedDomains: '', ...editGroup } as IGroup);
   const initialized = useRef(false);
@@ -80,7 +83,9 @@ export function ManageGroupModal({ children, editGroup, closeModal }: IProps): R
     };
 
     (id ? putGroup : postGroup)(newGroup).unwrap().then(({ id: groupId }: { id: string }) => {
-      closeModal && closeModal({ ...newGroup, id: groupId });
+      void refreshToken().then(() => {
+        closeModal && closeModal({ ...newGroup, id: groupId });
+      }).catch(console.error);
     }).catch(console.error);
   }, [group]);
 

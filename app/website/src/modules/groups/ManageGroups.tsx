@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, Suspense } from 'react';
+import React, { useEffect, useState, useMemo, Suspense, useContext } from 'react';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router';
 
@@ -19,32 +19,33 @@ import Logout from '@mui/icons-material/Logout';
 import { DataGrid } from '@mui/x-data-grid';
 
 import { IGroup, SiteRoles } from 'awayto/core';
-import { useAppSelector, useSecure, useGrid, sh, useUtil, useStyles } from 'awayto/hooks';
+import { useAppSelector, useSecure, useGrid, sh, useUtil, useStyles, useContexts } from 'awayto/hooks';
 
 import ManageGroupModal from './ManageGroupModal';
 import JoinGroupModal from './JoinGroupModal';
 
-import keycloak from '../../keycloak';
-
 export function ManageGroups(props: IProps): React.JSX.Element {
   const classes = useStyles();
 
-  const [deleteGroup] = sh.useDeleteGroupMutation();
-  const [leaveGroup] = sh.useLeaveGroupMutation();
-
+  const { AuthContext } = useContexts();
+  const { keycloak } = useContext(AuthContext) as AuthContextType;
+  
   const { openConfirm, setLoading } = useUtil();
-
+  
   const hasRole = useSecure();
   const navigate = useNavigate();
   const util = useAppSelector(state => state.util);
-
+  
   const [group, setGroup] = useState<IGroup>();
   const [dialog, setDialog] = useState('');
   const [selected, setSelected] = useState<string[]>([]);
-
+  
   const { data: profile, refetch: getUserProfileDetails } = sh.useGetUserProfileDetailsQuery();
-
+  
   const { groups } = profile || {};
+
+  const [deleteGroup] = sh.useDeleteGroupMutation();
+  const [leaveGroup] = sh.useLeaveGroupMutation();
 
   const actions = useMemo(() => {
     if (!groups) return [];

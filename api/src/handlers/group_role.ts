@@ -1,4 +1,4 @@
-import { IGroup, IGroupRole, IRole, asyncForEach, buildUpdate, createHandlers, utcNowString } from 'awayto/core';
+import { ApiInternalError, IGroup, IGroupRole, IRole, asyncForEach, buildUpdate, createHandlers, utcNowString } from 'awayto/core';
 
 export default createHandlers({
   postGroupRole: async props => {
@@ -79,12 +79,19 @@ export default createHandlers({
     for (const roleId of Object.keys(roles)) {
       const role = roles[roleId];
       if (role.name.toLowerCase() === 'admin') continue;
-      const { id: kcSubgroupId } = await props.keycloak.groups.setOrCreateChild({ id: groupExternalId }, { name: role.name });
-      await props.tx.none(`
-        INSERT INTO dbtable_schema.group_roles (group_id, role_id, external_id, created_on, created_sub)
-        VALUES ($1, $2, $3, $4, $5::uuid)
-        ON CONFLICT (group_id, role_id) DO NOTHING
-      `, [group.id, role.id, kcSubgroupId, utcNowString(), props.event.userSub]);
+      try {
+        const { id: kcSubgroupId } = await props.keycloak.groups.setOrCreateChild({ id: groupExternalId }, { name: role.name });
+        await props.tx.none(`
+          INSERT INTO dbtable_schema.group_roles (group_id, role_id, external_id, created_on, created_sub)
+          VALUES ($1, $2, $3, $4, $5::uuid)
+          ON CONFLICT (group_id, role_id) DO NOTHING
+        `, [group.id, role.id, kcSubgroupId, utcNowString(), props.event.userSub]);
+      } catch (error) {
+        const { response } = error as ApiInternalError;
+        if ('Conflict' !== response.statusText) {
+          throw { reason: 'KC_ERROR: ' + response.status };
+        }
+      }
     }
 
     await props.redis.del(props.event.userSub + 'profile/details');

@@ -1,14 +1,13 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useContexts, useUtil } from 'awayto/hooks';
 import { SocketResponse, SocketResponseHandler } from 'awayto/core';
 
-import keycloak from '../../keycloak';
-
 function WebSocketProvider({ children }: IProps): React.JSX.Element {
 
   const { setSnack } = useUtil();
-  const { WebSocketContext } = useContexts();
+  const { WebSocketContext, AuthContext } = useContexts();
+  const { keycloak } = useContext(AuthContext) as AuthContextType;
 
   const [socket, setSocket] = useState<WebSocket | undefined>();
   const [connectionId, setConnectionId] = useState('');

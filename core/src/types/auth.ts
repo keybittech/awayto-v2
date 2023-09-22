@@ -70,3 +70,19 @@ export const getTokenHeaders = function(): { headers: Record<string, string> } {
     }
   }
 }
+
+export type IAuth = {
+  authenticated: boolean;
+}
+
+export const authConfig = {
+  name: 'auth',
+  initialState: {
+    authenticated: false
+  } as IAuth,
+  reducers: {
+    setAuthenticated: (state: IAuth, action: { payload: IAuth }) => {
+      state.authenticated = action.payload.authenticated;
+    }
+  },
+};

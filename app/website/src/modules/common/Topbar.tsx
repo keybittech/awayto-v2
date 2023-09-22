@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useContext } from 'react';
 
 import Box from '@mui/material/Box';
 import Switch from '@mui/material/Switch';
@@ -27,11 +27,10 @@ import ApprovalIcon from '@mui/icons-material/Approval';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
 import Icon from '../../img/kbt-icon.png';
-import keycloak from '../../keycloak';
 
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { SiteRoles } from 'awayto/core';
-import { useSecure, useComponents, sh, useAppSelector, useUtil, useStyles } from 'awayto/hooks';
+import { useSecure, useComponents, sh, useAppSelector, useUtil, useStyles, useContexts } from 'awayto/hooks';
 
 declare global {
   interface IProps {
@@ -45,6 +44,10 @@ export function Topbar(props: IProps): React.JSX.Element {
   const classes = useStyles();
   const navigate = useNavigate();
   const hasRole = useSecure();
+
+  const { AuthContext } = useContexts();
+  const { keycloak } = useContext(AuthContext) as AuthContextType;
+
   const { FeedbackMenu, PendingQuotesMenu, PendingQuotesProvider, UpcomingBookingsMenu } = useComponents();
   const location = useLocation();
 
