@@ -35,7 +35,7 @@ export default createHandlers({
         }
       }
 
-      const purposeMission = process.env.OPENAI_API_KEY ? (await props.ai.useAi<string>(IPrompts.CONVERT_PURPOSE, name, purpose)).message : "Primary";
+      // const purposeMission = process.env.OPENAI_API_KEY ? (await props.ai.useAi<string>(IPrompts.CONVERT_PURPOSE, name, purpose)).message : "Primary";
 
       const { groupAdminRoles, appClient, roleCall, adminRoleId } = await props.redisProxy('groupAdminRoles', 'appClient', 'roleCall', 'adminRoleId');
 
@@ -72,7 +72,7 @@ export default createHandlers({
         UPDATE dbtable_schema.groups 
         SET external_id = $2, admin_external_id = $3, purpose = $4
         WHERE id = $1
-      `, [group.id, kcGroupExternalId, kcAdminSubgroupExternalId, purposeMission]);
+      `, [group.id, kcGroupExternalId, kcAdminSubgroupExternalId, purpose]);
 
       // For each group role, create a keycloak subgroup and attach to group_roles
       // for (const roleId in roles) {

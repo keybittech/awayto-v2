@@ -1,6 +1,6 @@
 import React from 'react';
 import { Route, Routes } from 'react-router-dom';
-import { useComponents } from './hooks'
+import { useComponents } from '../../hooks'
 
 export function Ext(): React.JSX.Element {
 

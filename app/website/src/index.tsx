@@ -18,7 +18,7 @@ import 'dayjs/locale/en';
 
 import reportWebVitals from './reportWebVitals';
 
-import './App.css';
+import './index.css';
 import './fonts.css';
 
 dayjs.extend(duration);
@@ -62,7 +62,7 @@ const root = createRoot(document.getElementById('root') as Element);
 if (window.location.pathname.startsWith('/app/ext/')) {
   (async function() {
     try {
-      const Ext = (await import('./Ext')).default;
+      const Ext = (await import('./modules/ext/Ext')).default;
       root.render(
         <Provider store={store}>
           <BrowserRouter basename="/app/ext">
