@@ -9,29 +9,15 @@ export default createHandlers({
       WHERE username = $1
     `, ['system_group_' + props.event.group.id]);
 
-    const newSchedule = await scheduleApiHandler.postSchedule({
-      ...props,
-      event: {
-        ...props.event,
-        userSub: groupSub,
-        body: { schedule: props.event.body.schedule }
-      }
-    });
-
-    const groupSchedule = {
-      ...newSchedule,
-      groupId: props.event.group.id
-    } as IGroupSchedule;
-
     // Attach schedule to group
     await props.tx.none(`
       INSERT INTO dbtable_schema.group_schedules (group_id, schedule_id, created_sub)
       VALUES ($1, $2, $3::uuid)
-      `, [props.event.group.id, groupSchedule.id, groupSub]);
+      `, [props.event.group.id, props.event.body.scheduleId, groupSub]);
 
     await props.redis.del(`${props.event.userSub}group/schedules`);
 
-    return groupSchedule;
+    return { success: true };
   },
   putGroupSchedule: async props => {
     const groupSchedule = scheduleApiHandler.putSchedule(props) as Partial<IGroupSchedule>;

@@ -64,7 +64,7 @@ export default function App (props: IProps): React.JSX.Element {
   }, []);
 
   useEffect(() => {
-    if (!profile) return;
+    if (!profile || !groupSchedules) return;
 
     if (loc.pathname === "/registration/code/success") {
       const code = loc.search.split('?code=')[1].split('&')[0];
@@ -79,7 +79,7 @@ export default function App (props: IProps): React.JSX.Element {
     } else {
       setReady(true);
     }
-  }, [profile]);
+  }, [profile, groupSchedules]);
 
   const hideSnack = (): void => {
     setSnack({ snackOn: '', snackRequestId: '' });

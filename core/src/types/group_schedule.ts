@@ -36,8 +36,8 @@ export default {
     url: 'group/schedules',
     method: 'POST',
     opts: {} as ApiOptions,
-    queryArg: { schedule: {} as ISchedule },
-    resultType: {} as IGroupSchedule
+    queryArg: { scheduleId: '' as string },
+    resultType: { success: true as boolean }
   },
   putGroupSchedule: {
     kind: EndpointType.MUTATION,

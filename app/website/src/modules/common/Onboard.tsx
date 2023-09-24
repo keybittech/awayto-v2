@@ -2,20 +2,15 @@ import React, { useCallback, useState, useEffect, Suspense, useRef, useContext }
 
 import Grid from '@mui/material/Grid';
 import Avatar from '@mui/material/Avatar';
-import Divider from '@mui/material/Divider';
 import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
-import SettingsIcon from '@mui/icons-material/Settings';
 
-import Icon from '../../img/kbt-icon.png';
 import { IGroup, ISchedule, IService } from 'awayto/core';
 import { useComponents, useUtil, useAccordion, useContexts, sh } from 'awayto/hooks';
 
 export function Onboard(props: IProps): React.JSX.Element {
-
-  
   const { setSnack, openConfirm } = useUtil();
 
   const { AuthContext } = useContexts();
@@ -24,8 +19,7 @@ export function Onboard(props: IProps): React.JSX.Element {
   const { ManageGroupModal, ManageGroupRolesModal, NewManageServiceModal, ManageSchedulesModal, AccordionWrap } = useComponents();
 
   const [group, setGroup] = useState({} as IGroup);
-  const [service, setService] = useState({} as IService);
-  const [schedule, setSchedule] = useState({} as ISchedule);
+  const [service, setService] = useState(JSON.parse(localStorage.getItem('onboarding_service') || '{}') as IService);
   const [hasCode, setHasCode] = useState(false);
   
   const [groupCode, setGroupCode] = useState('');
@@ -38,6 +32,7 @@ export function Onboard(props: IProps): React.JSX.Element {
   const [attachUser] = sh.useAttachUserMutation();
   const [postService] = sh.usePostServiceMutation();
   const [postGroupService] = sh.usePostGroupServiceMutation();
+  const [postSchedule] = sh.usePostScheduleMutation();
   const [postGroupSchedule] = sh.usePostGroupScheduleMutation();
   
   const setStep = (panel: string | false) => {
@@ -46,7 +41,7 @@ export function Onboard(props: IProps): React.JSX.Element {
   }
 
   const openTip = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
-    if (panel) {
+    if (panel && panel !== expanded) {
       setStep(isExpanded ? panel : false);
     }
   };
@@ -75,7 +70,7 @@ export function Onboard(props: IProps): React.JSX.Element {
 
   useEffect(() => {
     if (profile?.groups) {
-      const gr = Object.values(profile?.groups)[0];
+      const gr = Object.values(profile?.groups).find(g => g.ldr);
       if (gr) {
         setGroup(gr);
       }
@@ -83,68 +78,11 @@ export function Onboard(props: IProps): React.JSX.Element {
   }, [profile]);
 
   return <>
-
-    {/* <Suspense>
-      <Dialog fullScreen open={!!expanded} fullWidth maxWidth="sm">
-        <Grid container sx={{ bgcolor: 'primary.dark', placeContent: 'center', height: '100vh' }}>
-          <Grid item xs={6} sx={{ maxHeight: '80vh', overflowY: 'scroll' }}>
-            {expanded === 'create_group' ? <ManageGroupModal
-              {...props}
-              closeModal={(editGroup: IGroup) => {
-                console.log(editGroup);
-                setGroup(editGroup);
-                setExpanded('create_roles');
-              }}
-            >
-              {createTip(
-                'Describing your group enables functionality across the site, providing suggestions based on what your group does.',
-                'Allowed Email Domains restrict who can join your group. For example, site.com is the domain for the email user@site.com.'
-              )}
-            </ManageGroupModal> :
-              expanded === 'create_roles' ? <ManageGroupRolesModal
-                {...props}
-                editGroup={group}
-                closeModal={({ roles, defaultRoleId }: IGroup) => {
-                  setGroup({ ...group, roles, defaultRoleId });
-                  setExpanded('create_schedule');
-                  console.log({ groupMOD: { ...group, roles, defaultRoleId } })
-                }}
-              >
-                {createTip(
-                  'Click the "Group Roles" dropdown box and select "Add..." to add new roles. The underlined suggestions have been generated for you based on your group description. Click them to add.'
-                )}
-              </ManageGroupRolesModal> :
-                expanded === 'create_schedule' ? <ManageSchedulesModal
-                  {...props}
-                  editGroup={group}
-                  closeModal={(editSchedule: ISchedule) => {
-                    setSchedule(editSchedule);
-                    setExpanded('');
-                    console.log({ scheduleMOD: editSchedule })
-                  }}
-                >
-                  {createTip(
-                    'Blah blah.'
-                  )}
-                </ManageSchedulesModal> : <></>}
-          </Grid>
-        </Grid>
-      </Dialog>
-    </Suspense> */}
-
     <Box sx={{ bgcolor: 'primary.main' }}>
       <Grid container sx={{ placeItems: { xs: 'start', sm: 'center' }, minHeight: '100vh', height: '100%' }}>
 
         <Grid item xs={12} sm={8} md={6} p={4}>
           <Grid container spacing={2}>
-            {/* <Grid item xs={4}>
-              <img src={Icon} alt="kbt-icon" width="100%" />
-            </Grid> */}
-
-            {/* <Grid item xs={8}>
-              <Typography color="primary" variant="h5">Welcome to</Typography>
-              <Typography color="primary" variant="h2" component="h1"><div>Awayto.</div><div>Exchange</div></Typography>
-            </Grid> */}
 
             <Grid item xs={12}>
 
@@ -210,10 +148,11 @@ export function Onboard(props: IProps): React.JSX.Element {
                 expanded === 'create_group' ? <>
                   <ManageGroupModal
                     {...props}
+                    showCancel={false}
                     editGroup={group}
                     closeModal={(newGroup: IGroup) => {
                       console.log(newGroup);
-                      setGroup(newGroup);
+                      setGroup({ ...group, ...newGroup });
                       setStep('create_roles');
                     }}
                   />
@@ -221,6 +160,7 @@ export function Onboard(props: IProps): React.JSX.Element {
                 </> :
                 expanded === 'create_roles' ? <ManageGroupRolesModal
                   {...props}
+                  showCancel={false}
                   editGroup={group}
                   closeModal={({ roles, defaultRoleId }: IGroup) => {
                     setGroup({ ...group, roles, defaultRoleId });
@@ -230,32 +170,37 @@ export function Onboard(props: IProps): React.JSX.Element {
                 />:
                 expanded === 'create_service' ? <NewManageServiceModal
                   {...props}
+                  showCancel={false}
                   editGroup={group}
                   editService={service}
                   closeModal={(service: IService) => {
                     setService(service);
                     setStep('create_schedule');
+                    localStorage.setItem('onboarding_service', JSON.stringify(service));
                     console.log({ serviceMOD: service })
                   }}
                 /> :
                 expanded === 'create_schedule' ? <ManageSchedulesModal
                   {...props}
+                  showCancel={false}
                   editGroup={group}
-                  editSchedule={schedule}
-                  closeModal={(editSchedule: ISchedule) => {
-                    setSchedule(editSchedule);
+                  closeModal={(schedule: ISchedule) => {
                     openConfirm({
                       isConfirming: true,
                       confirmEffect: `Create the group ${group.displayName}.`,
-                      confirmAction: () => {
-                        void postService(service).unwrap().then(async (postedService: IService) => {
-                          await postGroupService({ serviceId: postedService.id }).unwrap();
-                          schedule.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-                          await postGroupSchedule({ schedule }).unwrap();
-                        });
+                      confirmAction: submit => {
+                        if (submit) {
+                          void postService(service).unwrap().then(async ({ id: serviceId }) => {
+                            localStorage.removeItem('onboarding_service');
+                            await postGroupService({ serviceId }).unwrap();
+                            await postSchedule(schedule).unwrap().then(async ({ id: scheduleId }) => {
+                              await postGroupSchedule({ scheduleId }).unwrap();
+                            })
+                          });
+                        }
                       }
                     });
-                    console.log({ scheduleMOD: editSchedule })
+                    console.log({ scheduleMOD: schedule })
                   }}
                 /> : <></>}
 
@@ -263,41 +208,6 @@ export function Onboard(props: IProps): React.JSX.Element {
             </Grid>
 
           </Suspense>
-
-          {/* <Grid container p={4} spacing={4}>
-
-            <Grid item xs={12}>
-              <Button fullWidth variant="contained" color="secondary" onClick={() => setExpanded('create_group')}>Create a group</Button>
-
-
-            </Grid>
-
-            <Grid item xs={12}>
-              <Grid container direction="row" alignItems="center" spacing={2}>
-                <Grid item xs={1} />
-                <Grid item flexGrow={1}>
-                  <Divider />
-                </Grid>
-                <Grid item>
-                  <Typography variant="button" color="primary">Or</Typography>
-                </Grid>
-                <Grid item flexGrow={1}>
-                  <Divider />
-                </Grid>
-                <Grid item xs={1} />
-              </Grid>
-            </Grid>
-
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                value={groupCode}
-                onChange={e => setGroupCode(e.target.value)}
-                label="Group Code"
-              />
-            </Grid>
-
-          </Grid> */}
         </Grid>
       </Grid>
     </Box>

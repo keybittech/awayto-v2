@@ -26,7 +26,7 @@ export default {
     method: 'POST',
     opts: {} as ApiOptions,
     queryArg: { name: '' as string, cost: '' as string, formId: '' as string, surveyId: '' as string, tiers: {} as Record<string, IServiceTier> },
-    resultType: {} as IService
+    resultType: { id: '' as string }
   },
   putService: {
     kind: EndpointType.MUTATION,
@@ -34,7 +34,7 @@ export default {
     method: 'PUT',
     opts: {} as ApiOptions,
     queryArg: { id: '' as string, name: '' as string },
-    resultType: {} as IService
+    resultType: { id: '' as string }
   },
   getServices: {
     kind: EndpointType.QUERY,

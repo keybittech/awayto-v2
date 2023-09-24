@@ -40,12 +40,13 @@ const validCost = function (cost: string): boolean {
 
 declare global {
   interface IProps {
+    showCancel?: boolean;
     editGroup?: IGroup;
     editService?: IService;
   }
 }
 
-export function NewManageServiceModal({ editGroup, editService, closeModal, ...props }: IProps) {
+export function NewManageServiceModal({ editGroup, editService, showCancel = true, closeModal, ...props }: IProps) {
 
   const classes = useStyles();
   const { SelectLookup, ServiceTierAddons, ManageFormModal } = useComponents();
@@ -84,6 +85,7 @@ export function NewManageServiceModal({ editGroup, editService, closeModal, ...p
   const [postServiceAddon] = sh.usePostServiceAddonMutation();
   const [postGroupServiceAddon] = sh.usePostGroupServiceAddonMutation();
   const [deleteGroupServiceAddon] = sh.useDeleteGroupServiceAddonMutation();
+  const [putService] = sh.usePutServiceMutation();
   const [postService] = sh.usePostServiceMutation();
   const [postGroupService] = sh.usePostGroupServiceMutation();
 
@@ -94,16 +96,12 @@ export function NewManageServiceModal({ editGroup, editService, closeModal, ...p
     }
 
     if (!editGroup) {
-      void postService({ ...newService }).unwrap().then(async (postedService: IService) => {
-        await postGroupService({ serviceId: postedService.id }).unwrap();
-        closeModal && closeModal({
-          ...newService
-        });
-      });
+      (newService.id ? putService : postService)(newService).unwrap().then(async ({ id: serviceId }) => {
+        !newService.id && await postGroupService({ serviceId }).unwrap();
+        closeModal && closeModal({ ...newService, id: serviceId });
+      }).catch(console.error);
     } else {
-      closeModal && closeModal({
-        ...newService
-      });
+      closeModal && closeModal(newService);
     }
   }, [newService]);
 
@@ -360,14 +358,9 @@ export function NewManageServiceModal({ editGroup, editService, closeModal, ...p
       
       <CardActions>
 
-        <Grid container justifyContent="space-between">
-          <Button onClick={closeModal}>Cancel</Button>
-          <Button
-            disabled={!newService.name || !Object.keys(newService.tiers).length}
-            onClick={handleSubmit}
-          >
-            {`${editService ? 'Edit' : 'Create' } Service`}
-          </Button>
+        <Grid container justifyContent={showCancel ? "space-between" : "flex-end"}>
+          {showCancel && <Button onClick={closeModal}>Cancel</Button>}
+          <Button disabled={!newService.name || !Object.keys(newService.tiers).length} onClick={handleSubmit}>Save Service</Button>
         </Grid>
       </CardActions>
     </Card>

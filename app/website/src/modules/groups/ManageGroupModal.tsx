@@ -21,11 +21,12 @@ import { sh, useDebounce, useUtil, useContexts } from 'awayto/hooks';
 
 declare global {
   interface IProps {
+    showCancel?: boolean;
     editGroup?: IGroup;
   }
 }
 
-export function ManageGroupModal({ children, editGroup, closeModal }: IProps): React.JSX.Element {
+export function ManageGroupModal({ children, editGroup, showCancel = true, closeModal }: IProps): React.JSX.Element {
 
   const { setSnack } = useUtil();
 
@@ -82,9 +83,9 @@ export function ManageGroupModal({ children, editGroup, closeModal }: IProps): R
       allowedDomains: allowedDomains.join(',')
     };
 
-    (id ? putGroup : postGroup)(newGroup).unwrap().then(({ id: groupId }: { id: string }) => {
+    (id ? putGroup : postGroup)(newGroup).unwrap().then(({ id }) => {
       void refreshToken().then(() => {
-        closeModal && closeModal({ ...newGroup, id: groupId });
+        closeModal && closeModal({ ...newGroup, id });
       }).catch(console.error);
     }).catch(console.error);
   }, [group]);
@@ -115,7 +116,7 @@ export function ManageGroupModal({ children, editGroup, closeModal }: IProps): R
 
   return <>
     <Card>
-      <CardHeader title={(editGroup ? 'Manage' : 'Create') + ' Group'}></CardHeader>
+      <CardHeader title={`${editGroup ? 'Edit' : 'Create'} Group`}></CardHeader>
       <CardContent>
         {!!children && children}
 
@@ -211,14 +212,9 @@ export function ManageGroupModal({ children, editGroup, closeModal }: IProps): R
         </Grid>
       </CardContent>
       <CardActions>
-        <Grid container justifyContent="space-between">
-          <Button onClick={closeModal}>Cancel</Button>
-          <Button
-            disabled={!editGroup && (group.purpose.length < 25 || !isValid || checkingName || badName)}
-            onClick={handleSubmit}
-          >
-            {group.id ? 'Edit' : 'Create'} Group
-          </Button>
+        <Grid container justifyContent={showCancel ? "space-between" : "flex-end"}>
+          {showCancel && <Button onClick={closeModal}>Cancel</Button>}
+          <Button disabled={!editGroup?.id && (group.purpose.length < 25 || !isValid || checkingName || badName)} onClick={handleSubmit}>Save Group</Button>
         </Grid>
       </CardActions>
     </Card>

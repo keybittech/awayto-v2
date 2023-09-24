@@ -17,11 +17,12 @@ import { useComponents, sh, useUtil, useSuggestions } from 'awayto/hooks';
 
 declare global {
   interface IProps {
+    showCancel?: boolean;
     editGroup?: IGroup;
   }
 }
 
-export function ManageGroupRolesModal({ children, editGroup, closeModal, ...props }: IProps): React.JSX.Element {
+export function ManageGroupRolesModal({ children, editGroup, showCancel = true, closeModal, ...props }: IProps): React.JSX.Element {
 
   const { setSnack } = useUtil();
 
@@ -45,7 +46,6 @@ export function ManageGroupRolesModal({ children, editGroup, closeModal, ...prop
   const roleValues = useMemo(() => Object.values(profile?.roles || {}), [profile]);
 
   const handleSubmit = useCallback(() => {
-    console.log({ roleIds, defaultRoleId })
     if (!roleIds.length || !defaultRoleId) {
       setSnack({ snackType: 'error', snackOn: 'All fields are required.' });
       return;
@@ -69,7 +69,7 @@ export function ManageGroupRolesModal({ children, editGroup, closeModal, ...prop
 
   return <>
     <Card>
-      <CardHeader title={(editGroup ? 'Manage' : 'Create') + ' Group'}></CardHeader>
+      <CardHeader title="Edit Roles"></CardHeader>
       <CardContent>
         {!!children && children}
 
@@ -134,9 +134,9 @@ export function ManageGroupRolesModal({ children, editGroup, closeModal, ...prop
         </Grid>
       </CardContent>
       <CardActions>
-        <Grid container justifyContent="space-between">
-          <Button onClick={closeModal}>Cancel</Button>
-          <Button onClick={handleSubmit}>Done</Button>
+        <Grid container justifyContent={showCancel ? "space-between" : "flex-end"}>
+          {showCancel && <Button onClick={closeModal}>Cancel</Button>}
+          <Button disabled={!defaultRoleId} onClick={handleSubmit}>Save Roles</Button>
         </Grid>
       </CardActions>
     </Card>

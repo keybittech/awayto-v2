@@ -14,10 +14,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
 
     RETURN QUERY
     DELETE FROM dbtable_schema.groups WHERE created_sub = sub
-    RETURNING id;
+    RETURNING dbtable_schema.groups.id;
 
   END;
-
   $$ LANGUAGE PLPGSQL;
 
   CREATE OR REPLACE FUNCTION dbfunc_schema.get_group_schedules(

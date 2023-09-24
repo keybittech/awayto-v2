@@ -6,10 +6,10 @@ export default createHandlers({
 
       const { name, cost, formId, surveyId, tiers } = props.event.body;
       
-      const service = await props.tx.one<IService>(`
+      const { id } = await props.tx.one<IService>(`
         INSERT INTO dbtable_schema.services (name, cost, form_id, survey_id, created_sub)
         VALUES ($1, $2::integer, $3::uuid, $4::uuid, $5::uuid)
-        RETURNING id, name, cost, created_on
+        RETURNING id
       `, [name, cost || 0, formId || undefined, surveyId || undefined, props.event.userSub]);
 
       await asyncForEach(Object.values(tiers).sort((a, b) => a.order - b.order), async t => {
@@ -26,7 +26,7 @@ export default createHandlers({
           SELECT st.id
           FROM input_rows
           JOIN dbtable_schema.service_tiers st USING (name, service_id);
-        `, [t.name, service.id, t.multiplier, t.formId || undefined, t.surveyId || undefined, props.event.userSub]);
+        `, [t.name, id, t.multiplier, t.formId || undefined, t.surveyId || undefined, props.event.userSub]);
 
         await asyncForEach(Object.values(t.addons).sort((a, b) => a.order - b.order), async a => {
           await props.tx.none(`
@@ -37,7 +37,7 @@ export default createHandlers({
         })
       });
       
-      return service;
+      return { id };
 
     } catch (error) {
       const { constraint } = error as DbError;
@@ -59,19 +59,21 @@ export default createHandlers({
       updated_on: utcNowString()
     });
 
-    const service = await props.tx.one<IService>(`
+    // TODO: Allow tier revisions
+
+    await props.tx.none(`
       UPDATE dbtable_schema.services
       SET ${updateProps.string}
       WHERE id = $1
-      RETURNING id, name
     `, updateProps.array);
 
-    return service;
+    return { id };
   },
   getServices: async props => {
     const services = await props.db.manyOrNone<IService>(`
-      SELECT * FROM dbview_schema.enabled_services
-    `);
+      SELECT * FROM dbtable_schema.services
+      WHERE created_sub = $1
+    `, [props.event.userSub]);
     
     return services;
   },

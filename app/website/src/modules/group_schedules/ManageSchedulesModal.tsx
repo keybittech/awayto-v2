@@ -13,21 +13,24 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import { Mark } from '@mui/base';
 
-import { ISchedule, ITimeUnit, TimeUnit, timeUnitOrder, getRelativeDuration, IGroupSchedule, scheduleSchema } from 'awayto/core';
+import { ISchedule, ITimeUnit, TimeUnit, timeUnitOrder, getRelativeDuration,  scheduleSchema, IGroup } from 'awayto/core';
 import { useComponents, useUtil, sh, useTimeName } from 'awayto/hooks';
 
 declare global {
   interface IProps {
+    showCancel?: boolean;
+    editGroup?: IGroup;
     editSchedule?: ISchedule;
   }
 }
 
-export function ManageSchedulesModal({ children, editSchedule, closeModal, ...props }: IProps): React.JSX.Element {
+export function ManageSchedulesModal({ children, editGroup, editSchedule, showCancel = true, closeModal, ...props }: IProps): React.JSX.Element {
 
   const { setSnack } = useUtil();
 
+  const [postSchedule] = sh.usePostScheduleMutation();
+  const [putSchedule] = sh.usePutScheduleMutation();
   const [postGroupSchedule] = sh.usePostGroupScheduleMutation();
-  const [putGroupSchedule] = sh.usePutGroupScheduleMutation();
   const [getGroupScheduleMasterById] = sh.useLazyGetGroupScheduleMasterByIdQuery();
 
   const { data: lookups, isSuccess: lookupsRetrieved } = sh.useGetLookupsQuery();
@@ -81,31 +84,27 @@ export function ManageSchedulesModal({ children, editSchedule, closeModal, ...pr
   }, [bracketTimeUnitName, slotTimeUnitName, scheduleTimeUnitName]);
 
   const handleSubmit = useCallback(() => {
+    if (!schedule.name) {
+      setSnack({ snackOn: 'A name must be provided.', snackType: 'warning' });
+      return;
+    }
 
-    async function go() {
-      const { id, name, startTime, endTime } = schedule;
+    schedule.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-      if (!name || !startTime) {
-        setSnack({ snackOn: 'Must have schedule name and start date.', snackType: 'warning' });
-        return;
-      }
-
-      if (!id) {
-        schedule.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        await postGroupSchedule({ schedule }).unwrap();
-      } else {
-        await putGroupSchedule({ id, startTime, endTime } as IGroupSchedule).unwrap();
-      }
-
+    if (!editGroup) {
+      (schedule.id ? putSchedule : postSchedule)(schedule).unwrap().then(({ id }) => {
+        !schedule.id && postGroupSchedule({ scheduleId: id }).catch(console.error);
+        closeModal && closeModal({ ...schedule, id });
+      }).catch(console.error);
+    } else {
       closeModal && closeModal(schedule);
     }
-    void go();
   }, [schedule]);
 
   useEffect(() => {
     async function go() {
       if (lookupsRetrieved) {
-        if (editSchedule) {
+        if (editSchedule?.id) {
           const masterSchedule = await getGroupScheduleMasterById({ scheduleId: editSchedule.id }).unwrap();
           setSchedule(masterSchedule);
         } else {
@@ -117,7 +116,7 @@ export function ManageSchedulesModal({ children, editSchedule, closeModal, ...pr
   }, [lookupsRetrieved]);
 
   return <Card>
-    <CardHeader title={`${schedule.id ? 'Manage' : 'Create'} Schedule`}></CardHeader>
+    <CardHeader title={`${schedule.id ? 'Edit' : 'Create'} Schedule`}></CardHeader>
     <CardContent>
       {!!children && children}
 
@@ -265,9 +264,9 @@ export function ManageSchedulesModal({ children, editSchedule, closeModal, ...pr
       </Box>
     </CardContent>
     <CardActions>
-      <Grid container justifyContent="space-between">
-        <Button onClick={closeModal}>{schedule.id ? 'Close' : 'Cancel'}</Button>
-        <Button onClick={handleSubmit}>Done</Button>
+      <Grid container justifyContent={showCancel ? "space-between" : "flex-end"}>
+        {showCancel && <Button onClick={closeModal}>Cancel</Button>}
+        <Button disabled={!schedule.name} onClick={handleSubmit}>Save Schedule</Button>
       </Grid>
     </CardActions>
   </Card>

@@ -89,7 +89,7 @@ export function ManageScheduleBracketsModal({ editSchedule, closeModal }: IProps
       if (schedule && schedule.name && scheduleBracketsValues.length) {
         const userSchedule = { ...schedule };
         if (!editSchedule) {
-          const newSchedule = await postSchedule({ schedule }).unwrap();
+          const newSchedule = await postSchedule(schedule).unwrap();
           userSchedule.id = newSchedule.id;
         }
 

@@ -3,9 +3,7 @@ import { ApiProps, ISchedule, IScheduleBracket, ScheduledParts, buildUpdate, utc
 export default createHandlers({
   postSchedule: async props => {
     try {
-      const { schedule } = props.event.body;
-
-      const { name, scheduleTimeUnitId, bracketTimeUnitId, slotTimeUnitId, slotDuration, startTime, endTime, timezone } = schedule;
+      const { name, scheduleTimeUnitId, bracketTimeUnitId, slotTimeUnitId, slotDuration, startTime, endTime, timezone } = props.event.body;
 
       const { id } = await props.tx.one<ISchedule>(`
         INSERT INTO dbtable_schema.schedules (name, created_sub, slot_duration, schedule_time_unit_id, bracket_time_unit_id, slot_time_unit_id, start_time, end_time, timezone)
@@ -13,9 +11,7 @@ export default createHandlers({
         RETURNING id, name, created_on as "createdOn"
       `, [name, props.event.userSub, slotDuration, scheduleTimeUnitId, bracketTimeUnitId, slotTimeUnitId, startTime || null, endTime || null, timezone]);
 
-      schedule.id = id;
-
-      return schedule;
+      return { id };
           
     } catch (error) {
       const { constraint } = error as DbError;
@@ -75,10 +71,11 @@ export default createHandlers({
     return { id: scheduleId, brackets };
   },
   putSchedule: async props => {
-    const { id, startTime, endTime } = props.event.body;
+    const { id, name, startTime, endTime } = props.event.body;
 
     const updateProps = buildUpdate({
       id,
+      name,
       start_time: startTime || null,
       end_time: endTime || null,
       updated_sub: props.event.userSub,

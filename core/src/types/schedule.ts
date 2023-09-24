@@ -103,8 +103,8 @@ export default {
     url: 'schedules',
     method: 'POST',
     opts: {} as ApiOptions,
-    queryArg: { schedule: {} as ISchedule },
-    resultType: {} as ISchedule
+    queryArg: {} as ISchedule,
+    resultType: { id: '' as string }
   },
   postScheduleBrackets: {
     kind: EndpointType.MUTATION,
