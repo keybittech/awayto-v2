@@ -91,7 +91,10 @@ export function Onboard({ reloadProfile, ...props }: IProps): React.JSX.Element 
 
   useEffect(() => {
     window.INT_SITE_LOAD = true;
-    location.hash && setExpanded(location.hash.replace('#', ''));
+    const hash = location.hash.replace('#', '');
+    if (['review', 'create'].some(t => hash.includes(t))) {
+      setExpanded(hash)
+    }
   }, []);
 
   useEffect(() => {
