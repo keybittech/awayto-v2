@@ -56,6 +56,7 @@ export function NewManageServiceModal({ editGroup, editService, showCancel = tru
   const { data: profile } = sh.useGetUserProfileDetailsQuery();
   const group = useMemo(() => editGroup || Object.values(profile?.groups || {}).find(g => g.active), [profile, editGroup]);
 
+  const { data: existingService } = sh.useGetServiceByIdQuery({ id: editService?.id || '' }, { skip: !editService });
   const { data: groupServiceAddons, refetch: getGroupServiceAddons } = sh.useGetGroupServiceAddonsQuery(undefined, { skip: !group?.id });
   const { data: groupForms, refetch: getGroupForms, isSuccess: groupFormsLoaded } = sh.useGetGroupFormsQuery(undefined, { skip: !group?.id });
 
@@ -111,9 +112,13 @@ export function NewManageServiceModal({ editGroup, editService, showCancel = tru
     }
   }, [group?.purpose]);
 
+  useEffect(() => {
+    if (existingService) {
+      setNewService({ ...newService, ...existingService });
+    }
+  }, [existingService]);
+
   return <>
-
-
     <Dialog open={dialog === 'manage_form'} fullWidth maxWidth="lg">
       <Suspense>
         <ManageFormModal {...props} closeModal={() => {
@@ -157,7 +162,7 @@ export function NewManageServiceModal({ editGroup, editService, showCancel = tru
               <TextField
                 select
                 fullWidth
-                value={newService.formId}
+                value={newService.formId || 'unset'}
                 label="Intake Form"
                 helperText="Optional. Shown during appointment creation."
                 onChange={e => {
@@ -174,7 +179,7 @@ export function NewManageServiceModal({ editGroup, editService, showCancel = tru
               <TextField
                 select
                 fullWidth
-                value={newService.surveyId}
+                value={newService.surveyId || 'unset'}
                 label="Survey Form"
                 helperText="Optional. Shown during post-appointment summary."
                 onChange={e => {

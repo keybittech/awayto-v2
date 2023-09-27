@@ -22,7 +22,7 @@ export type IService = {
 export default {
   postService: {
     kind: EndpointType.MUTATION,
-    url: 'services',
+    url: 'service',
     method: 'POST',
     opts: {} as ApiOptions,
     queryArg: { name: '' as string, cost: '' as string, formId: '' as string, surveyId: '' as string, tiers: {} as Record<string, IServiceTier> },
@@ -30,15 +30,15 @@ export default {
   },
   putService: {
     kind: EndpointType.MUTATION,
-    url: 'services',
+    url: 'service',
     method: 'PUT',
     opts: {} as ApiOptions,
-    queryArg: { id: '' as string, name: '' as string },
+    queryArg: { name: '' as string, cost: '' as string, formId: '' as string, surveyId: '' as string, tiers: {} as Record<string, IServiceTier> },
     resultType: { id: '' as string }
   },
   getServices: {
     kind: EndpointType.QUERY,
-    url: 'services',
+    url: 'service',
     method: 'GET',
     opts: {} as ApiOptions,
     queryArg: {} as Void,
@@ -46,7 +46,7 @@ export default {
   },
   getServiceById: {
     kind: EndpointType.QUERY,
-    url: 'services/:id',
+    url: 'service/:id',
     method: 'GET',
     opts: {} as ApiOptions,
     queryArg: { id: '' as string },
@@ -54,7 +54,7 @@ export default {
   },
   deleteService: {
     kind: EndpointType.MUTATION,
-    url: 'services/:ids',
+    url: 'service/:ids',
     method: 'DELETE',
     opts: {} as ApiOptions,
     queryArg: { ids: '' as string },
@@ -62,7 +62,7 @@ export default {
   },
   disableService: {
     kind: EndpointType.MUTATION,
-    url: 'services/:ids/disable',
+    url: 'service/:ids/disable',
     method: 'PUT',
     opts: {} as ApiOptions,
     queryArg: { ids: '' as string },

@@ -1,6 +1,7 @@
 import React, { useState, useMemo, Suspense } from 'react';
 import dayjs from 'dayjs';
 
+import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
@@ -25,7 +26,7 @@ export function ManageServices(props: IProps): React.JSX.Element {
   const [deleteGroupService] = sh.useDeleteGroupServiceMutation();
 
   const { data: groupServices, refetch: getGroupServices } = sh.useGetGroupServicesQuery();
-  
+
   const [service, setService] = useState<IService>();
   const [selected, setSelected] = useState<string[]>([]);
   const [dialog, setDialog] = useState('');
@@ -91,12 +92,16 @@ export function ManageServices(props: IProps): React.JSX.Element {
   })
 
   return <>
-    <Dialog fullScreen scroll="paper" open={dialog === 'manage_service'} fullWidth maxWidth="sm">
+    <Dialog open={dialog === 'manage_service'} fullWidth maxWidth="sm">
       <Suspense>
-        <NewManageServiceModal {...props} editService={service} closeModal={() => {
-          setDialog('')
-          void getGroupServices();
-        }} />
+        <Grid container>
+          <Grid item xs={12} sx={{ maxHeight: '80vh', overflowY: 'scroll' }}>
+            <NewManageServiceModal {...props} editService={service} closeModal={() => {
+              setDialog('')
+              void getGroupServices();
+            }} />
+          </Grid>
+        </Grid>
       </Suspense>
     </Dialog>
     <DataGrid {...serviceGridProps} />
