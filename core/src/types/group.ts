@@ -2,6 +2,8 @@ import { Void } from '../util';
 import { ApiOptions, EndpointType } from './api';
 import { IUserProfile } from './profile';
 import { IRole } from './role';
+import { ISchedule } from './schedule';
+import { IService } from './service';
 
 /**
  * @category Authorization
@@ -154,6 +156,14 @@ export default {
     method: 'POST',
     opts: { cache: 'skip' } as ApiOptions,
     queryArg: { code: '' as string },
+    resultType: { success: true }
+  },
+  completeOnboarding: {
+    kind: EndpointType.MUTATION,
+    url: 'group/onboard',
+    method: 'POST',
+    opts: { cache: 'skip' } as ApiOptions,
+    queryArg: { service: {} as IService, schedule: {} as ISchedule },
     resultType: { success: true }
   }
 } as const;

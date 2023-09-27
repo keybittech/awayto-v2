@@ -68,19 +68,19 @@ export function NewManageServiceModal({ editGroup, editService, showCancel = tru
     comp: ServiceSuggestions,
     suggest: suggestServices,
     suggestions: serviceSuggestions
-  } = useSuggestions();
+  } = useSuggestions('services');
 
   const {
     comp: TierSuggestions,
     suggest: suggestTiers,
     suggestions: tierSuggestions
-  } = useSuggestions();
+  } = useSuggestions('service_tiers');
 
   const {
     comp: AddonSuggestions,
     suggest: suggestAddon,
     suggestions: addonSuggestions
-  } = useSuggestions();
+  } = useSuggestions('service_tier_addons');
 
   const [postServiceAddon] = sh.usePostServiceAddonMutation();
   const [postGroupServiceAddon] = sh.usePostGroupServiceAddonMutation();

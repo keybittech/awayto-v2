@@ -1,4 +1,5 @@
 import { v4 } from 'uuid';
+import { ApiProps } from './types';
 
 export const isExternal = (loc: string) => {
   return loc.startsWith('/app/ext/');
@@ -374,3 +375,13 @@ export declare function parseResource(path: string): Record<string, string>;
  * @param {app.next} next The next function from express app
  */
 export declare function checkWriteBuildFile(next: () => unknown): void;
+
+export function withEvent<T extends AnyRecord>(props: ApiProps<AnyRecord>, eventBody: T): ApiProps<T> {
+  return {
+    ...props,
+    event: {
+      ...props.event,
+      body: eventBody
+    }
+  };
+}

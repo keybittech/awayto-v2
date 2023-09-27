@@ -54,8 +54,7 @@ export function ManageScheduleStubModal({ editGroupUserScheduleStub, closeModal 
         startTime: quote.startTime,
         tierName
       }).unwrap().then(stubs => {
-        const [replacementStub] = stubs;
-        setReplacement(replacementStub.replacement);
+        setReplacement(stubs[0].replacement);
       }).catch(console.error);
     }
   }, [quote]);

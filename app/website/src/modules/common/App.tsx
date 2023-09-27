@@ -29,25 +29,37 @@ const {
 } = process.env as { [prop: string]: string };
 
 export default function App (props: IProps): React.JSX.Element {
-  console.log(" in app ")
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const { AuthContext } = useContexts();
-  const { keycloak } = useContext(AuthContext) as AuthContextType;
+  const { keycloak, refreshToken } = useContext(AuthContext) as AuthContextType;
 
   const { setSnack, setTheme } = useUtil();
   const { Onboard, ConfirmAction } = useComponents();
   const { theme, snackOn, snackType, snackRequestId, isLoading, loadingMessage } = useAppSelector(state => state.util);
-  const { data: profile, refetch: getUserProfileDetails } = sh.useGetUserProfileDetailsQuery();
-  const { data: groupSchedules } = sh.useGetGroupSchedulesQuery();
-  const [attachUser] = sh.useAttachUserMutation();
-  const loc = useLocation();
-  const navigate = useNavigate();
   
   const [ready, setReady] = useState(false);
   const [onboarding, setOnboarding] = useState(false);
+  
+  const { data: profile, refetch: getUserProfileDetails } = sh.useGetUserProfileDetailsQuery();
+  
+  const [attachUser] = sh.useAttachUserMutation();
+  const [activateProfile] = sh.useActivateProfileMutation();
 
   if (!theme) {
     setTheme({ theme: localStorage.getItem('site_theme') || 'dark' })
+  }
+
+  const hideSnack = (): void => {
+    setSnack({ snackOn: '', snackRequestId: '' });
+  }
+
+  const reloadProfile = async (): Promise<void> => {
+    await refreshToken().then(() => {
+      void getUserProfileDetails();
+      navigate('/');
+    }).catch(console.error);
   }
 
   useEffect(() => {
@@ -64,31 +76,26 @@ export default function App (props: IProps): React.JSX.Element {
   }, []);
 
   useEffect(() => {
-    if (!profile || !groupSchedules) return;
+    if (!profile) return;
 
-    if (loc.pathname === "/registration/code/success") {
-      const code = loc.search.split('?code=')[1].split('&')[0];
-      attachUser({ code }).unwrap().then(() => {
-        setReady(true);
-        navigate('/');
-        keycloak.clearToken();
+    if (location.pathname === "/registration/code/success") {
+      const code = location.search.split('?code=')[1].split('&')[0];
+      attachUser({ code }).unwrap().then(async () => {
+        await activateProfile().unwrap().catch(console.error);
+        await reloadProfile().catch(console.error);
       }).catch(console.error);
-    } else if (!groupSchedules?.length) {
+    } else if (!profile.active) {
       setOnboarding(true);
-      return;
-    } else {
+    } else if (profile.active) {
+      setOnboarding(false);
       setReady(true);
     }
-  }, [profile, groupSchedules]);
-
-  const hideSnack = (): void => {
-    setSnack({ snackOn: '', snackRequestId: '' });
-  }
+  }, [profile]);
 
   return <>
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <ThemeProvider theme={'light' === theme ? lightTheme : darkTheme}>
-        {onboarding && <Onboard {...props} />}
+        {onboarding && <Onboard {...props} reloadProfile={reloadProfile} />}
         {ready && <Layout {...props} />}
         {!!snackOn && <Snackbar
           sx={{

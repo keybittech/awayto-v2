@@ -19,6 +19,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     email VARCHAR (255),
     ip_address VARCHAR (40),
     locked BOOLEAN NOT NULL DEFAULT false,
+    active BOOLEAN NOT NULL DEFAULT false,
     created_on TIMESTAMP NOT NULL DEFAULT TIMEZONE('utc', NOW()),
     created_sub uuid NOT NULL REFERENCES dbtable_schema.users (sub),
     updated_on TIMESTAMP,

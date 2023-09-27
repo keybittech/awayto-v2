@@ -89,7 +89,7 @@ export default createHandlers({
       RETURNING id, name
     `, updateProps.array);
 
-    return schedule;
+    return { id };
   },
   getSchedules: async props => {
     const schedules = await props.db.manyOrNone<ISchedule>(`

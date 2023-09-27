@@ -2,13 +2,11 @@ import { IGroup, IGroupService, asyncForEach, createHandlers } from 'awayto/core
 
 export default createHandlers({
   postGroupService: async props => {
-    const { serviceId } = props.event.pathParameters;
-
     await props.tx.none(`
       INSERT INTO dbtable_schema.group_services (group_id, service_id, created_sub)
       VALUES ($1, $2, $3::uuid)
       ON CONFLICT (group_id, service_id) DO NOTHING
-    `, [props.event.group.id, serviceId, props.event.userSub]);
+    `, [props.event.group.id, props.event.body.serviceId, props.event.userSub]);
 
     await props.redis.del(props.event.userSub + `group/${props.event.group.name}/services`);
 

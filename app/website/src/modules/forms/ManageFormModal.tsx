@@ -97,7 +97,7 @@ export function ManageFormModal({ editForm, closeModal, ...props }: IProps): Rea
   }, [form, version.form]);
 
   return <Card sx={{ display: 'flex', flex: 1, flexDirection: 'column' }}>
-    <CardHeader title={editForm?.id ? 'Manage' : 'Create'} />
+    <CardHeader title={`${editForm?.id ? 'Edit' : 'Create'} Form`} />
     <CardContent sx={{ display: 'flex', flex: 1, flexDirection: 'column', overflow: 'auto' }}>
       <Box mt={2} />
 

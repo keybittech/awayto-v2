@@ -32,7 +32,7 @@ export function ManageGroupRolesModal({ children, editGroup, showCancel = true, 
     comp: RoleSuggestions,
     suggest: suggestRoles,
     suggestions: roleSuggestions
-  } = useSuggestions();
+  } = useSuggestions('group_roles');
 
   const { data : profile, refetch: getUserProfileDetails } = sh.useGetUserProfileDetailsQuery();
 

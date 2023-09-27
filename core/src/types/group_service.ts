@@ -18,7 +18,7 @@ export type IGroupService = IService & {
 export default {
   postGroupService: {
     kind: EndpointType.MUTATION,
-    url: 'group/services/:serviceId',
+    url: 'group/services',
     method: 'POST',
     opts: {} as ApiOptions,
     queryArg: { serviceId: '' as string },

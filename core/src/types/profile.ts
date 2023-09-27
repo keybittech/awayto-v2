@@ -25,6 +25,7 @@ export type IUserProfile = {
   createdOn: string;
   updatedOn: string;
   locked: boolean;
+  active: boolean;
   quotes: Record<string, IQuote>;
   seenQuotes: boolean;
   bookings: Record<string, IBooking>;
@@ -87,5 +88,21 @@ export default {
     opts: {} as ApiOptions,
     queryArg: { id: '' as string },
     resultType: { id: '' as string }
+  },
+  activateProfile: {
+    kind: EndpointType.MUTATION,
+    url: 'profile/activate',
+    method: 'PUT',
+    opts: {} as ApiOptions,
+    queryArg: {} as Void,
+    resultType: { success: true as boolean }
+  },
+  deactivateProfile: {
+    kind: EndpointType.MUTATION,
+    url: 'profile/deactivate',
+    method: 'PUT',
+    opts: {} as ApiOptions,
+    queryArg: {} as Void,
+    resultType: { success: true as boolean }
   }
 } as const;

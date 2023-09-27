@@ -1,5 +1,10 @@
 import { IPrompts } from '@keybittech/wizapp/dist/lib';
-import { ApiInternalError, DbError, IGroup, IGroupRole, IGroupRoleAuthActions, IRole, IUserProfile, buildUpdate, utcNowString, asyncForEach, nid, createHandlers } from 'awayto/core';
+import { ApiInternalError, DbError, IGroup, IGroupRole, IGroupRoleAuthActions, IRole, IUserProfile, buildUpdate, utcNowString, asyncForEach, nid, createHandlers, withEvent, IService, Void } from 'awayto/core';
+import serviceApiHandler from './service';
+import groupServiceApiHandler from './group_service';
+import scheduleApiHandler from './schedule';
+import groupScheduleApiHandler from './group_schedule';
+import profileApiHandler from './profile';
 
 export default createHandlers({
   postGroup: async props => {
@@ -451,6 +456,22 @@ export default createHandlers({
       
     await props.redis.del(props.event.userSub + 'profile/details');
     await props.redis.del(createdSub + 'profile/details');
+
+    return { success: true };
+  },
+  completeOnboarding: async props => {
+
+    const { service, schedule } = props.event.body;    
+
+    const { id: serviceId } = await serviceApiHandler.postService(withEvent(props, service));
+
+    await groupServiceApiHandler.postGroupService(withEvent(props, { serviceId }));
+
+    const { id: scheduleId } = await scheduleApiHandler.postSchedule(withEvent(props, schedule));
+
+    await groupScheduleApiHandler.postGroupSchedule(withEvent(props, { scheduleId }));
+
+    await profileApiHandler.activateProfile(withEvent(props, {} as Void));
 
     return { success: true };
   }

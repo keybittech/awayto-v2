@@ -108,5 +108,23 @@ export default createHandlers({
     `, [id, utcNowString(), props.event.userSub]);
 
     return { id };
+  },
+  activateProfile: async props => {
+    await props.tx.none(`
+      UPDATE dbtable_schema.users
+      SET active = true, updated_on = $2, updated_sub = $1
+      WHERE sub = $1
+    `, [props.event.userSub, utcNowString()]);
+
+    return { success: true };
+  },
+  deactivateProfile: async props => {
+    await props.tx.none(`
+      UPDATE dbtable_schema.users
+      SET active = false, updated_on = $2, updated_sub = $1
+      WHERE sub = $1
+    `, [props.event.userSub, utcNowString()]);
+
+    return { success: true };
   }
 });

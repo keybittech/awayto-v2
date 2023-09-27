@@ -68,8 +68,12 @@ export function SelectLookup({ lookupChange, disabled = false, invalidValues = [
     if (createAction) {
       createAction({ name: newLookup.name }).unwrap().then(res => {
         const { id: lookupId } = res;
-        if (attachAction && lookupId && parentUuid && parentUuidName && attachName) {
-          attachAction({ [parentUuidName]: parentUuid, [attachName]: lookupId }).unwrap().then(() => refresh()).catch(console.error);
+        if (attachAction && lookupId && attachName) {
+          const attachPayload = { [attachName]: lookupId };
+          if (parentUuid && parentUuidName) {
+            attachPayload[parentUuidName] = parentUuid;
+          }
+          attachAction(attachPayload).unwrap().then(() => refresh()).catch(console.error);
         } else {
           refresh();
         }

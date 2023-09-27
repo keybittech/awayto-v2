@@ -15,6 +15,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     u.image,
     u.email,
     u.locked,
+    u.active,
     u.created_on as "createdOn",
     u.updated_on as "updatedOn",
     u.enabled,

@@ -120,7 +120,7 @@ export default {
     method: 'PUT',
     opts: {} as ApiOptions,
     queryArg: {} as ISchedule,
-    resultType: {} as ISchedule
+    resultType: { id: '' as string }
   },
   getSchedules: {
     kind: EndpointType.QUERY,

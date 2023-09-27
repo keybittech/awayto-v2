@@ -115,8 +115,10 @@ export function ManageSchedulesModal({ children, editGroup, editSchedule, showCa
     void go();
   }, [lookupsRetrieved]);
 
+  if (!lookups?.timeUnits) return <></>;
+
   return <Card>
-    <CardHeader title={`${schedule.id ? 'Edit' : 'Create'} Schedule`}></CardHeader>
+    <CardHeader title={`${editSchedule ? 'Edit' : 'Create'} Schedule`}></CardHeader>
     <CardContent>
       {!!children && children}
 
