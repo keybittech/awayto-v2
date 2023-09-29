@@ -1,0 +1,12 @@
+<div class="container">
+  <div class="sidebar">
+    <ul>
+      {{ range where .Site.Pages "Section" "docs" }}
+        <li><a href="#{{ with .File }}{{ .BaseFileName }}{{ end }}">{{ .Title }}</a></li>
+      {{ end }}
+    </ul>
+  </div>
+  <div class="content">
+    {{ .Content }}
+  </div>
+</div>

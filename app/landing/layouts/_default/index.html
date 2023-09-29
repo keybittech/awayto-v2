@@ -1,78 +1,60 @@
 {{ define "main" }}
+  {{ $pages := where .Site.Pages "Section" "docs" }}
 
-<div class="wrap">
-
-  <div class="item">
-    <h1>Welcome to {{ site.Title }}</h1>
-    <a class="app-button" href="{{ site.Params.appURL }}">Register</a> or <a class="app-button" href="{{ site.Params.appURL }}">Login</a>
+  <div class="container">
+    <div class="sidebar">
+      <ul>
+        {{ range $pages }}
+          {{ if eq .Kind "section" }}
+            <li><a href="#{{ .Title | urlize }}">{{ .Title }}</a></li>
+            {{ if ne .Title "Home" }}
+              <ul class="indent">
+                {{ $currentParent := . }}
+                {{ range $pages }}
+                  {{ if and (eq .Parent $currentParent) (ne . $currentParent) (ne .Kind "section") }}
+                    <li><a href="#{{ .Title | urlize }}">{{ .Title }}</a></li>
+                  {{ end }}
+                {{ end }}
+              </ul>
+            {{ end }}
+          {{ end }}
+        {{ end }}
+      </ul>
+    </div>
+    <div class="post-content">
+      {{ range $pages }}
+        {{ if eq .Kind "section" }}
+          <div id="{{ .Title | urlize }}">{{ .Content }}</div>
+          {{ if ne .Title "Home" }}
+            {{ $currentParent := . }}
+            {{ range $pages }}
+              {{ if and (eq .Parent $currentParent) (ne . $currentParent) (ne .Kind "section") }}
+                <div id="{{ .Title | urlize }}">{{ .Content }}</div>
+              {{ end }}
+            {{ end }}
+          {{ end }}
+        {{ end }}
+      {{ end }}
+    </div>
   </div>
-</div>
 
-<div class="landing-content">
-  <h2>Beta</h2>
-
-  <p variant="body1">This is a beta demo site. It will be completely destroyed within a couple days, then rebuilt, etc. There is no email validation, or any kind of data permanence hooked up to the demo.</p>
-
-  <h2>Quick Summary</h2>
-
-  <p variant="body1">Open source, PaaS software where businesses are able to have their users schedule specific times to receive service, which could be any given service that the business offers. A basic example is a lawncare service, where a homeowner can schedule a crew to come to their home. Alternatively, in an academic setting, a consultant could meet their consultees in an online audio/visual chatroom, which features document sharing, real time transcriptions, interactive document sharing, drawing, etc. The business defines the services they offer. For example a learning center which offers reading or writing or math tutoring as three different services, each with different schedules/features. </p>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const header = document.querySelector(".header");
+      const menu = document.querySelector(".sidebar ul");
+      const fixedClass = "fixed";
   
-  <p variant="body1">The software enables users, staff or otherwise, to: create forms to be filled out when submitting appointments; schedule their own time to work on a calendar that supports monthly, weekly, and daily schedules, such as 40 hours per week versus booking the entire day; and view data about the sessions they have.</p>
+      function checkHeight() {
+        if (window.scrollY > header.offsetHeight) {
+          menu.classList.add(fixedClass);
+        } else {
+          menu.classList.remove(fixedClass);
+        }
+      }
 
-  <h2>Developer Info</h2>
-  <p variant="body1">Features: Keycloak Auth (OAuth, SAML, SSO), App-Level RBAC, Scheduling, Voice/Video Whiteboard, Reporting, Kiosk.</p>
-  <p variant="body1">Software: PERN stack, Shell, Typescript, Material-UI, Redis, Graylog, repo-level dev console.</p>
-  <p variant="body1">Deployed services: 2 nameservers, db app svc servers, docker compose build server, exit server, Tailscale bound.</p>
-
-  <h2>Background</h2>
-
-  <p>
-    There are a few tenets of Awayto:
-  </p>
-
-  <ul>
-    <li>
-      Enhance the developer experience
-    </li>
-    <li>
-      Provide opportunities for developers to learn
-    </li>
-    <li>
-      Minimal focus on deployment, managed centrally
-    </li>
-    <li>
-      Use conventions that compliment functionality
-    </li>
-  </ul>
-
-  <p>
-    The Awayto platform adheres to these tenets in part by being scalable, lightweight, and informative in its
-    formation.
-    The goal is to be a central platform that uses a precise and opinionated toolset to unite web, mobile, and IoT
-    technologies. Developers and businesses alike can enjoy the many tools offered by Awayto:
-  </p>
-
-  <ul>
-    <li>
-      Rapidly deployable environment using enterprise level technologies
-    </li>
-    <li>
-      Full scale business application built with business owners in mind
-    </li>
-    <li>
-      Robust user management system allowing for self signup, federated IdP, SAML, or admin generated memberships
-    </li>
-    <li>
-      Baked in group and role authorization framework
-    </li>
-    <li>
-      Fully-typed development environment using Typescript; use the same types on the full stack
-    </li>
-    <li>
-      Database schema designed for auditing and reporting
-    </li>
-  </ul>
-
-</div>
-
+      window.addEventListener("scroll", checkHeight);
+      checkHeight();
+    });
+  </script>
 {{ end }}
+

@@ -1,35 +1,36 @@
-/*------------ wrap ---------------- */
-.wrap {
+.fixed {
+  position: fixed;
+  top: 0;
+  margin-top: 80px;
+}
+
+.container {
   display: flex;
-  flex-direction: row;
 }
 
-.wrap .item {
+.sidebar {
   flex: 1;
-  align-self: center;
-  text-align: center;
+  border-right: 1px solid #ccc;
+  padding: 15px;
+  height: 100vh;
+  overflow-y: auto;
 }
 
-.app-button {
-  padding: 8px 52px;
-  font-size: 32px;
-  background-color: #5c8ec0;
-  font-weight: 700;
-  font-family: sans-serif;
+.post-content {
+  flex: 5;
+  padding: 15px;
 }
 
-.video-frame {
-  border: none;
-  width: 100%;
-  max-width: 560px;
-  height: 315px;
+.sidebar ul {
+  list-style-type: none;
+  padding: 0;
+  margin-left: 20px;
 }
 
-.landing-content li {
-  margin-left: 4rem;
+.sidebar ul li {
+  margin-bottom: 10px;
 }
 
-.landing-content p,
-.landing-content ul {
-  margin-bottom: 20px;
+.post-content ul {
+  margin-left: 20px;
 }

@@ -1,8 +1,6 @@
-<!-- <header class="header">
+<header class="header">
   <p class="logo">
     <a class="site-name" href="{{ `` | absURL }}">{{ site.Title }}</a>
-    {{ with .Site.GetPage "faq" }}<a href="{{.RelPermalink}}">{{.Title}}</a>{{ end }}
-    {{ with .Site.GetPage "getting-started" }}<a href="{{.RelPermalink}}">{{.Title}}</a>{{ end }}
     <a class="btn-dark"></a>
   </p>
 
@@ -24,25 +22,4 @@
     sysDark.addEventListener('change', (event) => setDark(event.matches));
   </script>
 
-  {{ $url := .RelPermalink }}
-  {{ with site.Menus.main }}
-  <nav class="menu">
-    {{ range . }}
-    <a class="{{ if eq .URL $url }}active{{ end }}" href="{{ .URL }}">{{ .Name }}</a>
-    {{ end }}
-  </nav>
-  {{ end }}
-
-  {{ with $.Scratch.Get "social-list" }}
-  <nav class="social">
-    {{ range . }}
-    <a
-      class="{{ . }}"
-      style="--url: url(./{{ . }}.svg)"
-      href="https://{{ . }}.com/{{ site.Params.Get . }}"
-      target="_blank"
-    ></a>
-    {{ end }}
-  </nav>
-  {{ end }}
-</header> -->
+</header>

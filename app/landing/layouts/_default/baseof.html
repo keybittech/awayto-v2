@@ -1,13 +1,5 @@
 <!DOCTYPE html>
 
-{{ $.Scratch.Delete "social-list" }}
-{{ $social := slice "twitter" "github" "instagram" }}
-{{ range $social }}
-  {{ if isset site.Params . }}
-    {{ $.Scratch.Add "social-list" (slice .) }}
-  {{ end }}
-{{ end }}
-
 <html lang="{{ site.LanguageCode }}">
   {{ partial "head.html" . }}
 
