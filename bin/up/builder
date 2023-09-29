@@ -31,7 +31,7 @@ echo "# Installing docker registry"
 sudo docker run -d -p 5000:5000 --restart=always --name registry registry:2
 
 echo "# Cloning repo"
-git clone $PROJECT_REPO $PROJECT_DIR
+git clone $PROJECT_REPO.git $PROJECT_DIR
 cp $PROJECT_DIR/deploy/docker-compose.yml $PROJECT_DIR/docker-compose.yml
 
 echo "# Build init complete"

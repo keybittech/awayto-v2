@@ -272,7 +272,6 @@ img {
  -------------------------------------------------- */
 .main {
   min-height: calc(100% - var(--header) - var(--footer));
-  padding: var(--y-gap) 2rem;
 }
 
 .main-title {
@@ -446,12 +445,10 @@ img {
 }
 
 .post-content h1 {
-  margin-top: var(--y-gap);
   font-size: 4.5rem;
 }
 
 .post-content h2 {
-  margin-top: 6rem;
   font-size: 3.5rem;
 }
 
@@ -557,6 +554,7 @@ img {
 
 .post-content .highlight,
 .post-content pre {
+  margin-left: 0.5rem !important;
   margin: 0 calc(var(--gap) * -1) 4rem;
   overflow-x: auto;
   background: var(--hljs-bg) !important;
@@ -602,6 +600,7 @@ img {
 .post-content code {
   padding: 0.5rem 1rem;
   margin-inline: 0.5rem;
+  margin-left: 0.5rem;
   font-family: Menlo, Monaco, 'Courier New', Courier, monospace;
   font-size: 0.8em;
   line-height: 1.5;

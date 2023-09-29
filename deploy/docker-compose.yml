@@ -8,6 +8,7 @@ services:
       args:
         - CUST_LAND_HOSTNAME=${CUST_LAND_HOSTNAME}
         - CUST_APP_HOSTNAME=${CUST_APP_HOSTNAME}
+        - PROJECT_REPO=${PROJECT_REPO}
         - SITE_NAME=${SITE_NAME}
         - KC_REALM=${KC_REALM}
         - KC_CLIENT=${KC_CLIENT}

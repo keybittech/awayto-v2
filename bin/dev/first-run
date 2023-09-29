@@ -21,6 +21,8 @@ if [ ! -f ./.env ]; then
   cat << EOF > ./.env
 SITE_NAME="$SITE_NAME"
 PROJECT_PREFIX=$PROJECT_PREFIX
+
+PROJECT_REPO="https://github.com/jcmccormick/wc"
 WIZAPP_VERSION=${WIZAPP_VERSION:-"0.2.0-beta.2"}
 
 SVC_HOST=$(hostname -I | awk '{print $1}')

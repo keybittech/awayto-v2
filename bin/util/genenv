@@ -43,7 +43,7 @@ if [ ! -f "./sites/$PROJECT_PREFIX/.env" ]; then
   # prompt_user "DEPLOYMENT_METHOD" "Enter DEPLOYMENT_METHOD (compose/kubernetes): "
   prompt_user "CONFIGURE_NAMESERVERS" "Enter CONFIGURE_NAMESERVERS (y/n): "
   prompt_user "ADMIN_EMAIL" "Enter ADMIN_EMAIL: "
-  prompt_user "PROJECT_REPO" "Enter PROJECT_REPO (Leave blank for default): " "https://github.com/jcmccormick/wc.git"
+  prompt_user "PROJECT_REPO" "Enter PROJECT_REPO (Leave blank for default): " "https://github.com/jcmccormick/wc"
 
   GRAYLOG_PASS=$(genid)
 
