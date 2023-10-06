@@ -3,7 +3,7 @@ title: "Features"
 weight: 5
 ---
 
-## Features
+## [Features](#features)
 
 In no particular order, here are the first-class softwares used in Awayto, some of their key features, and a primary source for its usage in the system:
 
@@ -23,10 +23,10 @@ In no particular order, here are the first-class softwares used in Awayto, some 
 | ModSecurity | Server security, OWASP coverage | [modsec install]({{< param "repoURL" >}}/blob/main/bin/install/modsec) |
 | Fail2Ban | Server security | [exit up]({{< param "repoURL" >}}/blob/main/bin/up/exit) |
 | EasyRSA | Internal certificate authority | [builder up]({{< param "repoURL" >}}/blob/main/bin/up/builder) |
-| LetsEncrypt | External certificate authority | [ns up]({{< param "repoURL" >}}/blob/main/bin/up/ns) |
+| Let's Encrypt | External certificate authority | [ns up]({{< param "repoURL" >}}/blob/main/bin/up/ns) |
 | Tailscale | Managed VPN | [deployment up]({{< param "repoURL" >}}/blob/main/bin/up.sh) |
 | Hetzner | Cloud deployment variant | [deployment up]({{< param "repoURL" >}}/blob/main/bin/up.sh) |
-| AWS | Cloud deployment variant (Coming Soon) |-|
+| AWS | Cloud deployment variant (Future release) |-|
 | Keycloak | Authentication and authorization, SSO, SAML, RBAC | [/auth]({{< param "repoURL" >}}/tree/main/auth) |
 | Redis | In-memory data store | [redis api module]({{< param "repoURL" >}}/blob/main/api/src/modules/redis.ts) |
 | Graylog | Log management and analysis, status dashboards | [graylog api module]({{< param "repoURL" >}}/blob/main/api/src/modules/logger.ts), [content pack]({{< param "repoURL" >}}/blob/main/deploy/graylog-content-pack.json) |

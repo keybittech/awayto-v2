@@ -1,9 +1,9 @@
 ---
-title: "Run"
+title: "Run the Project"
 weight: 2
 ---
 
-## Run the Project
+### [Run the Project](#run-the-project)
 
 Awayto primarily runs its processes in Docker containers. Upon installation, these containers are built and started for you. In normal development, you may need to stop and start the stack or various parts of it.
 

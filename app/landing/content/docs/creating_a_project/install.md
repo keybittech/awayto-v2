@@ -1,9 +1,9 @@
 ---
-title: "Install"
+title: "Installation"
 weight: 1
 ---
 
-## Installation
+### [Installation](#installation)
 
 Clone [the repo](https://github.com/jcmccormick/wc).
 
