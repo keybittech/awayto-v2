@@ -23,4 +23,4 @@ Run the first-time developer setup. This will generate the necessary configurati
 ./awayto dev first-run
 ```
 
-After this process completes, the platform will be running on a number of docker containers spawned locally on your system. If you visit https://<computer_name> in your browser, you should see this page you're reading!
+After this process completes, the platform will be running on a number of docker containers spawned locally on your system. If you visit https://localhost in your browser, you should see this page you're reading!
