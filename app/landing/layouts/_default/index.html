@@ -4,6 +4,7 @@
   <div class="container">
     <div class="sidebar">
       <ul>
+        <li><a href="/app"><strong>Go to App</strong></a></li>
         {{ range $pages }}
           {{ if eq .Kind "section" }}
             <li><a href="#{{ .Title | urlize }}">{{ .Title }}</a></li>
