@@ -3,11 +3,11 @@
 
 ## [Basic Concepts](#basic-concepts)
 
-Awayto is for those seeking a web platform containing many features out of the box which can be further built upon. The core of the project was developed by a single person, with the intention of simplifying development and making constructs to enhance development. Quick feature development is a built-in, as many foundations to fast software development have already been designed and laid.
+Awayto is for those seeking a web platform containing many features out of the box which can be further built upon. The core of the project was developed by a single person, with the intention of simplifying development and making constructs to enhance development. Quick feature development is a built-in, as many foundations to fast software development have already been designed and laid. 
 
-It is assumed the developer is familiar with common web technologies like APIs and databases, as well as being proficient in Typescript and shell. One key goal of Awayto is to offer a fully featured development environment that can be easily tinkered with and controlled via configuration and scripting. A basic CLI is provided to run commands, from first time setup to deploying, building, and scaling resources locally or in the cloud. 
+If you're a novice developer and are interested in running everything yourself, you will be provided with step-by-step instructions on how to install, deploy, and expand a platform you control. Otherwise, it is assumed the developer is familiar with common web technologies like APIs and databases, as well as being proficient in Typescript and shell, if modifying the deployment system. Perhaps the largest underlying theme of Awayto is to offer a fully featured development environment that can be easily tinkered with and controlled via configuration and scripting. A basic CLI is provided to run commands, from first time setup to deploying, building, and scaling resources locally or in the cloud. 
 
-This guide is intended to expose you to all the custom concepts used in Awayto. It is a system comprised of many technologies, and hopefully you will find the abstractions used to be helpful and assertive. Here we discuss those abstractions, how to use them, and their purpose in the greater scheme of web application development.
+This guide is intended to expose you to all the custom concepts used in Awayto. It is a system comprised of many technologies, and hopefully you will find the abstractions used to be helpful and assertive. Here we discuss those abstractions, how to use them, and their purpose in the scope of web application development.
 
 ## [What is Awayto?](#what-is-awayto)
 
@@ -20,9 +20,9 @@ Developmentally, Awayto is based around some core ideas:
 - Minimal focus on deployment, managed centrally
 - Use conventions that compliment functionality
 
-There is a great deal of functionality threaded throughout the platform created purely to enhance the developer's experience. Most abstractions are planned and designed to be extended. Core systems at both the application layer, like the API, or the development layer, like the CLI, can be added to or modified with very little effort. And with the use of Typescript throughout the application, we are able to utilize a single layer of types, unifying the stack.
+There is a great deal of functionality threaded throughout the platform created purely to enhance the developer's experience. Most abstractions are planned and designed to be extended. Core systems at both the application layer, like the API, or the development layer, like the CLI, can be added to or modified with very little effort. And with the use of Typescript throughout the application, we are able to utilize a single layer of types, unifying the stack in a lot of cases.
 
-Awayto is opinionated software. For the most part an experienced developer will be familiar with the concepts used throughout the system, although some things are homebrew. The theme of this software is "a way to develop" and this "way" is largely governed by the abstractions we use. The closer you follow the information in this guide and code patterns presented, the faster and more effective you will become. Adding new features across the stack is a matter of implementing pre-existing structures that are inherently prevalent within the system. Conventions are used everywhere and anywhere.
+Awayto is opinionated software. For the most part an experienced developer will be familiar with the concepts used throughout the system, although some things are homebrew. Awayto is "a way to develop" and this "way" is largely governed by the abstractions we use. The closer you follow the information in this guide and code patterns presented, the faster and more effective you will become. Adding new features across the stack is a matter of implementing pre-existing structures. Conventions are used everywhere and anywhere. This is your favorite drag-n-drop blog software, but with code, and for developers (and no drag-n-drop).
 
 
 
