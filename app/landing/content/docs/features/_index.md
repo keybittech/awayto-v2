@@ -35,7 +35,7 @@ In no particular order, here are the first-class softwares used in Awayto, some 
 | Hugo | Static site generator for landing, documentation, marketing | [/app/landing]({{< param "repoURL" >}}/tree/main/app/landing) |
 | React | Front-end application library, Craco build customized | [/app/website]({{< param "repoURL" >}}/tree/main/app/website) |
 | ReduxJS Toolkit | React state management and API service | [redux store]({{< param "repoURL" >}}/blob/main/app/website/src/hooks/store.ts) |
-| DayJS | Scheduling and time management library | [time utilities]({{< param "repoURL" >}}/blob/main/app/website/src/hooks/store.ts) |
+| DayJS | Scheduling and time management library | [time utilities]({{< param "repoURL" >}}/blob/main/core/src/types/time_unit.ts) |
 | Material-UI | React UI framework based on Material Design | [module components]({{< param "repoURL" >}}/tree/main/app/website/src/modules) |
 | OpenAI | AI API for suggestions | [custom prompts]({{< param "repoURL" >}}/blob/main/api/src/modules/prompts.ts)
 | Coturn | TURN & STUN server for WebRTC based voice and video calling | [/turn]({{< param "repoURL" >}}/tree/main/turn) |
