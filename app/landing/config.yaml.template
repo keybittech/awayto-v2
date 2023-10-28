@@ -5,5 +5,5 @@ enableRobotsTXT: true
 
 Params:
   appURL: https://$CUST_APP_HOSTNAME/app
-  mainSections: "docs"
   repoURL: $PROJECT_REPO
+  mainSections: "docs"
