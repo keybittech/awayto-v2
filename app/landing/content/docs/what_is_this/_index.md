@@ -5,7 +5,7 @@ weight: 3
 
 ## [What is Awayto?](#what-is-awayto)
 
-Awayto is a web application generator built with Typescript. It stands out as a highly-opinionated online multi-modal collaboration platform. Many of the design choices and architecture underlying the system were founded in the construction of an online writing center. However, Awayto is built as generic purpose and allows for the quick and easy development of other communications-related applications.
+Awayto is a web application generator built with Typescript. It stands out as a highly-opinionated online multi-modal collaboration platform. Many of the design choices and architecture underlying the system were founded in the construction of an online writing center. However, Awayto is built to be generic-purpose usable and enable the development of systems requiring communications-related applications.
 
 Developmentally, Awayto is based around some core ideas:
 

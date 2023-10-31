@@ -2,6 +2,7 @@ import { RedisClientType, createClient } from 'redis';
 import { ProxyKeys } from 'awayto/core';
 
 export const DEFAULT_THROTTLE = 10;
+const PROXY_REFRESH = 30000;
 
 const {
   REDIS_PASS,
@@ -32,7 +33,7 @@ export const redisProxy = async function(...args: string[]): Promise<ProxyKeys> 
   const now = Date.now();
   const props = await Promise.all(args.map(async prop => {
     const cachedProp = cache.get(prop);
-    if (cachedProp && now - cachedProp.timestamp < 30000 && cachedProp.value) {
+    if (cachedProp && now - cachedProp.timestamp < PROXY_REFRESH && cachedProp.value) {
       return { [prop]: cachedProp.value }
     } else {
       const value = await redis.get(prop);

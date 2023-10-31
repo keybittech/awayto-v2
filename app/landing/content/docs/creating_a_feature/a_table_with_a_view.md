@@ -1,15 +1,9 @@
 ---
-title: "Creating a Feature"
-weight: 2
+title: "A Table with a View"
+weight: 1
 ---
 
-### [Creating a Feature](#creating-a-feature)
-
-A feature can mean a lot of different things. Here we'll give a quick rundown of what you might need to do when developing a new feature. We'll try to cover all aspects of what might be needed, from the database to the user interface.
-
-Perhaps the most important aspect of any new implementation is the underlying data structure. We can either first create a Typescript type, or a Postgres table, depending on our needs. Generally, both will be necessary, as the Typescript type will be used to represent the Postgres table.
-
-#### [A Table with a View](#a-table-with-a-view)
+### [A Table with a View](#a-table-with-a-view)
 
 All database scripts for the platform are stored in the `/db/scripts` folder. They will be run the first time the db container runs while using an empty volume. For example, when you run the first time developer installation, a docker volume is created and, since it is empty, the Postgres docker installation will automatically run our database scripts for us. The scripts are named alphanumerically and will be run in that order.
 
@@ -48,7 +42,7 @@ To connect to a deployed db, use the `util db` CLI command.
 CREATE TABLE ...
 ```
 
-If you take a look at the `/db/scripts` files and review how existing tables are deployed, auditing columns are included most everywhere. As an example, we'll setup a basic todo feature in our app. We'll make a new file in the scripts folder, `/db/scripts/c1-custom_tables.sh`. It's a shell file as this is one way to perform the auto deployment when the Postgres container starts up for the first time. We'll put the following in our file, as well as run the SQL statement as shown in one of the methods above.
+If you take a look at the `/db/scripts` files and review how existing tables are deployed, auditing columns are included most everywhere. As an example, we'll setup a basic todo feature in our app. We'll make a new file in the scripts folder, `/db/scripts/c1-custom_tables.sh`. It's a shell file because this is the chosen method to enact the auto deployment when the Postgres container starts up for the first time. We'll put the following in our file, as well as run the SQL statement as shown in one of the methods above.
 
 ```bash
 #!/bin/bash
