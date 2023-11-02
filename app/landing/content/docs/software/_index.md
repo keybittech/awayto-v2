@@ -1,11 +1,11 @@
 ---
-title: "Features"
+title: "Software"
 weight: 5
 ---
 
-## [Features](#features)
+## [Software](#software)
 
-In no particular order, here are the first-class softwares used in Awayto, some of their key features, and a primary source for its usage in the system:
+In no particular order, the following lists the third-party software used in Awayto, along with their key features and a primary source for  usage in the system:
 
 | Technology | Description | Source |
 |-|-|-|
