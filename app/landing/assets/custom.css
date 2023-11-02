@@ -17,11 +17,11 @@
   flex: 1;
   padding: 15px;
   height: 100vh;
+  overflow-y: auto;
 }
 
 .sidebar .fixed {
   height: 100%;
-  overflow-y: auto;
 }
 
 .post-content {
