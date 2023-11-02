@@ -6,4 +6,4 @@ weight: 1
 
 # [Awayto Information and Documentation](#awayto-information-and-documentation)
 
-Thanks for visiting! This documentation is work in progress and will be completed Soon:tm:.
+Thanks for visiting! This documentation is work in progress.
