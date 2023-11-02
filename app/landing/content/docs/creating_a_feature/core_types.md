@@ -19,6 +19,6 @@ export type ITodo = {
 }
 ```
 
-As expected, we define a structure matching the output of the view we created earlier. The type name is preceeded with an I to denote that it is an Internal type to the system. This is all that's required to utilize this type in other parts of the system. Next we'll expand this same file with our desired API usage.
+As expected, we define a structure matching the output of the view we created earlier. A commonly used convention is to preceed the name with an I to denote that it is an Internal type to the system. This is all that's required to utilize this type in other parts of the system. Next we'll expand this same file with our desired API usage.
 
 Note: Any time you add a new file or update to the core package, it's generally a good idea to fully restart any running dev servers when developing the API or UI.
