@@ -1,0 +1,5 @@
+#!/bin/sh
+
+. ./bin/util/genenv
+
+ssh "$TAILSCALE_OPERATOR@$EXIT_HOST" "sudo rm -rf /var/cache/nginx && sudo systemctl restart nginx"
