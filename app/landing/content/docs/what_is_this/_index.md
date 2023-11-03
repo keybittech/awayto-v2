@@ -5,7 +5,7 @@ weight: 3
 
 ## [What is Awayto?](#what-is-awayto)
 
-Awayto provides developers and business with a self-hosted web platform. The system positions collaborative multi-modal features (voice/video/chat/docs) within a robust collection of operations-driven functionality (users/groups/roles/services/scheduling/surveying/reporting). Many founding principles of the system were derived from previous experience developing and extending an online writing center. However, Awayto is built to be generic-purpose and enable the development of online platforms with multi-modal needs.
+Awayto provides developers and businesses with a self-hosted web platform. Collaborative multi-modal features (voice/video/chat/docs) are positioned within a robust collection of operations-driven functionality (users/groups/roles/services/scheduling/surveying/reporting). Many founding principles of the platform were derived from previous experience developing and extending an online writing center. However, Awayto is built to be generic-purpose and enable the development of online platforms with multi-modal needs.
 
 For developers, Awayto is based around some core ideas:
 
