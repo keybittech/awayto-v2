@@ -19,6 +19,9 @@
   padding: 15px;
   height: 100vh;
   overflow-y: auto;
+}
+
+.sidebar ul {
   padding-bottom: 100px;
 }
 

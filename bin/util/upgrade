@@ -1,0 +1,23 @@
+#!/bin/sh
+
+. ./bin/util/genenv
+
+SERVERS="svc app db builder ns1 ns2 exit"
+
+for SERVER in $SERVERS; do
+echo "Sending update instructions to $PROJECT_PREFIX-$SERVER"
+ssh -T $TAILSCALE_OPERATOR@$PROJECT_PREFIX-$SERVER << EOF
+nohup sh -c '
+  DEBIAN_FRONTEND=noninteractive sudo apt-get update -y
+  DEBIAN_FRONTEND=noninteractive sudo apt-get upgrade -y
+  sudo apt-get autoremove -y
+
+
+    if command -v docker >/dev/null 2>&1; then
+      docker stop \$(docker ps -q)
+    fi
+
+    sudo reboot' > /dev/null 2>&1 &
+EOF
+sleep 3
+done
