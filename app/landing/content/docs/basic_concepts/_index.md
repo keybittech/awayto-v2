@@ -5,7 +5,7 @@ weight: 2
 
 ## [Basic Concepts](#basic-concepts)
 
-Awayto is for those seeking a web platform containing many features out of the box which can be further built upon. The core of the project was developed by a single person, with the intention of simplifying development and making constructs to enhance development. The goal is to provide a path to fast feature development.
+Awayto is for those seeking a web platform containing many features out of the box which can be further built upon. The project is developed by a single person, with the intention of simplifying development and making constructs to enhance development. The goal is to provide a path to fast feature development.
 
 If you're a novice developer and are interested in running everything yourself, you will be provided with step-by-step instructions on how to install, deploy, and expand a platform you control. Otherwise, it is assumed the developer is familiar with common web technologies like APIs and databases, as well as being proficient in Typescript, SQL, and shell scripts. 
 
