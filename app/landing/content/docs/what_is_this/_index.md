@@ -1,6 +1,6 @@
 ---
 title: "What is Awayto?"
-weight: 3
+weight: 2
 ---
 
 ## [What is Awayto?](#what-is-awayto)
