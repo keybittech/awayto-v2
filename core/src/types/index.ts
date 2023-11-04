@@ -29,7 +29,6 @@ import serviceAddonApiRef from './service_addon';
 import serviceTierApiRef from './service_tier';
 import serviceApiRef from './service';
 import uuidNotesApiRef from './uuid_notes';
-import todoApiRef from './todo';
 
 export function createSiteApi<T extends ApiMap>(apis: T): T {
   return apis;
@@ -67,8 +66,7 @@ export const siteApiRef = createSiteApi({
   ...serviceAddonApiRef,
   ...serviceTierApiRef,
   ...serviceApiRef,
-  ...uuidNotesApiRef,
-  ...todoApiRef
+  ...uuidNotesApiRef
 });
 
 export type ApiHandlers = ApiHandler<typeof siteApiRef>;
@@ -114,4 +112,3 @@ export * from './time_unit';
 export * from './util';
 export * from './uuid_notes';
 export * from './web_socket';
-export * from './todo';
