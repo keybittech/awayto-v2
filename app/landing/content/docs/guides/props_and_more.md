@@ -57,4 +57,13 @@ export type ApiProps<T extends AnyRecord | AnyRecordTypes> = {
 }
 ```
 
-- `event`: 
+- `event`: Described above.
+- `db`: A `pg-promise` based database client.
+- `fetch`: NodeJS `fetch` library.
+- `logger`: A simple logging utility for sending messages to our Graylog instance.
+- `redis`: NodeJS `redis` library.
+- `redisProxy`: A server-local `redis` cache for commonly used server configurations.
+- `keycloak`: NodeJS `keycloak-admin-client` library.
+- `fs`: A set of functions to store, expire, and get files from the file storage instance.
+- `ai`: Application wrapper around the `wizapp` package.
+- `tx`: When in a MUTATION-based handler, this is the available database transaction.

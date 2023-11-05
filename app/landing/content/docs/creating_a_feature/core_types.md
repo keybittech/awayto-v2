@@ -7,7 +7,7 @@ weight: 2
 
 Whether represting data structures from a custom process, external API, or database table, we use Typescript to define the type of data usable throughout the application layer. Types are primarily used in the API or UI. To make our types available to the stack, we can define it in the `/core/src/types` folder.
 
-Using our example, we create a new file in the core types folder to support our Todo feature, `/core/src/types/todo.ts`. Files are named using the singular variant of objects, as are most of an object's constructs. One exception is endpoint URLs, which use plural form, `todos`.
+Using our Todo example, we create a new file in the core types folder to support our Todo feature, `/core/src/types/todo.ts`. Files are named using the singular variant of objects, as are most of an object's constructs. One exception is endpoint URLs, which use plural form, `todos`.
 
 ```typescript
 export type ITodo = {
