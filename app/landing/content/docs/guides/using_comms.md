@@ -41,6 +41,7 @@ export function UserChat({ chatId }: IProps): React.JSX.Element {
 
   const [messages, setMessages] = useState([])
 
+  // Here we'll instantiate the socket subscription with an arbitrary 'chatId' (which should be the same for all participants), and a very simple payload of { message: string }, which could be any structure necessary depending on the feature being implemented
   const {
     userList,
     subscriber,
@@ -81,7 +82,7 @@ export function UserChat({ chatId }: IProps): React.JSX.Element {
     storeMessage('stored-message', { message }); // This { message } payload is bound by the type supplied to `useWebSocketSubscribe`
 
     // Or just send a message between clients
-    sendMessage('normal-message', { message }); // It doesn't matter what the type is, but 'normal-message' will be available in the callback of `useWebSocketSubscribe` for further handling if needed
+    sendMessage('normal-message', { message }); // It doesn't matter what the type is, but 'normal-message' will be available in the callback of `useWebSocketSubscribe` as `type` for further handling if needed
   }
 
   return <>
@@ -91,3 +92,4 @@ export function UserChat({ chatId }: IProps): React.JSX.Element {
 
 ```
 
+There is a lot we can accomplish with the `useWebSocketSubscribe` and it can be configured for any pub/sub related context. For a look at more advanced uses of the socket, review the [Call provider]({{< param "repoURL" >}}/blob/main/app/website/src/modules/web_socket/WSCallProvider.tsx), [Text provider]({{< param "repoURL" >}}/blob/main/app/website/src/modules/web_socket/WSTextProvider.tsx) and [Whiteboard component]({{< param "repoURL" >}}/blob/main/app/website/src/modules/exchange/Whiteboard.tsx) to see how message types can be utilized more fully, how to handle subscribers, and more.
