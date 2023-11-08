@@ -43,7 +43,7 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
     userList,
     connectionId,
     sendMessage
-  } = useWebSocketSubscribe<ExchangeSessionAttributes>(topicId, ({ sender, topic, type, payload }) => {
+  } = useWebSocketSubscribe<ExchangeSessionAttributes>(topicId, ({ sender, topic, action, payload }) => {
     const timestamp = (new Date()).toString();
     const { formats, target, sdp, ice, message, style } = payload;
 
@@ -51,7 +51,7 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
       return;
     }
 
-    if ('text' === type && setTopicMessages && message && style) {
+    if ('text' === action && setTopicMessages && message && style) {
       for (const user of userList.values()) {
         if (user.cids.includes(sender)) {
           setTopicMessages(m => [...m, {
@@ -63,7 +63,7 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
           }]);
         }
       }
-    } else if (['join-call', 'peer-response'].includes(type)) {
+    } else if (['join-call', 'peer-response'].includes(action)) {
       // Parties to an incoming caller's 'join-call' will see this, and then notify the caller that they exist in return
       // The caller gets a party member's 'peer-response', and sets them up in return
       if (formats && setTopicMessages) {
@@ -81,7 +81,7 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
       }
 
       const startedSender: Sender = {
-        peerResponse: 'peer-response' === type ? true : false
+        peerResponse: 'peer-response' === action ? true : false
       };
 
       startedSender.pc = new RTCPeerConnection(peerConnectionConfig)

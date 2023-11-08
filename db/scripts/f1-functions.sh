@@ -105,7 +105,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
     p_schedule_id UUID
   )
   RETURNS TABLE (
-    type TEXT,
+    partType TEXT,
     ids JSONB
   )  AS $$
   BEGIN

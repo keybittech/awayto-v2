@@ -32,8 +32,8 @@ export function WSTextProvider({ children, topicId, topicMessages, setTopicMessa
     subscriber,
     unsubscriber,
     storeMessage
-  } = useWebSocketSubscribe<{ message: string, style: SocketMessage['style'] }>(topicId, ({ timestamp, sender, topic, type, payload }) => {
-    console.log('RECEIVED A NEW SOCKET TEXT', { userList, connectionId, sender, topic, type }, JSON.stringify(payload));
+  } = useWebSocketSubscribe<{ message: string, style: SocketMessage['style'] }>(topicId, ({ timestamp, sender, topic, action, payload }) => {
+    console.log('RECEIVED A NEW SOCKET TEXT', { userList, connectionId, sender, topic, action }, JSON.stringify(payload));
 
     const { message, style } = payload;
 

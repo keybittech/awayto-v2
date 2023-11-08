@@ -58,12 +58,12 @@ function WebSocketProvider({ children }: IProps): React.JSX.Element {
   
         ws.onmessage = (event: MessageEvent<{ text(): Promise<string> }>) => {
           async function go () {
-            const { timestamp, sender, type, topic, payload } = JSON.parse(await event.data.text()) as SocketResponse<unknown>;
+            const { timestamp, sender, action, topic, payload } = JSON.parse(await event.data.text()) as SocketResponse<unknown>;
             const listeners = messageListeners.current.get(topic);
       
             if (listeners) {
               for (const listener of listeners) {
-                void listener({ timestamp, sender, type, topic, payload: payload || {} });
+                void listener({ timestamp, sender, action, topic, payload: payload || {} });
               }
             }
           }
@@ -91,9 +91,9 @@ function WebSocketProvider({ children }: IProps): React.JSX.Element {
   const webSocketContext = {
     connectionId,
     connected: socket?.readyState === WebSocket.OPEN,
-    transmit(store, type, topic, payload) {
+    transmit(store, action, topic, payload) {
       if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({ sender: connectionId, store, type, topic, payload }));
+        socket.send(JSON.stringify({ sender: connectionId, store, action, topic, payload }));
       }
     },
     subscribe(topic, callback) {

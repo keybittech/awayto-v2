@@ -6,17 +6,17 @@ export async function handleSubscription(wss, ws, message) {
   const parsed = JSON.parse(message.toString());
   // Parsed will have a sender, topic and type, might have a message or other
   
-  if ('subscribe' === parsed.type) {
+  if ('subscribe' === parsed.action) {
     await subscribe(wss.backchannel, parsed, ws);
-  } else if ('load-messages' === parsed.type) {
+  } else if ('load-messages' === parsed.action) {
     if (ws.subscriber.subscribedTopics.has(parsed.topic)) {
       wss.backchannel.send(Buffer.from(JSON.stringify({
         sender: ws.connectionId,
-        type: 'load-messages',
+        action: 'load-messages',
         topic: parsed.topic
       })));
     }
-  } else if ('unsubscribe' === parsed.type) {
+  } else if ('unsubscribe' === parsed.action) {
     await unsubscribe(wss, ws.connectionId, parsed.topic);
     ws.subscriber.subscribedTopics.delete(parsed.topic);
   } else if (ws.backchannel && parsed.target) {

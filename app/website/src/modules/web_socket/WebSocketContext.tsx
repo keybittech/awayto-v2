@@ -5,7 +5,7 @@ declare global {
   type WebSocketContextType = {
     connectionId: string;
     connected: boolean;
-    transmit: (store: boolean, type: string, topic: string, payload?: Partial<unknown>) => void;
+    transmit: (store: boolean, action: string, topic: string, payload?: Partial<unknown>) => void;
     subscribe: <T>(topic: string, callback: SocketResponseHandler<T>) => () => void;
   }
 }

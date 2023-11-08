@@ -7,7 +7,7 @@ import { ApiOptions, EndpointType } from './api';
 export type SocketResponse<T> = {
   store?: boolean;
   sender: string;
-  type: string;
+  action: string;
   topic: string;
   timestamp: string;
   payload: Partial<T>;

@@ -1,8 +1,7 @@
 // useWebSocket.js
 import { useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { SocketParticipant, SocketResponseHandler, deepClone, generateLightBgColor } from 'awayto/core';
+import { SocketParticipant, SocketResponseHandler, generateLightBgColor } from 'awayto/core';
 import { useContexts } from './useContexts';
-import { sh } from './store';
 
 export function useWebSocketSend() {
   const context = useContext(useContexts().WebSocketContext) as WebSocketContextType;
@@ -50,14 +49,14 @@ export function useWebSocketSubscribe <T>(topic: string, callback: SocketRespons
     if (connected) {
 
       const unsubscribe = subscribe(topic, message => {
-        if (['existing-subscribers', 'subscribe-topic'].includes(message.type)) {
+        if (['existing-subscribers', 'subscribe-topic'].includes(message.action)) {
           for (const sub of message.payload as SocketParticipant[]) {
             handleSub(sub);
           }
-          if ('existing-subscribers' === message.type) {
+          if ('existing-subscribers' === message.action) {
             transmit(false, 'load-messages', topic);
           }
-        } else if ('unsubscribe-topic' === message.type) {
+        } else if ('unsubscribe-topic' === message.action) {
           for (const unsub of userList.values()) {
             if (unsub.cids.includes(message.payload as string)) {
               setUserList(ul => {
@@ -88,14 +87,14 @@ export function useWebSocketSubscribe <T>(topic: string, callback: SocketRespons
     unsubscriber,
     connectionId,
     connected,
-    storeMessage: (type: string, payload?: Partial<T>) => {
+    storeMessage: (action: string, payload?: Partial<T>) => {
       if (connected) {
-        transmit(true, type, topic, payload);
+        transmit(true, action, topic, payload);
       }
     },
-    sendMessage: (type: string, payload?: Partial<T>) => {
+    sendMessage: (action: string, payload?: Partial<T>) => {
       if (connected) {
-        transmit(false, type, topic, payload);
+        transmit(false, action, topic, payload);
       }
     }
   }), [connectionId, connected, userList, subscriber, unsubscriber]);

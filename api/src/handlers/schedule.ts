@@ -82,7 +82,7 @@ export default createHandlers({
       updated_on: utcNowString()
     });
 
-    const schedule = await props.tx.one<ISchedule>(`
+    await props.tx.none(`
       UPDATE dbtable_schema.schedules
       SET ${updateProps.string}
       WHERE id = $1
@@ -162,8 +162,8 @@ async function removeScheduleBrackets<Q extends AnyRecord>(scheduleId: string, p
     SELECT * FROM dbfunc_schema.get_scheduled_parts($1);
   `, [scheduleId]);
 
-  const scheduledSlots = parts.find(p => p.ids?.length && 'slot' === p.type);
-  const scheduledServices = parts.find(p => p.ids?.length && 'service' === p.type);
+  const scheduledSlots = parts.find(p => p.ids?.length && 'slot' === p.partType);
+  const scheduledServices = parts.find(p => p.ids?.length && 'service' === p.partType);
 
   const { ids }= await props.tx.one<{ ids: string[] }>(`
     SELECT JSONB_AGG(id) as ids FROM dbtable_schema.schedule_brackets

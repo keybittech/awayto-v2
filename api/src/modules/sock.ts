@@ -51,7 +51,7 @@ async function go() {
 
       ws.onmessage = async ({ data }) => {
         const { store, ...event } = JSON.parse(data.toString()) as SocketResponse<unknown>;
-        if ('subscribe-topic' === event.type) {
+        if ('subscribe-topic' === event.action) {
           const subscribers = await db.manyOrNone<SocketParticipant>(`
             SELECT
               ARRAY_AGG(source.connection_id) as cids,
@@ -69,7 +69,7 @@ async function go() {
               ws.send(JSON.stringify(event));
             }
           }
-        } else if ('existing-subscribers' === event.type) {
+        } else if ('existing-subscribers' === event.action) {
           const subscribers = await db.manyOrNone<SocketParticipant>(`
             SELECT DISTINCT
               ARRAY_AGG(connection_id) as cids,
@@ -90,7 +90,7 @@ async function go() {
               }));
             }
           }
-        } else if ('load-messages' === event.type) {
+        } else if ('load-messages' === event.action) {
           const messages = await db.manyOrNone<{ timestamp: string, message: SocketResponse<unknown> }>(`
             SELECT JSONB_SET(message, '{timestamp}', TO_JSONB(created_on), true) as message
             FROM dbtable_schema.topic_messages
@@ -98,7 +98,7 @@ async function go() {
             ORDER BY created_on ASC
           `, [event.topic]);
           for (const { message } of messages) {
-            if (!['subscribe', 'unsubscribe'].includes(message.type)) {
+            if (!['subscribe', 'unsubscribe'].includes(message.action)) {
               ws.send(JSON.stringify({
                 target: event.sender,
                 payload: message

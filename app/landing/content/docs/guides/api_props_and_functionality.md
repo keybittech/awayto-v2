@@ -1,9 +1,9 @@
 ---
-title: "Props and More"
+title: "API Props and Functionality"
 weight: 2
 ---
 
-### [Props and More](#props-and-more)
+### [API Props and Functionality](#api-props-and-functionality)
 
 An API handler is an asynchronous function taking a single parameter, `props`, which provides access to functionality and user resources. For the most part, we can get by with everything we'll find in props. But, as we'll see, there are other tools in our bag we can reach for when interacting with the API.
 

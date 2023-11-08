@@ -58,23 +58,23 @@ export default function Whiteboard({ optionsMenu, sharedFile, openFileSelect, to
     connectionId,
     userList,
     sendMessage: sendWhiteboardMessage
-  } = useWebSocketSubscribe<Whiteboard>(topicId, ({ sender, type, payload }) => {
+  } = useWebSocketSubscribe<Whiteboard>(topicId, ({ sender, action, payload }) => {
     setBoards(b => {
       const board = {  ...b[sender], ...payload };
-      if ('set-position' === type) {
+      if ('set-position' === action) {
         const [left, top] = board.settings?.position || [];
         fileScroller.current?.scrollTo({ left, top });
-      } else if ('set-scale' === type) {
+      } else if ('set-scale' === action) {
         whiteboard.current.settings.scale = board.settings?.scale || 1;
         setZoom(whiteboard.current.settings.scale);
-      } else if ('set-page' === type) {
+      } else if ('set-page' === action) {
         whiteboard.current.settings.page = board.settings?.page || 1;
         setPageNumber(whiteboard.current.settings.page);
-      } else if ('draw-lines' === type) {
+      } else if ('draw-lines' === action) {
         if (connectionId !== sender) {
           handleLines(payload.lines, board.settings);
         }
-      } else if ('share-file' === type) {
+      } else if ('share-file' === action) {
         const fileDetails = { mimeType: board.sharedFile?.mimeType, uuid: board.sharedFile?.uuid };
         if (connectionId !== sender) {
           for (const user of userList.values()) {
@@ -91,7 +91,7 @@ export default function Whiteboard({ optionsMenu, sharedFile, openFileSelect, to
         } else {
           getFileContents(fileDetails).catch(console.error);
         }
-      } else if ('change-setting' === type) {
+      } else if ('change-setting' === action) {
       }
       return { ...b, [sender]: board };
     });

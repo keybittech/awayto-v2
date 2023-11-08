@@ -17,7 +17,7 @@ export enum BookingModes {
  */
 export type ScheduledParts = {
   ids?: string[];
-  type: string;
+  partType: string;
 }
 
 /**
