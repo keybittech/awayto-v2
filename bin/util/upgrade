@@ -12,12 +12,13 @@ nohup sh -c '
   DEBIAN_FRONTEND=noninteractive sudo apt-get upgrade -y
   sudo apt-get autoremove -y
 
-
+  if [ -f /var/run/reboot-required ]; then
     if command -v docker >/dev/null 2>&1; then
       docker stop \$(docker ps -q)
     fi
 
-    sudo reboot' > /dev/null 2>&1 &
+    sudo reboot
+  fi' > /dev/null 2>&1 &
 EOF
 sleep 3
 done
