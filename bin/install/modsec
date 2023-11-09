@@ -59,14 +59,7 @@ sudo cp /opt/modsecurity-v3.0.8/modsecurity.conf-recommended /etc/nginx/modsec/m
 
 sudo sed -i 's/SecRuleEngine DetectionOnly/SecRuleEngine On/g' /etc/nginx/modsec/modsecurity.conf
 
-sudo touch /etc/nginx/modsec/main.conf
-
-echo -e "\n\n\n" | sudo tee -a /etc/nginx/modsec/modsecurity.conf
-echo -e "\n\n\n" | sudo tee -a /etc/nginx/modsec/modsecurity.conf
-echo -e "\n\n" | sudo tee -a /etc/nginx/modsec/modsecurity.conf
-echo -e "\n\n" | sudo tee -a 
-
-echo -e "
+echo "
 # Set Paranoia 1
 SecAction \"id:900000, phase:1, pass, t:none, nolog, setvar:tx.paranoia_level=1\"
 
@@ -85,7 +78,9 @@ SecRule REQUEST_URI \"^/api/files/content\" \"id:1200,phase:1,t:none,nolog,chain
 SecRule REQUEST_HEADERS:Content-Type \"application/octet-stream\" \"t:none,ctl:ruleRemoveById=920420\"
 " | sudo tee -a /etc/nginx/modsec/modsecurity.conf
 
-echo -e "
+sudo touch /etc/nginx/modsec/main.conf
+
+echo "
 Include /etc/nginx/modsec/modsecurity.conf
 Include /usr/local/modsecurity-crs/crs-setup.conf
 Include /usr/local/modsecurity-crs/rules/*.conf
