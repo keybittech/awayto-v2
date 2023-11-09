@@ -12,8 +12,6 @@ ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST << EOF
 cd /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX
 
 git reset --hard HEAD
-git fetch --all
-git checkout dev
 git pull
 cp ./deploy/docker-compose.yml .
 
