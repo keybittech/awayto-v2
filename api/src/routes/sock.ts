@@ -36,7 +36,7 @@ router.post('/ticket', checkAuthenticated, async (req, res, next) => {
   }
 });
 
-router.post('/allowances', async (req, res ) => {
+router.post('/allowances', checkBackchannel, async (req, res ) => {
   const { sub } = req.body as { [prop: string]: string };
 
   const bookings = (await db.manyOrNone<IBooking>(`
@@ -49,7 +49,7 @@ router.post('/allowances', async (req, res ) => {
   res.send(JSON.stringify({ allowances: { bookings } }))
 })
 
-router.post('/connect', async (req, res) => {
+router.post('/connect', checkBackchannel, async (req, res) => {
   const { sub, connectionId } = req.body as { [prop: string]: string };
   await db.none(`
     INSERT INTO dbtable_schema.sock_connections (created_sub, connection_id)
