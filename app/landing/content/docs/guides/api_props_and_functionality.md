@@ -7,7 +7,7 @@ weight: 2
 
 An API handler is an asynchronous function taking a single parameter, `props`, which provides access to functionality and user resources. For the most part, we can get by with everything we'll find in props. But, as we'll see, there are other tools in our bag we can reach for when interacting with the API.
 
-To begin with, all requests contain an `event`. The event type is a generic which expects `typeof queryArg` from an endpoint definition. The following describes all of the pieces of data available in the `event`:
+To begin with, all requests contain an event, accessed at `props.event`. The event type is a generic which expects `typeof queryArg` from an endpoint definition. The following describes all of the pieces of data available in the `event`:
 
 ```typescript
 export type ApiEvent<T extends AnyRecord | AnyRecordTypes> = {
@@ -40,7 +40,6 @@ export type ApiEvent<T extends AnyRecord | AnyRecordTypes> = {
 - `body`: The body of the request, which assumes the shape of the `queryArg` parameter of an endpoint definition.
 
 Now that we understand the metadata we can work with in every request, using the `props.event` accessor, let's look at the functionality available to each request. 
-
 
 ```typescript
 export type ApiProps<T extends AnyRecord | AnyRecordTypes> = {

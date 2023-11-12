@@ -42,7 +42,7 @@ To connect to a deployed db, use the `util db` CLI command.
 CREATE TABLE ...
 ```
 
-If you take a look at the `/db/scripts` files and review how existing tables are deployed, auditing columns are included most everywhere. As an example, we'll setup a basic todo feature in our app. We'll make a new file in the scripts folder, `/db/scripts/c1-custom_tables.sh`. It's a shell file because this is the chosen method to enact the auto deployment when the Postgres container starts up for the first time. We'll put the following in our file, as well as run the SQL statement as shown in one of the methods above.
+As an example, we'll setup a basic Todo feature in our app. We'll make a new file in the scripts folder, `/db/scripts/c1-custom_tables.sh`. It's a shell file because this is the chosen method to enact the auto deployment when the Postgres container starts up for the first time. We'll put the following in our file, as well as run the SQL statement as shown in one of the methods above. Auditing columns are included on all tables.
 
 ```bash
 #!/bin/bash

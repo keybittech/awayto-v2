@@ -16,17 +16,16 @@ import { createHandlers, ITodo } from 'awayto/core';
 
 export default createHandlers({
   postTodo: async props => {
-    const { task } = props.event.body;
-
     const { id } = await props.tx.one<ITodo>(`
       INSERT INTO dbtable_schema.todos (task)
       VALUES ($1)
       RETURNING id
-    `, [task]);
+    `, [props.event.body.task]);
 
     return { id };
-  }
+  },
+  // Make sure to define the rest of the handlers below
 });
 ```
 
-That's all there is to API handlers. Now our Express app is exposing the `POST /api/todos` endpoint. Check out the existing handlers in `/api/src/handlers` for examples of what can be done, as well as the [Props and More](#props-and-more) guide to learn more about what's available in the `props` object and its features.
+That's all there is to API handlers. Now our Express app is exposing the `POST /api/todos` endpoint. Check out the existing handlers in `/api/src/handlers` for examples of what can be done, as well as the [API Props and Functionality](#api-props-and-functionality) guide to learn more about what's available in the `props` object and its features.

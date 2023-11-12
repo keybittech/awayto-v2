@@ -5,7 +5,7 @@ weight: 1
 
 ### [API Options](#api-options)
 
-All API definitions conform to the same structure so they can eventually be merged together during compilation. This dictates the top-level structure of the definition, which is rigid but useful. The attribute `opts` allows for optional configuration, extending endpoint definitions as needed. For most endpoints `opts` will be defined as an empty object. Currently supported options are as follows:
+All API endpoint definitions (described in [Defining API Endpoints](#defining-api-endpoints)) conform to the same structure so they can eventually be merged together during compilation. This dictates the top-level structure of the definition, which is rigid but useful. The attribute `opts` allows for optional configuration, extending endpoint definitions as needed. For most endpoints `opts` will be defined as an empty object. Currently supported options are as follows:
 
 ```typescript
 export type ApiOptions = {

@@ -94,9 +94,9 @@ export function UserChat({ chatId }: IProps): React.JSX.Element {
 
 There is a lot we can accomplish with the `useWebSocketSubscribe` and it can be configured for any pub/sub related context. For a look at more advanced uses of the socket, review the [Call provider]({{< param "repoURL" >}}/blob/main/app/website/src/modules/web_socket/WSCallProvider.tsx), [Text provider]({{< param "repoURL" >}}/blob/main/app/website/src/modules/web_socket/WSTextProvider.tsx) and [Whiteboard component]({{< param "repoURL" >}}/blob/main/app/website/src/modules/exchange/Whiteboard.tsx) to see how multiple actions can be utilized more fully, how to handle subscribers, and more.
 
-#### Socket Authorization and Allowances
+#### Less Basic: Socket Authorization and Allowances
 
-The WebSocket protocol does not define any methods for securing the upgrade request necessary to establish a connection between server and client. However, authenticated users will have an ongoing session in our Express API. Therefore we can use it to ensure only authorized users can access the socket. Once the user is connected, the socket server can then handle its own requests in seeing which topics the user is allowed to connect to.
+The WebSocket protocol does not define any methods for securing the upgrade request necessary to establish a connection between server and client. However, authenticated users will have an ongoing session in our Express API. Therefore we can use it to ensure only authorized users can access the socket by using a ticketing system. Once the user is connected, the socket server can then handle its own requests in seeing which topics the user is allowed to connect to.
 
 In the API, we will find a dedicated set of [routes]({{< param "repoURL" >}}/blob/main/api/src/routes/sock.ts) for use with the socket server. The socket auth flow is as follows:
   - the browser makes a request to `/ticket`
@@ -106,9 +106,9 @@ In the API, we will find a dedicated set of [routes]({{< param "repoURL" >}}/blo
   - the socket server checks the incoming `authCode` against what has been stored on the server, expiring the ticket
   - the request is upgraded to a web socket connection and the browser can proceed to send messages using the `connectionId`
 
-After having connected, the socket connection should send a `'subscribe'` action, with the desired topic. An example of this can be seen in the [web socket provider]({{< param "repoURL" >}}/blob/main/api/src/routes/sock.ts). Before subscribing to a topic, the socket server must ensure the user is allowed. This can be done in many different ways depending on the purpose of the socket connection.
+After having connected, the client can use the `transmit` function described previously to send a  `'subscribe'` action, along with the desired topic. An abstracted example of this process is used in the `useWebSocketSubscribe` hook.
 
-Currently the only implementation for socket comms is based around the `Exchange` module, which handles meetings between users. Exchanges are a record representing what happens in a meeting. The meeting itself (date, time, participants, etc.) is a separate record called a `Booking`. Users joining an Exchange chatroom are required to be related to that booking record id in the database. This is a complex interaction but ensures participants are valid for a given topic. Using the Exchange concept as an example, we'll break down the process here:
+While subscribing to a topic, the socket server must ensure the user is allowed. This can be done in many different ways depending on the purpose of the socket connection. Currently the only implementation for socket comms is based around the `Exchange` module, which handles meetings between users. Exchanges are a record representing what happens in a meeting. The meeting itself (date, time, participants, etc.) is a separate record called a `Booking`. Users joining an Exchange chatroom are required to be related to that booking record id in the database. This is a complex interaction but ensures participants are valid for a given topic. Using the Exchange module as an example, we'll break down the process here:
 
 1. The users clicks, for example, a link which redirects them to `/app/exchange/:id` using a booking id, which routes them to the Exchange component, and pulls out the ID as a parameter.
 
@@ -119,13 +119,19 @@ Currently the only implementation for socket comms is based around the `Exchange
   topicMessages={topicMessages}
   setTopicMessages={setTopicMessages}
 >
-  ...
+  <WSCallProvider
+    topicId={`exchange/call:${exchangeContext.exchangeId}`}
+    topicMessages={topicMessages}
+    setTopicMessages={setTopicMessages}
+  >
+    <ExchangeComponent />
+  </WSCallProvider>
 </WSTextProvider>
 ```
 
-3. The text provider internally attempts to subscribe to our topicId. The socket server is responsible for checking the users's allowances at the moment of subscription. This process comes together in the socket server's [subscribe]({{< param "repoURL" >}}/blob/main/sock/events/subscribe.js) function.
+3. The text or call provider internally attempts to subscribe to our topicId, e.g. `exchange/text:${exchangeContext.exchangeId}`. The socket server is responsible for checking the users's allowances at the moment of subscription. This process comes together in the socket server's [subscribe]({{< param "repoURL" >}}/blob/main/sock/events/subscribe.js) function.
 
-4. At the start of subscribing, the socket server makes a request to `/api/allowances` which for now only supports `bookings` records, and would need to be expanded for other use cases. The API returns the list of booking ids which are relevant to the current user and attaches them to the `ws.subscriber.allowances` object.
+4. At the start of subscribing, the socket server makes a request to `/api/allowances`. The API returns the list of booking ids which are relevant to the current user and attaches them to the `ws.subscriber.allowances` object.
 
 5. A switch handler makes an arbitrary check to determine if the user has access to the topic id being requested. In the case of the booking/exchange system, this is very basic.
 
@@ -145,6 +151,6 @@ export const exchangeHandler = (ws, parsed) => {
 }
 ```
 
-6. If the handler finds that the user is indeed related to the booking id they are requesting for, the subscribe function continues on with all the wiring up of a user's socket connection.
+6. If the handler finds that the user is related to the booking id they are requesting for, the subscribe function continues on with all the wiring up of a user's socket connection.
 
-7. Now inside our React component, we can tap into `useWebSocketSubscribe`, or the text/call contexts.
+7. Now inside our Exchange component, we can tap into the text or call contexts.
