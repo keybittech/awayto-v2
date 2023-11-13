@@ -207,6 +207,15 @@ export const getBaseComponents: () => ThemeOptions = () => ({
           padding: '4px 0'
         }
       }
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          marginBottom: '4px',
+          padding: '6px 8px 4px',
+          alignItems: 'baseline'
+        }
+      }
     }
   }
 });
