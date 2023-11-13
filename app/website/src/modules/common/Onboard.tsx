@@ -216,7 +216,7 @@ export function Onboard({ reloadProfile, ...props }: IProps): React.JSX.Element 
                   {...props}
                   showCancel={false}
                   editGroup={group}
-                  editSchedule={schedule}
+                  editGroupSchedule={schedule}
                   closeModal={(savedSchedule: ISchedule) => {
                     setSchedule(savedSchedule);
                     setStep('review');

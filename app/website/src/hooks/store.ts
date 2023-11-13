@@ -9,7 +9,7 @@ import { RootState as ApiRootState } from '@reduxjs/toolkit/dist/query/core/apiS
 import { QueryArgFrom, ResultTypeFrom, QueryDefinition, MutationDefinition, QueryLifecycleApi, EndpointDefinitions } from '@reduxjs/toolkit/dist/query/endpointDefinitions';
 import { MutationTrigger, LazyQueryTrigger, UseLazyQueryLastPromiseInfo, UseQuery, UseLazyQuery, UseMutation } from '@reduxjs/toolkit/dist/query/react/buildHooks';
 
-import { ConfirmActionProps, EndpointType, IUtil, RemoveNever, ReplaceVoid, siteApiRef, utilConfig, encodeVal, authConfig } from 'awayto/core';
+import { ConfirmActionProps, EndpointType, IUtil, RemoveNever, ReplaceVoid, siteApiRef, utilConfig, encodeVal, authConfig, isVoid } from 'awayto/core';
 
 export const getQueryAuth = fetchBaseQuery({
   baseUrl: '/api',
@@ -179,6 +179,8 @@ export const sh = createApi({
     const ep = siteApiRef[endpointName as keyof typeof siteApiRef] as BuiltEndpoint;
     const { method, queryArg, resultType, url, opts } = ep;
   
+    const argKeys = Object.keys(queryArg);
+
     const kind = ep.kind as EndpointType;
   
     type EPQueryArg = typeof queryArg;
@@ -192,6 +194,12 @@ export const sh = createApi({
         const processedUrl = url.replace(/:(\w+)/g, (_, key) => args[key as keyof EPQueryArg]);
         if (kind === EndpointType.QUERY) {
           return processedUrl;
+        }
+
+        if (!isVoid(args)) {
+          for (const key in args) {
+            if (!argKeys.includes(key)) delete args[key as keyof typeof args];
+          }
         }
 
         return {

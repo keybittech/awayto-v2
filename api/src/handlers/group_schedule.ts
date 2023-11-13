@@ -1,31 +1,49 @@
-import { IGroup, IGroupSchedule, IGroupScheduleDateSlots, ISchedule, IUserProfile, asyncForEach, createHandlers, decodeVal } from 'awayto/core';
+import { IGroupSchedule, IGroupScheduleDateSlots, IUserProfile, asyncForEach, createHandlers, decodeVal, withEvent } from 'awayto/core';
 import scheduleApiHandler from './schedule';
 
 export default createHandlers({
   postGroupSchedule: async props => {
+    const { userSub } = props.event;
+    const groupUser = 'system_group_' + props.event.group.id;
+
     const { sub: groupSub } = await props.tx.one<IUserProfile>(`
       SELECT sub
       FROM dbtable_schema.users
       WHERE username = $1
-    `, ['system_group_' + props.event.group.id]);
+    `, [groupUser]);
+
+    props.event.userSub = groupSub;
+
+    const postedSchedule = await scheduleApiHandler.postSchedule(withEvent(props, props.event.body.schedule))
 
     // Attach schedule to group
     await props.tx.none(`
       INSERT INTO dbtable_schema.group_schedules (group_id, schedule_id, created_sub)
       VALUES ($1, $2, $3::uuid)
-      `, [props.event.group.id, props.event.body.scheduleId, groupSub]);
+    `, [props.event.group.id, postedSchedule.id, groupSub]);
 
-    await props.redis.del(`${props.event.userSub}group/schedules`);
+    await props.redis.del(`${userSub}group/schedules`);
 
-    return { success: true };
+    return { id: postedSchedule.id };
   },
   putGroupSchedule: async props => {
-    const groupSchedule = scheduleApiHandler.putSchedule(props) as Partial<IGroupSchedule>;
+    const { userSub } = props.event;
+    const groupUser = 'system_group_' + props.event.group.id;
 
-    await props.redis.del(`${props.event.userSub}group/schedules`);
-    await props.redis.del(`${props.event.userSub}group/schedulemaster/${groupSchedule.id}`);
+    const { sub: groupSub } = await props.tx.one<IUserProfile>(`
+      SELECT sub
+      FROM dbtable_schema.users
+      WHERE username = $1
+    `, [groupUser]);
 
-    return groupSchedule;
+    props.event.userSub = groupSub;
+
+    await scheduleApiHandler.putSchedule(withEvent(props, props.event.body.schedule)) as Partial<IGroupSchedule>;
+
+    await props.redis.del(`${userSub}group/schedules`);
+    await props.redis.del(`${userSub}group/schedules/master/${props.event.body.schedule.id}`);
+
+    return { success: true };
   },
   getGroupSchedules: async props => {
     const groups = await props.db.manyOrNone<IGroupSchedule>(`
@@ -39,7 +57,7 @@ export default createHandlers({
   },
   getGroupScheduleMasterById: async props => {
     const { scheduleId } = props.event.pathParameters;
-    const schedules = await props.db.one<ISchedule>(`
+    const schedules = await props.db.one<IGroupSchedule>(`
       SELECT ese.*
       FROM dbview_schema.enabled_schedules_ext ese
       JOIN dbtable_schema.schedules s ON s.id = ese.id

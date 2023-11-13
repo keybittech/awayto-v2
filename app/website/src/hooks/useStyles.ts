@@ -216,6 +216,15 @@ export const getBaseComponents: () => ThemeOptions = () => ({
           alignItems: 'baseline'
         }
       }
+    },
+    MuiDialog: {
+      styleOverrides: {
+        container: {
+          '.MuiCard-root': {
+            overflowY: 'scroll'
+          }
+        }
+      }
     }
   }
 });

@@ -385,3 +385,7 @@ export function withEvent<T extends AnyRecord>(props: ApiProps<AnyRecord>, event
     }
   };
 }
+
+export function isVoid(obj: unknown): obj is Void {
+  return Object.keys(obj as Record<string, unknown>).length === 0 || typeof obj === 'undefined';
+}

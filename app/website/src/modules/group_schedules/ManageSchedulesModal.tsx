@@ -13,23 +13,22 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import { Mark } from '@mui/base';
 
-import { ISchedule, ITimeUnit, TimeUnit, timeUnitOrder, getRelativeDuration,  scheduleSchema, IGroup } from 'awayto/core';
+import { IGroupSchedule, ITimeUnit, TimeUnit, timeUnitOrder, getRelativeDuration,  scheduleSchema, IGroup } from 'awayto/core';
 import { useComponents, useUtil, sh, useTimeName } from 'awayto/hooks';
 
 declare global {
   interface IProps {
     showCancel?: boolean;
     editGroup?: IGroup;
-    editSchedule?: ISchedule;
+    editGroupSchedule?: IGroupSchedule;
   }
 }
 
-export function ManageSchedulesModal({ children, editGroup, editSchedule, showCancel = true, closeModal, ...props }: IProps): React.JSX.Element {
+export function ManageSchedulesModal({ children, editGroup, editGroupSchedule, showCancel = true, closeModal, ...props }: IProps): React.JSX.Element {
 
   const { setSnack } = useUtil();
 
-  const [postSchedule] = sh.usePostScheduleMutation();
-  const [putSchedule] = sh.usePutScheduleMutation();
+  const [putGroupSchedule] = sh.usePutGroupScheduleMutation();
   const [postGroupSchedule] = sh.usePostGroupScheduleMutation();
   const [getGroupScheduleMasterById] = sh.useLazyGetGroupScheduleMasterByIdQuery();
 
@@ -37,7 +36,7 @@ export function ManageSchedulesModal({ children, editGroup, editSchedule, showCa
 
   const { SelectLookup } = useComponents();
 
-  const [schedule, setSchedule] = useState({ ...scheduleSchema, ...editSchedule } as ISchedule);
+  const [schedule, setSchedule] = useState({ ...scheduleSchema, ...editGroupSchedule } as IGroupSchedule);
 
   const scheduleTimeUnitName = useTimeName(schedule?.scheduleTimeUnitId);
   const bracketTimeUnitName = useTimeName(schedule?.bracketTimeUnitId);
@@ -92,9 +91,8 @@ export function ManageSchedulesModal({ children, editGroup, editSchedule, showCa
     schedule.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
     if (!editGroup) {
-      (schedule.id ? putSchedule : postSchedule)(schedule).unwrap().then(({ id }) => {
-        !schedule.id && postGroupSchedule({ scheduleId: id }).catch(console.error);
-        closeModal && closeModal({ ...schedule, id });
+      (schedule.id ? putGroupSchedule : postGroupSchedule)({ schedule }).unwrap().then(() => {
+        closeModal && closeModal();
       }).catch(console.error);
     } else {
       closeModal && closeModal(schedule);
@@ -104,8 +102,8 @@ export function ManageSchedulesModal({ children, editGroup, editSchedule, showCa
   useEffect(() => {
     async function go() {
       if (lookupsRetrieved) {
-        if (editSchedule?.id) {
-          const masterSchedule = await getGroupScheduleMasterById({ scheduleId: editSchedule.id }).unwrap();
+        if (editGroupSchedule?.id) {
+          const masterSchedule = await getGroupScheduleMasterById({ scheduleId: editGroupSchedule.id }).unwrap();
           setSchedule(masterSchedule);
         } else {
           setDefault('hoursweekly30minsessions');
@@ -118,7 +116,7 @@ export function ManageSchedulesModal({ children, editGroup, editSchedule, showCa
   if (!lookups?.timeUnits) return <></>;
 
   return <Card>
-    <CardHeader title={`${editSchedule ? 'Edit' : 'Create'} Schedule`}></CardHeader>
+    <CardHeader title={`${editGroupSchedule ? 'Edit' : 'Create'} Schedule`}></CardHeader>
     <CardContent>
       {!!children && children}
 

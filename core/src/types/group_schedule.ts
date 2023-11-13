@@ -36,16 +36,16 @@ export default {
     url: 'group/schedules',
     method: 'POST',
     opts: {} as ApiOptions,
-    queryArg: { scheduleId: '' as string },
-    resultType: { success: true as boolean }
+    queryArg: { schedule: {} as ISchedule },
+    resultType: { id: '' as string }
   },
   putGroupSchedule: {
     kind: EndpointType.MUTATION,
     url: 'group/schedules',
     method: 'PUT',
     opts: {} as ApiOptions,
-    queryArg: {} as IGroupSchedule,
-    resultType: {} as IGroupSchedule
+    queryArg: { schedule: {} as IGroupSchedule },
+    resultType: { success: true as boolean }
   },
   getGroupSchedules: {
     kind: EndpointType.QUERY,
@@ -61,7 +61,7 @@ export default {
     method: 'GET',
     opts: {} as ApiOptions,
     queryArg: { scheduleId: '' as string },
-    resultType: {} as ISchedule
+    resultType: {} as IGroupSchedule
   },
   getGroupScheduleByDate: {
     kind: EndpointType.QUERY,

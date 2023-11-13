@@ -86,7 +86,6 @@ export default createHandlers({
       UPDATE dbtable_schema.schedules
       SET ${updateProps.string}
       WHERE id = $1
-      RETURNING id, name
     `, updateProps.array);
 
     return { id };

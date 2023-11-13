@@ -87,10 +87,12 @@ export function ManageScheduleBracketsModal({ editSchedule, closeModal }: IProps
   const handleSubmit = useCallback(() => {
     async function go() {
       if (schedule && schedule.name && scheduleBracketsValues.length) {
-        const userSchedule = { ...schedule };
-        if (!editSchedule) {
+
+        let userScheduleId = editSchedule?.id;
+
+        if (!userScheduleId) {
           const newSchedule = await postSchedule(schedule).unwrap();
-          userSchedule.id = newSchedule.id;
+          userScheduleId = newSchedule.id;
         }
 
         const newBrackets = scheduleBracketsValues.reduce<Record<string, IScheduleBracket>>(
@@ -108,13 +110,13 @@ export function ManageScheduleBracketsModal({ editSchedule, closeModal }: IProps
         );
 
         await postScheduleBrackets({
-          scheduleId: userSchedule.id,
+          scheduleId: userScheduleId,
           brackets: newBrackets
         }).catch(console.error);
 
         if (!editSchedule) {
           await postGroupUserSchedule({
-            userScheduleId: userSchedule.id,
+            userScheduleId: userScheduleId,
             groupScheduleId: schedule.id
           }).catch(console.error);
         }

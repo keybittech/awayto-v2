@@ -13,7 +13,7 @@ import MoreTimeIcon from '@mui/icons-material/MoreTime';
 
 import { DataGrid } from '@mui/x-data-grid';
 
-import { ISchedule } from 'awayto/core';
+import { IGroupSchedule } from 'awayto/core';
 import { useComponents, useGrid, sh, useUtil, useStyles } from 'awayto/hooks';
 
 import ManageSchedulesModal from './ManageSchedulesModal';
@@ -29,7 +29,7 @@ export function ManageSchedules(props: IProps): React.JSX.Element {
   
   const { data: groupSchedules, refetch: getGroupSchedules } = sh.useGetGroupSchedulesQuery();
 
-  const [schedule, setSchedule] = useState<ISchedule>();
+  const [schedule, setSchedule] = useState<IGroupSchedule>();
   const [selected, setSelected] = useState<string[]>([]);
   const [dialog, setDialog] = useState('');
 
@@ -95,7 +95,7 @@ export function ManageSchedules(props: IProps): React.JSX.Element {
   return <>
     <Dialog open={dialog === 'manage_schedule'} fullWidth maxWidth="sm">
       <Suspense>
-        <ManageSchedulesModal {...props} editSchedule={schedule} closeModal={() => {
+        <ManageSchedulesModal {...props} editGroupSchedule={schedule} closeModal={() => {
           setDialog('');
           void getGroupSchedules();
         }} />

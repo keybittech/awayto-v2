@@ -1,8 +1,6 @@
-import { IPrompts } from '@keybittech/wizapp/dist/lib';
-import { ApiInternalError, DbError, IGroup, IGroupRole, IGroupRoleAuthActions, IRole, IUserProfile, buildUpdate, utcNowString, asyncForEach, nid, createHandlers, withEvent, IService, Void } from 'awayto/core';
+import { ApiInternalError, DbError, IGroup, IGroupRole, IGroupRoleAuthActions, IUserProfile, buildUpdate, utcNowString, asyncForEach, nid, createHandlers, withEvent, Void } from 'awayto/core';
 import serviceApiHandler from './service';
 import groupServiceApiHandler from './group_service';
-import scheduleApiHandler from './schedule';
 import groupScheduleApiHandler from './group_schedule';
 import profileApiHandler from './profile';
 
@@ -467,9 +465,7 @@ export default createHandlers({
 
     await groupServiceApiHandler.postGroupService(withEvent(props, { serviceId }));
 
-    const { id: scheduleId } = await scheduleApiHandler.postSchedule(withEvent(props, schedule));
-
-    await groupScheduleApiHandler.postGroupSchedule(withEvent(props, { scheduleId }));
+    await groupScheduleApiHandler.postGroupSchedule(withEvent(props, { schedule }));
 
     await profileApiHandler.activateProfile(withEvent(props, {} as Void));
 

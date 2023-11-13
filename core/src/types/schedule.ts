@@ -103,7 +103,7 @@ export default {
     url: 'schedules',
     method: 'POST',
     opts: {} as ApiOptions,
-    queryArg: {} as ISchedule,
+    queryArg: { name: '' as string, scheduleTimeUnitId: '' as string, bracketTimeUnitId: '' as string, slotTimeUnitId: '' as string, slotDuration: 0 as number, startTime: '' as string, endTime: '' as string, timezone: '' as string },
     resultType: { id: '' as string }
   },
   postScheduleBrackets: {
