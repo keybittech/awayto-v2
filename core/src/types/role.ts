@@ -30,7 +30,7 @@ export default {
     url: 'roles',
     method: 'PUT',
     opts: {} as ApiOptions,
-    queryArg: {} as IRole,
+    queryArg: { id: '' as string, name: '' as string },
     resultType: {} as IRole
   },
   getRoles: {

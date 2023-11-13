@@ -33,7 +33,7 @@ export default {
     url: 'service',
     method: 'PUT',
     opts: {} as ApiOptions,
-    queryArg: { name: '' as string, cost: '' as string, formId: '' as string, surveyId: '' as string, tiers: {} as Record<string, IServiceTier> },
+    queryArg: { id: '' as string, name: '' as string, cost: '' as string, formId: '' as string, surveyId: '' as string, tiers: {} as Record<string, IServiceTier> },
     resultType: { id: '' as string }
   },
   getServices: {

@@ -30,7 +30,7 @@ export function ManageRoles(): React.JSX.Element {
   const [deleteRole] = sh.useDeleteRoleMutation();
   const [deleteGroupRole] = sh.useDeleteGroupRoleMutation();
 
-  const [role, setRole] = useState<IRole>();
+  const [editRole, setEditRole] = useState<IRole>();
   const [selected, setSelected] = useState<string[]>([]);
   const [dialog, setDialog] = useState('');
 
@@ -40,13 +40,13 @@ export function ManageRoles(): React.JSX.Element {
       <Tooltip key={'manage_role'} title="Edit">
         <Button onClick={() => {
           const role = roleSet.find(r => r.id === selected[0]);
+          setEditRole(role);
           if (role) {
             const userRole = Object.values(profile?.roles || {}).find(r => r.name === role.name);
             if (userRole) {
-              role.id = userRole.id;
+              setEditRole({ ...role, id: userRole.id });
             }
           }
-          setRole(role);
           setDialog('manage_role');
           setSelected([]);
         }}>
@@ -88,7 +88,7 @@ export function ManageRoles(): React.JSX.Element {
       <Typography variant="button">Roles:</Typography>
       <Tooltip key={'manage_role'} title="Create">
         <Button onClick={() => {
-          setRole(undefined);
+          setEditRole(undefined);
           setDialog('manage_role')
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Create</Typography>
@@ -102,7 +102,7 @@ export function ManageRoles(): React.JSX.Element {
   return <>
     <Dialog open={dialog === 'manage_role'} fullWidth maxWidth="sm">
       <Suspense>
-        <ManageRoleModal editRole={role} closeModal={() => {
+        <ManageRoleModal editRole={editRole} closeModal={() => {
           setDialog('');
           groupRoles?.length ? void getGroupRoles() : void getUserProfileDetails();
         }} />

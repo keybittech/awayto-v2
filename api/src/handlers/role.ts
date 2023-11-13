@@ -52,6 +52,7 @@ export default createHandlers({
     `, updateProps.array);
 
     await props.redis.del(props.event.userSub + 'profile/details');
+    await props.redis.del(props.event.userSub + 'group/roles');
 
     return role;
   },
