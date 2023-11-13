@@ -1,7 +1,7 @@
 #!/bin/sh
 . ./bin/util/genenv
 
-ssh -T $TAILSCALE_OPERATOR@$SVC_HOST << EOF
+ssh -T $TAILSCALE_OPERATOR@$(tailscale ip -4 $SVC_HOST) << EOF
 echo "# Stopping sock, turn, mongo, elasticsearch, and graylog containers"
 sudo docker stop wcsock
 sudo docker stop wcturn

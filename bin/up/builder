@@ -2,21 +2,21 @@
 . ./bin/util/genenv
 
 echo "Configuring build server..."
-until ping -c1 $BUILD_HOST; do sleep 5; done
-until ssh-keyscan -H $BUILD_HOST >> ~/.ssh/known_hosts; do sleep 5; done
+until ping -c1 $(tailscale ip -4 $BUILD_HOST); do sleep 5; done
+until ssh-keyscan -H $(tailscale ip -4 $BUILD_HOST) >> ~/.ssh/known_hosts; do sleep 5; done
 
 echo "# Setup EasyRSA Internal Certificate Authority on the build server..."
 # Move build files/env to build server
-scp "./sites/$PROJECT_PREFIX/.env" "$TAILSCALE_OPERATOR@$BUILD_HOST:/home/$TAILSCALE_OPERATOR/.env"
+scp "./sites/$PROJECT_PREFIX/.env" "$TAILSCALE_OPERATOR@$(tailscale ip -4 $BUILD_HOST):/home/$TAILSCALE_OPERATOR/.env"
 
 # Move exit server cert to build server
 echo "# Sending LE cert copy from exit"
-ssh -T $TAILSCALE_OPERATOR@$EXIT_HOST << EOF
+ssh -T $TAILSCALE_OPERATOR@$(tailscale ip -4 $EXIT_HOST) << EOF
 sudo tailscale file cp /etc/letsencrypt/live/$DOMAIN_NAME/cert.pem /etc/letsencrypt/live/$DOMAIN_NAME/fullchain.pem /etc/letsencrypt/live/$DOMAIN_NAME/privkey.pem $BUILD_HOST:
 EOF
 
 # Install Docker, clone repo on build server
-ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST << EOF
+ssh -T $TAILSCALE_OPERATOR@$(tailscale ip -4 $BUILD_HOST) << EOF
 
 echo "# Installing auth build dependencies"
 sudo apt-get update >/dev/null

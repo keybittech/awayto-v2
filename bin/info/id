@@ -11,7 +11,7 @@ REPORT_LOC="./dev_reports/$(ls ./dev_reports | wc -l)_${REPORT_ID}_$(openssl ran
 echo "$(date)\n" >> $REPORT_LOC
 
 {
-  ssh "$TAILSCALE_OPERATOR@$DB_HOST" "sudo docker exec -i \$(sudo docker ps -aqf "name=wcdb") psql -U \"$PG_USER\" \"$PG_DB\"" << EOF
+  ssh "$TAILSCALE_OPERATOR@$(tailscale ip -4 $DB_HOST)" "sudo docker exec -i \$(sudo docker ps -aqf "name=wcdb") psql -U \"$PG_USER\" \"$PG_DB\"" << EOF
 
 DROP FUNCTION IF EXISTS id_report(text,text,text);
 

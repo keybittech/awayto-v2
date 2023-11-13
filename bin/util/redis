@@ -2,4 +2,4 @@
 
 . ./bin/util/genenv
 
-ssh "$TAILSCALE_OPERATOR@$DB_HOST" "sudo docker exec -i \$(sudo docker ps -aqf "name=redis") redis-cli -a $REDIS_PASS"
+ssh "$TAILSCALE_OPERATOR@$(tailscale ip -4 $DB_HOST)" "sudo docker exec -i \$(sudo docker ps -aqf "name=redis") redis-cli -a $REDIS_PASS"

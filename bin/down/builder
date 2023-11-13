@@ -5,7 +5,7 @@ SERVER_DIR_LOC="/home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/app/server/"
 
 echo "Undoing build server configuration..."
 
-ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST << EOF
+ssh -T $TAILSCALE_OPERATOR@$(tailscale ip -4 $BUILD_HOST) << EOF
 
 echo "# Stopping docker registry"
 sudo docker stop registry

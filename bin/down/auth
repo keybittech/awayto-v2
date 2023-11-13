@@ -2,7 +2,7 @@
 . ./bin/util/genenv
 
 # Undo operations at app host
-ssh -T $TAILSCALE_OPERATOR@$APP_HOST << EOF
+ssh -T $TAILSCALE_OPERATOR@$(tailscale ip -4 $APP_HOST) << EOF
 echo "# Stopping and removing auth container"
 sudo docker stop wcauth
 sudo docker rm wcauth

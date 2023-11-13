@@ -2,22 +2,22 @@
 . ./bin/util/genenv
 
 echo "Configuring svc server..."
-until ping -c1 $SVC_HOST; do sleep 5; done
-until ssh-keyscan -H $SVC_HOST >> ~/.ssh/known_hosts; do sleep 5; done
+until ping -c1 $(tailscale ip -4 $SVC_HOST); do sleep 5; done
+until ssh-keyscan -H $(tailscale ip -4 $SVC_HOST) >> ~/.ssh/known_hosts; do sleep 5; done
 
 SERVICES="sock turn graylog"
 read -p "Service to deploy (Leave blank to deploy $SERVICES): " DEPLOYED_SERVICE
 DEPLOYED_SERVICE=${DEPLOYED_SERVICE:-$SERVICES}
 
 if echo $DEPLOYED_SERVICE | grep -q "sock"; then
-  SOCK_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "sh /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/bin/util/getversion -i sock")
+  SOCK_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$(tailscale ip -4 $BUILD_HOST) "sh /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/bin/util/getversion -i sock")
 fi
 
 if echo $DEPLOYED_SERVICE | grep -q "turn"; then
-  TURN_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "sh /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/bin/util/getversion -i turn")
+  TURN_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$(tailscale ip -4 $BUILD_HOST) "sh /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/bin/util/getversion -i turn")
 fi
 
-ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST << EOF
+ssh -T $TAILSCALE_OPERATOR@$(tailscale ip -4 $BUILD_HOST) << EOF
 cd /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX
 
 PWD=\$(pwd) . ./bin/util/gitpull
@@ -41,9 +41,9 @@ if echo $DEPLOYED_SERVICE | grep -q "turn"; then
 fi
 EOF
 
-scp "./bin/util/getdocker" "./turn/turnserver.conf.template" "./deploy/graylog-content-pack.json" "$TAILSCALE_OPERATOR@$SVC_HOST:/home/$TAILSCALE_OPERATOR/"
+scp "./bin/util/getdocker" "./turn/turnserver.conf.template" "./deploy/graylog-content-pack.json" "$TAILSCALE_OPERATOR@$(tailscale ip -4 $SVC_HOST):/home/$TAILSCALE_OPERATOR/"
 
-ssh -T $TAILSCALE_OPERATOR@$SVC_HOST << EOF
+ssh -T $TAILSCALE_OPERATOR@$(tailscale ip -4 $SVC_HOST) << EOF
 
 BUILD_HOST=$BUILD_HOST . /home/$TAILSCALE_OPERATOR/getdocker
 

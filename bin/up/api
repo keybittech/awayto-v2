@@ -2,12 +2,12 @@
 . ./bin/util/genenv
 
 echo "Configuring api..."
-until ping -c1 $DB_HOST; do sleep 5; done
-until ssh-keyscan -H $DB_HOST >> ~/.ssh/known_hosts; do sleep 5; done
+until ping -c1 $(tailscale ip -4 $DB_HOST); do sleep 5; done
+until ssh-keyscan -H $(tailscale ip -4 $DB_HOST) >> ~/.ssh/known_hosts; do sleep 5; done
 
-API_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "sh /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/bin/util/getversion -i api")
+API_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$(tailscale ip -4 $BUILD_HOST) "sh /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/bin/util/getversion -i api")
 
-ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST << EOF
+ssh -T $TAILSCALE_OPERATOR@$(tailscale ip -4 $BUILD_HOST) << EOF
 cd /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX
 
 git reset --hard HEAD
@@ -28,7 +28,7 @@ sudo docker push localhost:5000/wcapi:$API_VERSION
 sudo docker push localhost:5000/wcapi:latest
 EOF
 
-ssh -T $TAILSCALE_OPERATOR@$DB_HOST << EOF
+ssh -T $TAILSCALE_OPERATOR@$(tailscale ip -4 $DB_HOST) << EOF
 
 if ! command -v docker >/dev/null 2>&1; then
   echo "# Installing Docker"

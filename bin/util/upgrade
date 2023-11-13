@@ -6,7 +6,7 @@ SERVERS="svc app db builder ns1 ns2 exit"
 
 for SERVER in $SERVERS; do
 echo "Sending update instructions to $PROJECT_PREFIX-$SERVER"
-ssh -T $TAILSCALE_OPERATOR@$PROJECT_PREFIX-$SERVER << EOF
+ssh -T $TAILSCALE_OPERATOR@$(tailscale ip -4 $PROJECT_PREFIX-$SERVER) << EOF
 nohup sh -c '
   DEBIAN_FRONTEND=noninteractive sudo apt-get update -y
   DEBIAN_FRONTEND=noninteractive sudo apt-get upgrade -y

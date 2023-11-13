@@ -4,7 +4,7 @@
 echo "Undoing api server configuration..."
 
 # Stop and remove the running wcapi container on app server
-ssh -T $TAILSCALE_OPERATOR@$DB_HOST << EOF
+ssh -T $TAILSCALE_OPERATOR@$(tailscale ip -4 $DB_HOST) << EOF
 echo "# Stopping wcapi container"
 sudo docker stop wcapi
 

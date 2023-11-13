@@ -2,4 +2,4 @@
 
 . ./bin/util/genenv
 
-ssh "$TAILSCALE_OPERATOR@$EXIT_HOST" "sudo rm -rf /var/cache/nginx && sudo systemctl restart nginx"
+ssh "$TAILSCALE_OPERATOR@$(tailscale ip -4 $EXIT_HOST)" "sudo rm -rf /var/cache/nginx && sudo systemctl restart nginx"

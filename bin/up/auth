@@ -2,14 +2,14 @@
 . ./bin/util/genenv
 
 echo "Configuring auth server..."
-until ping -c1 $APP_HOST; do sleep 5; done
-until ssh-keyscan -H $APP_HOST >> ~/.ssh/known_hosts; do sleep 5; done
+until ping -c1 $(tailscale ip -4 $APP_HOST); do sleep 5; done
+until ssh-keyscan -H $(tailscale ip -4 $APP_HOST) >> ~/.ssh/known_hosts; do sleep 5; done
 
 # Once the DB and redis are deployed, we can create the auth server
 
-AUTH_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST "sh /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/bin/util/getversion -i auth")
+AUTH_VERSION=$(ssh -T $TAILSCALE_OPERATOR@$(tailscale ip -4 $BUILD_HOST) "sh /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX/bin/util/getversion -i auth")
 
-ssh -T $TAILSCALE_OPERATOR@$BUILD_HOST << EOF
+ssh -T $TAILSCALE_OPERATOR@$(tailscale ip -4 $BUILD_HOST) << EOF
 
 cd /home/$TAILSCALE_OPERATOR/$PROJECT_PREFIX
 
@@ -35,9 +35,9 @@ sudo docker push localhost:5000/wcauth:$AUTH_VERSION
 sudo docker push localhost:5000/wcauth:latest
 EOF
 
-scp "./bin/install/auth" "$TAILSCALE_OPERATOR@$APP_HOST:/home/$TAILSCALE_OPERATOR/installauth"
+scp "./bin/install/auth" "$TAILSCALE_OPERATOR@$(tailscale ip -4 $APP_HOST):/home/$TAILSCALE_OPERATOR/installauth"
 
-ssh -T $TAILSCALE_OPERATOR@$APP_HOST << EOF
+ssh -T $TAILSCALE_OPERATOR@$(tailscale ip -4 $APP_HOST) << EOF
 
 sudo apt-get update
 sudo apt-get install jq -y

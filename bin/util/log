@@ -5,4 +5,4 @@
 read -p "Service Host: " SERVICE_HOST
 read -p "Service: " SERVICE_TARGET
 
-ssh "$TAILSCALE_OPERATOR@$SERVICE_HOST" "sudo docker logs -ft \$(sudo docker ps -aqf \"name=$SERVICE_TARGET\")"
+ssh "$TAILSCALE_OPERATOR@$(tailscale ip -4 $SERVICE_HOST)" "sudo docker logs -ft \$(sudo docker ps -aqf \"name=$SERVICE_TARGET\")"
