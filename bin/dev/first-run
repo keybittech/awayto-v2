@@ -131,11 +131,6 @@ fi
 
 CUST_APP_HOSTNAME=$CUST_APP_HOSTNAME TURN_NAME=$TURN_NAME TURN_PASS=$TURN_PASS envsubst < ./turn/turnserver.conf.template > ./turn/turnserver.conf
 
-. ./bin/dev/build-auth
-
-docker stop $(docker ps -aq)
-docker rm $(docker ps -aq)
-
 docker volume rm sqlitedata
 docker volume rm pg15store
 docker volume rm graylogdata
@@ -147,9 +142,14 @@ docker volume create redisdata
 
 docker compose up -d --build db
 
+. ./bin/dev/build-auth
+
 docker compose up -d --build auth
 
-docker compose build
+docker compose build sock turn
+docker compose build graylog elasticsearch mongo
+docker compose build api
+docker compose build app
 
 . ./bin/install/auth
 

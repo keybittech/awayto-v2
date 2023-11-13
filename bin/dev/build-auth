@@ -1,3 +1,3 @@
 #!/bin/bash
 
-cd auth/custom-event-listener && mvn install && cd ../.. && DOCKER_BUILDKIT=1 docker compose up -d --build auth
+cd auth/custom-event-listener && mvn install && cd ../..
