@@ -10,7 +10,7 @@ export default createHandlers({
       ON CONFLICT (group_schedule_id, user_schedule_id) DO NOTHING
     `, [groupScheduleId, userScheduleId, props.event.userSub]);
 
-    await props.redis.del(`${props.event.userSub}group/schedules/${groupScheduleId}/user`);
+    await props.redis.del(`${props.event.userSub}group/user_schedules`);
 
     return [];
   },
@@ -92,7 +92,7 @@ export default createHandlers({
       }
     });
 
-    await props.redis.del(props.event.userSub + `group/schedules`);
+    await props.redis.del(`${props.event.userSub}group/user_schedules`);
 
     return idsSplit.map(id => ({ id }));
   }

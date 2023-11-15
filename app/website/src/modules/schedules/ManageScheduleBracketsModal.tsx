@@ -86,7 +86,7 @@ export function ManageScheduleBracketsModal({ editSchedule, closeModal }: IProps
 
   const handleSubmit = useCallback(() => {
     async function go() {
-      if (schedule && schedule.name && scheduleBracketsValues.length) {
+      if (schedule && groupSchedule && schedule.name && scheduleBracketsValues.length) {
 
         let userScheduleId = editSchedule?.id;
 
@@ -114,12 +114,10 @@ export function ManageScheduleBracketsModal({ editSchedule, closeModal }: IProps
           brackets: newBrackets
         }).catch(console.error);
 
-        if (!editSchedule) {
-          await postGroupUserSchedule({
-            userScheduleId: userScheduleId,
-            groupScheduleId: schedule.id
-          }).catch(console.error);
-        }
+        await postGroupUserSchedule({
+          userScheduleId: userScheduleId,
+          groupScheduleId: groupSchedule.id
+        }).catch(console.error);
 
         setSnack({ snackOn: 'Successfully added your schedule to group schedule: ' + schedule.name, snackType: 'info' });
         if (closeModal) {
