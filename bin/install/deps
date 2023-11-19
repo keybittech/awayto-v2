@@ -6,4 +6,4 @@ export $(grep -v '^#' ./.env | xargs)
 
 DOCKER_BUILDKIT=1
 
-docker build --build-arg WIZAPP_VERSION -t awayto-deps . -f ./Dockerfile.deps
+docker build --build-arg WIZAPP_VERSION -t awayto-deps -f ./Dockerfile.deps --network=host . 

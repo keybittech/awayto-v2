@@ -11,6 +11,14 @@ const redis = createClient({
   }
 });
 
+redis.on('error', err => {
+  console.log('Redis connection error:', err.message);
+});
+
+redis.on('ready', () => {
+  console.log('Redis client ready.');
+});
+
 export const serverUuid = v4();
 export const socketId = process.env.SERVER_ID || 'websocket.0';
 
@@ -21,6 +29,7 @@ await redis.sAdd('socket_servers', serverUuid);
 
 // Every 5 seconds, heartbeat id to redis
 setInterval(async function() {
+  if (!redis.isReady) return;
   await redis.incr(`socket_servers:${serverUuid}:heartbeat`);
   await redis.expire(`socket_servers:${serverUuid}:heartbeat`, 10);
 }, 5000);
@@ -28,6 +37,7 @@ setInterval(async function() {
 // If this is the first socket server running
 if ('websocket.0' === socketId) {
   setInterval(async function() {
+    if (!redis.isReady) return;
     // Check all socket servers
     const servers = await redis.sMembers('socket_servers');
     for (const servUuid of servers) {
@@ -46,6 +56,7 @@ if ('websocket.0' === socketId) {
 }
 
 export async function handleUnsubRedis(connectionStrings) {
+  if (!redis.isReady) return;
   const deadTopics = [];
   for (const connectionString of connectionStrings) {
     const connectionId = connectionString.split(':')[1];

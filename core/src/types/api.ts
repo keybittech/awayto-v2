@@ -1,10 +1,11 @@
+import fetch from 'node-fetch';
 import type { useAi } from '@keybittech/wizapp/dist/server';
 import type { KeycloakAdminClient } from '@keycloak/keycloak-admin-client/lib/client';
 import type RoleRepresentation from '@keycloak/keycloak-admin-client/lib/defs/roleRepresentation';
 import type { RoleMappingPayload } from '@keycloak/keycloak-admin-client/lib/defs/roleRepresentation';
 import type ClientRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientRepresentation';
 import type { IDatabase, ITask } from 'pg-promise';
-import type { RedisClientType } from 'redis';
+import type { Redis } from 'ioredis';
 import type { graylog } from 'graylog2';
 import type { Dayjs } from 'dayjs';
 
@@ -12,7 +13,6 @@ import { UserGroupRoles } from './profile';
 import { IGroup, IGroupRoleAuthActions } from './group';
 import { AnyRecord, AnyRecordTypes, Void } from '../util';
 import { KcSiteOpts } from './auth';
-import fetch from 'node-fetch';
 
 /**
  * @category API
@@ -108,7 +108,7 @@ export type ApiProps<T extends AnyRecord | AnyRecordTypes> = {
   db: IDatabase<unknown>;
   fetch: typeof fetch;
   logger: graylog;
-  redis: RedisClientType;
+  redis: Redis;
   redisProxy: RedisProxy;
   keycloak: KeycloakAdminClient & KcSiteOpts;
   fs: FsFunctionalities;
@@ -208,7 +208,7 @@ export const buildUpdate = (params: BuildUpdateParams) => {
 };
 
 /**
- * @category Redis
+ * @category API
  */
 export type ProxyKeys = {
   adminSub: string;
@@ -221,6 +221,15 @@ export type ProxyKeys = {
 }
 
 /**
- * @category Redis
+ * @category API
  */
+export type ClearLocalCache = (prop: string) => void; 
+
 export type RedisProxy = (...args: string[]) => Promise<ProxyKeys>;
+export type RedisProxyBuilder = (redisClient: Redis) => RedisProxy;
+
+export type RateLimitResource = (resource: string, context: string, limit?: number, duration?: number) => Promise<boolean>;
+export type RateLimitResourceBuilder = (redisClient: Redis) => RateLimitResource;
+
+export type Regroup = (groupId?: string) => Promise<void>
+export type RegroupBuilder = (keycloakClient: KeycloakAdminClient, redisClient: Redis, redisProxy: RedisProxy, clearLocalCache: ClearLocalCache) => Regroup;

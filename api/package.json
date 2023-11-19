@@ -6,8 +6,8 @@
     "build": "webpack --config api.webpack.js",
     "start": "npm-run-all --parallel start-nodemon start-webpack",
     "start-webpack": "NODE_ENV=development webpack --watch --config api.webpack.js",
-    "start-nodemon": "nodemon -r dotenv/config build/api.js --watch build",
-    "prestart": "kill $(lsof -t -i:9443) &",
+    "start-nodemon": "nodemon -r dotenv/config ./build/api.js --watch ./build",
+    "prestart": "lsof -t -i:9443 | xargs -r kill",
     "debug": "npm run start-webpack & npm run start-nodemon"
   },
   "author": "",
@@ -25,6 +25,7 @@
     "express-session": "^1.17.3",
     "graylog2": "^0.2.1",
     "http-proxy-middleware": "^2.0.6",
+    "ioredis": "^5.3.2",
     "jwt-decode": "^3.1.2",
     "keycloak-connect": "^20.0.3",
     "node-fetch": "^3.3.0",
@@ -34,7 +35,6 @@
     "pg": "^8.8.0",
     "pg-native": "^3.0.1",
     "pg-promise": "^11.4.3",
-    "redis": "^4.6.4",
     "utf-8-validate": "^6.0.3",
     "uuid": "^9.0.0",
     "ws": "^8.12.1"

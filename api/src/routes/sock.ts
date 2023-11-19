@@ -1,11 +1,10 @@
-import express from 'express';
+import { Express } from 'express';
 import { createProxyMiddleware } from 'http-proxy-middleware';
-
-import { db } from '../modules/db';
-import logger from '../modules/logger';
 
 import { checkAuthenticated, checkBackchannel } from '../middlewares';
 import { IBooking, IUserProfile, charCount } from 'awayto/core';
+import { IDatabase } from 'pg-promise';
+import { graylog } from 'graylog2';
 
 const {
   SOCK_HOST,
@@ -13,10 +12,10 @@ const {
   SOCK_SECRET
 } = process.env as { [prop: string]: string };
 
-const router = express.Router();
+export default function buildSockRoutes(app: Express, dbClient: IDatabase<unknown>, graylogClient: graylog): void {
 
 // Websocket Ticket Proxy
-router.post('/ticket', checkAuthenticated, async (req, res, next) => {
+  app.post('/api/sock/ticket', checkAuthenticated, async (req, res, next) => {
   try {
     const user = req.user as IUserProfile;
 
@@ -32,14 +31,14 @@ router.post('/ticket', checkAuthenticated, async (req, res, next) => {
     proxyMiddleware(req, res, next);
   } catch (error) {
     const err = error as Error;
-    logger.log('sockProxy', err.message)
+    graylogClient.log('sockProxy', err.message)
   }
 });
 
-router.post('/allowances', checkBackchannel, async (req, res ) => {
+  app.post('/api/sock/allowances', checkBackchannel, async (req, res) => {
   const { sub } = req.body as { [prop: string]: string };
 
-  const bookings = (await db.manyOrNone<IBooking>(`
+    const bookings = (await dbClient.manyOrNone<IBooking>(`
     SELECT b.id FROM dbtable_schema.bookings b
     JOIN dbtable_schema.quotes q ON q.id = b.quote_id
     JOIN dbtable_schema.schedule_bracket_slots sbs ON sbs.id = b.schedule_bracket_slot_id
@@ -49,22 +48,21 @@ router.post('/allowances', checkBackchannel, async (req, res ) => {
   res.send(JSON.stringify({ allowances: { bookings } }))
 })
 
-router.post('/connect', checkBackchannel, async (req, res) => {
+  app.post('/api/sock/connect', checkBackchannel, async (req, res) => {
   const { sub, connectionId } = req.body as { [prop: string]: string };
-  await db.none(`
+      await dbClient.none(`
     INSERT INTO dbtable_schema.sock_connections (created_sub, connection_id)
     VALUES ($1::uuid, $2)
   `, [sub, connectionId]);
   res.end();
 });
 
-router.post('/stale', checkBackchannel, async (req, res) => {
+  app.post('/api/sock/stale', checkBackchannel, async (req, res) => {
   const staleConnections = req.body as string[];
-  await db.none(`
+      await dbClient.none(`
     DELETE FROM dbtable_schema.sock_connections
     WHERE created_sub || ':' || connection_id = ANY($1::text[])
   `, [staleConnections]);
   res.end();
 });
-
-export default router;
+}

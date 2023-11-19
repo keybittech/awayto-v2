@@ -18,6 +18,10 @@ server.on('request', function (req, res) {
     // Proxied from front end through api for kc auth check
     // Create a temporary ticket that the host can use to create a socket later
     try {
+      if (!redis.isReady) {
+        throw 'Redis is currently unavailable.';
+      }
+
       if (req.url.includes('create_ticket')) {
 
         console.log('creating ticket', req.url);

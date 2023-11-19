@@ -1,71 +1,52 @@
 import { v4 as uuid } from 'uuid';
-import redis from './redis';
-import { IRole, IUserProfile } from 'awayto/core';
 import pgPromise from 'pg-promise';
+import { Redis } from 'ioredis';
 
-const {
-  PG_HOST,
-  PG_PORT,
-  PG_USER,
-  PG_PASSWORD,
-  PG_DATABASE
-} = process.env as { [prop: string]: string } & { PG_PORT: number };
+import { IRole, IUserProfile } from 'awayto/core';
 
-const pgp = pgPromise();
-
-const pgTypes = pgp.pg.types;
-pgTypes.setTypeParser(1114, stringValue => stringValue);
-pgTypes.setTypeParser(1082, stringValue => stringValue);
-
-export const db = pgp({
-  host: PG_HOST,
-  port: PG_PORT,
-  user: PG_USER,
-  password: PG_PASSWORD,
-  database: PG_DATABASE
-})
-// export let db: Client = new postgres.Client();
-
-export async function connect() {
+export async function initDb(dbClient: ReturnType<ReturnType<typeof pgPromise>>, redisClient: Redis) {
 
   try {
 
-    await db.connect();
+    await dbClient.connect();
+
+    const pgp = pgPromise();
+    const pgTypes = pgp.pg.types;
+    pgTypes.setTypeParser(1114, stringValue => stringValue);
+    pgTypes.setTypeParser(1082, stringValue => stringValue);
 
     try {
       // Set admin sub
-      const { sub }= await db.one<IUserProfile>(`
+      const { sub }= await dbClient.one<IUserProfile>(`
         SELECT sub
         FROM dbtable_schema.users
         WHERE username = 'system_owner'
       `);
-      await redis.set('adminSub', sub);
+      await redisClient.set('adminSub', sub);
 
-      const { id: roleId } = await db.one<IRole>(`
+      const { id: roleId } = await dbClient.one<IRole>(`
         SELECT id
         FROM dbtable_schema.roles
         WHERE name = 'Admin'
       `);
-      await redis.set('adminRoleId', roleId);
+      await redisClient.set('adminRoleId', roleId);
     } catch (error) {
       const sub = uuid();
-      await db.none(`
+      await dbClient.none(`
         INSERT INTO dbtable_schema.users (sub, username, created_on, created_sub)
         VALUES ($1::uuid, $2, $3, $1::uuid)
       `, [sub, 'system_owner', new Date()]);
-      await redis.set('adminSub', sub);
-      const { id: roleId } = await db.one<IRole>(`
+      await redisClient.set('adminSub', sub);
+      const { id: roleId } = await dbClient.one<IRole>(`
         INSERT INTO dbtable_schema.roles (name)
         VALUES ($1)
         RETURNING id
       `, ['Admin']);
-      await redis.set('adminRoleId', roleId);
+      await redisClient.set('adminRoleId', roleId);
 
     }
 
   } catch (error) {
-
-    console.log({ PGCONNECTERROR: error })
-
+    console.log({ DB_INIT_ERROR: error })
   }
 }

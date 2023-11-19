@@ -1,45 +1,35 @@
-import express from 'express';
+import { Express } from 'express';
 
-import { db } from '../modules/db';
-
-import { rateLimitResource } from '../modules/redis';
 import { IGroup } from 'awayto/core';
+import { IDatabase } from 'pg-promise';
 
-const router = express.Router();
+let updatedOn = Date.now();
+export default function buildKioskRoutes(app: Express, dbClient: IDatabase<unknown>): void {
 
-let updatedOn = (new Date()).toISOString();
+  app.get('/api/kiosk/gs/:name.json', async (req, res) => {
+    try {
+      const { name } = req.params;
 
-router.get('/gs/:name.json', async (req, res) => {
-  try {
-    const { name } = req.params;
+      if (await req.rateLimitResource(req.headers['x-forwarded-for'] as string, `/kiosk/gs/${name}`, 1, 59)) {
+        return res.status(429).send('Rate limit exceeded.').end();
+      }
 
-    if (await rateLimitResource(req.headers['x-forwarded-for'] as string, `/kiosk/gs/${name}`, 1, 59)) {
-      return res.status(429).send('Rate limit exceeded.').end();
+      if (updatedOn < Date.now() - 60000) {
+        updatedOn = Date.now();
+        await dbClient.none(`REFRESH MATERIALIZED VIEW dbview_schema.kiosk_schedule`);
+      }
+
+      const data = await dbClient.oneOrNone<IGroup>(`
+        SELECT *
+        FROM dbview_schema.kiosk_schedule
+        WHERE name = $1
+      `, [name]);
+
+      return res.setHeader('content-type', 'application/json').status(200).send(JSON.stringify({ ...data, updatedOn: new Date(updatedOn).toISOString() })).end();
+
+    } catch (err) {
+      const error = err as Error;
+      console.error('error fetching group schedule data', error);
     }
-  
-    const data = await db.oneOrNone<IGroup>(`
-      SELECT *
-      FROM dbview_schema.kiosk_schedule
-      WHERE name = $1
-    `, [name]);
-  
-    return res.setHeader('content-type', 'application/json').status(200).send(JSON.stringify({ ...data, updatedOn })).end();
-  
-  } catch (err) {
-    const error = err as Error;
-    console.error('error fetching group schedule data', error);
-  }
-});
-
-setInterval(async () => {
-  try {
-    // console.log('refreshing kiosk view');
-    updatedOn = (new Date()).toISOString();
-    await db.none(`REFRESH MATERIALIZED VIEW dbview_schema.kiosk_schedule`);
-  } catch (err) {
-    const error = err as Error;
-    console.error('error refreshing group schedule view', error)
-  }
-}, 60 * 1000)
-
-export default router;
+  });
+}

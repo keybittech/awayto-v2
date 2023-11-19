@@ -13,6 +13,7 @@ services:
   app:
     image: wcapp # 80 443 typescript cra react project hosted on nginx
     build:
+      network: host
       context: ./
       dockerfile: ./app/Dockerfile
       args:
@@ -48,6 +49,7 @@ services:
   api: # 9443 express passport for keycloak auth
     image: wcapi
     build:
+      network: host
       context: ./
       dockerfile: ./api/Dockerfile
     ports:
@@ -126,6 +128,7 @@ services:
     ports:
       - 8000:8000
     build:
+      network: host
       context: ./
       dockerfile: ./fs/Dockerfile
     extra_hosts:
@@ -170,7 +173,9 @@ services:
 
   sock: # 8888 websocket server
     image: wcsock
-    build: ./sock
+    build:
+      network: host
+      context: ./sock
     ports:
       - 8888:8888
     extra_hosts:
