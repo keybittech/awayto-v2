@@ -103,17 +103,11 @@ export default class ApiServer {
           port: GRAYLOG_PORT
         }]
       });
-
-      ApiServer.expressApp.request.graylogClient = ApiServer.graylogClient;
   
       ApiServer.redisClient = new Redis({
         password: REDIS_PASS,
         host: REDIS_HOST
       });
-
-      ApiServer.expressApp.request.redisClient = ApiServer.redisClient;
-      ApiServer.expressApp.request.rateLimitResource = ApiServer.rateLimitResource;
-      ApiServer.expressApp.request.redisProxy = ApiServer.redisProxy;
 
       ApiServer.keycloakClient = new KcAdminClient({
         baseUrl: `https://${KC_HOST}:${KC_PORT}`,
@@ -121,7 +115,6 @@ export default class ApiServer {
       }) as KeycloakAdminClient & KcSiteOpts & { apiClient: BaseClient; };
 
       ApiServer.keycloakClient.regroup = ApiServer.regroup;
-      ApiServer.expressApp.request.keycloakClient = ApiServer.keycloakClient;
 
       ApiServer.dbClient = pgp({
         host: PG_HOST,
@@ -130,8 +123,6 @@ export default class ApiServer {
         password: PG_PASSWORD,
         database: PG_DATABASE
       });
-
-      ApiServer.expressApp.request.dbClient = ApiServer.dbClient;
 
       ApiServer.keycloakClient.auth(credentials).then(async () => {
         console.log('keycloak connected');
@@ -149,7 +140,7 @@ export default class ApiServer {
           buildBaseRoutes(ApiServer.expressApp, ApiServer.dbClient, ApiServer.redisClient, ApiServer.graylogClient, ApiServer.keycloakClient, ApiServer.redisProxy, ApiServer.rateLimitResource);
           buildAuthRoutes(ApiServer.expressApp, ApiServer.dbClient, ApiServer.redisClient, ApiServer.graylogClient, ApiServer.keycloakClient, ApiServer.redisProxy);
           buildSockRoutes(ApiServer.expressApp, ApiServer.dbClient, ApiServer.graylogClient);
-          buildKioskRoutes(ApiServer.expressApp, ApiServer.dbClient);
+          buildKioskRoutes(ApiServer.expressApp, ApiServer.dbClient, ApiServer.rateLimitResource);
 
           https.createServer({ key, cert }, ApiServer.expressApp).listen(9443);
           console.log('server listening on port 9443');

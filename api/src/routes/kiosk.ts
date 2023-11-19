@@ -1,16 +1,16 @@
 import { Express } from 'express';
 
-import { IGroup } from 'awayto/core';
+import { IGroup, RateLimitResource } from 'awayto/core';
 import { IDatabase } from 'pg-promise';
 
 let updatedOn = Date.now();
-export default function buildKioskRoutes(app: Express, dbClient: IDatabase<unknown>): void {
+export default function buildKioskRoutes(app: Express, dbClient: IDatabase<unknown>, rateLimitResource: RateLimitResource): void {
 
   app.get('/api/kiosk/gs/:name.json', async (req, res) => {
     try {
       const { name } = req.params;
 
-      if (await req.rateLimitResource(req.headers['x-forwarded-for'] as string, `/kiosk/gs/${name}`, 1, 59)) {
+      if (await rateLimitResource(req.headers['x-forwarded-for'] as string, `/kiosk/gs/${name}`, 1, 59)) {
         return res.status(429).send('Rate limit exceeded.').end();
       }
 
