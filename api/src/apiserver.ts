@@ -138,7 +138,7 @@ export default class ApiServer {
           await setupMiddleware(ApiServer.redisClient, ApiServer.expressApp);
 
           buildBaseRoutes(ApiServer.expressApp, ApiServer.dbClient, ApiServer.redisClient, ApiServer.graylogClient, ApiServer.keycloakClient, ApiServer.redisProxy, ApiServer.rateLimitResource);
-          buildAuthRoutes(ApiServer.expressApp, ApiServer.dbClient, ApiServer.redisClient, ApiServer.graylogClient, ApiServer.keycloakClient, ApiServer.redisProxy);
+          buildAuthRoutes(ApiServer.expressApp, ApiServer.dbClient, ApiServer.redisClient, ApiServer.graylogClient, ApiServer.keycloakClient, ApiServer.redisProxy, ApiServer.rateLimitResource);
           buildSockRoutes(ApiServer.expressApp, ApiServer.dbClient, ApiServer.graylogClient);
           buildKioskRoutes(ApiServer.expressApp, ApiServer.dbClient, ApiServer.rateLimitResource);
 
@@ -155,6 +155,24 @@ export default class ApiServer {
             console.log('Could not auth with keycloak and regroup. Will try again in 1 minute.');
           }
         }, 58 * 1000); // 58 seconds
+
+        const obs = new PerformanceObserver(items => {
+          items.getEntries().forEach(measure => {
+            const payload: Record<string, unknown> = { ...measure.toJSON() };
+            const [measureType, ...data] = measure.name.split(' ');
+            
+            if ('regroup' === measureType) {
+              payload.groupCount = data[0];
+              payload.roleCount = data[1];
+            }
+        
+            ['Start', 'End'].forEach(markType => performance.clearMarks(`${measureType}${markType}`));
+        
+            ApiServer.getLogger().log('performance', { body: payload });
+          });
+        });
+        
+        obs.observe({ entryTypes: ['measure'] });
 
       });
     }
@@ -194,24 +212,6 @@ export default class ApiServer {
 }
 
 ApiServer.init();
-
-const obs = new PerformanceObserver(items => {
-  items.getEntries().forEach(measure => {
-    const payload: Record<string, unknown> = { ...measure.toJSON() };
-    const [measureType, ...data] = measure.name.split(' ');
-    
-    if ('regroup' === measureType) {
-      payload.groupCount = data[0];
-      payload.roleCount = data[1];
-    }
-
-    ['Start', 'End'].forEach(markType => performance.clearMarks(`${measureType}${markType}`));
-
-    ApiServer.getLogger().log('performance', { body: payload });
-  });
-});
-
-obs.observe({ entryTypes: ['measure'] });
 
 process.on('uncaughtException', (error) => {
   console.error('Uncaught Exception:', error);

@@ -110,6 +110,7 @@ export type ApiProps<T extends AnyRecord | AnyRecordTypes> = {
   logger: graylog;
   redis: Redis;
   redisProxy: RedisProxy;
+  rateLimitResource: RateLimitResource;
   keycloak: KeycloakAdminClient & KcSiteOpts;
   fs: FsFunctionalities;
   ai: AiFunctionalities;

@@ -133,6 +133,7 @@ export default function buildBaseRoutes(app: Express, dbClient: IDatabase<unknow
             logger: graylogClient,
             redisProxy,
             fetch,
+            rateLimitResource,
             fs: { saveFile, putFile, getFile },
             ai: { useAi },
             event: {

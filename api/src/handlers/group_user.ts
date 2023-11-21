@@ -1,4 +1,4 @@
-import { ApiHandlers, IGroup, IGroupRole, IGroupUser, asyncForEach, createHandlers } from 'awayto/core';
+import { IGroup, IGroupRole, IGroupUser, asyncForEach, createHandlers } from 'awayto/core';
 
 export default createHandlers({
   putGroupUser: async props => {

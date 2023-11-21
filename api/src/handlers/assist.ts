@@ -1,5 +1,4 @@
 import { createHandlers } from 'awayto/core';
-import { rateLimitResource } from '../modules/redis';
 
 /**
  * @category Assist
@@ -8,7 +7,7 @@ export default createHandlers({
   getPrompt: async props => {
     if (!process.env.OPENAI_API_KEY) return { promptResult: [] };
 
-    if (await rateLimitResource(props.event.userSub, 'prompt', 25, 86400)) { // AI uses per day
+    if (await props.rateLimitResource(props.event.userSub, 'prompt', 25, 86400)) { // AI uses per day
       return { promptResult: [] };
     }
 

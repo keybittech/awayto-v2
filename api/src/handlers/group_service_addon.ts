@@ -1,4 +1,4 @@
-import { IGroup, IGroupServiceAddon, createHandlers } from 'awayto/core';
+import { IGroupServiceAddon, createHandlers } from 'awayto/core';
 
 export default createHandlers({
   postGroupServiceAddon: async props => {

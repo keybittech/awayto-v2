@@ -1,4 +1,4 @@
-import { IFormVersion, IGroup, IGroupForm, IUserProfile, asyncForEach, createHandlers } from 'awayto/core';
+import { IFormVersion, IGroupForm, IUserProfile, asyncForEach, createHandlers } from 'awayto/core';
 import formApiHandler from './form';
 
 export default createHandlers({

@@ -2,6 +2,12 @@ import fetch from 'node-fetch';
 import type { Express } from 'express';
 import passport from 'passport';
 import { v4 as uuid } from 'uuid';
+import { IDatabase } from 'pg-promise';
+import { Redis } from 'ioredis';
+import { graylog } from 'graylog2';
+import KeycloakAdminClient from '@keycloak/keycloak-admin-client';
+
+import { useAi } from '@keybittech/wizapp/dist/server';
 
 import { saveFile, putFile, getFile } from '../modules/fs';
 
@@ -9,19 +15,13 @@ import { checkBackchannel, checkAuthenticated } from '../middlewares';
 
 import WebHooks from '../webhooks/index';
 
-import { useAi } from '@keybittech/wizapp/dist/server';
-
-import { AuthBody, IGroup, KcSiteOpts, RedisProxy } from 'awayto/core';
-import { IDatabase } from 'pg-promise';
-import { Redis } from 'ioredis';
-import { graylog } from 'graylog2';
-import KeycloakAdminClient from '@keycloak/keycloak-admin-client';
+import { AuthBody, IGroup, KcSiteOpts, RateLimitResource, RedisProxy } from 'awayto/core';
 
 const {
   CUST_APP_HOSTNAME
 } = process.env as { [prop: string]: string };
 
-export default function buildAuthRoutes(app: Express, dbClient: IDatabase<unknown>, redisClient: Redis, graylogClient: graylog, keycloakClient: KeycloakAdminClient & KcSiteOpts, redisProxy: RedisProxy): void {
+export default function buildAuthRoutes(app: Express, dbClient: IDatabase<unknown>, redisClient: Redis, graylogClient: graylog, keycloakClient: KeycloakAdminClient & KcSiteOpts, redisProxy: RedisProxy, rateLimitResource: RateLimitResource): void {
 
   app.post('/api/auth/register/validate', checkBackchannel, async (req, res) => {
     try {
@@ -96,6 +96,7 @@ export default function buildAuthRoutes(app: Express, dbClient: IDatabase<unknow
           redisProxy,
           tx,
           fetch,
+          rateLimitResource,
           fs: { saveFile, putFile, getFile },
           ai: { useAi },
         });
