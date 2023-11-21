@@ -1,4 +1,4 @@
-import { IWebhooks, ApiProps, IUserProfile } from 'awayto/core';
+import { IWebhooks, Void, withEvent } from 'awayto/core';
 
 import { siteApiHandlerRef } from '../handlers';
 
@@ -9,7 +9,6 @@ export const AuthWebhooks: IWebhooks = {
     try {
       const {
         userId: sub,
-        ipAddress,
         details: {
           group_code: code,
           first_name: firstName,
@@ -19,27 +18,18 @@ export const AuthWebhooks: IWebhooks = {
         }
       } = props.event.body;
 
-      const requestParams = {
-        ...props,
-        event: {
-          ...props.event,
-          body: {
-            firstName,
-            lastName,
-            email,
-            sub,
-            code,
-            username
-          },
-          userSub: sub,
-          sourceIp: ipAddress
-        }
-      } as ApiProps<IUserProfile & { code: string }>;
-
-      await siteApiHandlerRef.postUserProfile(requestParams);
+      await siteApiHandlerRef.postUserProfile(withEvent(props, {
+        firstName,
+        lastName,
+        email,
+        sub,
+        username,
+        image: ''
+      }));
       
       if (code) {
-        await siteApiHandlerRef.joinGroup(requestParams);
+        await siteApiHandlerRef.joinGroup(withEvent(props, { code }));
+        await siteApiHandlerRef.activateProfile(withEvent(props, {} as Void));
       }
 
       console.log({ sending_success: true })

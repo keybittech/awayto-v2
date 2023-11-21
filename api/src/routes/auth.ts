@@ -68,7 +68,8 @@ export default function buildAuthRoutes(app: Express, dbClient: IDatabase<unknow
       const body = req.body as AuthBody;
       const { type, userId, ipAddress, details } = body;
 
-      // console.log('/api/auth/webhook', JSON.stringify(body, null, 2));
+      const xfwd = (ipAddress as string).split('.');
+      const sourceIp = xfwd.filter((a, i) => i !== xfwd.length - 1).join('.') + '.000';
 
       // Create trace event
       const event = {
@@ -78,7 +79,7 @@ export default function buildAuthRoutes(app: Express, dbClient: IDatabase<unknow
         username: details.username || '',
         public: false,
         userSub: userId,
-        sourceIp: ipAddress,
+        sourceIp,
         group: {},
         availableUserGroupRoles: {},
         pathParameters: req.params,
