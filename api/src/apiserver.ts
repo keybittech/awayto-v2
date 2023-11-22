@@ -42,6 +42,8 @@ import buildAuthRoutes from './routes/auth';
 import buildSockRoutes from './routes/sock';
 import buildKioskRoutes from './routes/kiosk';
 
+import './modules/prompts';
+
 const pgp = pgPromise();
 
 const {
