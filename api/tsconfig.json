@@ -20,5 +20,8 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "resolveJsonModule": true
-  }
+  },
+  "references": [
+	  { "path": "../core" }
+  ]
 }
