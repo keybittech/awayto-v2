@@ -1,0 +1,49 @@
+{{ define "main" }}
+  {{ $pages := where .Site.Pages "Section" "docs/user" }}
+
+  <div class="container">
+    <div class="sidebar">
+      <ul>
+        <li><a href="/app"><strong>Go to App</strong></a></li>
+        {{ range $pages }}
+          {{ if eq .Kind "section" }}
+            <li><a href="#{{ .Title | urlize }}">{{ .Title }}</a></li>
+            {{ if ne .Title "Home" }}
+              <ul class="indent">
+                {{ $currentParent := . }}
+                {{ range $pages }}
+                  {{ if and (eq .Parent $currentParent) (ne . $currentParent) (ne .Kind "section") }}
+                    <li><a href="#{{ .Title | urlize }}">{{ .Title }}</a></li>
+                  {{ end }}
+                {{ end }}
+              </ul>
+            {{ end }}
+          {{ end }}
+        {{ end }}
+      </ul>
+    </div>
+    <div class="post-content">
+      bbbbbbbbbbbbbbbb
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const header = document.querySelector(".header");
+      const menu = document.querySelector(".sidebar ul");
+      const fixedClass = "fixed";
+  
+      function checkHeight() {
+        if (window.scrollY > header.offsetHeight) {
+          menu.classList.add(fixedClass);
+        } else {
+          menu.classList.remove(fixedClass);
+        }
+      }
+
+      window.addEventListener("scroll", checkHeight);
+      checkHeight();
+    });
+  </script>
+{{ end }}
+

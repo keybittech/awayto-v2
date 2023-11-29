@@ -1,0 +1,17 @@
+{{ define "main" }}
+  <div class="container">
+    <div class="sidebar">
+      <nav>
+        <ul>
+          <li>{{ partial "gotoapp.html" . }}</li>
+          {{ range .Site.Menus.main }}
+            <li><a href="{{ .URL }}">{{ .Name }}</a></li>
+          {{ end }}
+        </ul>
+      </nav>
+    </div>
+    <div class="post-content">
+      <h1>Welcome</h1>
+    </div>
+  </div>
+{{ end }}

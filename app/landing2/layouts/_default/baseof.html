@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+
+<html lang="{{ site.LanguageCode }}">
+  {{ partial "head.html" . }}
+
+  <body class="not-ready" data-menu="{{ isset site.Menus `main` }}">
+    {{ partial "header.html" . }}
+
+    <main class="main">{{ block "main" . }}{{ end }}</main>
+
+    {{ partial "footer.html" . }}
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        const header = document.querySelector(".header");
+        const menu = document.querySelector(".sidebar ul");
+        const fixedClass = "fixed";
+    
+        function checkHeight() {
+          menu.classList[window.scrollY > header.offsetHeight ? 'add' : 'remove'](fixedClass);
+        }
+  
+        window.addEventListener("scroll", checkHeight);
+
+        checkHeight();
+
+        const allLinks = document.querySelectorAll('.sidebar a');
+  
+        const observer = new IntersectionObserver(entries => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) {
+              const newNode = document.querySelector('#link-' + entry.target.parentNode.id);
+              allLinks.forEach(el => el.removeAttribute('data-onscreen'));
+              newNode.setAttribute('data-onscreen', 'true');
+              break;
+            }
+          }
+        });
+  
+        document.querySelectorAll('.section-header').forEach(header => {
+          observer.observe(header.childNodes[0]);
+        });
+      });
+    </script>
+  </body>
+</html>

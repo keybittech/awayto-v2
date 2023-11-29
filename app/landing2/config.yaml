@@ -1,0 +1,17 @@
+title: Awayto
+baseURL: https://latidude/
+languageCode: en-us
+enableRobotsTXT: true
+
+Params:
+  appURL: https://latidude/app
+  repoURL: https://github.com/jcmccormick/wc
+
+menu:
+  main:
+    - identifier: docs/dev
+      name: Dev Guide
+      url: /docs/dev/
+    - identifier: docs/user
+      name: User Guide
+      url: /docs/user/

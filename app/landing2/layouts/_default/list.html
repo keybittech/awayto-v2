@@ -1,0 +1,47 @@
+{{ define "main" }}
+
+  {{ $devSection := .Site.GetPage "section" .RelPermalink }}
+
+  <div class="container">
+    <div class="sidebar">
+      
+      <ul>
+        <li>{{ partial "gotoapp.html" . }}</li>
+        <li><strong>{{ .Title }}</strong></li>
+        {{ range $devSection.Sections }}
+          {{ if eq .Kind "section" }}
+            <li><a id="link-{{ .Title | urlize }}" href="#{{ .Title | urlize }}">{{ .Title }}</a></li>
+            {{ if ne .Title "Home" }}
+              <ul class="indent">
+                {{ $currentParent := . }}
+                {{ range .Pages }}
+                  {{ if and (eq .Parent $currentParent) (ne . $currentParent) (ne .Kind "section") }}
+                    <li><a id="link-{{ .Title | urlize }}" href="#{{ .Title | urlize }}">{{ .Title }}</a></li>
+                  {{ end }}
+                {{ end }}
+              </ul>
+            {{ end }}
+          {{ end }}
+        {{ end }}
+      </ul>
+    </div>
+    <div class="post-content">
+      {{ .Content }}
+
+      {{ range $devSection.Sections }}
+        {{ if eq .Kind "section" }}
+          <div class="section-header" id="{{ .Title | urlize }}">{{ .Content }}</div>
+          {{ if ne .Title "Home" }}
+            {{ $currentParent := . }}
+            {{ range .Pages }}
+              {{ if and (eq .Parent $currentParent) (ne . $currentParent) (ne .Kind "section") }}
+                <div class="section-header" id="{{ .Title | urlize }}">{{ .Content }}</div>
+              {{ end }}
+            {{ end }}
+          {{ end }}
+        {{ end }}
+      {{ end }}
+    </div>
+  </div>
+{{ end }}
+
