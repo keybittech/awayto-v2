@@ -63,7 +63,7 @@ const {
   PG_DATABASE,
   GRAYLOG_HOST,
   GRAYLOG_PORT
-} = process.env as { [prop: string]: string } & { PG_PORT: number, GRAYLOG_PORT: number };
+} = process.env as { [prop: string]: string };
 
 const credentials: Credentials = {
   clientId: KC_API_CLIENT_ID,
@@ -102,7 +102,7 @@ export default class ApiServer {
       ApiServer.graylogClient = new graylog({
         servers: [{
           host: GRAYLOG_HOST,
-          port: GRAYLOG_PORT
+          port: parseInt(GRAYLOG_PORT)
         }]
       });
   
@@ -120,7 +120,7 @@ export default class ApiServer {
 
       ApiServer.dbClient = pgp({
         host: PG_HOST,
-        port: PG_PORT,
+        port: parseInt(PG_PORT),
         user: PG_USER,
         password: PG_PASSWORD,
         database: PG_DATABASE

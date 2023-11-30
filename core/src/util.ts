@@ -280,7 +280,7 @@ export type Merge<T> = T extends AnyRecord
   }
   : never;
 export type AnyRecordTypes = string | number | boolean | Partial<Void> | ArrayBuffer | undefined | unknown[];
-export interface AnyRecord { [prop: string]: (AnyRecordTypes | AnyRecord) extends infer U ? U : never; }
+export interface AnyRecord { [prop: string]: (AnyRecordTypes | AnyRecord | ArrayBuffer) extends infer U ? U : never; }
 
 export type Void = { _void: never };
 export type ReplaceVoid<T> = T extends Void ? void : T;
@@ -376,7 +376,7 @@ export declare function parseResource(path: string): Record<string, string>;
  */
 export declare function checkWriteBuildFile(next: () => unknown): void;
 
-export function withEvent<T extends AnyRecord>(props: ApiProps<AnyRecord>, eventBody: T): ApiProps<T> {
+export function withEvent<T extends AnyRecord | ArrayBuffer>(props: ApiProps<AnyRecord | ArrayBuffer>, eventBody: T): ApiProps<T> {
   return {
     ...props,
     event: {

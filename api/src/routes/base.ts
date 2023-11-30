@@ -7,16 +7,13 @@ import {
   StrategyUser,
   ApiErrorResponse,
   siteApiRef,
-  ApiProps,
   EndpointType,
-  AnyRecord,
-  AnyRecordTypes,
   BufferResponse,
   nid,
   HttpMethodsLC,
   RedisProxy,
   RateLimitResource,
-  KcSiteOpts
+  KcSiteOpts,
 } from 'awayto/core';
 
 import { siteApiHandlerRef } from '../handlers';
@@ -24,7 +21,7 @@ import { siteApiHandlerRef } from '../handlers';
 import { saveFile, putFile, getFile } from '../modules/fs';
 
 import { checkAuthenticated, validateRequestBody, rateLimit, checkToken } from '../middlewares';
-import { IDatabase } from 'pg-promise';
+import { IDatabase, ITask } from 'pg-promise';
 import { Redis } from 'ioredis';
 import { graylog } from 'graylog2';
 import KeycloakAdminClient from '@keycloak/keycloak-admin-client';
@@ -87,8 +84,8 @@ export default function buildBaseRoutes(app: Express, dbClient: IDatabase<unknow
     const isFileContent = 'application/octet-stream' === contentType;
   
     const requestHandlers: RequestHandler[] = [
-      checkToken(dbClient, redisProxy),
       rateLimit(rateLimitResource, throttle, kind, method, url),
+      checkToken(dbClient, redisProxy),
       checkAuthenticated
     ];
   
@@ -97,18 +94,21 @@ export default function buildBaseRoutes(app: Express, dbClient: IDatabase<unknow
     }
   
     requestHandlers.push(validateRequestBody(queryArg, url));
+
+    const baseUrl = url.split('?')[0];
+    const methodLc = method.toLowerCase() as HttpMethodsLC;
   
     // Here we make use of the extra /api from the reverse proxy
-    app[<HttpMethodsLC>method.toLowerCase()](`/api/${url.split('?')[0]}`, requestHandlers, async (req: Request, res: Response) => {
+    app[methodLc](`/api/${baseUrl}`, requestHandlers, async (req: Request, res: Response) => {
   
-      const requestId = nid('v4');
+      const requestId = nid('v4') as string;
       const user = req.user as StrategyUser;
   
       let response = {} as typeof resultType;
       let wasCached = false;
-      const cacheKey = user.sub + req.originalUrl.slice(5); // remove /api/
+      const cacheKey = user.sub + baseUrl;
   
-      if ('get' === method.toLowerCase() && 'skip' !== cache) {
+      if ('get' === methodLc && 'skip' !== cache) {
         const value = await redisClient.get(cacheKey);
         if (value) {
           response = JSON.parse(value);
@@ -123,13 +123,12 @@ export default function buildBaseRoutes(app: Express, dbClient: IDatabase<unknow
         try {
           const xfwd = (req.headers['x-forwarded-for'] as string).split('.');
           const sourceIp = xfwd.filter((a, i) => i !== xfwd.length - 1).join('.') + '.000';
-  
-  
-          // Create trace event
-          const requestParams = {
+
+          const requestProps = {
             db: dbClient,
+            tx: {} as ITask<unknown>,
             redis: redisClient,
-            keycloak: keycloakClient as unknown,
+            keycloak: keycloakClient,
             logger: graylogClient,
             redisProxy,
             fetch,
@@ -141,40 +140,31 @@ export default function buildBaseRoutes(app: Express, dbClient: IDatabase<unknow
               method,
               url,
               public: false,
-              group: req.session.group,
+              group: req.session.group || {},
               groups: req.session.groups,
-              availableUserGroupRoles: req.session.availableUserGroupRoles,
+              availableUserGroupRoles: req.session.availableUserGroupRoles || {},
               userSub: user.sub,
               sourceIp,
               pathParameters: req.params as Record<string, string>,
               queryParameters: req.query as Record<string, string>,
-              body: req.body as typeof queryArg
+              body: req.body
             }
-          } as ApiProps<typeof queryArg>;
+          };
+
+          graylogClient.log(`Handling api ${kind}`, { ...requestProps.event, body: isFileContent ? 'File' : req.body });
+
+          console.log('handling', kind, method, url, user.sub, requestId);
   
-          const handler = siteApiHandlerRef[apiRefId as keyof typeof siteApiRef];
-  
-          const txHandler = async <T, Q extends AnyRecord | AnyRecordTypes>(props: ApiProps<Q>): Promise<T> => {
-            const eventLength = JSON.stringify(requestParams.event).length;
-            const handlerType = EndpointType.MUTATION === kind ? 'mutation' : 'query';
-            const { body, ...logged } = requestParams.event;
-            graylogClient.log(`Handling api ${handlerType} with size ` + eventLength, {
-              ...logged,
-              body: isFileContent ? undefined : body
+          const handler = siteApiHandlerRef[apiRefId as keyof typeof siteApiHandlerRef];
+
+          if (EndpointType.MUTATION === kind) {
+            response = await dbClient.tx(async tx => {
+              requestProps.tx = tx
+              return await handler(requestProps)
             });
-            console.log('handling', handlerType, method, url, user.sub, requestId, eventLength);
-  
-            if (EndpointType.MUTATION === kind) {
-              return await dbClient.tx(async trx => {
-                requestParams.tx = trx;
-                return await (handler as (props: ApiProps<Q>) => Promise<T>)(props);
-              });
-            }
-  
-            return await (handler as (props: ApiProps<Q>) => Promise<T>)(props);
+          } else {
+            response = await handler(requestProps);
           }
-  
-          response = await txHandler<typeof resultType, typeof queryArg>(requestParams);
   
           /**
           * Cache settings:
@@ -184,7 +174,7 @@ export default function buildBaseRoutes(app: Express, dbClient: IDatabase<unknow
           */
   
           if (response && 'boolean' !== typeof response && 'skip' !== cache) {
-            if ('get' === method.toLowerCase()) {
+            if ('get' === methodLc) {
               if (null === cache) {
                 await redisClient.set(cacheKey, JSON.stringify(response))
               } else {
