@@ -1,6 +1,5 @@
 import React, { useContext } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import dayjs from 'dayjs';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -13,7 +12,7 @@ import Tooltip from '@mui/material/Tooltip';
 import JoinFullIcon from '@mui/icons-material/JoinFull';
 import DoneIcon from '@mui/icons-material/Done';
 
-import { bookingDT, shortNSweet } from 'awayto/core';
+import { bookingDT, dayjs, shortNSweet } from 'awayto/core';
 import { useContexts, useUtil } from 'awayto/hooks';
 
 declare global {

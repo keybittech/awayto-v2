@@ -1,6 +1,7 @@
 {
 	"files": [],
 	"references": [
+		{ "path": "./core" },
 		{ "path": "./api" },
 		{ "path": "./app/website" }
 	]

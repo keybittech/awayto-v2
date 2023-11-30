@@ -122,9 +122,13 @@ module.exports = {
     },
     configure: (webpackConfig, { env, paths }) => {
 
-      webpackConfig.resolve.plugins = webpackConfig.resolve.plugins.filter(
-        (plugin) => !(plugin instanceof ModuleScopePlugin)
-      );
+      const scopePluginIdx = webpackConfig.resolve.plugins.findIndex(({ constructor }) => {
+        if (constructor) {
+          return constructor.name === 'ModuleScopePlugin';
+        }
+      });
+
+      webpackConfig.resolve.plugins.splice(scopePluginIdx, 1);
 
       CracoEsbuildPlugin.overrideWebpackConfig({
         webpackConfig,

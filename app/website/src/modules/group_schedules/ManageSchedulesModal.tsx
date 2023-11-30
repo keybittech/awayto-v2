@@ -11,7 +11,6 @@ import CardActions from '@mui/material/CardActions';
 import Slider from '@mui/material/Slider';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
-import { Mark } from '@mui/base';
 
 import { IGroupSchedule, ITimeUnit, TimeUnit, timeUnitOrder, getRelativeDuration,  scheduleSchema, IGroup } from 'awayto/core';
 import { useComponents, useUtil, sh, useTimeName } from 'awayto/hooks';
@@ -68,7 +67,7 @@ export function ManageSchedulesModal({ children, editGroup, editGroupSchedule, s
   }, [lookups, schedule]);
 
   const slotDurationMarks = useMemo(() => {
-    const factors = [] as Mark[];
+    const factors = [] as { value: number, label: number }[];
     if (!bracketTimeUnitName || !slotTimeUnitName || !scheduleTimeUnitName) return factors;
     // const subdivided = bracketTimeUnitName !== slotTimeUnitName;
     // const finalDuration = !subdivided ? 
