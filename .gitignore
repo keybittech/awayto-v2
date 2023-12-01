@@ -27,4 +27,4 @@ dev_reports/
 turn/turnserver.conf
 .git
 .vscode
-~/*
+.swap/

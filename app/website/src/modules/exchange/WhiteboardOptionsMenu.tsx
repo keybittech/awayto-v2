@@ -145,7 +145,7 @@ export function WhiteboardOptionsMenu({
   return <Box sx={{ position: 'absolute', zIndex: 100, ...directions[dir].position }}>
     <Tooltip title="Board Options" children={
       <Button
-        className={classes.darkRounded}
+        sx={classes.darkRounded}
         endIcon={<ArrowDropDownIcon fontSize="small" />}
         onClick={e => setWhiteboardOptionsAnchorEl(e.currentTarget)}
       >
@@ -186,7 +186,7 @@ export function WhiteboardOptionsMenu({
               {scales.map(v => <MenuItem key={v} value={v}>{Math.round(parseFloat(v.toFixed(2)) * 100)}%</MenuItem>)}
             </TextField>
 
-            <Box sx={{ minWidth: '72px', alignSelf: 'flex-end' }} className={classes.darkRounded}>
+            <Box sx={{ minWidth: '72px', alignSelf: 'flex-end', ...classes.darkRounded }}>
               <Tooltip title="Zoom Out" children={
                 <IconButton onClick={() => setScale(false)}>
                   <RemoveIcon fontSize="small" />
@@ -214,7 +214,7 @@ export function WhiteboardOptionsMenu({
               }}
             />
 
-            <Box sx={{ minWidth: '144px', alignSelf: 'flex-end' }} className={classes.darkRounded}>
+            <Box sx={{ minWidth: '144px', alignSelf: 'flex-end', ...classes.darkRounded }}>
               <Tooltip title="First Page" children={
                 <IconButton onClick={() => setPage(1)}>
                   <KeyboardDoubleArrowLeftIcon fontSize="small" />

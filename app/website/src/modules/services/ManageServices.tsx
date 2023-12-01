@@ -41,7 +41,7 @@ export function ManageServices(props: IProps): React.JSX.Element {
           setSelected([]);
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Edit</Typography>
-          <CreateIcon className={classes.variableButtonIcon} />
+          <CreateIcon sx={classes.variableButtonIcon} />
         </Button>
       </Tooltip>
     ] : [];
@@ -62,7 +62,7 @@ export function ManageServices(props: IProps): React.JSX.Element {
           });
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Delete</Typography>
-          <DeleteIcon className={classes.variableButtonIcon} />
+          <DeleteIcon sx={classes.variableButtonIcon} />
         </Button>
       </Tooltip>
     ]
@@ -84,7 +84,7 @@ export function ManageServices(props: IProps): React.JSX.Element {
           setDialog('manage_service');
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Create</Typography>
-          <DomainAddIcon className={classes.variableButtonIcon} />
+          <DomainAddIcon sx={classes.variableButtonIcon} />
         </Button>
       </Tooltip>
       {!!selected.length && <Box sx={{ flexGrow: 1, textAlign: 'right' }}>{actions}</Box>}

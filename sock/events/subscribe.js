@@ -20,6 +20,8 @@ export async function subscribe(bc, parsed, ws) {
   }
 
   if (subbed) {
+
+
     ws.subscriber.subscribedTopics.add(parsed.topic);
 
     const existingUsers = await redis.sMembers(`member_topics:${parsed.topic}`); // get existing topic connections
@@ -28,7 +30,7 @@ export async function subscribe(bc, parsed, ws) {
     if (existingUsers.length) {
       bc.send(Buffer.from(JSON.stringify({
         sender: ws.connectionId,
-        type: 'existing-subscribers',
+        action: 'existing-subscribers',
         topic: parsed.topic,
         payload: existingUsers.join(',')
       })));
@@ -40,9 +42,10 @@ export async function subscribe(bc, parsed, ws) {
 
     bc.send(Buffer.from(JSON.stringify({
       sender: ws.connectionId,
-      type: 'subscribe-topic',
+      action: 'subscribe-topic',
       topic: parsed.topic,
       payload: ws.connectionId
     })));
+    console.log('user is subscribed to', parsed.topic);
   }
 }

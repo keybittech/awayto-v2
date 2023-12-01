@@ -142,7 +142,7 @@ export type AuthBody = {
   sessionId: string;
   userId: string;
   time: string;
-  type: string;
+  webhookName: string;
   details: Record<string, string>
 };
 

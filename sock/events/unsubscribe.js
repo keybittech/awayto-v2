@@ -4,7 +4,7 @@ import redis from '../redis.js';
 export async function unsubscribe(wss, connectionId, topic) {
   const notificationMessage = Buffer.from(JSON.stringify({
     sender: connectionId,
-    type: 'unsubscribe-topic',
+    action: 'unsubscribe-topic',
     topic,
     payload: connectionId
   }));

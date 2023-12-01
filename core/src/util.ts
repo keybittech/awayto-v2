@@ -275,6 +275,28 @@ export function deepClone<T>(obj: T): T {
   return result as T;
 }
 
+export function isObject(item: unknown): item is Object {
+  return typeof item === 'object' && !Array.isArray(item);
+}
+
+export function deepMerge<T>(target: unknown, source: unknown): T {
+
+  if (isObject(target) && isObject(source)) {
+    for (const key in source) {
+      const tkey = key as keyof typeof target;
+      const skey = key as keyof typeof source;
+      if (isObject(source[skey])) {
+        if (!target[tkey]) Object.assign(target, { [key]: {} });
+        deepMerge(target[tkey], source[skey]);
+      } else {
+        Object.assign(target, { [key]: source[skey] });
+      }
+    }
+  }
+
+  return target as T;
+}
+
 export function getMapFromArray<T extends { id: string }>(state: Map<string, T>, payload: T[]): Map<string, T> {
   return payload.reduce((m, d) => {
     m.set(d.id, { ...m.get(d.id), ...d });

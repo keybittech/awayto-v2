@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "build": "webpack --config api.webpack.js",
-    "start": "npm-run-all --parallel start-nodemon start-webpack",
+    "start": "node ./node_modules/npm-run-all/bin/npm-run-all/index.js start-nodemon start-webpack",
     "start-webpack": "NODE_ENV=development webpack --watch --config api.webpack.js",
     "start-nodemon": "nodemon -r dotenv/config ./build/api.js --watch ./build",
     "prestart": "lsof -t -i:9443 | xargs -r kill",
@@ -13,7 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@keybittech/wizapp": "file:../../wiz",
+    "@keybittech/wizapp": "0.2.0-beta.2",
     "@keycloak/keycloak-admin-client": "20.0.3",
     "bufferutil": "^4.0.7",
     "connect-redis": "^7.1.0",

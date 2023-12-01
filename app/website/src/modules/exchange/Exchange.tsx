@@ -112,7 +112,7 @@ export function Exchange(): React.JSX.Element {
               }
             >
               <ListItem>
-                <Box className={classes.darkRounded} mr={1}>
+                <Box sx={classes.darkRounded} mr={1}>
                   {connected && <Button onClick={() => leaveCall()}>
                     Leave Call
                   </Button>}

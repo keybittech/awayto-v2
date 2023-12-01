@@ -1,9 +1,10 @@
 # docker build -t wcapp . -f ./app/Dockerfile && kc scale deployment wcapp --replicas=0 && kc scale deployment wcapp --replicas=1 --current-replicas=0
 # docker build -t wcapp . && docker run --rm --init -p 443:443 wcapp
 FROM node:18.16.0-alpine as builder
-# RUN apk add postgresql-dev python3 make build-base
 
 RUN apk update && apk add gettext
+
+RUN npm i -g pnpm
 
 ARG CUST_LAND_HOSTNAME
 ARG CUST_APP_HOSTNAME
@@ -15,31 +16,35 @@ ARG KC_PATH
 ARG TURN_NAME
 ARG TURN_PASS
 
-WORKDIR /app/website
-
-COPY --from=awayto-deps /deps/node_modules /core/node_modules
-COPY --from=awayto-deps /deps/node_modules /app/website/node_modules
-
-COPY ./app/landing /land
-
-WORKDIR /land
-RUN --mount=type=cache,target=/root/.cache/yarn yarn install &&\
-  envsubst < config.yaml.template > config.yaml &&\
-  npm run build
-
 RUN mkdir -p /core/src && mkdir -p /app/website/src && mkdir -p /app/website/public
 
+# Compile landing page
+WORKDIR /land
+
+COPY /app/landing /land
+
+RUN envsubst < config.yaml.template > config.yaml &&\
+  pnpm install && pnpm run build
+
+# Compile core dependencies
+WORKDIR /core
+
+COPY /core/package.json /core/pnpm-*.yaml /core/
+COPY /core/src/ /core/src
+
+RUN pnpm install
+
+# Compile app website
 WORKDIR /app/website
 
-COPY /core/src/ /core/src
 COPY /app/website/src/ /app/website/src
 COPY /app/website/public/ /app/website/public
-COPY /app/website/package.json /app/website/*config*.* /app/website/settings.application.env.template /app/website/
+COPY /app/website/package.json /app/website/pnpm-*.yaml /app/website/*config*.* /app/website/settings.application.env.template /app/website/
 
-RUN envsubst < ./settings.application.env.template > ./settings.application.env
+RUN envsubst < ./settings.application.env.template > ./settings.application.env &&\
+  pnpm install && pnpm run build
 
-RUN npm run build
-
+# Generate Nginx server
 FROM nginx:alpine
 
 ARG ENVIRONMENT=local

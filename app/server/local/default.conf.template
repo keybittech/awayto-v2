@@ -1,5 +1,6 @@
 upstream sock {
-  server sock:8888;
+  server ${APP_HOST}:8888;
+  #server sock:8888;
 }
 
 upstream auth {

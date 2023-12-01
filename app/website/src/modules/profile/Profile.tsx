@@ -154,7 +154,7 @@ export function Profile(props: IProps): React.JSX.Element {
         </Grid>
       </Grid>
       <Grid item xs={12}>
-        <Button className={classes.red} onClick={handleSubmit}>Submit</Button>
+        <Button sx={classes.red} onClick={handleSubmit}>Submit</Button>
       </Grid>
     </Grid>
   </>

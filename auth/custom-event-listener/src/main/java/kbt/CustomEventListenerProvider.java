@@ -39,7 +39,13 @@ public class CustomEventListenerProvider implements EventListenerProvider {
     if (Arrays.stream(eventTypes).anyMatch(e -> e == event.getType())) {
 
       JSONObject eventPayload = new JSONObject(event);
+  
+      eventPayload.remove("type");
+      eventPayload.append("webhookName", event.getType());
+
       RealmModel realm = session.realms().getRealm(event.getRealmId());
+
+
 
       log.info("CustomEventListenerProvider New Event: " + event.getType() + " " + eventPayload.toString());
 

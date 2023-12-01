@@ -27,9 +27,9 @@ export function PickTheme (props: IProps): React.JSX.Element {
   return <>
     <Grid container alignItems="center">
       {showTitle ? <Grid item><Typography>Theme</Typography></Grid> : <></>}
-      <Grid item onClick={edit} id="dark"><Box bgcolor="gray" className={classes.colorBox} /></Grid>
-      <Grid item onClick={edit} id="light"><Box bgcolor="white" className={classes.colorBox} /></Grid>
-      {/* <Grid item onClick={edit} id="blue"><Box bgcolor="deepskyblue" className={classes.colorBox} /></Grid> */}
+      <Grid item onClick={edit} id="dark"><Box bgcolor="gray" sx={classes.colorBox} /></Grid>
+      <Grid item onClick={edit} id="light"><Box bgcolor="white" sx={classes.colorBox} /></Grid>
+      {/* <Grid item onClick={edit} id="blue"><Box bgcolor="deepskyblue" sx={classes.colorBox} /></Grid> */}
     </Grid>
   </>
 }

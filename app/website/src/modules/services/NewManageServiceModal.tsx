@@ -34,7 +34,7 @@ const serviceTierSchema = {
   addons: {}
 } as IServiceTier;
 
-const validCost = function (cost: string): boolean {
+const validCost = function(cost: string): boolean {
   return /(^$|^\$?\d+(,\d{3})*(\.\d*)?$)/.test(cost);
 }
 
@@ -194,7 +194,7 @@ export function NewManageServiceModal({ editGroup, editService, showCancel = tru
           </Grid>
         </Grid>
       </CardContent>
-      
+
       <CardHeader title="Add Tiers" />
 
       <CardContent sx={{ padding: '0 15px' }}>
@@ -345,11 +345,21 @@ export function NewManageServiceModal({ editGroup, editService, showCancel = tru
         <CardContent>
           <Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap' }}>
             {Object.values(newService.tiers).sort((a, b) => new Date(a.createdOn).getTime() - new Date(b.createdOn).getTime()).map((tier, i) => {
-              return <Box key={`service-tier-chip${i + 1}new`} m={1}><Chip classes={{ root: classes.chipRoot, label: classes.chipLabel }} label={<Typography>{`#${i + 1} ` + tier.name + ' (' + tier.multiplier + 'x)'}</Typography>} onDelete={() => {
-                const tiers = { ...newService.tiers };
-                delete tiers[tier.id];
-                setNewService({ ...newService, tiers });
-              }} /></Box>
+              return <Box key={`service-tier-chip${i + 1}new`} m={1}>
+                <Chip
+                  sx={classes.chipRoot}
+                  label={
+                    <Typography sx={classes.chipLabel}>
+                      {`#${i + 1} ` + tier.name + ' (' + tier.multiplier + 'x)'}
+                    </Typography>
+                  }
+                  onDelete={() => {
+                    const tiers = { ...newService.tiers };
+                    delete tiers[tier.id];
+                    setNewService({ ...newService, tiers });
+                  }}
+                />
+              </Box>
             })}
           </Box>
         </CardContent>
@@ -359,8 +369,8 @@ export function NewManageServiceModal({ editGroup, editService, showCancel = tru
             <ServiceTierAddons service={newService} />
           </Suspense>
         </CardContent>
-      </> : <CardContent>No tiers added yet.</CardContent> }
-      
+      </> : <CardContent>No tiers added yet.</CardContent>}
+
       <CardActions>
 
         <Grid container justifyContent={showCancel ? "space-between" : "flex-end"}>

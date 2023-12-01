@@ -6,8 +6,8 @@ settings:
 
 dependencies:
   '@keybittech/wizapp':
-    specifier: file:../../wiz
-    version: file:../../wiz
+    specifier: 0.2.0-beta.2
+    version: 0.2.0-beta.2
   '@keycloak/keycloak-admin-client':
     specifier: 20.0.3
     version: 20.0.3
@@ -385,6 +385,20 @@ packages:
       '@jridgewell/resolve-uri': 3.1.1
       '@jridgewell/sourcemap-codec': 1.4.15
     dev: true
+
+  /@keybittech/wizapp@0.2.0-beta.2:
+    resolution: {integrity: sha512-LhFslhzqfiT0CkpsJGg06GJIqbGZgw9ynbLdr1hAChHyiZkB7AekbX1v1MNTesFkm6SmoCG8LLgl1Ivg5v7E8w==}
+    hasBin: true
+    dependencies:
+      fast-glob: 3.3.2
+      openai: 3.2.1
+      simple-git: 3.17.0
+      ts-morph: 18.0.0
+      yargs: 17.7.1
+    transitivePeerDependencies:
+      - debug
+      - supports-color
+    dev: false
 
   /@keycloak/keycloak-admin-client@20.0.3:
     resolution: {integrity: sha512-b3f3P0Asnq/UOMRx4NNJ4d3fPw/GGm9+NzpYSqoQVVPp1koV89b0kbQT0l6melHlsDbkILyZd6UCw2CCMuC0+g==}
@@ -3788,18 +3802,3 @@ packages:
       fd-slicer: 1.1.0
     dev: false
     optional: true
-
-  file:../../wiz:
-    resolution: {directory: ../../wiz, type: directory}
-    name: '@keybittech/wizapp'
-    hasBin: true
-    dependencies:
-      fast-glob: 3.3.2
-      openai: 3.2.1
-      simple-git: 3.17.0
-      ts-morph: 18.0.0
-      yargs: 17.7.1
-    transitivePeerDependencies:
-      - debug
-      - supports-color
-    dev: false

@@ -125,8 +125,8 @@ export function Topbar(props: IProps): React.JSX.Element {
             onClick={e => setUpcomingBookingsAnchorEl(e.currentTarget)}
           >
             <Badge badgeContent={upcomingBookings.length} color="error">
-              <ThreePIcon className={classes.mdHide} />
-              <Typography className={classes.mdShow}>View</Typography>
+              <ThreePIcon sx={classes.mdHide} />
+              <Typography sx={classes.mdShow}>View</Typography>
             </Badge>
           </IconButton>
         </Tooltip>
@@ -155,8 +155,8 @@ export function Topbar(props: IProps): React.JSX.Element {
             onClick={e => setPendingQuotesAnchorEl(e.currentTarget)}
           >
             <Badge badgeContent={pendingQuotes.length} color="error">
-              <ApprovalIcon className={classes.mdHide} />
-              <Typography className={classes.mdShow}>Approve</Typography>
+              <ApprovalIcon sx={classes.mdHide} />
+              <Typography sx={classes.mdShow}>Approve</Typography>
             </Badge>
           </IconButton>
         </Tooltip>
@@ -178,8 +178,8 @@ export function Topbar(props: IProps): React.JSX.Element {
             aria-haspopup="true"
             onClick={e => setFeedbackAnchorEl(e.currentTarget)}
           >
-            <CampaignIcon className={classes.mdHide} />
-            <Typography className={classes.mdShow}>Comment</Typography>
+            <CampaignIcon sx={classes.mdHide} />
+            <Typography sx={classes.mdShow}>Comment</Typography>
           </IconButton>
         </Tooltip>
       </Grid>

@@ -66,7 +66,7 @@ export default function buildAuthRoutes(app: Express, dbClient: IDatabase<unknow
     const requestId = uuid();
     try {
       const body = req.body as AuthBody;
-      const { type, userId, ipAddress, details } = body;
+      const { webhookName, userId, ipAddress, details } = body;
 
       const xfwd = (ipAddress as string).split('.');
       const sourceIp = xfwd.filter((a, i) => i !== xfwd.length - 1).join('.') + '.000';
@@ -88,7 +88,7 @@ export default function buildAuthRoutes(app: Express, dbClient: IDatabase<unknow
       };
 
       await dbClient.tx(async tx => {
-        await WebHooks[`AUTH_${type}`]({
+        await WebHooks[`AUTH_${webhookName}`]({
           event,
           db: dbClient,
           redis: redisClient,

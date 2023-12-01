@@ -1,22 +1,17 @@
-import type { } from '@mui/x-date-pickers/themeAugmentation';
-import { Theme, ThemeOptions } from '@mui/material/styles/createTheme';
-
-import makeStyles from '@mui/styles/makeStyles';
-
-import deepmerge from '@mui/utils/deepmerge';
-import createTheme from '@mui/material/styles/createTheme';
+import { SxProps, ThemeOptions, createTheme } from '@mui/material/styles';
 import green from '@mui/material/colors/green';
 import red from '@mui/material/colors/red';
-import { PaletteMode } from 'awayto/core';
-import { StyleRules } from '@mui/styles';
 
+import { PaletteMode, deepMerge } from 'awayto/core';
 
 const drawerWidth = 175;
 
 /**
  * @category Style
  */
-export const useStyles = makeStyles((theme: Theme) => {
+export const useStyles = (): { [key: string]: SxProps } => {
+
+  const theme = createTheme();
 
   const absoluteFullChild = {
     position: 'absolute',
@@ -70,9 +65,9 @@ export const useStyles = makeStyles((theme: Theme) => {
 
     blueChecked: { '& .MuiSvgIcon-root': { color: 'lightblue' } },
 
-    chipRoot: { margin: theme.spacing(1), height: '100%', display: 'flex', flexDirection: 'row' },
+    chipRoot: { root: { margin: theme.spacing(1), height: '100%', display: 'flex', flexDirection: 'row' } },
 
-    chipLabel: { overflowWrap: 'break-word', whiteSpace: 'normal', textOverflow: 'clip' },
+    chipLabel: { label: { overflowWrap: 'break-word', whiteSpace: 'normal', textOverflow: 'clip' } },
 
 
     pdfViewerComps: {
@@ -128,8 +123,8 @@ export const useStyles = makeStyles((theme: Theme) => {
     }
 
 
-  } as StyleRules;
-});
+  }
+};
 
 export const getBaseComponents: () => ThemeOptions = () => ({
   components: {
@@ -385,10 +380,10 @@ export const getThemedComponents: (mode: PaletteMode) => ThemeOptions = (mode) =
 
 const darkTokens = getDesignTokens('dark');
 const darkComponents = getThemedComponents('dark');
-const darkSite = deepmerge(darkTokens, darkComponents);
-export const darkTheme = createTheme(deepmerge(darkSite, getBaseComponents()));
+const darkSite = { ...darkTokens, ...darkComponents };
+export const darkTheme = createTheme(deepMerge(darkSite, getBaseComponents()));
 
 const lightTokens = getDesignTokens('light');
 const lightComponents = getThemedComponents('light');
-const lightSite = deepmerge(lightTokens, lightComponents);
-export const lightTheme = createTheme(deepmerge(lightSite, getBaseComponents()));
+const lightSite = { ...lightTokens, ...lightComponents };
+export const lightTheme = createTheme(deepMerge(lightSite, getBaseComponents()));

@@ -48,7 +48,7 @@ export function ServiceTierAddons({ service }: IProps): React.JSX.Element {
         type: 'string',
         field: `sta_col_${st.id}`,
         headerName: st.name,
-        renderCell: params => params.row.tiers.includes(st.name) ? <Avatar sx={{ width: 24, height: 24, backgroundColor: 'white' }}><CheckIcon className={classes.green} /></Avatar> : '--',
+        renderCell: params => params.row.tiers.includes(st.name) ? <Avatar sx={{ width: 24, height: 24, backgroundColor: 'white' }}><CheckIcon sx={classes.green} /></Avatar> : '--',
         flex: 1
       }))
     ]

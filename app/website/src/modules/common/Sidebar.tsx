@@ -1,6 +1,7 @@
 import React, { useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
+import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -33,47 +34,47 @@ export function Sidebar(): React.JSX.Element {
   return <Grid container style={{ height: '100vh' }} alignContent="space-between">
     <Grid item xs={12} style={{ marginTop: '20px' }}>
       <Grid container justifyContent="center">
-        <Button onClick={() => navigate('/')}>
-          <img src={Icon} alt="kbt-icon" className={classes.logo} />
+        <Button sx={classes.logo} onClick={() => navigate('/')}>
+          <img src={Icon} alt="kbt-icon" />
         </Button>
       </Grid>
       <List component="nav">
-        <ListItem className={classes.menuIcon} onClick={() => navigate('/')} button key={'home'}>
+        <ListItem sx={classes.menuIcon} onClick={() => navigate('/')} button key={'home'}>
           <ListItemIcon><GroupIcon color={location.pathname === '/' ? "secondary" : "primary"} /></ListItemIcon>
-          <ListItemText classes={{ primary: classes.menuText }}>Home</ListItemText>
+          <ListItemText sx={classes.menuText}>Home</ListItemText>
         </ListItem>
-        {/* <ListItem className={classes.menuIcon} onClick={() => navigate('/exchange')} button key={'exchange'}>
+        {/* <ListItem sx={classes.menuIcon} onClick={() => navigate('/exchange')} button key={'exchange'}>
           <ListItemIcon><TtyIcon color={location.pathname === '/exchange' ? "secondary" : "primary"} /></ListItemIcon>
-          <ListItemText classes={{ primary: classes.menuText }}>Exchange</ListItemText>
+          <ListItemText sx={classes.menuText}>Exchange</ListItemText>
         </ListItem> */}
-        {/* {hasRole([SiteRoles.APP_GROUP_SERVICES]) && <ListItem className={classes.menuIcon} onClick={() => navigate('/service')} button key={'service'}>
+        {/* {hasRole([SiteRoles.APP_GROUP_SERVICES]) && <ListItem sx={classes.menuIcon} onClick={() => navigate('/service')} button key={'service'}>
           <ListItemIcon><BusinessIcon color={location.pathname === '/service' ? "secondary" : "primary"} /></ListItemIcon>
-          <ListItemText classes={{ primary: classes.menuText }}>Service</ListItemText>
+          <ListItemText sx={classes.menuText}>Service</ListItemText>
         </ListItem>} */}
-        {hasRole([SiteRoles.APP_GROUP_SCHEDULES]) && <ListItem className={classes.menuIcon} onClick={() => navigate('/schedule')} button key={'schedule'}>
+        {hasRole([SiteRoles.APP_GROUP_SCHEDULES]) && <ListItem sx={classes.menuIcon} onClick={() => navigate('/schedule')} button key={'schedule'}>
           <ListItemIcon><EventNoteIcon color={location.pathname === '/schedule' ? "secondary" : "primary"} /></ListItemIcon>
-          <ListItemText classes={{ primary: classes.menuText }}>Schedule</ListItemText>
+          <ListItemText sx={classes.menuText}>Schedule</ListItemText>
         </ListItem>}
-        {hasRole([SiteRoles.APP_GROUP_BOOKINGS]) && <ListItem className={classes.menuIcon} onClick={() => navigate('/quote/request')} button key={'quote/request'}>
+        {hasRole([SiteRoles.APP_GROUP_BOOKINGS]) && <ListItem sx={classes.menuIcon} onClick={() => navigate('/quote/request')} button key={'quote/request'}>
           <ListItemIcon><MoreTimeIcon color={location.pathname === '/quote/request' ? "secondary" : "primary"} /></ListItemIcon>
-          <ListItemText classes={{ primary: classes.menuText }}>Request</ListItemText>
+          <ListItemText sx={classes.menuText}>Request</ListItemText>
         </ListItem>}
       </List>
     </Grid>
     <Grid item xs={12}>
       <List component="nav">
-        <ListItem className={classes.menuIcon} onClick={() => navigate('/profile')} button key={'profile'}>
+        <ListItem sx={classes.menuIcon} onClick={() => navigate('/profile')} button key={'profile'}>
           <ListItemIcon><AccountBoxIcon color={location.pathname === '/profile' ? "secondary" : "primary"} /></ListItemIcon>
-          <ListItemText classes={{ primary: classes.menuText }}>Profile</ListItemText>
+          <ListItemText sx={classes.menuText}>Profile</ListItemText>
         </ListItem>
-        <ListItem className={classes.menuIcon} onClick={() => {
+        <ListItem sx={classes.menuIcon} onClick={() => {
           async function go() {
             await keycloak.logout({ redirectUri: `https://${process.env.REACT_APP_LAND_HOSTNAME as string}/` });
           }
           void go();
         }} button key={'logout'}>
           <ListItemIcon><ExitToAppIcon color="primary" /></ListItemIcon>
-          <ListItemText classes={{ primary: classes.menuText }}>Logout</ListItemText>
+          <ListItemText sx={classes.menuIcon}>Logout</ListItemText>
         </ListItem>
       </List>
     </Grid>

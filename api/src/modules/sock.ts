@@ -60,7 +60,9 @@ export async function initSocket(dbClient: IDatabase<unknown>) {
           WHERE source.created_sub = sc.created_sub
           GROUP BY source.created_sub
         `,[event.topic, event.payload as string]);
-        
+       
+        console.log({ subscribers })
+
         if (subscribers) {
           const subDetails = await getSubDetails(dbClient, subscribers);
           if (subDetails) {

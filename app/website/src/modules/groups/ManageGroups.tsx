@@ -64,7 +64,7 @@ export function ManageGroups(props: IProps): React.JSX.Element {
           });
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Leave</Typography>
-          <Logout className={classes.variableButtonIcon} />
+          <Logout sx={classes.variableButtonIcon} />
         </Button>
       </Tooltip>,
       // grldr && hasRole([SiteRoles.APP_GROUP_ADMIN]) && <Tooltip key={'view_group_details'} title="Details">
@@ -72,7 +72,7 @@ export function ManageGroups(props: IProps): React.JSX.Element {
       //     navigate(`/group/${gr.name}/manage/users`)
       //   }}>
       //     <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Details</Typography>
-      //     <ManageAccountsIcon className={classes.variableButtonIcon} />
+      //     <ManageAccountsIcon sx={classes.variableButtonIcon} />
       //   </Button>
       // </Tooltip>,
       // grldr && <Tooltip key={'manage_group'} title="Edit">
@@ -82,7 +82,7 @@ export function ManageGroups(props: IProps): React.JSX.Element {
       //     setSelected([]);
       //   }}>
       //     <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Edit</Typography>
-      //     <CreateIcon className={classes.variableButtonIcon} />
+      //     <CreateIcon sx={classes.variableButtonIcon} />
       //   </Button>
       // </Tooltip>
     ] : [];
@@ -100,7 +100,7 @@ export function ManageGroups(props: IProps): React.JSX.Element {
           });
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Delete</Typography>
-          <DeleteIcon className={classes.variableButtonIcon} />
+          <DeleteIcon sx={classes.variableButtonIcon} />
         </Button>
       </Tooltip>
     ];
@@ -119,7 +119,7 @@ export function ManageGroups(props: IProps): React.JSX.Element {
               navigate(`/group/${row.name}/manage/users`)
             }}>
               <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Details</Typography>
-              <ManageAccountsIcon className={classes.variableButtonIcon} />
+              <ManageAccountsIcon sx={classes.variableButtonIcon} />
             </Button>
           </Tooltip>
         }
@@ -135,7 +135,7 @@ export function ManageGroups(props: IProps): React.JSX.Element {
           setDialog('join_group');
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Join</Typography>
-          <DomainAddIcon className={classes.variableButtonIcon} />
+          <DomainAddIcon sx={classes.variableButtonIcon} />
         </Button>
       </Tooltip>
       {/* <Tooltip key={'create_group'} title="Create">
@@ -144,7 +144,7 @@ export function ManageGroups(props: IProps): React.JSX.Element {
           setDialog('create_group');
         }}>
           <Typography variant="button" sx={{ display: { xs: 'none', md: 'flex' } }}>Create</Typography>
-          <GroupAddIcon className={classes.variableButtonIcon} />
+          <GroupAddIcon sx={classes.variableButtonIcon} />
         </Button>
       </Tooltip> */}
       {!!selected.length && <Box sx={{ flexGrow: 1, textAlign: 'right' }}>{actions}</Box>}
