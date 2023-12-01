@@ -14,6 +14,7 @@ import {
   RedisProxy,
   RateLimitResource,
   KcSiteOpts,
+  ApiSession,
 } from 'awayto/core';
 
 import { siteApiHandlerRef } from '../handlers';
@@ -103,7 +104,8 @@ export default function buildBaseRoutes(app: Express, dbClient: IDatabase<unknow
   
       const requestId = nid('v4') as string;
       const user = req.user as StrategyUser;
-  
+      const session = req.session as ApiSession;
+
       let response = {} as typeof resultType;
       let wasCached = false;
       const cacheKey = user.sub + baseUrl;
@@ -140,9 +142,9 @@ export default function buildBaseRoutes(app: Express, dbClient: IDatabase<unknow
               method,
               url,
               public: false,
-              group: req.session.group || {},
-              groups: req.session.groups,
-              availableUserGroupRoles: req.session.availableUserGroupRoles || {},
+              group: session.group || {},
+              groups: session.groups,
+              availableUserGroupRoles: session.availableUserGroupRoles || {},
               userSub: user.sub,
               sourceIp,
               pathParameters: req.params as Record<string, string>,

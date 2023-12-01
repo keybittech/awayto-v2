@@ -1,4 +1,9 @@
 {
+  "include": [
+    "./api/src",
+    "./core/src",
+    "./app/website/src"
+  ],
 	"files": [],
 	"references": [
 		{ "path": "./core" },

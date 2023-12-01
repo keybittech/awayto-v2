@@ -13,7 +13,14 @@ import { UserGroupRoles } from './profile';
 import { IGroup, IGroupRoleAuthActions } from './group';
 import { AnyRecord, AnyRecordTypes, Void } from '../util';
 import { KcSiteOpts } from './auth';
+import { Session } from 'express-session';
 
+export type ApiSession = Session & {
+  nonce?: string;
+  group?: IGroup;
+  groups?: string[];
+  availableUserGroupRoles?: UserGroupRoles;
+}
 /**
  * @category API
  */

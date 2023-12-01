@@ -11,6 +11,7 @@
     "@keybittech/wizapp": "file:../../wiz",
     "@keycloak/keycloak-admin-client": "20.0.3",
     "@types/express": "^4.17.17",
+    "@types/express-session": "^1.17.10",
     "@types/graylog2": "^0.2.2",
     "@types/pg": "^8.6.6",
     "@types/pg-promise": "^5.4.3",
