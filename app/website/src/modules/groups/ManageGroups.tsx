@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useMemo, Suspense, useContext } from 'react';
-import dayjs from 'dayjs';
 import { useNavigate } from 'react-router';
 
 import IconButton from '@mui/material/IconButton';
@@ -18,7 +17,7 @@ import Logout from '@mui/icons-material/Logout';
 
 import { DataGrid } from '@mui/x-data-grid';
 
-import { IGroup, SiteRoles } from 'awayto/core';
+import { dayjs, IGroup, SiteRoles } from 'awayto/core';
 import { useAppSelector, useSecure, useGrid, sh, useUtil, useStyles, useContexts } from 'awayto/hooks';
 
 import ManageGroupModal from './ManageGroupModal';

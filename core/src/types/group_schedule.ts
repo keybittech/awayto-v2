@@ -1,7 +1,6 @@
-import dayjs from 'dayjs';
 import { ApiOptions, EndpointType } from './api';
 import { ISchedule } from './schedule';
-import { Void } from '../util';
+import { dayjs, Void } from '../util';
 
 /**
  * @category Group Schedule

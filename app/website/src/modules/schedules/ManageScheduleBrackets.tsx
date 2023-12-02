@@ -1,5 +1,4 @@
 import React, { useState, useMemo, Suspense, useContext } from 'react';
-import dayjs from 'dayjs';
 
 import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
@@ -13,7 +12,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 import { DataGrid } from '@mui/x-data-grid';
 
-import { plural } from 'awayto/core';
+import { dayjs, plural } from 'awayto/core';
 import { useGrid, useUtil, sh, useContexts, useComponents } from 'awayto/hooks';
 
 // This is how group users interact with the schedule

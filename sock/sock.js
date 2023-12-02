@@ -1,5 +1,5 @@
 import { createServer } from 'http';
-import { v4 } from 'uuid';
+import { randomUUID } from 'crypto';
 
 import redis, { serverUuid } from './redis.js';
 import wss, { subscribers } from './wss.js';
@@ -26,8 +26,8 @@ server.on('request', function (req, res) {
 
         console.log('creating ticket', req.url);
         try {
-          const auth = v4();
-          const connectionId = v4();
+          const auth = randomUUID();
+          const connectionId = randomUUID();
           const ticket = `${auth}:${connectionId}`
           const sub = req.url.split('/')[2];
           let subscriber = subscribers.find(s => s.sub === sub);

@@ -1,7 +1,6 @@
 import { FunctionComponent, createContext } from 'react';
-import dayjs from 'dayjs';
 
-import { IGroupScheduleDateSlots, IQuote } from 'awayto/core';
+import { dayjs, IGroupScheduleDateSlots, IQuote } from 'awayto/core';
 
 declare global {
   type GroupScheduleSelectionContextType = {

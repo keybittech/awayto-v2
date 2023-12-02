@@ -1,7 +1,8 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import { createClient } from 'redis';
-import { v4 } from 'uuid';
+import { randomUUID } from 'crypto';
+
 import { stale } from './events/index.js';
 
 const redis = createClient({
@@ -19,7 +20,7 @@ redis.on('ready', () => {
   console.log('Redis client ready.');
 });
 
-export const serverUuid = v4();
+export const serverUuid = randomUUID();
 export const socketId = process.env.SERVER_ID || 'websocket.0';
 
 await redis.connect();

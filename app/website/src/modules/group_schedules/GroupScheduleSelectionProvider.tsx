@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useMemo, useState } from 'react';
-import dayjs from 'dayjs';
 
-import { IGroupScheduleDateSlots, IQuote, TimeUnit, quotedDT, userTimezone, encodeVal } from 'awayto/core';
+import { dayjs, IGroupScheduleDateSlots, IQuote, TimeUnit, quotedDT, userTimezone, encodeVal } from 'awayto/core';
 import { sh, useContexts } from 'awayto/hooks';
 
 export function GroupScheduleSelectionProvider({ children }: IProps): React.JSX.Element {

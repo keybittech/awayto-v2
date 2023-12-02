@@ -1,6 +1,5 @@
 export default {};
 
-
 import React, { ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
@@ -8,26 +7,12 @@ import { BrowserRouter } from 'react-router-dom';
 
 import type { Theme } from '@mui/material/styles/createTheme';
 
-import dayjs from 'dayjs';
-import duration from 'dayjs/plugin/duration';
-import relativeTime from 'dayjs/plugin/relativeTime';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
-
-import 'dayjs/locale/en';
-
 import reportWebVitals from './reportWebVitals';
 
 import './index.css';
 import './fonts.css';
 
-dayjs.extend(duration);
-dayjs.extend(relativeTime);
-dayjs.extend(utc);
-dayjs.extend(timezone);
-
 declare global {
-
   interface Window {
     INT_SITE_LOAD: boolean;
   }

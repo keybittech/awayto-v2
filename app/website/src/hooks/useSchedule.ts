@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 
-import { getFormattedScheduleContext, getRelativeDuration, IScheduleBracketSlot, TimeUnit, timeUnitOrder } from 'awayto/core';
-import dayjs from 'dayjs';
+import { dayjs, getFormattedScheduleContext, getRelativeDuration, IScheduleBracketSlot, TimeUnit, timeUnitOrder } from 'awayto/core';
 import { DurationUnitType } from 'dayjs/plugin/duration';
 
 type UseScheduleProps = {

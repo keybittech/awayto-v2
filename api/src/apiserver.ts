@@ -1,19 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config({ path: __dirname + '../.env' })
 
-import dayjs from 'dayjs';
-
-import duration from 'dayjs/plugin/duration';
-dayjs.extend(duration);
-
-import utc from 'dayjs/plugin/utc';
-dayjs.extend(utc);
-
-import timezone from 'dayjs/plugin/timezone';
-dayjs.extend(timezone);
-
-import 'dayjs/locale/en';
-
 import fs from 'fs';
 import https from 'https';
 import tls from 'tls';

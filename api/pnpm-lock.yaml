@@ -74,9 +74,6 @@ dependencies:
   utf-8-validate:
     specifier: ^6.0.3
     version: 6.0.3
-  uuid:
-    specifier: ^9.0.0
-    version: 9.0.1
   ws:
     specifier: ^8.12.1
     version: 8.14.2(bufferutil@4.0.8)(utf-8-validate@6.0.3)
@@ -112,9 +109,6 @@ devDependencies:
   '@types/pg':
     specifier: ^8.6.6
     version: 8.10.9
-  '@types/uuid':
-    specifier: ^9.0.0
-    version: 9.0.7
   '@types/ws':
     specifier: ^8.5.4
     version: 8.5.10
@@ -592,10 +586,6 @@ packages:
       '@types/http-errors': 2.0.4
       '@types/mime': 3.0.4
       '@types/node': 18.18.14
-
-  /@types/uuid@9.0.7:
-    resolution: {integrity: sha512-WUtIVRUZ9i5dYXefDEAI7sh9/O7jGvHg7Df/5O/gtH3Yabe5odI3UWopVR1qbPXQtvOxWu3mM4XxlYeZtMWF4g==}
-    dev: true
 
   /@types/ws@8.5.10:
     resolution: {integrity: sha512-vmQSUcfalpIq0R9q7uTo2lXs6eGIpt9wtnLdMv9LVpIjCA/+ufZRozlVoVelIYixx1ugCBKDhn89vnsEGOCx9A==}
@@ -3564,11 +3554,6 @@ packages:
   /utils-merge@1.0.1:
     resolution: {integrity: sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==}
     engines: {node: '>= 0.4.0'}
-    dev: false
-
-  /uuid@9.0.1:
-    resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
-    hasBin: true
     dev: false
 
   /validate-npm-package-license@3.0.4:

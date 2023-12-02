@@ -5,7 +5,7 @@
   "dependencies": {
     "dayjs": "^1.11.7",
     "ioredis": "^5.3.2",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@keybittech/wizapp": "0.2.0-beta.2",
@@ -16,7 +16,7 @@
     "@types/pg": "^8.6.6",
     "@types/pg-promise": "^5.4.3",
     "@types/redis": "^4.0.11",
-    "@types/uuid": "^9.0.1",
+    "@types/uuid": "^9.0.7",
     "node-fetch": "^3.3.1",
     "typescript": "4.9.5"
   }

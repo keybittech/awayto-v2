@@ -1,5 +1,4 @@
-import dayjs from 'dayjs';
-import { IFile, buildUpdate, createHandlers, utcNowString } from 'awayto/core';
+import { dayjs, IFile, buildUpdate, createHandlers, utcNowString } from 'awayto/core';
 
 export default createHandlers({
   postFileContents: async props => {

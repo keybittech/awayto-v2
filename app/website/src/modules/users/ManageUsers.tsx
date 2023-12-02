@@ -1,5 +1,4 @@
 import React, { useState, useMemo, Suspense } from 'react';
-import dayjs from 'dayjs';
 
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -10,7 +9,7 @@ import CreateIcon from '@mui/icons-material/Create';
 
 import { DataGrid } from '@mui/x-data-grid';
 
-import { IGroupUser } from 'awayto/core';
+import { dayjs, IGroupUser } from 'awayto/core';
 import { sh, useGrid } from 'awayto/hooks';
 
 import ManageUserModal from './ManageUserModal';

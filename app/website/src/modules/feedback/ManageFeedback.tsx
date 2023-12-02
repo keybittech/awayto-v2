@@ -1,9 +1,9 @@
 import React from 'react';
-import dayjs from 'dayjs';
 
 import { DataGrid } from '@mui/x-data-grid';
 
 import { useGrid, sh } from 'awayto/hooks';
+import { dayjs } from 'awayto/core';
 
 export function ManageFeedbacks(): React.JSX.Element {
   const { data: feedbacks } = sh.useGetGroupFeedbackQuery();

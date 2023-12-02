@@ -1,6 +1,7 @@
-import { v4 as uuid } from 'uuid';
+import { randomUUID } from 'crypto';
 import pgPromise from 'pg-promise';
 import { Redis } from 'ioredis';
+
 
 import { IRole, IUserProfile } from 'awayto/core';
 
@@ -31,7 +32,7 @@ export async function initDb(dbClient: ReturnType<ReturnType<typeof pgPromise>>,
       `);
       await redisClient.set('adminRoleId', roleId);
     } catch (error) {
-      const sub = uuid();
+      const sub = randomUUID();
       await dbClient.none(`
         INSERT INTO dbtable_schema.users (sub, username, created_on, created_sub)
         VALUES ($1::uuid, $2, $3, $1::uuid)

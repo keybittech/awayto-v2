@@ -1,5 +1,4 @@
 import React, { useState, useMemo, Suspense } from 'react';
-import dayjs from 'dayjs';
 
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -13,7 +12,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 import { DataGrid } from '@mui/x-data-grid';
 
-import { IRole } from 'awayto/core';
+import { dayjs, IRole } from 'awayto/core';
 import { sh, useComponents, useGrid, useStyles } from 'awayto/hooks';
 
 export function ManageRoles(): React.JSX.Element {

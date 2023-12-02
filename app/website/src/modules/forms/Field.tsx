@@ -1,13 +1,11 @@
 import React, { useMemo } from 'react';
 
-import dayjs from 'dayjs';
-
 import TextField, { TextFieldProps } from '@mui/material/TextField';
 import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
 import CardContent from '@mui/material/CardContent';
 
-import { IField } from 'awayto/core';
+import { dayjs, IField } from 'awayto/core';
 
 type FieldProps = {
   field?: IField;

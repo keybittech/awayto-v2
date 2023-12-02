@@ -1,5 +1,4 @@
 import React, { useState, useMemo, Suspense } from 'react';
-import dayjs from 'dayjs';
 
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -13,7 +12,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 import { DataGrid } from '@mui/x-data-grid';
 
-import { IGroupForm } from 'awayto/core';
+import { dayjs, IGroupForm } from 'awayto/core';
 import { sh, useGrid, useStyles } from 'awayto/hooks';
 
 import ManageFormModal from './ManageFormModal';

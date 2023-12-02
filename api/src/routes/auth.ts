@@ -1,7 +1,7 @@
 import fetch from 'node-fetch';
 import type { Express } from 'express';
 import passport from 'passport';
-import { v4 as uuid } from 'uuid';
+import { randomUUID } from 'crypto';
 import { IDatabase } from 'pg-promise';
 import { Redis } from 'ioredis';
 import { graylog } from 'graylog2';
@@ -63,7 +63,7 @@ export default function buildAuthRoutes(app: Express, dbClient: IDatabase<unknow
   });
 
   app.post('/api/auth/webhook', checkBackchannel, async (req, res) => {
-    const requestId = uuid();
+    const requestId = randomUUID();
     try {
       const body = req.body as AuthBody;
       const { webhookName, userId, ipAddress, details } = body;

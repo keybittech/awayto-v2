@@ -1,5 +1,4 @@
 import React, { useState, useMemo, Suspense } from 'react';
-import dayjs from 'dayjs';
 
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
@@ -14,7 +13,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 import { DataGrid } from '@mui/x-data-grid';
 
-import { IService } from 'awayto/core';
+import { dayjs, IService } from 'awayto/core';
 import { useGrid, sh, useUtil, useStyles, useComponents } from 'awayto/hooks';
 
 export function ManageServices(props: IProps): React.JSX.Element {

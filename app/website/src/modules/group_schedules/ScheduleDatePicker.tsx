@@ -1,10 +1,10 @@
 import React, { useContext } from 'react';
-import dayjs from 'dayjs';
 
 import TextField from '@mui/material/TextField';
 import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker';
 
 import { useContexts } from 'awayto/hooks';
+import { dayjs } from 'awayto/core';
 
 export function ScheduleDatePicker(): React.JSX.Element {
 

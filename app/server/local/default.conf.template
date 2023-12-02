@@ -36,12 +36,12 @@ server {
   location / {
     #limit_req zone=primary burst=20 nodelay;
 
-    alias /usr/share/nginx/html/;
-    try_files $uri $uri/ =404;
+    #alias /usr/share/nginx/html/;
+    #try_files $uri $uri/ =404;
 
-    #proxy_read_timeout 300s;
-    #proxy_connect_timeout 75s;
-    #proxy_pass http://${APP_HOST}:1313/;
+    proxy_read_timeout 300s;
+    proxy_connect_timeout 75s;
+    proxy_pass http://${APP_HOST}:1313/;
   }
   
   location /app/ {

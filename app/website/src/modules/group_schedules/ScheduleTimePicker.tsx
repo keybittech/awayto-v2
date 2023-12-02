@@ -1,11 +1,10 @@
 import React, { useContext } from 'react';
-import dayjs from 'dayjs';
 import { Duration, DurationUnitType } from 'dayjs/plugin/duration';
 
 import TextField from '@mui/material/TextField';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 
-import { getRelativeDuration, TimeUnit } from 'awayto/core';
+import { dayjs, getRelativeDuration, TimeUnit } from 'awayto/core';
 import { useContexts, useTimeName } from 'awayto/hooks';
 
 export function ScheduleTimePicker(): React.JSX.Element {

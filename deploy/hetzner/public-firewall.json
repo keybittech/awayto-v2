@@ -15,5 +15,17 @@
     "direction": "in",
     "protocol": "icmp",
     "source_ips": ["0.0.0.0/0", "::/0"]
+  },
+  {
+    "direction": "in",
+    "protocol": "udp",
+    "port": "3478",
+    "source_ips": ["0.0.0.0/0", "::/"]
+  },
+  {
+    "direction": "in",
+    "protocol": "udp",
+    "port": "44400-44500",
+    "source_ips": ["0.0.0.0/0", "::/"]
   }
 ]

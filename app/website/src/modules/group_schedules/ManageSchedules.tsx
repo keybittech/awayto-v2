@@ -1,5 +1,4 @@
 import React, { useState, useMemo, Suspense } from 'react';
-import dayjs from 'dayjs';
 
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
@@ -13,7 +12,7 @@ import MoreTimeIcon from '@mui/icons-material/MoreTime';
 
 import { DataGrid } from '@mui/x-data-grid';
 
-import { IGroupSchedule } from 'awayto/core';
+import { dayjs, IGroupSchedule } from 'awayto/core';
 import { useComponents, useGrid, sh, useUtil, useStyles } from 'awayto/hooks';
 
 import ManageSchedulesModal from './ManageSchedulesModal';

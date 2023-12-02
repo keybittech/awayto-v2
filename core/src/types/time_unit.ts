@@ -1,15 +1,4 @@
-import dayjs from 'dayjs';
-
-import duration from 'dayjs/plugin/duration';
-dayjs.extend(duration);
-
-import utc from 'dayjs/plugin/utc';
-dayjs.extend(utc);
-
-import timezone from 'dayjs/plugin/timezone';
-dayjs.extend(timezone);
-
-import 'dayjs/locale/en';
+import { dayjs } from '../util';
 
 /**
  * @category Time Unit
