@@ -10,7 +10,7 @@ const {
 
 const peerConnectionConfig = {
   'iceServers': [
-    { urls: `turn:${location.hostname}:3478`, credential: REACT_APP_TURN_PASS, username: REACT_APP_TURN_NAME },
+    { urls: `turn:${location.hostname}:3478`, credential: 'turnpass', username: 'turnuser' },
     { urls: `stun:${location.hostname}:3478` },
   ]
 };

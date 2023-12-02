@@ -25,7 +25,7 @@ log-file=/app/logs/turnserver.log
 verbose
 
 # Specify the user for the TURN authentification
-user=$TURN_NAME:$TURN_PASS
+user=turnuser:turnpass
 
 # Enable long-term credential mechanism
 lt-cred-mech
