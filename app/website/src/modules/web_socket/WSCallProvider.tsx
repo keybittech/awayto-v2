@@ -124,7 +124,7 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
         });
       }
 
-      Object.assign(senderStreams, { [sender]: startedSender });
+      Object.assign(senderStreams.current, { [sender]: startedSender });
     } else if (sdp) {
       const senderStream = senderStreams.current[sender];
 
