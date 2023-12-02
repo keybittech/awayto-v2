@@ -43,7 +43,7 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
     userList,
     connectionId,
     sendMessage
-  } = useWebSocketSubscribe<ExchangeSessionAttributes>(topicId, ({ sender, topic, action, payload }) => {
+  } = useWebSocketSubscribe<ExchangeSessionAttributes>(topicId, async ({ sender, topic, action, payload }) => {
     const timestamp = (new Date()).toString();
     const { formats, target, sdp, ice, message, style } = payload;
 
@@ -114,14 +114,12 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
       }
 
       if (startedSender.peerResponse) {
-        startedSender.pc.createOffer().then(description => {
-          startedSender.pc?.setLocalDescription(description).then(() => {
-            sendMessage('rtc', {
-              sdp: startedSender.pc?.localDescription,
-              target: sender
-            });
-          }).catch(console.error);
-        }).catch(console.error);
+        const desc = await startedSender.pc.createOffer();
+        await startedSender.pc?.setLocalDescription(desc);
+        sendMessage('rtc', {
+          sdp: startedSender.pc?.localDescription,
+          target: sender
+        });
       } else {
         sendMessage('peer-response', {
           target: sender
@@ -133,23 +131,21 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
       const senderStream = senderStreams[sender];
 
       if (senderStream && senderStream.pc) {
-        senderStream.pc?.setRemoteDescription(new RTCSessionDescription(sdp)).then(() => {
-          if ('offer' === sdp.type) {
-            senderStream.pc?.createAnswer().then(description => {
-              senderStream.pc?.setLocalDescription(description).then(() => {
-                sendMessage('rtc', {
-                  sdp: senderStream.pc?.localDescription,
-                  target: sender
-                });
-              }).catch(console.error);
-            }).catch(console.error);
-          }
-        }).catch(console.error);
+        await senderStream.pc?.setRemoteDescription(new RTCSessionDescription(sdp));
+        if ('offer' === sdp.type) {
+          const desc = await senderStream.pc?.createAnswer();
+          await senderStream.pc?.setLocalDescription(desc);
+          sendMessage('rtc', {
+            sdp: senderStream.pc?.localDescription,
+            target: sender
+          });
+        }
       }
     } else if (ice) {
       const senderStream = senderStreams[sender];
+      console.log({ senderStream });
       if (senderStream && senderStream.pc && !['failed', 'closed', 'disconnected'].includes(senderStream.pc.iceConnectionState)) {
-        senderStream.pc.addIceCandidate(new RTCIceCandidate(ice)).catch(console.error);
+        await senderStream.pc.addIceCandidate(new RTCIceCandidate(ice));
       }
     }
   });
