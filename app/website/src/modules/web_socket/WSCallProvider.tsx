@@ -51,7 +51,7 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
       return;
     }
 
-    console.log({ [action.toUpperCase()]: { connectionId, sender, formats, sdp, ice, message } });
+    console.log({ userList, [action.toUpperCase()]: { connectionId, sender, formats, sdp, ice, message } });
 
     if ('text' === action && setTopicMessages && message && style) {
       for (const user of userList.values()) {
