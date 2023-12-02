@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useRef, useCallback, useMemo, useState } from 'react';
 
 import { useComponents, useContexts, useUtil, useWebSocketSubscribe } from 'awayto/hooks';
 import { ExchangeSessionAttributes, Sender, SenderStreams, SocketMessage } from 'awayto/core';
@@ -37,7 +37,7 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
   const [connected, setConnected] = useState(false);
   const [audioOnly, setAudioOnly] = useState(false);
   const [canStartStop, setCanStartStop] = useState('start');
-  const [senderStreams, setSenderStreams] = useState<SenderStreams>({});
+  const senderStreams = useRef<SenderStreams>({});
 
   const {
     userList,
@@ -97,14 +97,12 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
       startedSender.pc.ontrack = event => {
         startedSender.mediaStream = startedSender.mediaStream ? startedSender.mediaStream : new MediaStream();
         startedSender.mediaStream.addTrack(event.track);
-        setSenderStreams(Object.assign({}, senderStreams, { [sender]: startedSender }));
+        Object.assign(senderStreams.current, { [sender]: startedSender });
       };
 
       startedSender.pc.oniceconnectionstatechange = () => {
         if (startedSender.pc && ['failed', 'closed', 'disconnected'].includes(startedSender.pc.iceConnectionState)) {
-          const streams = { ...senderStreams };
-          delete streams[sender];
-          setSenderStreams(streams);
+          delete senderStreams.current[sender];
         }
       }
 
@@ -126,9 +124,9 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
         });
       }
 
-      setSenderStreams({ ...senderStreams, [sender]: startedSender });
+      Object.assign(senderStreams, { [sender]: startedSender });
     } else if (sdp) {
-      const senderStream = senderStreams[sender];
+      const senderStream = senderStreams.current[sender];
 
       if (senderStream && senderStream.pc) {
         await senderStream.pc?.setRemoteDescription(new RTCSessionDescription(sdp));
@@ -142,9 +140,9 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
         }
       }
     } else if (ice) {
-      const senderStream = senderStreams[sender];
+      const senderStream = senderStreams.current[sender];
       console.log({ senderStream });
-      if (senderStream && senderStream.pc && !['failed', 'closed', 'disconnected'].includes(senderStream.pc.iceConnectionState)) {
+      if (senderStream && senderStream.pc && senderStream.pc.remoteDescription && !['failed', 'closed', 'disconnected'].includes(senderStream.pc.iceConnectionState)) {
         await senderStream.pc.addIceCandidate(new RTCIceCandidate(ice));
       }
     }
@@ -247,15 +245,15 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
           localStream.removeTrack(t);
           t.stop();
         });
-        const streams = { ...senderStreams };
+        const streams = { ...senderStreams.current };
         Object.keys(streams).forEach(sender => {
-          const senderStream = senderStreams[sender];
+          const senderStream = senderStreams.current[sender];
           if (senderStream && senderStream.pc) {
             senderStream.pc.close();
             senderStream.mediaStream = undefined;
           }
         });
-        setSenderStreams(streams);
+        senderStreams.current = streams;
         setLocalStream(undefined);
         setCanStartStop('start');
         setConnected(false);
@@ -263,12 +261,12 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
         // speechRecognizer.current = undefined;
       }
     },
-    senderStreamsElements: useMemo(() => Object.keys(senderStreams).map(sender => {
-      if (senderStreams[sender].mediaStream) {
-        return <Video key={sender} autoPlay srcObject={senderStreams[sender].mediaStream} />
+    senderStreamsElements: useMemo(() => Object.keys(senderStreams.current).map(sender => {
+      if (senderStreams.current[sender].mediaStream) {
+        return <Video key={sender} autoPlay srcObject={senderStreams.current[sender].mediaStream} />
       }
-    }), [senderStreams, localStream, localStreamRef]),
-    localStreamElement: useMemo(() => localStream && !senderStreams.length ? <video key={'local-video'} style={{ width: '100%' }} autoPlay controls ref={localStreamRef} /> : undefined, [localStream, localStreamRef])
+    }), [senderStreams.current, localStream, localStreamRef]),
+    localStreamElement: useMemo(() => localStream && !senderStreams.current.length ? <video key={'local-video'} style={{ width: '100%' }} autoPlay controls ref={localStreamRef} /> : undefined, [localStream, localStreamRef])
   } as WSCallContextType | null;
 
   return useMemo(() => !WSCallContext ? <></> :
