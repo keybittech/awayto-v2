@@ -1,7 +1,6 @@
 import React, { useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -34,8 +33,8 @@ export function Sidebar(): React.JSX.Element {
   return <Grid container style={{ height: '100vh' }} alignContent="space-between">
     <Grid item xs={12} style={{ marginTop: '20px' }}>
       <Grid container justifyContent="center">
-        <Button sx={classes.logo} onClick={() => navigate('/')}>
-          <img src={Icon} alt="kbt-icon" />
+        <Button onClick={() => navigate('/')}>
+          <img src={Icon} width="64" alt="kbt-icon" />
         </Button>
       </Grid>
       <List component="nav">
