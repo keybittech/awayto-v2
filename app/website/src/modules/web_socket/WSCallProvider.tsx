@@ -128,13 +128,13 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
     } else if (sdp) {
       const senderStream = senderStreams.current[sender];
 
-      if (senderStream && senderStream.pc) {
-        await senderStream.pc?.setRemoteDescription(new RTCSessionDescription(sdp));
+      if (senderStream && senderStream.pc && senderStream.pc.signalingState === 'have-local-offer') {
+        await senderStream.pc.setRemoteDescription(new RTCSessionDescription(sdp));
         if ('offer' === sdp.type) {
-          const desc = await senderStream.pc?.createAnswer();
-          await senderStream.pc?.setLocalDescription(desc);
+          const desc = await senderStream.pc.createAnswer();
+          await senderStream.pc.setLocalDescription(desc);
           sendMessage('rtc', {
-            sdp: senderStream.pc?.localDescription,
+            sdp: senderStream.pc.localDescription,
             target: sender
           });
         }
