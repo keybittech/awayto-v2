@@ -101,14 +101,14 @@ export default function buildBaseRoutes(app: Express, dbClient: IDatabase<unknow
   
     // Here we make use of the extra /api from the reverse proxy
     app[methodLc](`/api/${baseUrl}`, requestHandlers, async (req: Request, res: Response) => {
-  
+ 
       const requestId = nid('v4') as string;
       const user = req.user as StrategyUser;
       const session = req.session as ApiSession;
 
       let response = {} as typeof resultType;
       let wasCached = false;
-      const cacheKey = user.sub + baseUrl;
+      const cacheKey = user.sub + req.url;
   
       if ('get' === methodLc && 'skip' !== cache) {
         const value = await redisClient.get(cacheKey);
