@@ -108,8 +108,8 @@ export default function buildBaseRoutes(app: Express, dbClient: IDatabase<unknow
 
       let response = {} as typeof resultType;
       let wasCached = false;
-      const cacheKey = user.sub + req.url;
-  
+      const cacheKey = user.sub + req.url.substring(5) // remove leading /api/ to accomodate simpler cache invalidation;
+ 
       if ('get' === methodLc && 'skip' !== cache) {
         const value = await redisClient.get(cacheKey);
         if (value) {
