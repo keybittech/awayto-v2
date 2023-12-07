@@ -2,20 +2,26 @@
 
 FROM node:16.18.0-alpine as builder
 RUN apk add postgresql-dev python3 make build-base
+
+RUN npm i -g pnpm
+
 RUN mkdir -p /core/src && mkdir -p /api/src
 
+# Compile core dependencies
+WORKDIR /core
+
+COPY /core/package.json /core/pnpm-*.yaml /core/
+COPY /core/src/ /core/src
+
+RUN pnpm install
+
+# Compile api package
 WORKDIR /api
 
-COPY --from=awayto-deps /deps/node_modules /core/node_modules
-COPY --from=awayto-deps /deps/node_modules /api/node_modules
-
-COPY /core/src/ /core/src
-COPY /core/*config*.json /core/
-
 COPY /api/src/ /api/src
-COPY /api/package.json /api/*config*.json /api/api.webpack.js /api/
+COPY /api/package.json /api/pnpm-*.yaml /api/*config*.json /api/api.webpack.js /api/
 
-RUN NODE_ENV=docker npm run build
+RUN pnpm install && NODE_ENV=docker pnpm run build
 
 FROM node:16.18.0-alpine
 CMD ["node", "api.js"]

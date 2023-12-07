@@ -1,16 +1,17 @@
 /// <reference lib="WebWorker" />
 
-import React, { Suspense, useContext, useEffect, useState } from 'react';
+import React, { Suspense, useContext, useEffect, useState, useMemo } from 'react';
 
 import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
-import Grid from '@mui/material/Grid';
+// import Grid from '@mui/material/Grid';
 import Tooltip from '@mui/material/Tooltip';
 import Dialog from '@mui/material/Dialog';
 import Box from '@mui/material/Box';
 import List from '@mui/material/List';
 import ListSubheader from '@mui/material/ListSubheader';
 import ListItem from '@mui/material/ListItem';
+import Grid from '@mui/material/Unstable_Grid2';
 
 import ChatBubbleIcon from '@mui/icons-material/ChatBubble';
 import VideocamIcon from '@mui/icons-material/Videocam';
@@ -24,6 +25,9 @@ export function Exchange(): React.JSX.Element {
   const classes = useStyles();
 
   const { ExchangeContext, WSTextContext, WSCallContext } = useContexts();
+
+  if (!ExchangeContext || !WSTextContext || !WSCallContext) return <></>;
+
   const { Whiteboard, FileSelectionModal } = useComponents();
   const [dialog, setDialog] = useState('');
   const [chatOpen, setChatOpen] = useState(true);
@@ -73,32 +77,26 @@ export function Exchange(): React.JSX.Element {
     </Dialog>
 
 
-    <Grid container sx={{ height: '100%' }}>
-
-      <Grid item xs={3} sx={{ display: chatOpen ? 'block' : 'none', height: '100%' }}>
-
-        <Grid container direction="column" sx={{ backgroundColor: 'black', position: 'relative', minHeight: localStreamElement || senderStreamsElements.length ? '390px' : '0px', maxHeight: '390px', flex: 1 }}>
-          {/* ---------- Video ---------- */}
-          {localStreamElement && <Grid item xs={12} sx={{ position: senderStreamsElements.length ? 'absolute' : 'inherit', right: 0, width: senderStreamsElements.length ? '25%' : '100%' }}>
-            {localStreamElement}
-          </Grid>}
-          {!!Object.keys(senderStreamsElements).length && senderStreamsElements}
-        </Grid>
-
-        {/* ---------- Chat ---------- */}
-        <Grid container direction="column" sx={{ flex: 1, padding: 1, flexWrap: 'nowrap', height: localStreamElement || senderStreamsElements.length ? 'calc(100% - 390px)' : '100%' }}>
-          <Grid item sx={{ flex: '1', overflow: 'auto' }}>
-            {chatLog}
-            {messagesEnd}
-          </Grid>
-
-          <Grid item pt={1}>
-            {submitMessageForm}
-          </Grid>
-        </Grid>
-
+    <Grid p={1} sx={{ flex: '1 0 25%', display: 'flex', flexDirection: 'column', maxWidth: '390px' }}>
+      <Grid sx={{ flex: 1, overflow: 'auto' }}>
+        {chatLog}
+        {messagesEnd}
       </Grid>
-      <Grid item xs={chatOpen ? 9 : 12} sx={{ height: '100%' }}>
+
+      <Grid pt={1}>
+        {submitMessageForm}
+      </Grid>
+    </Grid>
+
+
+    <Grid sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+
+      <Grid sx={{ maxHeight: '150px', backgroundColor: '#333' }}>
+        {localStreamElement && localStreamElement}
+        {senderStreamsElements && senderStreamsElements}
+      </Grid>
+
+      <Grid sx={{ height: localStreamElement || senderStreamsElements ? 'calc(100% - 150px)' : '100%', display: 'flex' }}>
         <Whiteboard
           topicId={`exchange/whiteboard:${exchangeId}`}
           sharedFile={sharedFile}
@@ -141,6 +139,7 @@ export function Exchange(): React.JSX.Element {
             </List>
           }
         />
+
       </Grid>
     </Grid>
   </>;

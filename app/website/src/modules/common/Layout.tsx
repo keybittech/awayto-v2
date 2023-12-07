@@ -18,7 +18,7 @@ const Layout = (props: IProps): React.JSX.Element => {
     window.INT_SITE_LOAD = true;
   }, []);
 
-  return useMemo(() => <>
+  return <>
     <CssBaseline />
     <TopLevelProviders>
       <Routes>
@@ -48,11 +48,11 @@ const Layout = (props: IProps): React.JSX.Element => {
           <Route path="/exchange/:summaryId/summary" element={<ExchangeSummary {...props} />} />
         </Route>
         <Route element={
-          <Grid xs={12} container>
+          <Grid xs={12} container direction="column">
             <Grid xs={12} px={1} sx={{ bgcolor: 'primary.dark' }}>
               <Topbar forceSiteMenu={true} {...props} />
             </Grid>
-            <Grid sx={{ width: '100%', height: 'calc(100vh - 59px)' }}>
+            <Grid sx={{ display: 'flex', height: 'calc(100vh - 60px)', width: '100%' }}>
               <Suspense fallback={<CircularProgress color="inherit" />}>
                 <ExchangeProvider>
                   <Outlet />
@@ -64,8 +64,8 @@ const Layout = (props: IProps): React.JSX.Element => {
           <Route path="/exchange/:exchangeId" element={<Exchange {...props} />} />
         </Route>
       </Routes >
-    </TopLevelProviders >
-  </>, []);
+    </TopLevelProviders>
+  </>
 }
 
 export default Layout;

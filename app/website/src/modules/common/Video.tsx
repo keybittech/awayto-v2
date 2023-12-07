@@ -12,7 +12,7 @@ export function Video({ srcObject, autoPlay = false }: VideoHTMLAttributes<HTMLV
     if (node && srcObject) node.srcObject = srcObject;
   }, [srcObject])
 
-  return <video style={{ width: '100%' }} controls { ...{ autoPlay }} ref={refVideo} />
+  return <video style={{ height: '100%', maxWidth: '100%' }} controls { ...{ autoPlay }} ref={refVideo} />
 }
 
 export default Video;

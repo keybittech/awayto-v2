@@ -18,5 +18,3 @@ export async function unsubscribe(wss, connectionId, topic) {
   await redis.sRem(`member_topics:${topic}`, connectionId); // remove this connection from just this topic
   await redis.sRem(`connection_id:${connectionId}:topics`, `member_topics:${topic}`); // remove the topic from the connection's topic list
 }
-
-      

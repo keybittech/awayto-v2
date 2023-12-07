@@ -1,7 +1,7 @@
-import React, { useRef, useCallback, useMemo, useState } from 'react';
+import React, { useRef, useCallback, useMemo, useState, useEffect } from 'react';
 
 import { useComponents, useContexts, useUtil, useWebSocketSubscribe } from 'awayto/hooks';
-import { ExchangeSessionAttributes, Sender, SenderStreams, SocketMessage } from 'awayto/core';
+import { ExchangeSessionAttributes, Sender, SenderStreams, SocketMessage, SocketResponseHandler } from 'awayto/core';
 
 const {
   REACT_APP_TURN_NAME,
@@ -28,30 +28,32 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
 
   const { WSCallContext } = useContexts();
   const { setSnack } = useUtil();
-
   const { Video } = useComponents();
 
-  // const speechRecognizer = useRef<SpeechRecognition>();
-  
-  const [localStream, setLocalStream] = useState<MediaStream>();
-  const [connected, setConnected] = useState(false);
+  const [streamsUpdated, setStreamsUpdated] = useState('');
   const [audioOnly, setAudioOnly] = useState(false);
   const [canStartStop, setCanStartStop] = useState('start');
-  const senderStreams = useRef<SenderStreams>({});
+  const localStream = useRef<MediaStream>();
+  const pingInit = useRef(false);
+  const callOptionRef = useRef<string[]>([]);
+  const senderStreamsRef = useRef<SenderStreams>({});
 
   const {
+    subscribed,
     userList,
     connectionId,
     sendMessage
-  } = useWebSocketSubscribe<ExchangeSessionAttributes>(topicId, async ({ sender, topic, action, payload }) => {
+  } = useWebSocketSubscribe<ExchangeSessionAttributes>(topicId, async ({ sender, action, payload }) => {
     const timestamp = (new Date()).toString();
     const { formats, target, sdp, ice, message, style } = payload;
 
-    if (sender === connectionId || (target !== connectionId && !(formats || sdp || ice || message))) {
+    const hasPayload = !!(formats || sdp || ice || message || ['ping-channel', 'stop-stream'].includes(action)); // We check these actions specially because they won't be targeted towards anyone but we still want them to be processed by everyone
+
+    // If this message isn't from my self or it isn't targeted for me and
+    // isn't related to any WebRTC messages
+    if (sender === connectionId || (target !== connectionId && !hasPayload)) {
       return;
     }
-
-    console.log({ userList, [action.toUpperCase()]: { connectionId, sender, formats, sdp, ice, message } });
 
     if ('text' === action && setTopicMessages && message && style) {
       for (const user of userList.values()) {
@@ -65,57 +67,95 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
           }]);
         }
       }
-    } else if (['join-call', 'peer-response'].includes(action)) {
-      // Parties to an incoming caller's 'join-call' will see this, and then notify the caller that they exist in return
-      // The caller gets a party member's 'peer-response', and sets them up in return
-      if (formats && setTopicMessages) {
+    } else if ('ping-channel' === action && !!localStream.current) {
+      // When new chatters ping the channel, and we're already streaming,
+      // initate setup
+      sendMessage('start-stream', { target: sender, formats: callOptionRef.current });
+    } else if ('stop-stream' === action) {
+      // Only remove the member's media stream when they stop streaming
+      // i.e. continue to allow our stream to flow to them
+      senderStreamsRef.current[sender].mediaStream = undefined;
+      setStreamsUpdated(timestamp);
+    } else if (['start-stream', 'peer-response'].includes(action)) {
+      // Parties to an incoming caller's 'start-stream' will see this, and 
+      // then notify the caller that they exist in return
+      // The caller gets a party member's 'peer-response', and sets them 
+      // up in return
+      if (setTopicMessages) {
         for (const user of userList.values()) {
           if (user.cids.includes(sender)) {
             setTopicMessages(m => [...m, {
               ...user,
               sender,
               style: 'utterance',
-              message: `Joined call with ${formats.indexOf('video') > -1 ? 'video' : 'voice'}.`,
+              message: `Joined call${formats ? ' with ' + (formats.indexOf('video') > -1 ? 'video' : 'voice') : ''}.`,
               timestamp
             }]);
-          } 
+          }
         }
       }
 
-      const startedSender: Sender = {
-        peerResponse: 'peer-response' === action ? true : false
-      };
+      const startedSender = senderStreamsRef.current[sender] || { peerResponse: 'peer-response' === action };
+      startedSender.pc = startedSender.pc || new RTCPeerConnection(peerConnectionConfig);
 
-      startedSender.pc = new RTCPeerConnection(peerConnectionConfig)
+      const sentTracks = startedSender.pc?.getSenders().map(ts => ts.track?.id);
+
+      // If we already sent tracks to the pc, we know we don't need to setup
+      // an entirely new pc for them -- and their client will create an offer
+      // anyway upon starting their stream
+      if (sentTracks.length >= 1) return;
 
       startedSender.pc.onicecandidate = event => {
+        // When we generate an ICE candidate, send it to the peer
         if (event.candidate !== null) {
-          sendMessage('rtc', { ice: event.candidate, target: sender });
+          sendMessage('rtc', {
+            ice: event.candidate,
+            target: sender
+          });
         }
       };
 
       startedSender.pc.ontrack = event => {
-        startedSender.mediaStream = startedSender.mediaStream ? startedSender.mediaStream : new MediaStream();
-        startedSender.mediaStream.addTrack(event.track);
-        Object.assign(senderStreams.current, { [sender]: startedSender });
+        // When receiving a track from a peer, add it to their mediaStream
+        const currentSender = senderStreamsRef.current[sender];
+        if (!currentSender?.pc) return;
+        currentSender.mediaStream = currentSender.mediaStream ?? new MediaStream();
+        currentSender.mediaStream.addTrack(event.track);
+        senderStreamsRef.current[sender] = currentSender;
+        setStreamsUpdated((new Date()).toString());
       };
 
       startedSender.pc.oniceconnectionstatechange = () => {
-        if (startedSender.pc && ['failed', 'closed', 'disconnected'].includes(startedSender.pc.iceConnectionState)) {
-          delete senderStreams.current[sender];
+        // Clean up failed connections
+        const currentSender = senderStreamsRef.current[sender];
+        if (currentSender?.pc && ['failed', 'closed', 'disconnected'].includes(currentSender.pc.iceConnectionState)) {
+          setStreamsUpdated((new Date()).toString());
+          currentSender.mediaStream = undefined;
+          currentSender.pc.close();
+          delete senderStreamsRef.current[sender];
         }
-      }
+      };
 
-      if (localStream) {
-        const tracks = localStream.getTracks();
-        tracks.forEach(track => startedSender.pc?.addTrack(track));
+      if (localStream.current) {
+        // If this client is currently streaming when setting up a peer,
+        // include the existing tracks
+        const tracks = localStream.current.getTracks();
+        const sentTracks = startedSender.pc?.getSenders().map(ts => ts.track?.id);
+        tracks.filter(t => !sentTracks.includes(t.id)).forEach(track => {
+          startedSender.pc?.addTrack(track)
+        });
       }
 
       if (startedSender.peerResponse) {
-        const desc = await startedSender.pc.createOffer();
-        await startedSender.pc?.setLocalDescription(desc);
+        // In a situation where no one is currently streaming, User A sends
+        // 'start-stream', that will be received here in the "else" block. In
+        // response, User B sends a 'peer-response' to User A, caught here,
+        // and begins the WebRTC transaction by sending an offer.
+        const description = await startedSender.pc.createOffer();
+        await startedSender.pc.setLocalDescription(description);
+
         sendMessage('rtc', {
-          sdp: startedSender.pc?.localDescription,
+          sdp: startedSender.pc.localDescription,
           target: sender
         });
       } else {
@@ -124,85 +164,51 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
         });
       }
 
-      Object.assign(senderStreams.current, { [sender]: startedSender });
-    } else if (sdp) {
-      const senderStream = senderStreams.current[sender];
+      senderStreamsRef.current[sender] = startedSender;
 
-      if (senderStream && senderStream.pc && senderStream.pc.signalingState === 'have-local-offer') {
-        await senderStream.pc.setRemoteDescription(new RTCSessionDescription(sdp));
+    } else if (sdp) {
+      // Standard WebRTC SDP message handling
+      const currentSender = senderStreamsRef.current[sender];
+      if (currentSender?.pc) {
+        await currentSender.pc.setRemoteDescription(new RTCSessionDescription(sdp));
+
         if ('offer' === sdp.type) {
-          const desc = await senderStream.pc.createAnswer();
-          await senderStream.pc.setLocalDescription(desc);
+          const desc = await currentSender.pc.createAnswer();
+          await currentSender.pc.setLocalDescription(desc);
           sendMessage('rtc', {
-            sdp: senderStream.pc.localDescription,
+            sdp: currentSender.pc.localDescription,
             target: sender
           });
         }
+
+        senderStreamsRef.current[sender] = currentSender;
       }
     } else if (ice) {
-      const senderStream = senderStreams.current[sender];
-      console.log({ senderStream });
-      if (senderStream && senderStream.pc && senderStream.pc.remoteDescription && !['failed', 'closed', 'disconnected'].includes(senderStream.pc.iceConnectionState)) {
-        await senderStream.pc.addIceCandidate(new RTCIceCandidate(ice));
+      // Standard WebRTC ICE message handling
+      const currentSender = senderStreamsRef.current[sender];
+      if (currentSender.pc && currentSender.pc.remoteDescription && currentSender.pc.localDescription && !['failed', 'closed', 'disconnected'].includes(currentSender.pc.iceConnectionState)) {
+        await currentSender.pc.addIceCandidate(new RTCIceCandidate(ice));
+        senderStreamsRef.current[sender] = currentSender;
       }
     }
   });
 
-  // const trackStream = (mediaStream: MediaStream) => {
-
-  //   const mediaRecorder = new MediaRecorder(mediaStream);
-  //   const chunks: BlobPart[] = [];
-
-  //   // Listen for dataavailable event to obtain the recorded data
-  //   mediaRecorder.addEventListener('dataavailable', (event: BlobEvent) => {
-  //     chunks.push(event.data);
-  //   });
-
-  //   // Set the recording duration to 10 seconds
-  //   const RECORDING_DURATION_MS = 10000;
-  //   mediaRecorder.start(RECORDING_DURATION_MS);
-
-  //   // Speech recognition setup
-  //   speechRecognizer.current = new window.webkitSpeechRecognition();
-  //   speechRecognizer.current.maxAlternatives = 5;
-  //   speechRecognizer.current.continuous = true;
-  //   speechRecognizer.current.interimResults = true;
-  //   speechRecognizer.current.lang = navigator.language;
-
-  //   // const isSpeaking = false;
-  //   // const silenceStartTime = 0;
-
-  //   // Handle speech recognition results
-  //   speechRecognizer.current.addEventListener('result', (event: SpeechRecognitionEvent) => {
-  //     const lastResult = event.results[event.results.length - 1];
-  //     const { transcript } = lastResult[0];
-
-  //     const isFinal = lastResult.isFinal;
-
-  //     // Check if the user is speaking or not
-  //     if (isFinal && transcript.length) {
-        
-  //       // getPrompt({ id: IPrompts.TRANSLATE, prompt: `${target}|Chinese Simplified|${transcript}`}).unwrap().then(({ promptResult: [translated] }) => {
-  //       //   sendMessage('text', { style: 'utterance', message: translated.split('Translation:')[1] });
-  //       // }).catch(console.error);
-
-  //       sendMessage('text', { style: 'utterance', message: transcript });
-  //     }
-  //   });
-
-  //   speechRecognizer.current.start();
-  // };
-
   const setLocalStreamAndBroadcast = useCallback((video: boolean): void => {
     async function go() {
       try {
-        if (!localStream && 'start' === canStartStop) {
+        if (!localStream.current && 'start' === canStartStop) {
           setCanStartStop('');
           setAudioOnly(!video);
 
           const callOptions: MediaStreamConstraints = {
             audio: {
-              autoGainControl: true
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true,
+              latency: 0.01,
+              channelCount: 2,
+              sampleRate: 48000,
+              sampleSize: 16
             }
           };
 
@@ -213,12 +219,36 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
               frameRate: { max: 30 }
             };
           }
-          const mediaStream = await navigator.mediaDevices.getUserMedia(callOptions);
+
+          callOptionRef.current = Object.keys(callOptions);
+
+          localStream.current = await navigator.mediaDevices.getUserMedia(callOptions);
+
+          const tracks = localStream.current.getTracks();
+
+          // Handle ongoing pc connections by sending a new offer with the new
+          // media tracks
+          for (const senderId in senderStreamsRef.current) {
+            const sender = senderStreamsRef.current[senderId];
+
+            const sentTracks = sender.pc?.getSenders().map(ts => ts.track?.id);
+            tracks.filter(t => !sentTracks?.includes(t.id)).forEach(track => sender.pc?.addTrack(track));
+
+            const description = await sender.pc?.createOffer();
+            await sender.pc?.setLocalDescription(description);
+
+            senderStreamsRef.current[senderId] = sender;
+
+            sendMessage('rtc', {
+              sdp: sender.pc?.localDescription,
+              target: senderId
+            });
+          }
+
           // trackStream(mediaStream); -- TODO: Check support for this in browsers some day
-          setLocalStream(mediaStream);
-          sendMessage('join-call', { formats: Object.keys(callOptions) });
+
+          sendMessage('start-stream', { formats: callOptionRef.current });
           setCanStartStop('stop');
-          setConnected(true);
         }
       } catch (error) {
         setCanStartStop('start');
@@ -226,47 +256,66 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
       }
     }
     void go();
-  }, [localStream, canStartStop]);
+  }, [canStartStop]);
 
-  const localStreamRef = useCallback((node: HTMLVideoElement) => {
-    if (node && !node.srcObject && localStream) {
-      node.srcObject = localStream
+  const leaveCall = () => {
+    if (localStream.current) {
+      localStream.current.getTracks().forEach(t => {
+        localStream.current?.removeTrack(t);
+        t.stop();
+      });
+      localStream.current = undefined;
     }
-  }, [localStream]);
+
+    sendMessage('stop-stream');
+    setCanStartStop('start');
+
+    // speechRecognizer.current?.stop();
+    // speechRecognizer.current = undefined;
+  }
+
+  const senderStreamsElements = useMemo(() => {
+    const streams = Object.keys(senderStreamsRef.current).map(sender => senderStreamsRef.current[sender].mediaStream ?
+      <Video key={sender} autoPlay srcObject={senderStreamsRef.current[sender].mediaStream} /> :
+      undefined
+    );
+    return streams.filter(s => !!s).length ? streams : undefined;
+  }, [streamsUpdated]);
+
+  const localStreamElement = useMemo(() => {
+    return canStartStop && localStream.current ? <Video key={'local-video'} autoPlay controls srcObject={localStream.current} /> : undefined
+  }, [canStartStop]);
+
+  useEffect(() => {
+    // Only run once we are subscribed and we haven't yet pinged the channel
+    if (subscribed && !pingInit.current) {
+      pingInit.current = true;
+      if (userList.size >= 2) sendMessage('ping-channel');
+
+      // When we leave the page, stop all ongoing peer connections and reset the
+      // streams container
+      return () => {
+        for (const senderId in senderStreamsRef.current) {
+          const senderStream = senderStreamsRef.current[senderId];
+
+          if (senderStream && senderStream.pc) {
+            senderStream.pc.close();
+          }
+        }
+        senderStreamsRef.current = {};
+      }
+
+    }
+  }, [userList, subscribed]);
 
   const wsTextContext = {
     audioOnly,
-    connected,
+    connected: !!localStream.current,
     canStartStop,
     setLocalStreamAndBroadcast,
-    leaveCall() {
-      if (localStream) {
-        localStream.getTracks().forEach(t => {
-          localStream.removeTrack(t);
-          t.stop();
-        });
-        const streams = { ...senderStreams.current };
-        Object.keys(streams).forEach(sender => {
-          const senderStream = senderStreams.current[sender];
-          if (senderStream && senderStream.pc) {
-            senderStream.pc.close();
-            senderStream.mediaStream = undefined;
-          }
-        });
-        senderStreams.current = streams;
-        setLocalStream(undefined);
-        setCanStartStop('start');
-        setConnected(false);
-        // speechRecognizer.current?.stop();
-        // speechRecognizer.current = undefined;
-      }
-    },
-    senderStreamsElements: useMemo(() => Object.keys(senderStreams.current).map(sender => {
-      if (senderStreams.current[sender].mediaStream) {
-        return <Video key={sender} autoPlay srcObject={senderStreams.current[sender].mediaStream} />
-      }
-    }), [senderStreams.current, localStream, localStreamRef]),
-    localStreamElement: useMemo(() => localStream && !senderStreams.current.length ? <video key={'local-video'} style={{ width: '100%' }} autoPlay controls ref={localStreamRef} /> : undefined, [localStream, localStreamRef])
+    leaveCall,
+    senderStreamsElements,
+    localStreamElement
   } as WSCallContextType | null;
 
   return useMemo(() => !WSCallContext ? <></> :

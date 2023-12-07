@@ -92,7 +92,7 @@ export function Topbar(props: IProps): React.JSX.Element {
     navigate(path);
   };
 
-  return <Grid xs={12} container>
+  return <Grid xs={12} sx={{ height: '60px' }} container>
     <Grid sx={{ display: { xs: 'flex', md: !props.forceSiteMenu ? 'none' : 'flex' } }}>
       <Tooltip title="Menu">
         <Button

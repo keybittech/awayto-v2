@@ -206,7 +206,7 @@ export const getBaseComponents: () => ThemeOptions = () => ({
     MuiButton: {
       styleOverrides: {
         root: {
-          marginBottom: '4px',
+          // marginBottom: '4px',
           padding: '6px 8px 4px',
           alignItems: 'baseline'
         }

@@ -48,7 +48,7 @@ export default function Whiteboard({ optionsMenu, sharedFile, openFileSelect, to
   const [zoom, setZoom] = useState(1);
   const { fileDetails, getFileContents } = useFileContents();
 
-  const [active, setActive] =useState(false);
+  const [active, setActive] = useState(false);
   const [numPages, setNumPages] = useState(0);
   const [pageNumber, setPageNumber] = useState(1);
   const [strokeColor, setStrokeColor] = useState('#aaaaaa');
@@ -60,7 +60,7 @@ export default function Whiteboard({ optionsMenu, sharedFile, openFileSelect, to
     sendMessage: sendWhiteboardMessage
   } = useWebSocketSubscribe<Whiteboard>(topicId, ({ sender, action, payload }) => {
     setBoards(b => {
-      const board = {  ...b[sender], ...payload };
+      const board = { ...b[sender], ...payload };
       if ('set-position' === action) {
         const [left, top] = board.settings?.position || [];
         fileScroller.current?.scrollTo({ left, top });
@@ -103,16 +103,16 @@ export default function Whiteboard({ optionsMenu, sharedFile, openFileSelect, to
       if (!canvas) return;
       const ctx = contextRef.current;
       if (!ctx) return;
-  
+
       lines?.forEach((line, i) => {
         if (i === 0) {
           ctx.beginPath();
           ctx.moveTo(line.startPoint.x, line.startPoint.y);
         }
-  
+
         ctx.lineTo(line.endPoint.x, line.endPoint.y);
       });
-  
+
       ctx.strokeStyle = settings?.stroke || 'black';
       if (settings?.highlight) {
         ctx.lineWidth = 10;
@@ -120,7 +120,7 @@ export default function Whiteboard({ optionsMenu, sharedFile, openFileSelect, to
       } else {
         ctx.lineWidth = ctx.globalAlpha = 1;
       }
-  
+
       ctx.stroke();
     }
 
@@ -219,9 +219,10 @@ export default function Whiteboard({ optionsMenu, sharedFile, openFileSelect, to
   return <Box
     onClick={() => !active && setActive(true)}
     sx={{
-      height: '100%',
-      width: '100%',
-      position: 'relative'
+      flex: 1,
+      position: 'relative',
+      display: 'flex',
+      width: '100%'
     }}
   >
 
@@ -230,10 +231,8 @@ export default function Whiteboard({ optionsMenu, sharedFile, openFileSelect, to
       ref={fileScroller}
       sx={{
         backgroundColor: fileDetails ? '#ccc' : 'white',
-        height: '100%',
-        width: '100%',
+        flex: 1,
         overflow: 'scroll',
-        display: 'flex',
         position: 'relative',
         padding: '16px'
       }}
@@ -251,7 +250,7 @@ export default function Whiteboard({ optionsMenu, sharedFile, openFileSelect, to
       />
 
       {/* File Viewer */}
-      {!fileDetails ? <></> : <Document 
+      {!fileDetails ? <></> : <Document
         file={fileDetails.url}
         onLoadSuccess={({ numPages }) => setNumPages(numPages)}
       >

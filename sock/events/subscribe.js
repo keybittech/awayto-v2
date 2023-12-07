@@ -28,11 +28,15 @@ export async function subscribe(bc, parsed, ws) {
 
     // send the existing user list to the joining connections
     if (existingUsers.length) {
+      ws.send(Buffer.from(JSON.stringify({
+        action: 'subscribers-existing',
+        topic: parsed.topic
+      })));
       bc.send(Buffer.from(JSON.stringify({
         sender: ws.connectionId,
         action: 'existing-subscribers',
         topic: parsed.topic,
-        payload: existingUsers.join(',')
+        payload: existingUsers.filter(eu => eu !== ws.connectionId).join(',')
       })));
     }
 

@@ -423,5 +423,5 @@ export function withEvent<T extends AnyRecord | ArrayBuffer>(props: ApiProps<Any
 }
 
 export function isVoid(obj: unknown): obj is Void {
-  return Object.keys(obj as Record<string, unknown>).length === 0 || typeof obj === 'undefined';
+  return !!obj && Object.keys(obj as Record<string, unknown>).length === 0 || typeof obj === 'undefined';
 }

@@ -28,7 +28,7 @@ import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrow
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 
 import { useDebounce, useStyles } from 'awayto/hooks';
-import { Whiteboard, throttle } from 'awayto/core';
+import { Whiteboard } from 'awayto/core';
 import type { PopoverOrigin } from '@mui/material';
 
 type WhiteBoardOptionsFns = { [props: string]: (...props: unknown[]) => void };
@@ -94,15 +94,15 @@ export function WhiteboardOptionsMenu({
 
   const classes = useStyles();
 
-  const [whiteboardOptionsAnchorEl, setWhiteboardOptionsAnchorEl] = useState<null | HTMLElement>(null);
-  const isWhiteboardOptionsOpen = Boolean(whiteboardOptionsAnchorEl);
+  const whiteboardOptionsAnchorElRef = useRef<HTMLButtonElement | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
   const whiteboardOptionsMenuId = 'whiteboard-options-menu';
 
   const repositoningRef = useRef<HTMLDivElement | null>(null);
   const [dir, setDir] = useState<keyof typeof directions>('tl');
 
   const handleMenuClose = () => {
-    setWhiteboardOptionsAnchorEl(null);
+    setIsOpen(false);
   };
 
   const setDrawStyle = (hl: boolean) => {
@@ -147,7 +147,12 @@ export function WhiteboardOptionsMenu({
       <Button
         sx={classes.darkRounded}
         endIcon={<ArrowDropDownIcon fontSize="small" />}
-        onClick={e => setWhiteboardOptionsAnchorEl(e.currentTarget)}
+        ref={node => {
+          if (node) {
+            whiteboardOptionsAnchorElRef.current = node
+          }
+        }}
+        onClick={() => setIsOpen(!isOpen)}
       >
         <SettingsIcon />
       </Button>
@@ -155,10 +160,10 @@ export function WhiteboardOptionsMenu({
     <Menu
       keepMounted
       id={whiteboardOptionsMenuId}
-      anchorEl={whiteboardOptionsAnchorEl}
+      anchorEl={whiteboardOptionsAnchorElRef.current}
       anchorOrigin={directions[dir].anchor as PopoverOrigin}
       transformOrigin={directions[dir].transform as PopoverOrigin}
-      open={!!isWhiteboardOptionsOpen}
+      open={isOpen}
       onClose={handleMenuClose}
     >
       <Box sx={{ width: 320 }}>

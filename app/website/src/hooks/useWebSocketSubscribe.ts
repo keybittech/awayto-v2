@@ -1,5 +1,5 @@
 // useWebSocket.js
-import { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useContext, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { SocketParticipant, SocketResponseHandler, generateLightBgColor } from 'awayto/core';
 import { useContexts } from './useContexts';
 
@@ -8,7 +8,7 @@ export function useWebSocketSend() {
   return context.transmit;
 }
 
-export function useWebSocketSubscribe <T>(topic: string, callback: SocketResponseHandler<T>) {
+export function useWebSocketSubscribe<T>(topic: string, callback: SocketResponseHandler<T>) {
 
   const {
     connectionId,
@@ -17,10 +17,12 @@ export function useWebSocketSubscribe <T>(topic: string, callback: SocketRespons
     subscribe
   } = useContext(useContexts().WebSocketContext) as WebSocketContextType;
 
+  const subscriptionChecks = useRef(['subscribe-topic']);
+  const [subscribed, setSubscribed] = useState(false);
   const [subscriber, setSubscriber] = useState<SocketParticipant | undefined>();
   const [unsubscriber, setUnsubscriber] = useState<SocketParticipant | undefined>();
   const [userList, setUserList] = useState<Map<string, SocketParticipant>>(new Map());
-  const callbackRef = useRef(callback);
+  const callbackRef = useCallback(callback, [callback]);
 
   const handleSub = (sub: SocketParticipant) => {
     setUserList(ul => {
@@ -35,27 +37,32 @@ export function useWebSocketSubscribe <T>(topic: string, callback: SocketRespons
         sub.color = generateLightBgColor();
         ul.set(sub.scid, sub);
         setSubscriber(sub);
-        console.log(sub.name, 'joined the channel');
       }
       return new Map(ul);
     });
   }
 
   useEffect(() => {
-    callbackRef.current = callback;
-  }, [callback]);
-
-  useEffect(() => {
     if (connected) {
+      const unsubscribe = subscribe(topic, async (message) => {
+        if ('subscribers-existing' === message.action) {
+          subscriptionChecks.current = [...subscriptionChecks.current, 'existing-subscribers'];
+        } else if (['existing-subscribers', 'subscribe-topic'].includes(message.action)) {
 
-      const unsubscribe = subscribe(topic, message => {
-        if (['existing-subscribers', 'subscribe-topic'].includes(message.action)) {
+          subscriptionChecks.current = subscriptionChecks.current.filter(sc => sc !== message.action);
+
           for (const sub of message.payload as SocketParticipant[]) {
             handleSub(sub);
           }
+
+          if (message.sender === connectionId && !subscriptionChecks.current.length) {
+            setSubscribed(true);
+          }
+
           if ('existing-subscribers' === message.action) {
             transmit(false, 'load-messages', topic);
           }
+
         } else if ('unsubscribe-topic' === message.action) {
           for (const unsub of userList.values()) {
             if (unsub.cids.includes(message.payload as string)) {
@@ -67,7 +74,7 @@ export function useWebSocketSubscribe <T>(topic: string, callback: SocketRespons
             }
           }
         } else {
-          void callbackRef.current(message);        
+          await callbackRef(message);
         }
       });
 
@@ -83,6 +90,7 @@ export function useWebSocketSubscribe <T>(topic: string, callback: SocketRespons
 
   return useMemo(() => ({
     userList,
+    subscribed,
     subscriber,
     unsubscriber,
     connectionId,
@@ -97,5 +105,5 @@ export function useWebSocketSubscribe <T>(topic: string, callback: SocketRespons
         transmit(false, action, topic, payload);
       }
     }
-  }), [connectionId, connected, userList, subscriber, unsubscriber]);
+  }), [connectionId, connected, userList, subscribed, subscriber, unsubscriber]);
 }

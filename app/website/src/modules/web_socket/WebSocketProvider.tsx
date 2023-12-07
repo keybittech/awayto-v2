@@ -26,11 +26,11 @@ function WebSocketProvider({ children }: IProps): React.JSX.Element {
     }).then(async res => {
       if (res.ok) {
         const [ticket, cid] = (await res.text()).split(':');
-  
+
         const ws = new WebSocket(`wss://${location.hostname}/sock/${ticket}:${cid}`);
-  
+
         ws.onopen = () => {
-          console.log('socket open');
+          console.log('socket open', cid);
           if (reconnectSnackShown.current) {
             setSnack({ snackOn: 'Reconnected!', snackType: 'success' });
             reconnectSnackShown.current = false;
@@ -39,7 +39,7 @@ function WebSocketProvider({ children }: IProps): React.JSX.Element {
           setSocket(ws);
           initialConnectionMade.current = true;
         };
-    
+
         ws.onclose = () => {
           console.log('socket closed. reconnecting...');
           if (!reconnectSnackShown.current) {
@@ -50,24 +50,21 @@ function WebSocketProvider({ children }: IProps): React.JSX.Element {
             connect();
           }, 5000);
         };
-    
+
         ws.onerror = (error) => {
           console.error("socket error:", error);
           ws.close();
         };
-  
-        ws.onmessage = (event: MessageEvent<{ text(): Promise<string> }>) => {
-          async function go () {
-            const { timestamp, sender, action, topic, payload } = JSON.parse(await event.data.text()) as SocketResponse<unknown>;
-            const listeners = messageListeners.current.get(topic);
-      
-            if (listeners) {
-              for (const listener of listeners) {
-                void listener({ timestamp, sender, action, topic, payload: payload || {} });
-              }
+
+        ws.onmessage = async (event: { data: Blob }) => {
+          const { timestamp, sender, action, topic, payload } = JSON.parse(await event.data.text()) as SocketResponse<unknown>;
+          const listeners = messageListeners.current.get(topic);
+
+          if (listeners) {
+            for (const listener of listeners) {
+              await listener({ timestamp, sender, action, topic, payload: payload || {} });
             }
           }
-          void go();
         };
       } else {
         if (!reconnectSnackShown.current) {
@@ -100,7 +97,7 @@ function WebSocketProvider({ children }: IProps): React.JSX.Element {
       const listeners = messageListeners.current.get(topic) || new Set();
       listeners.add(callback);
       messageListeners.current.set(topic, listeners);
-  
+
       return () => {
         listeners.delete(callback);
         if (listeners.size === 0) {
@@ -110,11 +107,11 @@ function WebSocketProvider({ children }: IProps): React.JSX.Element {
     },
   } as WebSocketContextType;
 
-  return useMemo(() => !initialConnectionMade.current ||  !WebSocketContext ? <></> : 
+  return useMemo(() => !initialConnectionMade.current || !WebSocketContext ? <></> :
     <WebSocketContext.Provider value={webSocketContext}>
       {children}
-    </WebSocketContext.Provider>, 
-    [WebSocketContext, webSocketContext, initialConnectionMade.current]
+    </WebSocketContext.Provider>,
+    [WebSocketContext, webSocketContext]
   );
 }
 
