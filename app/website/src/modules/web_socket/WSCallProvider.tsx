@@ -47,7 +47,7 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
 
       if (localStream.current) {
         localStream.current.getTracks().forEach(track => {
-          startedSender?.pc?.addTrack(track);
+          pc?.addTrack(track);
         });
       }
 
