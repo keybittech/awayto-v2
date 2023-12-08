@@ -56,7 +56,7 @@ export default createHandlers({
         VALUES ($1, $2, $3, $4, $5::uuid)
         ON CONFLICT (group_id, role_id) DO NOTHING
       `, [group.id, adminRoleId, kcAdminSubgroupExternalId, utcNowString(), props.event.userSub]);
-      
+
       // Add admin roles to the admin subgroup
       await props.keycloak.groups.addClientRoleMappings({
         id: kcAdminSubgroupExternalId,
@@ -120,7 +120,7 @@ export default createHandlers({
 
       try {
         await props.keycloak.groups.del({ id: kcGroupExternalId });
-      } catch (error) {}
+      } catch (error) { }
 
       if ('unique_group_owner' === constraint) {
         throw { reason: 'Only 1 group can be managed at a time.' }
@@ -157,9 +157,12 @@ export default createHandlers({
   },
   putGroupAssignments: async props => {
 
+    console.log('IN GROUP ASSIGNMENTS')
     const { appRoles, appClient, groupRoleActions, roleCall } = await props.redisProxy('appRoles', 'appClient', 'groupRoleActions', 'roleCall');
 
     const { assignments } = props.event.body;
+
+    console.log({ appRoles, appClient, groupRoleActions, roleCall, assignments });
 
     // TODO: Part of RBAC upgrade
     // Get the group external ID for now by owner
@@ -167,11 +170,17 @@ export default createHandlers({
       SELECT external_id FROM dbtable_schema.groups WHERE created_sub = $1
     `, [props.event.userSub]);
 
-    await asyncForEach(Object.keys(assignments), async subgroupPath => {
+    console.log({ groupExternalId });
+
+    const keycloakGroup = await props.keycloak.groups.findOne({ id: groupExternalId });
+
+    console.log({ keycloakGroup });
+
+    for (const subgroupPath of Object.keys(assignments)) {
 
       // If this is the first time roles are being added, they won't exist in the global groupRoleActions collection, so add a container for them
       if (!groupRoleActions[subgroupPath]) {
-        const subgroup = (await props.keycloak.groups.findOne({ id: groupExternalId }))?.subGroups?.find(g => g.path === subgroupPath);
+        const subgroup = keycloakGroup?.subGroups?.find(g => g.path === subgroupPath);
         if (subgroup) {
           groupRoleActions[subgroupPath] = {
             id: subgroup.id,
@@ -180,7 +189,7 @@ export default createHandlers({
           };
         }
       }
-
+console.log(1)
       if (groupRoleActions[subgroupPath]) {
 
         const deletions = groupRoleActions[subgroupPath].actions?.filter(a => !assignments[subgroupPath].actions.map((aa: { name: string }) => aa.name)?.includes(a.name));
@@ -199,25 +208,26 @@ export default createHandlers({
           id: appRoles.find(ar => a.name === ar.name)?.id,
           name: a.name
         }));
-
+console.log(2)
         if (additions.length) {
           await props.keycloak.groups.addClientRoleMappings({
             id: groupRoleActions[subgroupPath].id as string,
             clientUniqueId: appClient.id!,
             roles: additions as { id: string, name: string }[]
           });
+          console.log(4)
         }
 
         groupRoleActions[subgroupPath].fetch = true;
 
       }
-    });
+    };
 
     // Get client sessions to
     const sessions = await props.keycloak.clients.listSessions({
       id: appClient.id as string
     });
-
+console.log('a')
     // Assign APP_ROLE_CALL to group users
     const users = await props.tx.manyOrNone<IUserProfile>(`
       SELECT eu.sub
@@ -228,8 +238,9 @@ export default createHandlers({
       WHERE g.external_id = $1 AND eu.sub = ANY($2::uuid[])
     `, [groupExternalId, sessions.map(u => u.userId)]);
 
-
+console.log('blorg')
     const updates = users.flatMap(user => {
+      console.log({ user})
       return [
         props.keycloak.users.addClientRoleMappings({
           id: user.sub,
@@ -242,6 +253,7 @@ export default createHandlers({
 
     await Promise.all(updates);
 
+    console.log('regrouping');
     await props.keycloak.regroup(groupExternalId);
 
     return { success: true };
@@ -337,34 +349,34 @@ export default createHandlers({
 
       // Get group id and default role based on the group code
       try {
-        
+
         const { id: groupId, allowedDomains, defaultRoleId } = await props.tx.one<IGroup>(`
           SELECT id, allowed_domains as "allowedDomains", default_role_id as "defaultRoleId"
           FROM dbtable_schema.groups WHERE code = $1
         `, [code]);
-  
+
         // Get joining user's id
         const { id: userId, email } = await props.tx.one<IUserProfile>(`
           SELECT id, email FROM dbtable_schema.users WHERE sub = $1
         `, [props.event.userSub]);
-  
+
         if (allowedDomains && !allowedDomains.split(',').includes(email.split('@')[1])) {
-          throw { reason: 'Group access is restricted.'}
+          throw { reason: 'Group access is restricted.' }
         }
-  
+
         // Get the role's subgroup external id
         const { externalId: kcRoleSubgroupExternalId } = await props.tx.one<IGroupRole>(`
           SELECT external_id as "externalId"
           FROM dbtable_schema.group_roles
           WHERE group_id = $1 AND role_id = $2
         `, [groupId, defaultRoleId]);
-  
+
         // Add the joining user to the group in the app db
         await props.tx.none(`
           INSERT INTO dbtable_schema.group_users (user_id, group_id, external_id, created_sub)
           VALUES ($1, $2, $3, $4::uuid);
         `, [userId, groupId, kcRoleSubgroupExternalId, props.event.userSub]);
-  
+
         return { success: true };
       } catch (error) {
         const { received } = error as DbError;
@@ -380,7 +392,7 @@ export default createHandlers({
       if ('group_users_user_id_group_id_key' === constraint) {
         throw { reason: 'You already belong to this group.' }
       }
-      
+
       throw error;
     }
   },
@@ -405,7 +417,7 @@ export default createHandlers({
     `, [userId, groupId]);
 
     const userCodeGroups = (await props.keycloak.users.listGroups({ id: props.event.userSub })).filter(ug => ug.path?.split('/')[1] === name);
-    
+
     for (const ucg of userCodeGroups) {
       if (ucg.id) {
         await props.keycloak.users.delFromGroup({ id: props.event.userSub, groupId: ucg.id })
@@ -414,7 +426,7 @@ export default createHandlers({
 
     // Refresh redis cache of group users/roles
     await props.keycloak.regroup(kcGroupExternalId);
-    
+
     await props.redis.del(props.event.userSub + 'profile/details');
 
     return { success: true };
@@ -451,7 +463,7 @@ export default createHandlers({
 
     // Refresh redis cache of group users/roles
     await props.keycloak.regroup(kcGroupExternalId);
-      
+
     await props.redis.del(props.event.userSub + 'profile/details');
     await props.redis.del(createdSub + 'profile/details');
 
@@ -459,7 +471,7 @@ export default createHandlers({
   },
   completeOnboarding: async props => {
 
-    const { service, schedule } = props.event.body;    
+    const { service, schedule } = props.event.body;
 
     const { id: serviceId } = await serviceApiHandler.postService(withEvent(props, service));
 
