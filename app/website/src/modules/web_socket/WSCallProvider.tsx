@@ -115,7 +115,7 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
 
     // If this message isn't from my self or it isn't targeted for me and
     // isn't related to any WebRTC messages
-    if (sender === connectionId || (target !== connectionId && !hasPayload)) {
+    if (sender === connectionId || (target && target !== sender)) {
       return;
     }
 
