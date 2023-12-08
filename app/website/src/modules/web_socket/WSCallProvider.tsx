@@ -43,12 +43,10 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
   const setUpSender = (senderId: string) => {
     if (!senderStreamsRef.current[senderId]) {
       const pc = new RTCPeerConnection(peerConnectionConfig);
-
+      iceCandidateQueue.current[senderId] = [];
 
       pc.onicecandidate = event => {
-        if (!iceCandidateQueue.current[senderId]) {
-          iceCandidateQueue.current[senderId] = [];
-        }
+
 
         const iceQueue = iceCandidateQueue.current[senderId];
 
