@@ -38,6 +38,77 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
   const callOptionRef = useRef<string[]>([]);
   const senderStreamsRef = useRef<SenderStreams>({});
 
+  const iceCandidateQueue = useRef<{ [prop: string]: RTCIceCandidate[] }>({});
+
+  const setUpSender = (senderId: string) => {
+    if (!senderStreamsRef.current[senderId]) {
+      const pc = new RTCPeerConnection(peerConnectionConfig);
+
+      if (localStream.current) {
+        localStream.current.getTracks().forEach(track => {
+          pc.addTrack(track);
+        });
+      }
+
+      pc.onicecandidate = event => {
+        if (!iceCandidateQueue.current[senderId]) {
+          iceCandidateQueue.current[senderId] = [];
+        }
+
+        const iceQueue = iceCandidateQueue.current[senderId];
+
+        if (event.candidate) {
+          iceQueue.push(event.candidate);
+
+          const currentSender = senderStreamsRef.current[senderId];
+
+          if (currentSender?.pc && !currentSender.pc.pendingLocalDescription && !currentSender.pc.pendingRemoteDescription && currentSender.pc.currentLocalDescription && currentSender.pc.currentRemoteDescription) {
+            sendMessage('rtc', {
+              ice: event.candidate,
+              target: senderId
+            });
+
+          } else {
+            iceQueue.push(event.candidate);
+            iceCandidateQueue.current[senderId] = iceQueue;
+          }
+        }
+        // When we generate an ICE candidate, send it to the peer
+        // if (event.candidate !== null) {
+        //   sendMessage('rtc', {
+        //     ice: event.candidate,
+        //     target: senderId
+        //   });
+        // }
+      };
+
+      pc.ontrack = event => {
+
+        // When receiving a track from a peer, add it to their mediaStream
+        const currentSender = senderStreamsRef.current[senderId];
+        if (!currentSender?.pc) return;
+        console.log('RECEIVING TRACK');
+        currentSender.mediaStream = currentSender.mediaStream ?? new MediaStream();
+        currentSender.mediaStream.addTrack(event.track);
+        senderStreamsRef.current[senderId] = currentSender;
+        setStreamsUpdated((new Date()).toString());
+      };
+
+      pc.oniceconnectionstatechange = () => {
+        // Clean up failed connections
+        const currentSender = senderStreamsRef.current[senderId];
+        if (currentSender?.pc && ['failed', 'closed', 'disconnected'].includes(currentSender.pc.iceConnectionState)) {
+          setStreamsUpdated((new Date()).toString());
+          currentSender.mediaStream = undefined;
+          currentSender.pc.close();
+          delete senderStreamsRef.current[senderId];
+        }
+      };
+
+      senderStreamsRef.current[senderId] = { pc };
+    }
+  };
+
   const {
     subscribed,
     userList,
@@ -47,7 +118,7 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
     const timestamp = (new Date()).toString();
     const { formats, target, sdp, ice, message, style } = payload;
 
-    const hasPayload = !!(formats || sdp || ice || message || ['ping-channel', 'stop-stream'].includes(action)); // We check these actions specially because they won't be targeted towards anyone but we still want them to be processed by everyone
+    const hasPayload = !!(formats || sdp || ice || message || ['stream-inquiry', 'ping-channel', 'stop-stream'].includes(action)); // We check these actions specially because they won't be targeted towards anyone but we still want them to be processed by everyone
 
     // If this message isn't from my self or it isn't targeted for me and
     // isn't related to any WebRTC messages
@@ -70,34 +141,41 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
     } else if ('ping-channel' === action && !!localStream.current) {
       // When new chatters ping the channel, and we're already streaming,
       // initate setup
-      sendMessage('start-stream', { target: sender, formats: callOptionRef.current });
+      sendMessage('stream-inquiry');
     } else if ('stop-stream' === action) {
       // Only remove the member's media stream when they stop streaming
       // i.e. continue to allow our stream to flow to them
       senderStreamsRef.current[sender].mediaStream = undefined;
       setStreamsUpdated(timestamp);
-    } else if (['start-stream', 'peer-response'].includes(action)) {
+    } else if ('stream-inquiry' === action) {
+      // Add approval step
+      sendMessage('start-stream', { target: sender });
+    } else if ('start-stream' === action) {
       // Parties to an incoming caller's 'start-stream' will see this, and 
       // then notify the caller that they exist in return
       // The caller gets a party member's 'peer-response', and sets them 
       // up in return
-      if (setTopicMessages) {
-        for (const user of userList.values()) {
-          if (user.cids.includes(sender)) {
-            setTopicMessages(m => [...m, {
-              ...user,
-              sender,
-              style: 'utterance',
-              message: `Joined call${formats ? ' with ' + (formats.indexOf('video') > -1 ? 'video' : 'voice') : ''}.`,
-              timestamp
-            }]);
-          }
-        }
-      }
+      // if (setTopicMessages) {
+      //   for (const user of userList.values()) {
+      //     if (user.cids.includes(sender)) {
+      //       setTopicMessages(m => [...m, {
+      //         ...user,
+      //         sender,
+      //         style: 'utterance',
+      //         message: `Joined call${formats ? ' with ' + (formats.indexOf('video') > -1 ? 'video' : 'voice') : ''}.`,
+      //         timestamp
+      //       }]);
+      //     }
+      //   }
+      // }
 
-      const startedSender = senderStreamsRef.current[sender] || { peerResponse: 'peer-response' === action };
-      startedSender.pc = startedSender.pc || new RTCPeerConnection(peerConnectionConfig);
+      setUpSender(sender);
 
+      const startedSender = senderStreamsRef.current[sender];
+
+      // const startedSender = senderStreamsRef.current[sender] || { peerResponse: 'peer-response' === action };
+      // startedSender.pc = startedSender.pc || new RTCPeerConnection(peerConnectionConfig);
+      //
       // const sentTracks = startedSender.pc?.getSenders().map(ts => ts.track?.id);
 
       // If we already sent tracks to the pc, we know we don't need to setup
@@ -105,52 +183,54 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
       // anyway upon starting their stream
       // if (sentTracks.length >= 1) return;
 
-      startedSender.pc.onicecandidate = event => {
-        // When we generate an ICE candidate, send it to the peer
-        if (event.candidate !== null) {
-          sendMessage('rtc', {
-            ice: event.candidate,
-            target: sender
-          });
-        }
-      };
+      // startedSender.pc.onicecandidate = event => {
+      //   // When we generate an ICE candidate, send it to the peer
+      //   if (event.candidate !== null) {
+      //     sendMessage('rtc', {
+      //       ice: event.candidate,
+      //       target: sender
+      //     });
+      //   }
+      // };
+      //
+      // startedSender.pc.ontrack = event => {
+      //   // When receiving a track from a peer, add it to their mediaStream
+      //   const currentSender = senderStreamsRef.current[sender];
+      //   if (!currentSender?.pc) return;
+      //   currentSender.mediaStream = currentSender.mediaStream ?? new MediaStream();
+      //   currentSender.mediaStream.addTrack(event.track);
+      //   senderStreamsRef.current[sender] = currentSender;
+      //   setStreamsUpdated((new Date()).toString());
+      // };
+      //
+      // startedSender.pc.oniceconnectionstatechange = () => {
+      //   // Clean up failed connections
+      //   const currentSender = senderStreamsRef.current[sender];
+      //   if (currentSender?.pc && ['failed', 'closed', 'disconnected'].includes(currentSender.pc.iceConnectionState)) {
+      //     setStreamsUpdated((new Date()).toString());
+      //     currentSender.mediaStream = undefined;
+      //     currentSender.pc.close();
+      //     delete senderStreamsRef.current[sender];
+      //   }
+      // };
 
-      startedSender.pc.ontrack = event => {
-        // When receiving a track from a peer, add it to their mediaStream
-        const currentSender = senderStreamsRef.current[sender];
-        if (!currentSender?.pc) return;
-        currentSender.mediaStream = currentSender.mediaStream ?? new MediaStream();
-        currentSender.mediaStream.addTrack(event.track);
-        senderStreamsRef.current[sender] = currentSender;
-        setStreamsUpdated((new Date()).toString());
-      };
+      // if (localStream.current) {
+      //   // If this client is currently streaming when setting up a peer,
+      //   // include the existing tracks
+      //   const tracks = localStream.current.getTracks();
+      //   const sentTracks = startedSender.pc?.getSenders().map(ts => ts.track?.id);
+      //   tracks.filter(t => !sentTracks.includes(t.id)).forEach(track => {
+      //     startedSender.pc?.addTrack(track)
+      //   });
+      // }
 
-      startedSender.pc.oniceconnectionstatechange = () => {
-        // Clean up failed connections
-        const currentSender = senderStreamsRef.current[sender];
-        if (currentSender?.pc && ['failed', 'closed', 'disconnected'].includes(currentSender.pc.iceConnectionState)) {
-          setStreamsUpdated((new Date()).toString());
-          currentSender.mediaStream = undefined;
-          currentSender.pc.close();
-          delete senderStreamsRef.current[sender];
-        }
-      };
+      // if (startedSender.peerResponse) {
+      // In a situation where no one is currently streaming, User A sends
+      // 'start-stream', that will be received here in the "else" block. In
+      // response, User B sends a 'peer-response' to User A, caught here,
+      // and begins the WebRTC transaction by sending an offer.
 
-      if (localStream.current) {
-        // If this client is currently streaming when setting up a peer,
-        // include the existing tracks
-        const tracks = localStream.current.getTracks();
-        const sentTracks = startedSender.pc?.getSenders().map(ts => ts.track?.id);
-        tracks.filter(t => !sentTracks.includes(t.id)).forEach(track => {
-          startedSender.pc?.addTrack(track)
-        });
-      }
-
-      if (startedSender.peerResponse) {
-        // In a situation where no one is currently streaming, User A sends
-        // 'start-stream', that will be received here in the "else" block. In
-        // response, User B sends a 'peer-response' to User A, caught here,
-        // and begins the WebRTC transaction by sending an offer.
+      if (startedSender.pc) {
         const description = await startedSender.pc.createOffer();
         await startedSender.pc.setLocalDescription(description);
 
@@ -158,18 +238,26 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
           sdp: startedSender.pc.localDescription,
           target: sender
         });
-      } else {
-        sendMessage('peer-response', {
-          target: sender
-        });
+
       }
+      // } else {
+      //   sendMessage('peer-response', {
+      //     target: sender
+      //   });
+      // }
 
       senderStreamsRef.current[sender] = startedSender;
 
     } else if (sdp) {
       // Standard WebRTC SDP message handling
+      setUpSender(sender);
       const currentSender = senderStreamsRef.current[sender];
       if (currentSender?.pc) {
+
+        if (currentSender.pc.signalingState === 'stable') {
+          await currentSender.pc.setLocalDescription(undefined); 
+        }
+
         await currentSender.pc.setRemoteDescription(new RTCSessionDescription(sdp));
 
         if ('offer' === sdp.type) {
@@ -179,6 +267,15 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
             sdp: currentSender.pc.localDescription,
             target: sender
           });
+        } else {
+          for (const candidate of iceCandidateQueue.current[sender]) {
+            sendMessage('rtc', {
+              ice: candidate,
+              target: sender
+            });
+          }
+
+          iceCandidateQueue.current[sender] = [];
         }
 
         senderStreamsRef.current[sender] = currentSender;
@@ -186,7 +283,7 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
     } else if (ice) {
       // Standard WebRTC ICE message handling
       const currentSender = senderStreamsRef.current[sender];
-      if (currentSender?.pc && currentSender.pc.remoteDescription && currentSender.pc.localDescription && !['failed', 'closed', 'disconnected'].includes(currentSender.pc.iceConnectionState)) {
+      if (currentSender?.pc && !currentSender.pc.pendingLocalDescription && !currentSender.pc.pendingRemoteDescription && currentSender.pc.currentLocalDescription && currentSender.pc.currentRemoteDescription && !['failed', 'closed', 'disconnected'].includes(currentSender.pc.iceConnectionState)) {
         await currentSender.pc.addIceCandidate(new RTCIceCandidate(ice));
         senderStreamsRef.current[sender] = currentSender;
       }
@@ -224,30 +321,32 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
 
           localStream.current = await navigator.mediaDevices.getUserMedia(callOptions);
 
-          // const tracks = localStream.current.getTracks();
-          //
-          // // Handle ongoing pc connections by sending a new offer with the new
-          // // media tracks
-          // for (const senderId in senderStreamsRef.current) {
-          //   const sender = senderStreamsRef.current[senderId];
-          //
-          //   const sentTracks = sender.pc?.getSenders().map(ts => ts.track?.id);
-          //   tracks.filter(t => !sentTracks?.includes(t.id)).forEach(track => sender.pc?.addTrack(track));
-          //
-          //   const description = await sender.pc?.createOffer();
-          //   await sender.pc?.setLocalDescription(description);
-          //
-          //   senderStreamsRef.current[senderId] = sender;
-          //
-          //   sendMessage('rtc', {
-          //     sdp: sender.pc?.localDescription,
-          //     target: senderId
-          //   });
-          // }
+
+          if (Object.keys(senderStreamsRef.current).length) {
+            const tracks = localStream.current.getTracks();
+
+            // Handle ongoing pc connections by sending a new offer with the new
+            // media tracks
+            for (const senderId in senderStreamsRef.current) {
+              const sender = senderStreamsRef.current[senderId];
+
+              tracks.forEach(track => sender.pc?.addTrack(track));
+
+              const description = await sender.pc?.createOffer();
+              await sender.pc?.setLocalDescription(description);
+
+              senderStreamsRef.current[senderId] = sender;
+
+              sendMessage('rtc', {
+                sdp: sender.pc?.localDescription,
+                target: senderId
+              });
+            }
+          }
 
           // trackStream(mediaStream); -- TODO: Check support for this in browsers some day
 
-          sendMessage('start-stream', { formats: callOptionRef.current });
+          sendMessage('stream-inquiry');
           setCanStartStop('stop');
         }
       } catch (error) {

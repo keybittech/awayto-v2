@@ -49,7 +49,7 @@ export type ExchangeSessionAttributes = {
 export type Sender = {
   pc?: RTCPeerConnection;
   mediaStream?: MediaStream;
-  peerResponse: boolean;
+  peerResponse?: boolean;
 }
 
 /**
