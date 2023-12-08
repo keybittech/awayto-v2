@@ -44,11 +44,6 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
     if (!senderStreamsRef.current[senderId]) {
       const pc = new RTCPeerConnection(peerConnectionConfig);
 
-      if (localStream.current) {
-        localStream.current.getTracks().forEach(track => {
-          pc.addTrack(track);
-        });
-      }
 
       pc.onicecandidate = event => {
         if (!iceCandidateQueue.current[senderId]) {
@@ -230,7 +225,12 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
       // response, User B sends a 'peer-response' to User A, caught here,
       // and begins the WebRTC transaction by sending an offer.
 
-      if (startedSender.pc) {
+      if (startedSender?.pc) {
+        if (localStream.current) {
+          localStream.current.getTracks().forEach(track => {
+            startedSender?.pc?.addTrack(track);
+          });
+        }
         const description = await startedSender.pc.createOffer();
         await startedSender.pc.setLocalDescription(description);
 
@@ -255,7 +255,7 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
       if (currentSender?.pc) {
 
         if (currentSender.pc.signalingState === 'stable') {
-          await currentSender.pc.setLocalDescription(undefined); 
+          await currentSender.pc.setLocalDescription(undefined);
         }
 
         await currentSender.pc.setRemoteDescription(new RTCSessionDescription(sdp));
