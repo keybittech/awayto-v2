@@ -113,7 +113,7 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
 
     // If this message isn't from my self or it isn't targeted for me and
     // isn't related to any WebRTC messages
-    if ((sender === connectionId || (target && target !== sender)) && !['stream-inquiry', 'ping-channel', 'stop-stream'].includes(action)) {
+    if ((sender === connectionId || (target && target !== connectionId)) && !['stream-inquiry', 'ping-channel', 'stop-stream'].includes(action)) {
       return;
     }
 
