@@ -162,7 +162,7 @@ export default createHandlers({
 
     const { assignments } = props.event.body;
 
-    console.log({ appRoles, appClient, groupRoleActions, roleCall, assignments });
+    console.log({ SUB: props.event.userSub, appRoles, appClient, groupRoleActions, roleCall, assignments });
 
     // TODO: Part of RBAC upgrade
     // Get the group external ID for now by owner
