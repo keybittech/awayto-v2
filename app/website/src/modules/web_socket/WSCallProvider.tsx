@@ -111,11 +111,9 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
     const timestamp = (new Date()).toString();
     const { formats, target, sdp, ice, message, style } = payload;
 
-    const hasPayload = !!(formats || sdp || ice || message || ['stream-inquiry', 'ping-channel', 'stop-stream'].includes(action)); // We check these actions specially because they won't be targeted towards anyone but we still want them to be processed by everyone
-
     // If this message isn't from my self or it isn't targeted for me and
     // isn't related to any WebRTC messages
-    if (sender === connectionId || (target && target !== sender)) {
+    if ((sender === connectionId || (target && target !== sender)) && !['stream-inquiry', 'ping-channel', 'stop-stream'].includes(action)) {
       return;
     }
 
