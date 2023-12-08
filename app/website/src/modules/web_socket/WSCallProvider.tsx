@@ -322,27 +322,27 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
           localStream.current = await navigator.mediaDevices.getUserMedia(callOptions);
 
 
-          if (Object.keys(senderStreamsRef.current).length) {
-            const tracks = localStream.current.getTracks();
-
-            // Handle ongoing pc connections by sending a new offer with the new
-            // media tracks
-            for (const senderId in senderStreamsRef.current) {
-              const sender = senderStreamsRef.current[senderId];
-
-              tracks.forEach(track => sender.pc?.addTrack(track));
-
-              const description = await sender.pc?.createOffer();
-              await sender.pc?.setLocalDescription(description);
-
-              senderStreamsRef.current[senderId] = sender;
-
-              sendMessage('rtc', {
-                sdp: sender.pc?.localDescription,
-                target: senderId
-              });
-            }
-          }
+          // if (Object.keys(senderStreamsRef.current).length) {
+          //   const tracks = localStream.current.getTracks();
+          //
+          //   // Handle ongoing pc connections by sending a new offer with the new
+          //   // media tracks
+          //   for (const senderId in senderStreamsRef.current) {
+          //     const sender = senderStreamsRef.current[senderId];
+          //
+          //     tracks.forEach(track => sender.pc?.addTrack(track));
+          //
+          //     const description = await sender.pc?.createOffer();
+          //     await sender.pc?.setLocalDescription(description);
+          //
+          //     senderStreamsRef.current[senderId] = sender;
+          //
+          //     sendMessage('rtc', {
+          //       sdp: sender.pc?.localDescription,
+          //       target: senderId
+          //     });
+          //   }
+          // }
 
           // trackStream(mediaStream); -- TODO: Check support for this in browsers some day
 
