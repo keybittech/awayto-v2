@@ -141,7 +141,7 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
     } else if ('ping-channel' === action && !!localStream.current) {
       // When new chatters ping the channel, and we're already streaming,
       // initate setup
-      sendMessage('stream-inquiry');
+      sendMessage('stream-inquiry', { target: sender });
     } else if ('stop-stream' === action) {
       // Only remove the member's media stream when they stop streaming
       // i.e. continue to allow our stream to flow to them
