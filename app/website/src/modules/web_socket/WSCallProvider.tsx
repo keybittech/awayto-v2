@@ -45,6 +45,12 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
       const pc = new RTCPeerConnection(peerConnectionConfig);
       iceCandidateQueue.current[senderId] = [];
 
+      if (localStream.current) {
+        localStream.current.getTracks().forEach(track => {
+          startedSender?.pc?.addTrack(track);
+        });
+      }
+
       pc.onicecandidate = event => {
 
 
@@ -138,7 +144,7 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
       // i.e. continue to allow our stream to flow to them
       senderStreamsRef.current[sender].mediaStream = undefined;
       setStreamsUpdated(timestamp);
-    } else if ('stream-inquiry' === action) {
+    } else if ('stream-inquiry' === action && !senderStreamsRef.current[sender]) {
       // Add approval step
       sendMessage('start-stream', { target: sender });
     } else if ('start-stream' === action) {
@@ -222,11 +228,7 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
       // and begins the WebRTC transaction by sending an offer.
 
       if (startedSender?.pc) {
-        if (localStream.current) {
-          localStream.current.getTracks().forEach(track => {
-            startedSender?.pc?.addTrack(track);
-          });
-        }
+
         const description = await startedSender.pc.createOffer();
         await startedSender.pc.setLocalDescription(description);
 
@@ -318,27 +320,27 @@ export function WSCallProvider({ children, topicId, setTopicMessages }: IProps):
           localStream.current = await navigator.mediaDevices.getUserMedia(callOptions);
 
 
-          // if (Object.keys(senderStreamsRef.current).length) {
-          //   const tracks = localStream.current.getTracks();
-          //
-          //   // Handle ongoing pc connections by sending a new offer with the new
-          //   // media tracks
-          //   for (const senderId in senderStreamsRef.current) {
-          //     const sender = senderStreamsRef.current[senderId];
-          //
-          //     tracks.forEach(track => sender.pc?.addTrack(track));
-          //
-          //     const description = await sender.pc?.createOffer();
-          //     await sender.pc?.setLocalDescription(description);
-          //
-          //     senderStreamsRef.current[senderId] = sender;
-          //
-          //     sendMessage('rtc', {
-          //       sdp: sender.pc?.localDescription,
-          //       target: senderId
-          //     });
-          //   }
-          // }
+          if (Object.keys(senderStreamsRef.current).length) {
+            const tracks = localStream.current.getTracks();
+
+            // Handle ongoing pc connections by sending a new offer with the new
+            // media tracks
+            for (const senderId in senderStreamsRef.current) {
+              const sender = senderStreamsRef.current[senderId];
+
+              tracks.forEach(track => sender.pc?.addTrack(track));
+
+              const description = await sender.pc?.createOffer();
+              await sender.pc?.setLocalDescription(description);
+
+              senderStreamsRef.current[senderId] = sender;
+
+              sendMessage('rtc', {
+                sdp: sender.pc?.localDescription,
+                target: senderId
+              });
+            }
+          }
 
           // trackStream(mediaStream); -- TODO: Check support for this in browsers some day
 
