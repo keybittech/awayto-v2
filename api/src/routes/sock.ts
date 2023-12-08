@@ -39,7 +39,7 @@ export default function buildSockRoutes(app: Express, dbClient: IDatabase<unknow
     const { sub } = req.body as { [prop: string]: string };
 
     const bookings = (await dbClient.manyOrNone<IBooking>(`
-      SELECT b.id FROM dbtable_schema.bookings b
+      SELECT b.schedule_bracket_slot_id as id FROM dbtable_schema.bookings b
       JOIN dbtable_schema.quotes q ON q.id = b.quote_id
       JOIN dbtable_schema.schedule_bracket_slots sbs ON sbs.id = b.schedule_bracket_slot_id
       WHERE q.created_sub = $1 OR sbs.created_sub = $1

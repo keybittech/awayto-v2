@@ -79,7 +79,7 @@ export function UpcomingBookingsMenu({ handleMenuClose, upcomingBookingsAnchorEl
   >
     <List>
       {upcomingBookings.length ? <Box sx={{ width: 300 }}>
-        {upcomingBookings.map(({ id, slotDate, startTime, serviceName, serviceTierName }, i) => {
+        {upcomingBookings.map(({ slotDate, startTime, serviceName, serviceTierName, scheduleBracketSlotId }, i) => {
 
           const dt = bookingDT(slotDate, startTime);
 
@@ -90,7 +90,7 @@ export function UpcomingBookingsMenu({ handleMenuClose, upcomingBookingsAnchorEl
                 <Button
                   aria-label={`go to exchange for ${shortNSweet(slotDate, startTime)}`}
                   onClick={() => {
-                    navigate(`/exchange/${id}`);
+                    navigate(`/exchange/${scheduleBracketSlotId}`);
                   }}
                   variant="text"
                   startIcon={<JoinFullIcon />}

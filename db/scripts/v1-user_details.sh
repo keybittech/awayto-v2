@@ -45,6 +45,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'
             eb."slotDate",
             eb."startTime",
             eb."serviceTierName",
+            eb."scheduleBracketSlotId",
             eb."serviceName",
             eb."createdOn"
           FROM dbview_schema.enabled_bookings eb
