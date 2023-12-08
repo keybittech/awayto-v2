@@ -231,7 +231,6 @@ export default createHandlers({
     `, [groupExternalId, sessions.map(u => u.userId)]);
 
     const updates = users.flatMap(user => {
-      console.log({ user})
       return [
         props.keycloak.users.addClientRoleMappings({
           id: user.sub,

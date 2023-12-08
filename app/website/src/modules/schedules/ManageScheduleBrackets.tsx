@@ -27,6 +27,19 @@ export function ManageScheduleBrackets(): React.JSX.Element {
     groupSchedules,
   } = useContext(useContexts().GroupContext) as GroupContextType;
 
+  const {
+    getGroupSchedules: {
+      refetch: refetchGroupSchedules
+    },
+    getGroupUserSchedules: {
+      refetch: refetchGroupUserSchedules
+    },
+    getGroupUserScheduleStubs: {
+      refetch: refetchGroupUserScheduleStubs
+    },
+  } = useContext(useContexts().GroupScheduleContext) as GroupScheduleContextType;
+
+
   const [deleteGroupUserScheduleByUserScheduleId] = sh.useDeleteGroupUserScheduleByUserScheduleIdMutation();
   const [deleteSchedule] = sh.useDeleteScheduleMutation()
 
@@ -59,7 +72,13 @@ export function ManageScheduleBrackets(): React.JSX.Element {
             const ids = selected.join(',');
             await deleteGroupUserScheduleByUserScheduleId({ ids }).unwrap();
             await deleteSchedule({ ids }).unwrap();
-            getSchedules().catch(console.error);
+
+            void getSchedules();
+            void refetchGroupSchedules().then(() => {
+              void refetchGroupUserSchedules();
+              void refetchGroupUserScheduleStubs();
+            });
+            
             setSnack({ snackType: 'success', snackOn: 'Successfully removed schedule records.' });
           }
         });

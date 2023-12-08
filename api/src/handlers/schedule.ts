@@ -161,8 +161,8 @@ async function removeScheduleBrackets<Q extends AnyRecord>(scheduleId: string, p
     SELECT * FROM dbfunc_schema.get_scheduled_parts($1);
   `, [scheduleId]);
 
-  const scheduledSlots = parts.find(p => p.ids?.length && 'slot' === p.partType);
-  const scheduledServices = parts.find(p => p.ids?.length && 'service' === p.partType);
+  const scheduledSlots = parts.find(p => p.ids?.length && 'slot' === p.parttype);
+  const scheduledServices = parts.find(p => p.ids?.length && 'service' === p.parttype);
 
   const { ids }= await props.tx.one<{ ids: string[] }>(`
     SELECT JSONB_AGG(id) as ids FROM dbtable_schema.schedule_brackets

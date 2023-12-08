@@ -10,7 +10,10 @@ export default createHandlers({
       ON CONFLICT (group_schedule_id, user_schedule_id) DO NOTHING
     `, [groupScheduleId, userScheduleId, props.event.userSub]);
 
+    await props.redis.del(`${props.event.userSub}group/schedules`);
     await props.redis.del(`${props.event.userSub}group/user_schedules`);
+    await props.redis.del(`${props.event.userSub}group/user_schedules/${groupScheduleId}`);
+    await props.redis.del(`${props.event.userSub}group/user_schedules_stubs`);
 
     return [];
   },
@@ -78,6 +81,12 @@ export default createHandlers({
 
       const hasParts = parts.some(p => p.ids?.length);
 
+      const { groupScheduleId } = await props.tx.one<IGroupUserSchedule>(`
+        SELECT group_schedule_id as "groupScheduleId"
+        FROM dbtable_schema.group_user_schedules
+        WHERE user_schedule_id = $1
+      `, [userScheduleId]);
+
       if (!hasParts) {
         await props.tx.none(`
           DELETE FROM dbtable_schema.group_user_schedules
@@ -90,9 +99,14 @@ export default createHandlers({
           WHERE user_schedule_id = $1
         `, [userScheduleId]);
       }
+
+      await props.redis.del(`${props.event.userSub}group/user_schedules/${groupScheduleId}`);
+
     });
 
+    await props.redis.del(`${props.event.userSub}group/schedules`);
     await props.redis.del(`${props.event.userSub}group/user_schedules`);
+    await props.redis.del(`${props.event.userSub}group/user_schedules_stubs`);
 
     return idsSplit.map(id => ({ id }));
   }

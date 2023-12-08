@@ -37,6 +37,15 @@ export function ManageScheduleBracketsModal({ editSchedule, closeModal }: IProps
   } = useContext(GroupContext) as GroupContextType;
 
   const {
+    getGroupSchedules: {
+      refetch: refetchGroupSchedules
+    },
+    getGroupUserSchedules: {
+      refetch: refetchGroupUserSchedules
+    },
+    getGroupUserScheduleStubs: {
+      refetch: refetchGroupUserScheduleStubs
+    },
     selectGroupSchedule: {
       item: groupSchedule,
       comp: GroupScheduleSelect
@@ -118,6 +127,11 @@ export function ManageScheduleBracketsModal({ editSchedule, closeModal }: IProps
           userScheduleId: userScheduleId,
           groupScheduleId: groupSchedule.id
         }).catch(console.error);
+
+        void refetchGroupSchedules().then(() => {
+          void refetchGroupUserSchedules();
+          void refetchGroupUserScheduleStubs();
+        });
 
         setSnack({ snackOn: 'Successfully added your schedule to group schedule: ' + schedule.name, snackType: 'info' });
         if (closeModal) {
