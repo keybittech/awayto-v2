@@ -157,24 +157,17 @@ export default createHandlers({
   },
   putGroupAssignments: async props => {
 
-    console.log('IN GROUP ASSIGNMENTS')
     const { appRoles, appClient, groupRoleActions, roleCall } = await props.redisProxy('appRoles', 'appClient', 'groupRoleActions', 'roleCall');
 
     const { assignments } = props.event.body;
 
-    console.log({ SUB: props.event.userSub, appRoles, appClient, groupRoleActions, roleCall, assignments });
-
     // TODO: Part of RBAC upgrade
     // Get the group external ID for now by owner
     const { externalId: groupExternalId } = await props.tx.one<IGroup>(`
-      SELECT external_id FROM dbtable_schema.groups WHERE created_sub = $1
+      SELECT external_id as "externalId" FROM dbtable_schema.groups WHERE created_sub = $1
     `, [props.event.userSub]);
 
-    console.log({ groupExternalId });
-
     const keycloakGroup = await props.keycloak.groups.findOne({ id: groupExternalId });
-
-    console.log({ keycloakGroup });
 
     for (const subgroupPath of Object.keys(assignments)) {
 
@@ -189,7 +182,7 @@ export default createHandlers({
           };
         }
       }
-console.log(1)
+
       if (groupRoleActions[subgroupPath]) {
 
         const deletions = groupRoleActions[subgroupPath].actions?.filter(a => !assignments[subgroupPath].actions.map((aa: { name: string }) => aa.name)?.includes(a.name));
@@ -208,14 +201,13 @@ console.log(1)
           id: appRoles.find(ar => a.name === ar.name)?.id,
           name: a.name
         }));
-console.log(2)
+
         if (additions.length) {
           await props.keycloak.groups.addClientRoleMappings({
             id: groupRoleActions[subgroupPath].id as string,
             clientUniqueId: appClient.id!,
             roles: additions as { id: string, name: string }[]
           });
-          console.log(4)
         }
 
         groupRoleActions[subgroupPath].fetch = true;
@@ -227,7 +219,7 @@ console.log(2)
     const sessions = await props.keycloak.clients.listSessions({
       id: appClient.id as string
     });
-console.log('a')
+
     // Assign APP_ROLE_CALL to group users
     const users = await props.tx.manyOrNone<IUserProfile>(`
       SELECT eu.sub
@@ -238,7 +230,6 @@ console.log('a')
       WHERE g.external_id = $1 AND eu.sub = ANY($2::uuid[])
     `, [groupExternalId, sessions.map(u => u.userId)]);
 
-console.log('blorg')
     const updates = users.flatMap(user => {
       console.log({ user})
       return [
@@ -253,7 +244,6 @@ console.log('blorg')
 
     await Promise.all(updates);
 
-    console.log('regrouping');
     await props.keycloak.regroup(groupExternalId);
 
     return { success: true };
